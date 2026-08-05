@@ -1,39 +1,52 @@
 import { NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+})
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
-    const file = formData.get('file') as File | null || formData.get('image') as File | null
+
+    const file =
+      (formData.get('file') as File | null) ||
+      (formData.get('image') as File | null)
 
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No file uploaded' },
+        { status: 400 }
+      )
     }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadDir, { recursive: true })
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
-    const ext = path.extname(file.name) || '.jpg'
-    const fileName = `${uuidv4()}${ext}`
-    const filePath = path.join(uploadDir, fileName)
-
-    await writeFile(filePath, buffer)
-
-    const url = `/uploads/${fileName}`
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: 'thuraya-almaghribi',
+      resource_type: 'image',
+    })
 
     return NextResponse.json({
       success: true,
-      url,
-      fileName,
+      url: result.secure_url,
+      publicId: result.public_id,
     })
   } catch (error) {
-    console.error('Error uploading file:', error)
-    const msg = error instanceof Error ? error.message : 'Failed to upload file'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error(error)
+
+    return NextResponse.json(
+      {
+        error: 'Failed to upload image',
+      },
+      {
+        status: 500,
+      }
+    )
   }
 }
