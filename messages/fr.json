@@ -1,0 +1,296 @@
+{
+  "site": {
+    "name": "ثريا المغربي",
+    "tagline": "Élégance marocaine authentique",
+    "description": "Thuraya Al-Maghribi – Votre destination pour les djellabas et niqabs marocains artisanaux de qualité supérieure.",
+    "currency": "Dirham",
+    "currencyCode": "MAD"
+  },
+  "nav": {
+    "home": "Accueil",
+    "products": "Produits",
+    "djellabas": "Djellabas",
+    "niqabs": "Niqabs",
+    "about": "À propos",
+    "contact": "Contact",
+    "cart": "Panier",
+    "checkout": "Commander",
+    "menu": "Menu",
+    "close": "Fermer",
+    "search": "Rechercher"
+  },
+  "home": {
+    "hero": {
+      "badge": "Djellabas marocaines authentiques",
+      "title": "L'Élégance Marocaine",
+      "titleHighlight": "dans toute sa splendeur",
+      "subtitle": "Djellabas et niqabs marocains artisanaux, confectionnés dans les meilleures étoffes, alliant héritage authentique et goût raffiné.",
+      "cta": "Acheter maintenant",
+      "ctaSecondary": "Découvrir la collection",
+      "scrollHint": "Découvrir plus"
+    },
+    "featured": {
+      "title": "Produits vedettes",
+      "subtitle": "Une sélection de nos plus belles djellabas marocaines",
+      "viewAll": "Voir tout"
+    },
+    "categories": {
+      "title": "Acheter par catégorie",
+      "subtitle": "Découvrez notre collection exclusive",
+      "djellabas": "Djellabas",
+      "niqabs": "Niqabs",
+      "djellabas_desc": "Djellabas marocaines dans les meilleures étoffes",
+      "niqabs_desc": "Niqabs élégants assortis à nos djellabas"
+    },
+    "features": {
+      "title": "Pourquoi Thuraya Al-Maghribi ?",
+      "handmade": {
+        "title": "Artisanat authentique",
+        "desc": "Chaque pièce est fabriquée avec soin et savoir-faire ancestral"
+      },
+      "quality": {
+        "title": "Meilleures étoffes",
+        "desc": "Tissus sélectionnés avec soin pour confort et durabilité"
+      },
+      "delivery": {
+        "title": "Livraison partout au Maroc",
+        "desc": "Nous livrons dans toutes les villes du Royaume du Maroc"
+      },
+      "cod": {
+        "title": "Paiement à la livraison",
+        "desc": "Payez en espèces à la réception de votre commande"
+      }
+    },
+    "testimonials": {
+      "title": "Ce que disent nos clientes",
+      "subtitle": "Avis authentiques de nos précieuses clientes"
+    }
+  },
+  "products": {
+    "title": "Tous les produits",
+    "djellabas_title": "Djellabas",
+    "niqabs_title": "Niqabs",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "sortBy": {
+      "newest": "Plus récent",
+      "priceAsc": "Prix : croissant",
+      "priceDesc": "Prix : décroissant",
+      "featured": "En vedette"
+    },
+    "filters": {
+      "category": "Catégorie",
+      "size": "Taille",
+      "color": "Couleur",
+      "price": "Prix",
+      "all": "Tout",
+      "clear": "Effacer les filtres",
+      "apply": "Appliquer"
+    },
+    "noResults": "Aucun produit ne correspond à votre recherche",
+    "loading": "Chargement...",
+    "addToCart": "Ajouter au panier",
+    "addedToCart": "Ajouté",
+    "outOfStock": "Rupture de stock",
+    "salePrice": "Prix réduit",
+    "viewDetails": "Voir les détails",
+    "relatedProducts": "Produits similaires",
+    "sizes": {
+      "guide": "Guide des tailles",
+      "select": "Choisir la taille",
+      "XS": "XS – Très petit",
+      "S": "S – Petit",
+      "M": "M – Moyen",
+      "L": "L – Grand",
+      "XL": "XL – Très grand",
+      "XXL": "XXL – Extra grand",
+      "XXXL": "XXXL – Super grand"
+    },
+    "colors": {
+      "select": "Choisir la couleur"
+    },
+    "niqab": {
+      "addOn": "Ajouter un niqab assorti",
+      "addOnDesc": "Choisissez un niqab qui s'assortit à votre djellaba",
+      "included": "Avec niqab",
+      "withoutNiqab": "Sans niqab",
+      "withNiqab": "Avec niqab"
+    },
+    "quantity": "Quantité",
+    "sku": "Référence",
+    "share": "Partager",
+    "images": "Images"
+  },
+  "cart": {
+    "title": "Mon panier",
+    "empty": "Votre panier est vide",
+    "emptyDesc": "Vous n'avez ajouté aucun produit, commencez vos achats maintenant !",
+    "startShopping": "Commencer les achats",
+    "items": "{count} article(s)",
+    "item": "article",
+    "remove": "Supprimer",
+    "clear": "Vider le panier",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "shippingFree": "Gratuit",
+    "total": "Total",
+    "checkout": "Commander",
+    "continueShopping": "Continuer vos achats",
+    "size": "Taille",
+    "color": "Couleur",
+    "quantity": "Quantité",
+    "loading": "Chargement...",
+    "close": "Fermer"
+  },
+  "checkout": {
+    "title": "Passer la commande",
+    "steps": {
+      "info": "Vos informations",
+      "address": "Adresse de livraison",
+      "review": "Récapitulatif"
+    },
+    "personal": {
+      "title": "Informations personnelles",
+      "name": "Nom complet",
+      "namePlaceholder": "Entrez votre nom complet",
+      "phone": "Numéro de téléphone",
+      "phonePlaceholder": "06XXXXXXXX",
+      "phone2": "Numéro secondaire (optionnel)",
+      "phone2Placeholder": "06XXXXXXXX",
+      "email": "Email (optionnel)",
+      "emailPlaceholder": "example@email.com"
+    },
+    "address": {
+      "title": "Adresse de livraison",
+      "city": "Ville",
+      "cityPlaceholder": "Choisissez votre ville",
+      "district": "Quartier / Zone",
+      "districtPlaceholder": "Nom du quartier ou de la zone",
+      "address": "Adresse détaillée",
+      "addressPlaceholder": "Rue, bâtiment, numéro...",
+      "postalCode": "Code postal (optionnel)",
+      "postalCodePlaceholder": "XXXXX",
+      "notes": "Notes de livraison (optionnel)",
+      "notesPlaceholder": "Instructions spéciales pour le livreur..."
+    },
+    "payment": {
+      "title": "Mode de paiement",
+      "cod": "Paiement à la livraison",
+      "codDesc": "Payez en espèces à la réception de votre commande"
+    },
+    "order": {
+      "title": "Récapitulatif de la commande",
+      "place": "Confirmer la commande",
+      "placing": "Confirmation en cours...",
+      "terms": "En confirmant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité"
+    },
+    "errors": {
+      "required": "Ce champ est obligatoire",
+      "invalidPhone": "Numéro de téléphone invalide",
+      "invalidEmail": "Email invalide",
+      "cartEmpty": "Votre panier est vide",
+      "failed": "Une erreur s'est produite, veuillez réessayer"
+    }
+  },
+  "confirmation": {
+    "title": "Commande confirmée !",
+    "subtitle": "Merci de votre confiance en Thuraya Al-Maghribi",
+    "orderNumber": "Numéro de commande",
+    "message": "Notre équipe vous contactera prochainement pour confirmer la commande et fixer la date de livraison.",
+    "estimatedDelivery": "Délai de livraison estimé",
+    "deliveryDays": "3-5 jours ouvrables",
+    "continueShopping": "Continuer vos achats",
+    "trackOrder": "Suivre votre commande"
+  },
+  "tracking": {
+    "title": "Suivi de commande",
+    "orderNumber": "Numéro de commande",
+    "status": {
+      "PENDING": "En attente",
+      "CONFIRMED": "Confirmée",
+      "PROCESSING": "En préparation",
+      "SHIPPED": "En route",
+      "DELIVERED": "Livrée",
+      "CANCELLED": "Annulée",
+      "RETURNED": "Retournée"
+    },
+    "notFound": "Commande introuvable"
+  },
+  "about": {
+    "title": "À propos de Thuraya Al-Maghribi",
+    "subtitle": "L'histoire de l'élégance marocaine authentique",
+    "story": "Thuraya Al-Maghribi est bien plus qu'une boutique — c'est une célébration de l'identité marocaine et de l'artisanat authentique.",
+    "mission": "Notre mission",
+    "missionText": "Offrir les djellabas marocaines les plus raffinées avec une qualité inégalée et à des prix accessibles.",
+    "vision": "Notre vision",
+    "visionText": "Devenir la première destination de toute femme à la recherche de l'élégance marocaine authentique."
+  },
+  "errors": {
+    "404": {
+      "title": "Page introuvable",
+      "subtitle": "Désolé, la page que vous recherchez n'existe pas",
+      "back": "Retour à l'accueil"
+    },
+    "500": {
+      "title": "Une erreur s'est produite",
+      "subtitle": "Nous nous excusons pour cette erreur, veuillez réessayer",
+      "retry": "Réessayer"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "retry": "Réessayer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "yes": "Oui",
+    "no": "Non",
+    "currency": "DH",
+    "or": "ou",
+    "and": "et",
+    "search": "Rechercher...",
+    "noResults": "Aucun résultat",
+    "seeAll": "Voir tout",
+    "backToTop": "Retour en haut"
+  },
+  "footer": {
+    "tagline": "Élégance marocaine authentique",
+    "description": "Thuraya Al-Maghribi — Votre destination pour les djellabas et niqabs marocains authentiques artisanaux.",
+    "links": {
+      "title": "Liens rapides",
+      "home": "Accueil",
+      "products": "Produits",
+      "about": "À propos",
+      "contact": "Contact"
+    },
+    "categories": {
+      "title": "Catégories",
+      "djellabas": "Djellabas",
+      "niqabs": "Niqabs"
+    },
+    "contact": {
+      "title": "Contactez-nous",
+      "phone": "+212 6XX XXX XXX",
+      "email": "contact@thuraya-almaghribi.ma",
+      "hours": "Lun – Ven : 9h – 18h"
+    },
+    "rights": "Tous droits réservés",
+    "brand": "ثريا المغربي"
+  },
+  "theme": {
+    "light": "Mode clair",
+    "dark": "Mode sombre",
+    "toggle": "Changer le thème"
+  },
+  "language": {
+    "ar": "العربية",
+    "fr": "Français",
+    "en": "English",
+    "switch": "Changer la langue"
+  }
+}

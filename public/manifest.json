@@ -1,0 +1,25 @@
+{
+  "name": "ثريا المغربي",
+  "short_name": "ثريا",
+  "description": "متجر ثريا المغربي للجلابيات والنقابات المغربية الأصيلة",
+  "start_url": "/ar",
+  "display": "standalone",
+  "background_color": "#fefcf9",
+  "theme_color": "#C4622D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/images/brand/logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/brand/logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["shopping", "fashion"],
+  "lang": "ar",
+  "dir": "rtl"
+}
