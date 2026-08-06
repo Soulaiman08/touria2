@@ -10,7 +10,7 @@ import { useCartStore } from '@/store/cart.store'
 import { checkoutSchema, type CheckoutFormValues } from '@/lib/validations/checkout'
 import { MOROCCAN_CITIES, getShippingCost } from '@/config/moroccan-cities'
 import { formatPrice } from '@/lib/utils'
-import { ShieldCheck, MapPin, User } from 'lucide-react'
+import { ShieldCheck, MapPin, User, ChevronDown, ShoppingBag, Loader2, Truck } from 'lucide-react'
 
 interface CheckoutFormProps {
   locale: string
@@ -84,7 +84,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
           colorNameAr: item.colorNameAr,
           colorNameFr: item.colorNameFr,
           colorNameEn: item.colorNameEn,
-          sku: item.slug, // fallback to slug as sku snapshot
+          sku: item.slug,
         },
       }))
 
@@ -118,15 +118,17 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
   if (cartStore.items.length === 0) {
     return (
-      <div className="text-center py-16 space-y-4">
-        <div className="text-4xl">🛒</div>
-        <h2 className="font-semibold text-lg" style={{ color: 'var(--foreground)' }}>
+      <div className="text-center py-20 my-8 max-w-md mx-auto p-10 rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-xs">
+        <div className="w-20 h-20 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center mx-auto mb-6">
+          <ShoppingBag className="w-10 h-10" />
+        </div>
+        <h2 className="font-bold text-2xl mb-3 text-[var(--foreground)]">
           {cartT('empty')}
         </h2>
-        <p style={{ color: 'var(--muted-foreground)' }}>{cartT('emptyDesc')}</p>
+        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6">{cartT('emptyDesc')}</p>
         <button
           onClick={() => router.push(`/${locale}/products`)}
-          className="btn btn-primary btn-round"
+          className="btn btn-primary btn-round px-8 py-3.5"
         >
           {cartT('startShopping')}
         </button>
@@ -137,210 +139,344 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+      className="grid grid-cols-1 lg:grid-cols-12 items-start"
+      style={{ gap: '40px' }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* ── Form Details Column ───────────────────────────────── */}
-      <div className="lg:col-span-7 space-y-6">
-        {/* Personal Details */}
-        <div className="p-6 rounded-2xl border space-y-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-          <h2 className="font-bold text-lg flex items-center gap-2 border-b pb-3" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <User className="w-5 h-5 text-[#C4622D]" />
-            {t('personal.title')}
-          </h2>
+      {/* ── Form Details Column (7 Cols) ───────────────────────── */}
+      <div className="lg:col-span-7">
+        {/* Card 1: Personal Details */}
+        <div
+          className="border bg-[var(--card)] shadow-xs"
+          style={{
+            borderColor: 'var(--border)',
+            marginBottom: '44px',
+            padding: '36px',
+            borderRadius: '24px',
+          }}
+        >
+          {/* Card Title Header */}
+          <div
+            className="flex items-center gap-4 pb-6 border-b"
+            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
+          >
+            <div className="w-11 h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+              <User className="w-5 h-5" />
+            </div>
+            <h2 className="font-bold text-xl text-[var(--foreground)]">
+              {t('personal.title')}
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Form Fields */}
+          <div>
             {/* Full Name */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
+            <div style={{ marginBottom: '28px' }}>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+              >
                 {t('personal.name')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 {...register('customerName')}
                 placeholder={t('personal.namePlaceholder')}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm focus:border-[#C4622D] focus:ring-1 focus:ring-[#C4622D] outline-none"
-                style={{ background: 'var(--input)', borderColor: errors.customerName ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
+                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
+                style={{
+                  background: 'var(--input)',
+                  color: 'var(--foreground)',
+                  borderColor: errors.customerName ? '#ef4444' : 'var(--border)',
+                }}
               />
               {errors.customerName && (
-                <p className="text-xs text-red-500">{errors.customerName.message}</p>
+                <p className="text-xs text-red-500 font-medium mt-2">{errors.customerName.message}</p>
               )}
             </div>
 
-            {/* Phone Number */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
-                {t('personal.phone')} <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
+            {/* Phones Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-7" style={{ marginBottom: '28px' }}>
+              {/* Primary Phone */}
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+                >
+                  {t('personal.phone')} <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="tel"
+                  dir="ltr"
                   {...register('customerPhone')}
                   placeholder={t('personal.phonePlaceholder')}
-                  className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                  style={{ background: 'var(--input)', borderColor: errors.customerPhone ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
+                  className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                  style={{
+                    background: 'var(--input)',
+                    color: 'var(--foreground)',
+                    borderColor: errors.customerPhone ? '#ef4444' : 'var(--border)',
+                  }}
                 />
+                {errors.customerPhone && (
+                  <p className="text-xs text-red-500 font-medium mt-2">{errors.customerPhone.message}</p>
+                )}
               </div>
-              {errors.customerPhone && (
-                <p className="text-xs text-red-500">{errors.customerPhone.message}</p>
-              )}
-            </div>
 
-            {/* Secondary Phone */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
-                {t('personal.phone2')}
-              </label>
-              <input
-                type="tel"
-                {...register('customerPhone2')}
-                placeholder={t('personal.phone2Placeholder')}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--input)', borderColor: errors.customerPhone2 ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
-              />
-              {errors.customerPhone2 && (
-                <p className="text-xs text-red-500">{errors.customerPhone2.message}</p>
-              )}
+              {/* Secondary Phone */}
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+                >
+                  {t('personal.phone2')}
+                </label>
+                <input
+                  type="tel"
+                  dir="ltr"
+                  {...register('customerPhone2')}
+                  placeholder={t('personal.phone2Placeholder')}
+                  className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                  style={{
+                    background: 'var(--input)',
+                    color: 'var(--foreground)',
+                    borderColor: errors.customerPhone2 ? '#ef4444' : 'var(--border)',
+                  }}
+                />
+                {errors.customerPhone2 && (
+                  <p className="text-xs text-red-500 font-medium mt-2">{errors.customerPhone2.message}</p>
+                )}
+              </div>
             </div>
 
             {/* Email Address */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+              >
                 {t('personal.email')}
               </label>
               <input
                 type="email"
+                dir="ltr"
                 {...register('customerEmail')}
                 placeholder={t('personal.emailPlaceholder')}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--input)', borderColor: errors.customerEmail ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
+                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                style={{
+                  background: 'var(--input)',
+                  color: 'var(--foreground)',
+                  borderColor: errors.customerEmail ? '#ef4444' : 'var(--border)',
+                }}
               />
               {errors.customerEmail && (
-                <p className="text-xs text-red-500">{errors.customerEmail.message}</p>
+                <p className="text-xs text-red-500 font-medium mt-2">{errors.customerEmail.message}</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Shipping Address */}
-        <div className="p-6 rounded-2xl border space-y-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-          <h2 className="font-bold text-lg flex items-center gap-2 border-b pb-3" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <MapPin className="w-5 h-5 text-[#C4622D]" />
-            {t('address.title')}
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* City Dropdown */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
-                {t('address.city')} <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedCityVal}
-                onChange={handleCityChange}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--input)', borderColor: errors.city ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
-              >
-                <option value="">{t('address.cityPlaceholder')}</option>
-                {MOROCCAN_CITIES.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {locale === 'ar' ? c.ar : locale === 'fr' ? c.fr : c.en}
-                  </option>
-                ))}
-              </select>
-              {errors.city && (
-                <p className="text-xs text-red-500">{errors.city.message}</p>
-              )}
+        {/* Card 2: Shipping Address */}
+        <div
+          className="border bg-[var(--card)] shadow-xs"
+          style={{
+            borderColor: 'var(--border)',
+            padding: '36px',
+            borderRadius: '24px',
+          }}
+        >
+          {/* Card Title Header */}
+          <div
+            className="flex items-center gap-4 pb-6 border-b"
+            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
+          >
+            <div className="w-11 h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-5 h-5" />
             </div>
+            <h2 className="font-bold text-xl text-[var(--foreground)]">
+              {t('address.title')}
+            </h2>
+          </div>
 
-            {/* District */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
-                {t('address.district')}
-              </label>
-              <input
-                type="text"
-                {...register('district')}
-                placeholder={t('address.districtPlaceholder')}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--input)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-              />
+          {/* Form Fields */}
+          <div>
+            {/* City & District Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-7" style={{ marginBottom: '28px' }}>
+              {/* City Dropdown */}
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+                >
+                  {t('address.city')} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedCityVal}
+                    onChange={handleCityChange}
+                    className="w-full h-12 px-4.5 pe-11 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer"
+                    style={{
+                      background: 'var(--input)',
+                      color: 'var(--foreground)',
+                      borderColor: errors.city ? '#ef4444' : 'var(--border)',
+                    }}
+                  >
+                    <option value="">{t('address.cityPlaceholder')}</option>
+                    {MOROCCAN_CITIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {locale === 'ar' ? c.ar : locale === 'fr' ? c.fr : c.en}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-4 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
+                </div>
+                {errors.city && (
+                  <p className="text-xs text-red-500 font-medium mt-2">{errors.city.message}</p>
+                )}
+              </div>
+
+              {/* District */}
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+                >
+                  {t('address.district')}
+                </label>
+                <input
+                  type="text"
+                  {...register('district')}
+                  placeholder={t('address.districtPlaceholder')}
+                  className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
+                  style={{
+                    background: 'var(--input)',
+                    color: 'var(--foreground)',
+                    borderColor: 'var(--border)',
+                  }}
+                />
+              </div>
             </div>
 
             {/* Detailed Address */}
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
+            <div style={{ marginBottom: '28px' }}>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+              >
                 {t('address.address')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 {...register('address')}
                 placeholder={t('address.addressPlaceholder')}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--input)', borderColor: errors.address ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
+                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
+                style={{
+                  background: 'var(--input)',
+                  color: 'var(--foreground)',
+                  borderColor: errors.address ? '#ef4444' : 'var(--border)',
+                }}
               />
               {errors.address && (
-                <p className="text-xs text-red-500">{errors.address.message}</p>
+                <p className="text-xs text-red-500 font-medium mt-2">{errors.address.message}</p>
               )}
             </div>
 
             {/* Postal Code */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
+            <div style={{ marginBottom: '28px' }}>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+              >
                 {t('address.postalCode')}
               </label>
               <input
                 type="text"
+                dir="ltr"
                 {...register('postalCode')}
                 placeholder={t('address.postalCodePlaceholder')}
-                className="w-full h-11 px-3.5 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--input)', borderColor: errors.postalCode ? 'red' : 'var(--border)', color: 'var(--foreground)' }}
+                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                style={{
+                  background: 'var(--input)',
+                  color: 'var(--foreground)',
+                  borderColor: errors.postalCode ? '#ef4444' : 'var(--border)',
+                }}
               />
               {errors.postalCode && (
-                <p className="text-xs text-red-500">{errors.postalCode.message}</p>
+                <p className="text-xs text-red-500 font-medium mt-2">{errors.postalCode.message}</p>
               )}
             </div>
 
             {/* Delivery Notes */}
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider block" style={{ color: 'var(--foreground)' }}>
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+              >
                 {t('address.notes')}
               </label>
               <textarea
                 {...register('notes')}
                 placeholder={t('address.notesPlaceholder')}
                 rows={3}
-                className="w-full p-3.5 rounded-xl border text-sm outline-none resize-none"
-                style={{ background: 'var(--input)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                className="w-full p-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 resize-none min-h-[115px] leading-relaxed"
+                style={{
+                  background: 'var(--input)',
+                  color: 'var(--foreground)',
+                  borderColor: 'var(--border)',
+                }}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Order Summary & Place Column ──────────────────────── */}
-      <div className="lg:col-span-5 space-y-6">
-        <div className="p-6 rounded-2xl border space-y-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-          <h2 className="font-bold text-lg border-b pb-3" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            {t('order.title')}
-          </h2>
+      {/* ── Order Summary Column (5 Cols - Sticky) ───────────── */}
+      <div className="lg:col-span-5 lg:sticky lg:top-24">
+        <div
+          className="border bg-[var(--card)] shadow-xs"
+          style={{
+            borderColor: 'var(--border)',
+            padding: '36px 28px',
+            borderRadius: '24px',
+          }}
+        >
+          {/* Card Title Header */}
+          <div
+            className="flex items-center gap-4 pb-6 border-b"
+            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
+          >
+            <div className="w-11 h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <h2 className="font-bold text-xl text-[var(--foreground)]">
+              {t('order.title')}
+            </h2>
+          </div>
 
-          {/* Cart Item Snapshot */}
-          <div className="divide-y max-h-60 overflow-y-auto pr-2" style={{ borderColor: 'var(--border)' }}>
+          {/* Cart Item List */}
+          <div
+            className="divide-y max-h-[380px] overflow-y-auto pe-1"
+            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
+          >
             {cartStore.items.map((item) => (
-              <div key={item.id} className="py-3 flex gap-3 text-xs">
-                <div className="relative w-12 h-12 bg-muted rounded overflow-hidden flex-shrink-0">
-                  <Image src={item.mainImage} alt={item.nameAr} fill className="object-cover" />
-                </div>
+              <div key={item.id} className="py-4 flex items-center gap-4 text-xs first:pt-0 last:pb-0">
+                <Image
+                  src={item.mainImage}
+                  alt={item.nameAr}
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-cover rounded-2xl flex-shrink-0 border"
+                  style={{ borderColor: 'var(--border)' }}
+                />
+
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold truncate" style={{ color: 'var(--foreground)' }}>
+                  <p className="font-bold text-sm truncate mb-1" style={{ color: 'var(--foreground)' }}>
                     {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
                   </p>
-                  <p className="mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                    {cartT('size')}: {item.size} | {cartT('quantity')}: {item.quantity}
+                  <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                    {cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span> | {cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span>
                   </p>
                 </div>
-                <span className="font-bold" style={{ color: 'var(--foreground)' }}>
+
+                <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap">
                   {formatPrice(
                     (item.unitPrice + (item.niqabItem?.unitPrice ?? 0)) * item.quantity,
                     locale,
@@ -350,52 +486,87 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
             ))}
           </div>
 
-          {/* Order pricing totals */}
-          <div className="space-y-2 border-t pt-4 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-            <div className="flex justify-between">
+          {/* ── Order Pricing Sub-Box (Spacious Sub-Box) ───────────── */}
+          <div
+            className="p-5.5 rounded-2xl flex flex-col gap-3.5"
+            style={{
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border)',
+              marginBottom: '32px',
+            }}
+          >
+            <div className="flex justify-between items-center text-xs sm:text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
               <span>{cartT('subtotal')}</span>
-              <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
+              <span className="font-bold" style={{ color: 'var(--foreground)' }}>
                 {formatPrice(subtotal, locale)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>{cartT('shipping')}</span>
-              <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
+
+            <div className="flex justify-between items-center text-xs sm:text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+              <span className="flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-[#C4622D] flex-shrink-0" />
+                {cartT('shipping')}
+              </span>
+              <span className="font-bold text-end" style={{ color: 'var(--foreground)' }}>
                 {selectedCityVal ? formatPrice(shippingCost, locale) : t('address.cityPlaceholder')}
+              </span>
+            </div>
+
+            <div
+              className="border-t pt-3.5 flex justify-between items-center font-bold text-sm sm:text-base mt-0.5"
+              style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+            >
+              <span>{cartT('total')}</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-[#C4622D]">
+                {formatPrice(total, locale)}
               </span>
             </div>
           </div>
 
-          <div className="border-t pt-3 flex justify-between font-bold text-base" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <span>{cartT('total')}</span>
-            <span className="text-xl text-[#C4622D]">{formatPrice(total, locale)}</span>
-          </div>
-
-          {/* Payment Method COD */}
-          <div className="p-4 rounded-xl border flex gap-3" style={{ borderColor: '#b8965a', background: 'rgba(184,150,90,0.05)' }}>
+          {/* ── COD Sub-Box (Spacious Sub-Box) ────────────────────── */}
+          <div
+            className="p-5 rounded-2xl border flex gap-3.5 items-center"
+            style={{
+              borderColor: 'rgba(184,150,90,0.3)',
+              background: 'rgba(184,150,90,0.06)',
+              marginBottom: '32px',
+            }}
+          >
             <ShieldCheck className="w-6 h-6 text-[#C4622D] flex-shrink-0" />
-            <div>
-              <h4 className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>{t('payment.cod')}</h4>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{t('payment.codDesc')}</p>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-xs sm:text-sm mb-0.5" style={{ color: 'var(--foreground)' }}>
+                {t('payment.cod')}
+              </h4>
+              <p className="text-xs leading-relaxed opacity-90" style={{ color: 'var(--muted-foreground)' }}>
+                {t('payment.codDesc')}
+              </p>
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Error Message Banner */}
           {errorMsg && (
-            <p className="text-xs text-red-500 text-center font-medium bg-red-50 dark:bg-red-950/20 py-2.5 rounded-lg border border-red-200">
+            <p className="text-xs text-red-500 text-center font-semibold bg-red-500/10 border border-red-500/20 py-3.5 px-4 rounded-xl mb-6">
               {errorMsg}
             </p>
           )}
 
+          {/* Place Order CTA Button */}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full btn btn-primary btn-round py-3.5"
+            className="w-full btn btn-primary py-4.5 rounded-2xl font-bold text-base shadow-lg shadow-[#C4622D]/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 mb-4"
           >
-            {isSubmitting ? t('order.placing') : t('order.place')}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>{t('order.placing')}</span>
+              </>
+            ) : (
+              <span>{t('order.place')}</span>
+            )}
           </button>
 
-          <p className="text-[10px] text-center" style={{ color: 'var(--muted-foreground)' }}>
+          <p className="text-xs text-center leading-relaxed px-2" style={{ color: 'var(--muted-foreground)' }}>
             {t('order.terms')}
           </p>
         </div>
