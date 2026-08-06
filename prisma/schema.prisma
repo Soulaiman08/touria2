@@ -115,6 +115,7 @@ model Order {
   customerEmail   String?   @map("customer_email")
 
   // Shipping address
+  region          String    @default("")
   city            String
   district        String?
   address         String

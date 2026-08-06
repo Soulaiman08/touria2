@@ -8,7 +8,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCartStore } from '@/store/cart.store'
 import { checkoutSchema, type CheckoutFormValues } from '@/lib/validations/checkout'
-import { MOROCCAN_CITIES, getShippingCost } from '@/config/moroccan-cities'
+import { MOROCCAN_CITIES, getShippingCost, getCitiesByRegion } from '@/config/moroccan-cities'
+import { MOROCCAN_REGIONS } from '@/config/moroccan-regions'
 import { formatPrice } from '@/lib/utils'
 import { ShieldCheck, MapPin, User, ChevronDown, ShoppingBag, Loader2, Truck } from 'lucide-react'
 
@@ -17,12 +18,14 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ locale }: CheckoutFormProps) {
+  const [selectedRegion, setSelectedRegion] = useState('')
+  const [selectedCity, setSelectedCity] = useState('')
+
   const t = useTranslations('checkout')
   const cartT = useTranslations('cart')
   const router = useRouter()
 
   const cartStore = useCartStore()
-  const [selectedCityVal, setSelectedCityVal] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -40,6 +43,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
       customerPhone: '',
       customerPhone2: '',
       customerEmail: '',
+      region: '',
       city: '',
       district: '',
       address: '',
@@ -48,14 +52,26 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
     },
   })
 
-  // Calculations
+  // Calculations – react to the selected city
   const subtotal = cartStore.subtotal
-  const shippingCost = selectedCityVal ? getShippingCost(selectedCityVal) : 0
+  const shippingCost = selectedCity ? getShippingCost(selectedCity) : 0
   const total = subtotal + shippingCost
+
+  // Cities available for the currently selected region
+  const availableCities = selectedRegion ? getCitiesByRegion(selectedRegion) : MOROCCAN_CITIES
+
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const regionId = e.target.value
+    setSelectedRegion(regionId)
+    // Reset city when region changes
+    setSelectedCity('')
+    setValue('region', regionId, { shouldValidate: true })
+    setValue('city', '', { shouldValidate: false })
+  }
 
   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value
-    setSelectedCityVal(val)
+    setSelectedCity(val)
     setValue('city', val, { shouldValidate: true })
   }
 
@@ -298,8 +314,41 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
           {/* Form Fields */}
           <div>
-            {/* City & District Grid */}
+            {/* Region & City Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-7" style={{ marginBottom: '28px' }}>
+              {/* Region Dropdown */}
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+                >
+                  {t('address.region')} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedRegion}
+                    onChange={handleRegionChange}
+                    className="w-full h-12 px-4.5 pe-11 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer"
+                    style={{
+                      background: 'var(--input)',
+                      color: 'var(--foreground)',
+                      borderColor: errors.region ? '#ef4444' : 'var(--border)',
+                    }}
+                  >
+                    <option value="">{t('address.regionPlaceholder')}</option>
+                    {MOROCCAN_REGIONS.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {locale === 'ar' ? r.ar : locale === 'fr' ? r.fr : r.en}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-4 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
+                </div>
+                {errors.region && (
+                  <p className="text-xs text-red-500 font-medium mt-2">{errors.region.message}</p>
+                )}
+              </div>
+
               {/* City Dropdown */}
               <div>
                 <label
@@ -310,9 +359,10 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 </label>
                 <div className="relative">
                   <select
-                    value={selectedCityVal}
+                    value={selectedCity}
                     onChange={handleCityChange}
-                    className="w-full h-12 px-4.5 pe-11 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer"
+                    disabled={!selectedRegion}
+                    className="w-full h-12 px-4.5 pe-11 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background: 'var(--input)',
                       color: 'var(--foreground)',
@@ -320,7 +370,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                     }}
                   >
                     <option value="">{t('address.cityPlaceholder')}</option>
-                    {MOROCCAN_CITIES.map((c) => (
+                    {availableCities.map((c) => (
                       <option key={c.value} value={c.value}>
                         {locale === 'ar' ? c.ar : locale === 'fr' ? c.fr : c.en}
                       </option>
@@ -332,27 +382,27 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                   <p className="text-xs text-red-500 font-medium mt-2">{errors.city.message}</p>
                 )}
               </div>
+            </div>
 
-              {/* District */}
-              <div>
-                <label
-                  className="block text-xs font-bold uppercase tracking-wider"
-                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-                >
-                  {t('address.district')}
-                </label>
-                <input
-                  type="text"
-                  {...register('district')}
-                  placeholder={t('address.districtPlaceholder')}
-                  className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
-                  style={{
-                    background: 'var(--input)',
-                    color: 'var(--foreground)',
-                    borderColor: 'var(--border)',
-                  }}
-                />
-              </div>
+            {/* District */}
+            <div style={{ marginBottom: '28px' }}>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
+              >
+                {t('address.district')}
+              </label>
+              <input
+                type="text"
+                {...register('district')}
+                placeholder={t('address.districtPlaceholder')}
+                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
+                style={{
+                  background: 'var(--input)',
+                  color: 'var(--foreground)',
+                  borderColor: 'var(--border)',
+                }}
+              />
             </div>
 
             {/* Detailed Address */}
@@ -508,7 +558,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 {cartT('shipping')}
               </span>
               <span className="font-bold text-end" style={{ color: 'var(--foreground)' }}>
-                {selectedCityVal ? formatPrice(shippingCost, locale) : t('address.cityPlaceholder')}
+                {selectedCity ? formatPrice(shippingCost, locale) : t('address.cityPlaceholder')}
               </span>
             </div>
 

@@ -31,6 +31,8 @@ export const checkoutSchema = z.object({
       { message: 'البريد الإلكتروني غير صحيح' },
     ),
 
+  region: z.string().min(1, 'يرجى اختيار الجهة'),
+
   city: z.string().min(1, 'يرجى اختيار المدينة'),
 
   district: z.string().optional(),

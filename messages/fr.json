@@ -164,6 +164,8 @@
       "title": "Adresse de livraison",
       "city": "Ville",
       "cityPlaceholder": "Choisissez votre ville",
+      "region": "Région",
+      "regionPlaceholder": "Choisissez votre région",
       "district": "Quartier / Zone",
       "districtPlaceholder": "Nom du quartier ou de la zone",
       "address": "Adresse détaillée",

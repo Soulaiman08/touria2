@@ -46,6 +46,7 @@ export interface Order {
   customerPhone: string
   customerPhone2?: string | null
   customerEmail?: string | null
+  region: string
   city: string
   district?: string | null
   address: string
@@ -80,6 +81,7 @@ export interface CheckoutFormData {
   customerPhone2?: string
   customerEmail?: string
   // Address
+  region: string
   city: string
   district?: string
   address: string

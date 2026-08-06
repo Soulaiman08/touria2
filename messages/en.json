@@ -164,6 +164,8 @@
       "title": "Delivery Address",
       "city": "City",
       "cityPlaceholder": "Select your city",
+      "region": "Region",
+      "regionPlaceholder": "Select your region",
       "district": "District / Area",
       "districtPlaceholder": "Neighborhood or area name",
       "address": "Detailed Address",

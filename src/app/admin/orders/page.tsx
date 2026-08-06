@@ -25,9 +25,11 @@ interface OrderItem {
   customerName: string
   customerPhone: string
   customerEmail?: string
+  region: string
   city: string
   address: string
   total: number
+  shippingCost: number
   status: string
   itemsCount: number
   createdAt: string
@@ -181,7 +183,9 @@ function OrdersContent() {
               <tr className="bg-zinc-950/60 border-b border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider">
                 <th className="py-4 px-4">Order #</th>
                 <th className="py-4 px-4">Customer & City</th>
+                <th className="py-4 px-4">Region</th>
                 <th className="py-4 px-4">Items</th>
+                <th className="py-4 px-4">Shipping</th>
                 <th className="py-4 px-4">Total</th>
                 <th className="py-4 px-4">Status</th>
                 <th className="py-4 px-4">Quick Status Update</th>
@@ -191,14 +195,14 @@ function OrdersContent() {
             <tbody className="divide-y divide-zinc-800/60 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-500">
+                  <td colSpan={9} className="py-12 text-center text-zinc-500">
                     <span className="inline-block w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Fetching orders list...</p>
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-500">
+                  <td colSpan={9} className="py-12 text-center text-zinc-500">
                     No orders found matching filters.
                   </td>
                 </tr>
@@ -212,7 +216,9 @@ function OrdersContent() {
                         {ord.customerPhone} • {ord.city}
                       </div>
                     </td>
+                    <td className="py-3.5 px-4 text-zinc-300 text-[11px]">{ord.region || '—'}</td>
                     <td className="py-3.5 px-4 text-zinc-300">{ord.itemsCount} item(s)</td>
+                    <td className="py-3.5 px-4 text-zinc-400 text-[11px]">{formatPrice(ord.shippingCost ?? 0, 'fr')}</td>
                     <td className="py-3.5 px-4 font-bold text-emerald-400">{formatPrice(ord.total, 'fr')}</td>
                     <td className="py-3.5 px-4">{getStatusBadge(ord.status)}</td>
                     <td className="py-3.5 px-4">

@@ -164,6 +164,8 @@
       "title": "عنوان التوصيل",
       "city": "المدينة",
       "cityPlaceholder": "اختاري مدينتك",
+      "region": "الجهة",
+      "regionPlaceholder": "اختاري الجهة",
       "district": "الحي / المنطقة",
       "districtPlaceholder": "اسم الحي أو المنطقة",
       "address": "العنوان التفصيلي",
