@@ -34,10 +34,14 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
   const isRTL = locale === 'ar'
 
   return (
-    <div className="container-brand py-12 space-y-12" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div
+      className="container-brand py-10 space-y-8"
+      style={{ paddingBottom: '100px', marginBottom: '40px' }}
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
       {/* ── Page Header ────────────────────────────────────────── */}
-      <div className="space-y-3 border-b pb-8" style={{ borderColor: 'var(--border)' }}>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>
+      <div className="space-y-2 border-b pb-8" style={{ borderColor: 'var(--border)' }}>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--foreground)' }}>
           {category
             ? (dbCategories.find((c) => c.slug === category || c.slug === category.replace(/s$/, ''))
               ? (locale === 'ar'
@@ -48,78 +52,63 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
               : pt('title'))
             : pt('title')}
         </h1>
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+        <p className="text-xs sm:text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
           {productsResponse.total}{' '}
           {locale === 'ar' ? 'قطع متوفرة' : locale === 'fr' ? 'articles disponibles' : 'items available'}
         </p>
       </div>
 
-      {/* ── Category Quick Filters — Dynamic from DB ───────────── */}
-      <div className="flex flex-wrap gap-2.5">
-        <Link
-          href={`/${locale}/products`}
-          className={`px-5 py-2 text-xs font-semibold rounded-full border transition-all duration-200 ${
-            !category
-              ? 'bg-[#C4622D] text-white border-transparent shadow-sm'
-              : 'hover:bg-[rgba(196,98,45,0.05)] hover:border-[#C4622D] hover:text-[#C4622D]'
-          }`}
+      {/* ── Products Layout (12 Cols) ──────────────────────────── */}
+      <div
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+        style={{ marginTop: '40px', paddingTop: '12px' }}
+      >
+        {/* Desktop Filter Sidebar (3 Cols - Styled like Checkout Cards) */}
+        <aside
+          className="hidden lg:block lg:col-span-3 border bg-[var(--card)] shadow-xs lg:sticky lg:top-24"
           style={{
-            borderColor: !category ? 'transparent' : 'var(--border)',
-            color: !category ? '#ffffff' : 'var(--muted-foreground)',
+            borderColor: 'var(--border)',
+            borderRadius: '24px',
+            padding: '24px',
           }}
         >
-          {pt('filters.all')}
-        </Link>
-
-        {dbCategories.map((cat) => {
-          const isActive = category === cat.slug || category === `${cat.slug}s`
-          const label = locale === 'ar' ? cat.nameAr : locale === 'fr' ? cat.nameFr : cat.nameEn
-          return (
-            <Link
-              key={cat.id}
-              href={`/${locale}/products?category=${cat.slug}`}
-              className={`px-5 py-2 text-xs font-semibold rounded-full border transition-all duration-200 ${
-                isActive
-                  ? 'bg-[#C4622D] text-white border-transparent shadow-sm'
-                  : 'hover:bg-[rgba(196,98,45,0.05)] hover:border-[#C4622D] hover:text-[#C4622D]'
-              }`}
-              style={{
-                borderColor: isActive ? 'transparent' : 'var(--border)',
-                color: isActive ? '#ffffff' : 'var(--muted-foreground)',
-              }}
-            >
-              {label}
-            </Link>
-          )
-        })}
-      </div>
-
-      {/* ── Products Layout ────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 items-start">
-        {/* Desktop filter sidebar */}
-        <aside
-          className="hidden lg:block p-8 rounded-2xl border space-y-8"
-          style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-        >
-          <div className="flex items-center gap-2 font-semibold text-sm border-b pb-4" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <SlidersHorizontal className="w-4 h-4 text-[#C4622D]" />
-            {pt('filter')}
+          {/* Card Title Header (Matching Checkout Card Header Style) */}
+          <div
+            className="flex items-center justify-between pb-4 border-b"
+            style={{ borderColor: 'var(--border)', marginBottom: '20px' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+                <SlidersHorizontal className="w-4.5 h-4.5" />
+              </div>
+              <h2 className="font-bold text-base text-[var(--foreground)]">
+                {pt('filter')}
+              </h2>
+            </div>
+            {(category || size || colorCode || search) ? (
+              <Link
+                href={`/${locale}/products`}
+                className="text-xs font-semibold text-[#C4622D] hover:underline"
+              >
+                {pt('filters.clear')}
+              </Link>
+            ) : null}
           </div>
 
-          {/* Size filter */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-xs uppercase tracking-wider" style={{ color: 'var(--foreground)' }}>
+          {/* Size Filter */}
+          <div style={{ marginBottom: '20px' }}>
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-3 text-[var(--foreground)]">
               {pt('filters.size')}
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map((s) => (
                 <Link
                   key={s}
                   href={`/${locale}/products?size=${s}${category ? `&category=${category}` : ''}`}
-                  className={`w-10 h-10 rounded-xl border flex items-center justify-center text-xs font-semibold transition-colors ${
+                  className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold transition-all ${
                     size === s
-                      ? 'border-[#C4622D] text-[#C4622D] bg-[rgba(196,98,45,0.05)] font-bold shadow-sm'
-                      : 'hover:border-[#C4622D] hover:text-[#C4622D]'
+                      ? 'border-[#C4622D] text-[#C4622D] bg-[#C4622D]/10 shadow-xs'
+                      : 'hover:border-[#C4622D] hover:text-[#C4622D] bg-[var(--bg-subtle)]'
                   }`}
                   style={{
                     borderColor: size === s ? '#C4622D' : 'var(--border)',
@@ -132,12 +121,22 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
             </div>
           </div>
 
-          {/* Category filter in sidebar */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-xs uppercase tracking-wider" style={{ color: 'var(--foreground)' }}>
+          {/* Category Filter */}
+          <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-2.5 text-[var(--foreground)]">
               {locale === 'ar' ? 'التصنيف' : locale === 'fr' ? 'Catégorie' : 'Category'}
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1">
+              <Link
+                href={`/${locale}/products`}
+                className={`flex items-center justify-between text-xs py-1.5 px-3 rounded-lg transition-all ${
+                  !category
+                    ? 'bg-[#C4622D]/10 text-[#C4622D] font-bold'
+                    : 'hover:bg-[var(--bg-subtle)] text-[var(--muted-foreground)]'
+                }`}
+              >
+                <span>{pt('filters.all')}</span>
+              </Link>
               {dbCategories.map((cat) => {
                 const isActive = category === cat.slug || category === `${cat.slug}s`
                 const label = locale === 'ar' ? cat.nameAr : locale === 'fr' ? cat.nameFr : cat.nameEn
@@ -145,14 +144,13 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
                   <Link
                     key={cat.id}
                     href={`/${locale}/products?category=${cat.slug}`}
-                    className="flex items-center gap-2 text-sm py-1.5 transition-colors"
-                    style={{ color: isActive ? '#C4622D' : 'var(--muted-foreground)', fontWeight: isActive ? 600 : 400 }}
+                    className={`flex items-center justify-between text-xs py-1.5 px-3 rounded-lg transition-all ${
+                      isActive
+                        ? 'bg-[#C4622D]/10 text-[#C4622D] font-bold'
+                        : 'hover:bg-[var(--bg-subtle)] text-[var(--muted-foreground)]'
+                    }`}
                   >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{ background: isActive ? '#C4622D' : 'var(--border)' }}
-                    />
-                    {label}
+                    <span>{label}</span>
                   </Link>
                 )
               })}
@@ -160,23 +158,24 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
           </div>
         </aside>
 
-        {/* Products Grid */}
-        <div className="lg:col-span-3">
+        {/* Main Products Section (9 Cols) */}
+        <div className="lg:col-span-9">
+          {/* Products Grid */}
           {productsResponse.items.length === 0 ? (
-            <div className="text-center py-20 space-y-4 border rounded-2xl" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+            <div className="text-center py-20 space-y-4 border rounded-3xl bg-[var(--card)] shadow-xs" style={{ borderColor: 'var(--border)' }}>
               <div className="text-5xl text-[#C4622D]">🌸</div>
-              <p className="font-semibold" style={{ color: 'var(--foreground)' }}>{pt('noResults')}</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>{pt('noResults')}</p>
               {(category || size || colorCode || search) ? (
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary btn-sm btn-round"
+                  className="btn btn-primary btn-sm btn-round px-6"
                 >
                   {pt('filters.clear')}
                 </Link>
               ) : null}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {productsResponse.items.map((product) => (
                 <ProductCard key={product.id} product={product} locale={locale} />
               ))}

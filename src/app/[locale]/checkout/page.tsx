@@ -14,7 +14,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
   return (
     <div
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 space-y-10"
+      className="container-brand py-10 md:py-16 space-y-10"
+      style={{ paddingBottom: '120px', marginBottom: '40px' }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Header Top Nav ────────────────────────────────────────── */}
@@ -51,7 +52,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       </div>
 
       {/* ── Checkout Form Container ──────────────────────────────── */}
-      <div className="max-w-5xl mx-auto w-full">
+      <div style={{ marginTop: '48px', paddingTop: '16px' }}>
         <CheckoutForm locale={locale} />
       </div>
     </div>
