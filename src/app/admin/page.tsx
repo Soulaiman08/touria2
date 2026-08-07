@@ -64,44 +64,66 @@ const statusMap: Record<string, { labelAr: string; labelEn: string; cls: string 
 
 /* ─── single stat card ──────────────────────────────────────────────── */
 function StatCard({
-  labelAr, labelEn, value, sub, accent, Icon,
+  labelAr, labelEn, value, sub, accentColor, bgColor, Icon,
 }: {
   labelAr: string
   labelEn: string
   value: string | number
   sub: string
-  accent: string
+  accentColor: string
+  bgColor: string
   Icon: React.ElementType
 }) {
-  const colors: Record<string, { ring: string; icon: string; blob: string; text: string }> = {
-    emerald: { ring: 'border-emerald-500/30 hover:border-emerald-500/60', icon: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', blob: 'bg-emerald-500/8',  text: 'text-emerald-400' },
-    amber:   { ring: 'border-amber-500/30   hover:border-amber-500/60',   icon: 'bg-amber-500/15   text-amber-400   border-amber-500/30',   blob: 'bg-amber-500/8',   text: 'text-amber-400'  },
-    blue:    { ring: 'border-blue-500/30    hover:border-blue-500/60',    icon: 'bg-blue-500/15    text-blue-400    border-blue-500/30',    blob: 'bg-blue-500/8',    text: 'text-blue-400'   },
-    purple:  { ring: 'border-purple-500/30  hover:border-purple-500/60',  icon: 'bg-purple-500/15  text-purple-400  border-purple-500/30',  blob: 'bg-purple-500/8',  text: 'text-purple-400' },
-  }
-  const c = colors[accent]
-
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-zinc-900 border ${c.ring} shadow-xl transition-all duration-300 flex flex-col`}>
-      {/* decorative blob */}
-      <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${c.blob} rounded-full blur-3xl pointer-events-none`} />
-
-      {/* ── Top section: icon + labels ─────────────── */}
-      <div className="relative z-10 flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-zinc-800/60">
-        <div className="flex flex-col gap-2">
-          <span className={`text-sm font-black tracking-wide ${c.text}`}>{labelAr}</span>
-          <span className="text-xs font-medium text-zinc-500">{labelEn}</span>
+    <div style={{
+      background: 'rgb(24,24,27)',
+      border: `1px solid ${accentColor}30`,
+      borderRadius: 20,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      transition: 'border-color 0.2s',
+    }}>
+      {/* Top section: label + icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 12,
+        padding: '24px 24px 20px',
+        borderBottom: '1px solid rgba(63,63,70,0.5)',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: accentColor, letterSpacing: '0.02em' }}>
+            {labelAr}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: '#71717a' }}>
+            {labelEn}
+          </span>
         </div>
-        <div className={`shrink-0 p-3 rounded-xl border ${c.icon} shadow-md`}>
-          <Icon className="w-5 h-5" />
+        <div style={{
+          flexShrink: 0,
+          padding: 12,
+          borderRadius: 14,
+          background: bgColor,
+          border: `1px solid ${accentColor}30`,
+          color: accentColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Icon style={{ width: 20, height: 20 }} />
         </div>
       </div>
 
-      {/* ── Bottom section: big number + trend ─────── */}
-      <div className="relative z-10 flex flex-col gap-3 px-6 py-5">
-        <span className="text-4xl font-black text-white tracking-tight leading-none">{value}</span>
-        <span className={`text-xs font-semibold ${c.text} flex items-center gap-1.5`}>
-          <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+      {/* Bottom section: number + trend */}
+      <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <span style={{ fontSize: 36, fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>
+          {value}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: accentColor, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <TrendingUp style={{ width: 13, height: 13, flexShrink: 0 }} />
           {sub}
         </span>
       </div>
@@ -174,7 +196,8 @@ function DashboardContent() {
           labelEn="Total Revenue"
           value={loading ? '—' : formatPrice(metrics?.totalRevenue || 0, 'fr')}
           sub="+14.2% عن الشهر الماضي"
-          accent="emerald"
+          accentColor="#34d399"
+          bgColor="rgba(52,211,153,0.12)"
           Icon={DollarSign}
         />
         <StatCard
@@ -182,7 +205,8 @@ function DashboardContent() {
           labelEn="Total Orders"
           value={loading ? '—' : metrics?.totalOrders ?? 0}
           sub="+8.5% عن الأسبوع الماضي"
-          accent="amber"
+          accentColor="#fbbf24"
+          bgColor="rgba(251,191,36,0.12)"
           Icon={ShoppingBag}
         />
         <StatCard
@@ -190,15 +214,17 @@ function DashboardContent() {
           labelEn="Customers"
           value={loading ? '—' : metrics?.totalCustomers ?? 0}
           sub="قاعدة العملاء النشطين"
-          accent="blue"
+          accentColor="#60a5fa"
+          bgColor="rgba(96,165,250,0.12)"
           Icon={Users}
         />
         <StatCard
           labelAr="إجمالي المنتجات"
           labelEn="Products"
           value={loading ? '—' : metrics?.totalProducts ?? 0}
-          sub="منتجات متاحة في الكتالوج"
-          accent="purple"
+          sub="منتجات في الكتالوج"
+          accentColor="#c084fc"
+          bgColor="rgba(192,132,252,0.12)"
           Icon={Package}
         />
       </div>
