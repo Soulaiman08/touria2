@@ -115,18 +115,18 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-zinc-500">
-        <span className="inline-block w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-3" />
-        <p>Loading order details...</p>
+      <div style={{ padding: '80px 0', textAlign: 'center', color: '#71717a' }}>
+        <span style={{ display: 'inline-block', width: 32, height: 32, border: '3px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 12 }} />
+        <p style={{ fontSize: 14, fontWeight: 500 }}>Loading order details...</p>
       </div>
     )
   }
 
   if (!order) {
     return (
-      <div className="py-20 text-center text-zinc-400">
-        <p>Order not found.</p>
-        <Link href="/admin/orders" className="text-amber-400 font-semibold text-xs hover:underline mt-2 inline-block">
+      <div style={{ padding: '80px 0', textAlign: 'center', color: '#71717a' }}>
+        <p style={{ fontSize: 16, fontWeight: 600 }}>Order not found.</p>
+        <Link href="/admin/orders" style={{ color: '#fbbf24', fontWeight: 700, fontSize: 13, marginTop: 12, display: 'inline-block' }}>
           Return to orders list
         </Link>
       </div>
@@ -134,32 +134,64 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
   }
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      {/* ── Top Header ─────────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 16,
+        paddingBottom: 20,
+        borderBottom: '1px solid rgba(63,63,70,0.6)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <Link
             href="/admin/orders"
-            className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
+            style={{
+              padding: 10,
+              borderRadius: 12,
+              background: 'rgb(24,24,27)',
+              border: '1px solid rgba(63,63,70,0.8)',
+              color: '#a1a1aa',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+            }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft style={{ width: 18, height: 18 }} />
           </Link>
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-tight font-mono">{order.orderNumber}</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', fontFamily: 'monospace' }}>
+              {order.orderNumber}
+            </h1>
+            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
               Placed on {new Date(order.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-zinc-400 font-semibold">Order Status:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#a1a1aa' }}>Order Status:</span>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs font-bold text-amber-400 outline-none focus:border-amber-500 uppercase"
+            style={{
+              background: 'rgb(24,24,27)',
+              border: '1px solid rgba(245,158,11,0.4)',
+              borderRadius: 12,
+              padding: '8px 14px',
+              fontSize: 12,
+              fontWeight: 800,
+              color: '#fbbf24',
+              outline: 'none',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+            }}
           >
             {statusOptions.map((st) => (
-              <option key={st} value={st}>
+              <option key={st} value={st} style={{ background: '#18181b', color: '#fff' }}>
                 {st}
               </option>
             ))}
@@ -167,96 +199,192 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Items & Summary */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Purchased Items Card */}
-          <div className="p-6 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Package className="w-5 h-5 text-amber-400" /> Order Items ({order.items.length})
-            </h2>
+      {/* ── Main Layout Grid ────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
 
-            <div className="divide-y divide-zinc-800">
-              {order.items.map((item) => {
+        {/* ── Left Column (2/3 width): Purchased Items & Admin Notes ─────── */}
+        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+          {/* Purchased Items Card */}
+          <div style={{
+            background: 'rgb(24,24,27)',
+            border: '1px solid rgba(63,63,70,0.6)',
+            borderRadius: 20,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(63,63,70,0.5)',
+              background: 'rgba(9,9,11,0.4)',
+            }}>
+              <Package style={{ width: 18, height: 18, color: '#fbbf24' }} />
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                Order Items ({order.items.length})
+              </h2>
+            </div>
+
+            <div style={{ padding: '8px 24px 20px', display: 'flex', flexDirection: 'column' }}>
+              {order.items.map((item, idx) => {
                 const snap = (item.productSnapshot ?? {}) as any
                 return (
-                  <div key={item.id} className="py-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0">
+                  <div
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 16,
+                      padding: '16px 0',
+                      borderBottom: idx < order.items.length - 1 ? '1px solid rgba(63,63,70,0.4)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 12, background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', overflow: 'hidden', flexShrink: 0 }}>
                         <img
                           src={snap.mainImage || item.product?.mainImage || '/images/brand/logo-full.png'}
                           alt={snap.nameFr || 'Product'}
-                          className="w-full h-full object-cover"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-zinc-100">{snap.nameFr || snap.nameAr || 'Product'}</h3>
-                        <p className="text-xs text-zinc-400 mt-0.5">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f4f4f5' }}>
+                          {snap.nameFr || snap.nameAr || 'Product'}
+                        </h3>
+                        <p style={{ fontSize: 12, color: '#71717a' }}>
                           {snap.selectedSize ? `Size: ${snap.selectedSize}` : ''}{' '}
                           {snap.selectedColor ? `• Color: ${snap.selectedColor}` : ''}
                         </p>
-                        <p className="text-xs text-zinc-500 font-mono mt-0.5">{formatPrice(item.unitPrice, 'fr')} each</p>
+                        <p style={{ fontSize: 11, color: '#52525b', fontFamily: 'monospace' }}>
+                          {formatPrice(item.unitPrice, 'fr')} each
+                        </p>
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <div className="text-xs text-zinc-400 font-medium">Qty: {item.quantity}</div>
-                      <div className="text-sm font-bold text-amber-400 mt-0.5">{formatPrice(item.totalPrice, 'fr')}</div>
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>Qty: {item.quantity}</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: '#fbbf24' }}>
+                        {formatPrice(item.totalPrice, 'fr')}
+                      </div>
                     </div>
                   </div>
                 )
               })}
-            </div>
 
-            {/* Price Calculations */}
-            <div className="pt-4 border-t border-zinc-800 space-y-2 text-xs">
-              <div className="flex items-center justify-between text-zinc-400">
-                <span>Subtotal</span>
-                <span className="font-semibold text-zinc-200">{formatPrice(order.subtotal, 'fr')}</span>
-              </div>
-              <div className="flex items-center justify-between text-zinc-400">
-                <span>Shipping Cost</span>
-                <span className="font-semibold text-zinc-200">{formatPrice(order.shippingCost, 'fr')}</span>
-              </div>
-              {order.discountAmount > 0 && (
-                <div className="flex items-center justify-between text-rose-400">
-                  <span>Discount</span>
-                  <span className="font-semibold">-{formatPrice(order.discountAmount, 'fr')}</span>
+              {/* Price Summary */}
+              <div style={{
+                marginTop: 16,
+                paddingTop: 16,
+                borderTop: '1px solid rgba(63,63,70,0.6)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                fontSize: 13,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#a1a1aa' }}>
+                  <span>Subtotal</span>
+                  <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{formatPrice(order.subtotal, 'fr')}</span>
                 </div>
-              )}
-              <div className="flex items-center justify-between pt-3 border-t border-zinc-800 text-sm font-black text-white">
-                <span>Grand Total</span>
-                <span className="text-amber-400">{formatPrice(order.total, 'fr')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#a1a1aa' }}>
+                  <span>Shipping Cost</span>
+                  <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{formatPrice(order.shippingCost, 'fr')}</span>
+                </div>
+                {order.discountAmount > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#f87171' }}>
+                    <span>Discount</span>
+                    <span style={{ fontWeight: 700 }}>-{formatPrice(order.discountAmount, 'fr')}</span>
+                  </div>
+                )}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: 14,
+                  marginTop: 6,
+                  borderTop: '1px solid rgba(63,63,70,0.6)',
+                  fontSize: 15,
+                  fontWeight: 900,
+                  color: '#fff',
+                }}>
+                  <span>Grand Total</span>
+                  <span style={{ color: '#fbbf24', fontSize: 17 }}>{formatPrice(order.total, 'fr')}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Admin Notes & Update Action */}
-          <div className="p-6 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <FileText className="w-5 h-5 text-amber-400" /> Internal Admin Notes & Status Note
-            </h2>
+          {/* Internal Admin Notes Card */}
+          <div style={{
+            background: 'rgb(24,24,27)',
+            border: '1px solid rgba(63,63,70,0.6)',
+            borderRadius: 20,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(63,63,70,0.5)',
+              background: 'rgba(9,9,11,0.4)',
+            }}>
+              <FileText style={{ width: 18, height: 18, color: '#fbbf24' }} />
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                Internal Admin Notes & Status Remark
+              </h2>
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">Status Update Remark (Optional)</label>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#d4d4d8' }}>
+                  Status Update Remark (Optional)
+                </label>
                 <input
                   type="text"
                   value={statusNote}
                   onChange={(e) => setStatusNote(e.target.value)}
                   placeholder="e.g., Package handed to Amana courier (Tracking #123456)..."
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{
+                    width: '100%',
+                    background: 'rgb(9,9,11)',
+                    border: '1px solid rgba(63,63,70,0.8)',
+                    borderRadius: 12,
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    color: '#f4f4f5',
+                    outline: 'none',
+                  }}
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">Permanent Admin Notes</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#d4d4d8' }}>
+                  Permanent Staff Notes
+                </label>
                 <textarea
                   rows={3}
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder="Add private staff notes..."
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 resize-none"
+                  style={{
+                    width: '100%',
+                    background: 'rgb(9,9,11)',
+                    border: '1px solid rgba(63,63,70,0.8)',
+                    borderRadius: 12,
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    color: '#f4f4f5',
+                    outline: 'none',
+                    resize: 'none',
+                  }}
                 />
               </div>
 
@@ -264,97 +392,161 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                 type="button"
                 onClick={handleUpdate}
                 disabled={saving}
-                className="w-full py-3 rounded-xl bg-amber-500 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  borderRadius: 12,
+                  background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+                  color: '#09090b',
+                  fontWeight: 900,
+                  fontSize: 13,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(245,158,11,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  opacity: saving ? 0.6 : 1,
+                }}
               >
-                <Save className="w-4 h-4" />
+                <Save style={{ width: 16, height: 16 }} />
                 <span>{saving ? 'Saving updates...' : 'Save Status & Notes Changes'}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Customer Info & Timeline */}
-        <div className="space-y-6">
-          {/* Customer Info Card */}
-          <div className="p-6 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <User className="w-5 h-5 text-amber-400" /> Customer Information
-            </h2>
+        {/* ── Right Column (1/3 width): Customer Info & Status Timeline ──── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-            <div className="space-y-3 text-xs">
-              <div className="flex items-start gap-3 text-zinc-300">
-                <User className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Name</span>
-                  <span className="font-bold text-zinc-100">{order.customerName}</span>
+          {/* Customer Information Card */}
+          <div style={{
+            background: 'rgb(24,24,27)',
+            border: '1px solid rgba(63,63,70,0.6)',
+            borderRadius: 20,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(63,63,70,0.5)',
+              background: 'rgba(9,9,11,0.4)',
+            }}>
+              <User style={{ width: 18, height: 18, color: '#fbbf24' }} />
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                Customer Information
+              </h2>
+            </div>
+
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, fontSize: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <User style={{ width: 16, height: 16, color: '#71717a', marginTop: 2, flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 10, color: '#71717a', textTransform: 'uppercase', fontWeight: 700 }}>Name</span>
+                  <span style={{ fontWeight: 800, color: '#f4f4f5', fontSize: 13 }}>{order.customerName}</span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 text-zinc-300">
-                <Phone className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Phone</span>
-                  <span className="font-mono text-amber-400">{order.customerPhone}</span>
-                  {order.customerPhone2 && <span className="block text-zinc-400 font-mono">{order.customerPhone2}</span>}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <Phone style={{ width: 16, height: 16, color: '#71717a', marginTop: 2, flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 10, color: '#71717a', textTransform: 'uppercase', fontWeight: 700 }}>Phone</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#fbbf24', fontSize: 13 }}>{order.customerPhone}</span>
+                  {order.customerPhone2 && <span style={{ fontFamily: 'monospace', color: '#a1a1aa' }}>{order.customerPhone2}</span>}
                 </div>
               </div>
 
               {order.customerEmail && (
-                <div className="flex items-start gap-3 text-zinc-300">
-                  <Mail className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Email</span>
-                    <span className="text-zinc-200">{order.customerEmail}</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <Mail style={{ width: 16, height: 16, color: '#71717a', marginTop: 2, flexShrink: 0 }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 10, color: '#71717a', textTransform: 'uppercase', fontWeight: 700 }}>Email</span>
+                    <span style={{ color: '#d4d4d8' }}>{order.customerEmail}</span>
                   </div>
                 </div>
               )}
 
-              <div className="flex items-start gap-3 text-zinc-300 pt-2 border-t border-zinc-800">
-                <MapPin className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Shipping Address</span>
-                  <span className="text-zinc-200 font-medium block">{order.address}</span>
-                  <span className="text-amber-400 font-bold block mt-0.5">
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, paddingTop: 14, borderTop: '1px solid rgba(63,63,70,0.5)' }}>
+                <MapPin style={{ width: 16, height: 16, color: '#71717a', marginTop: 2, flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: '#71717a', textTransform: 'uppercase', fontWeight: 700 }}>Shipping Address</span>
+                  <span style={{ color: '#e4e4e7', fontWeight: 500 }}>{order.address}</span>
+                  <span style={{ color: '#fbbf24', fontWeight: 800 }}>
                     {order.city} {order.district ? `(${order.district})` : ''}
                   </span>
                 </div>
               </div>
 
               {order.notes && (
-                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 mt-2">
-                  <span className="text-[10px] text-amber-400 font-bold uppercase block">Customer Order Note:</span>
-                  <p className="text-zinc-300 text-xs italic mt-1">&quot;{order.notes}&quot;</p>
+                <div style={{ padding: 12, borderRadius: 12, background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.6)', marginTop: 4 }}>
+                  <span style={{ fontSize: 10, color: '#fbbf24', fontWeight: 800, textTransform: 'uppercase', display: 'block' }}>
+                    Customer Order Note:
+                  </span>
+                  <p style={{ color: '#d4d4d8', fontSize: 12, fontStyle: 'italic', marginTop: 4 }}>
+                    &quot;{order.notes}&quot;
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Status Timeline */}
-          <div className="p-6 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-4">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-amber-400" /> Status History Log
-            </h2>
+          {/* Status Timeline Log Card */}
+          <div style={{
+            background: 'rgb(24,24,27)',
+            border: '1px solid rgba(63,63,70,0.6)',
+            borderRadius: 20,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '20px 24px',
+              borderBottom: '1px solid rgba(63,63,70,0.5)',
+              background: 'rgba(9,9,11,0.4)',
+            }}>
+              <Clock style={{ width: 18, height: 18, color: '#fbbf24' }} />
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                Status History Log
+              </h2>
+            </div>
 
-            <div className="space-y-4 border-l-2 border-zinc-800 pl-4 ml-2">
-              {order.statusHistory.length === 0 ? (
-                <div className="text-xs text-zinc-500">Order placed on {new Date(order.createdAt).toLocaleDateString()}</div>
-              ) : (
-                order.statusHistory.map((hist) => (
-                  <div key={hist.id} className="relative group">
-                    <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-4 ring-zinc-900" />
-                    <div className="text-xs font-bold text-white uppercase">{hist.status}</div>
-                    {hist.note && <p className="text-xs text-zinc-400 mt-0.5">{hist.note}</p>}
-                    <span className="text-[10px] text-zinc-500 block mt-1">
-                      {new Date(hist.createdAt).toLocaleString()}
-                    </span>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ borderLeft: '2px solid rgba(63,63,70,0.8)', paddingLeft: 16, marginLeft: 6, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                {order.statusHistory.length === 0 ? (
+                  <div style={{ fontSize: 12, color: '#71717a' }}>
+                    Order placed on {new Date(order.createdAt).toLocaleDateString()}
                   </div>
-                ))
-              )}
+                ) : (
+                  order.statusHistory.map((hist) => (
+                    <div key={hist.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div style={{ position: 'absolute', left: -21, top: 4, width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', border: '3px solid rgb(24,24,27)' }} />
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#fff', textTransform: 'uppercase' }}>
+                        {hist.status}
+                      </div>
+                      {hist.note && <p style={{ fontSize: 12, color: '#a1a1aa', marginTop: 2 }}>{hist.note}</p>}
+                      <span style={{ fontSize: 10, color: '#71717a', marginTop: 2 }}>
+                        {new Date(hist.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
+
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
