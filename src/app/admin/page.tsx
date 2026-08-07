@@ -122,31 +122,29 @@ function DashboardContent() {
   const maxSales = Math.max(...salesChart.map((s) => s.sales), 1)
 
   return (
-    <div className="space-y-8">
+    <div className="w-full flex flex-col gap-8">
       {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-800/60">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                <span>لوحة الإحصائيات</span>
-                <span className="text-zinc-600 font-normal">|</span>
-                <span className="text-amber-400 font-bold">Analytics Dashboard</span>
-              </h1>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                متابعة فورية للمبيعات، الأرباح، الطلبات، والمنتجات الأكثر طلباً
-              </p>
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/60">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+              <span>لوحة الإحصائيات</span>
+              <span className="text-zinc-600 font-normal">|</span>
+              <span className="text-amber-400 font-bold">Analytics Dashboard</span>
+            </h1>
+            <p className="text-xs text-zinc-400 font-medium">
+              متابعة فورية للمبيعات، الأرباح، الطلبات، والمنتجات الأكثر طلباً
+            </p>
           </div>
         </div>
 
         <button
           onClick={fetchStats}
           disabled={loading}
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-200 hover:text-white hover:border-amber-500/50 hover:bg-zinc-850 transition-all shadow-md active:scale-95 disabled:opacity-50"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-200 hover:text-white hover:border-amber-500/50 hover:bg-zinc-850 transition-all shadow-md active:scale-95 disabled:opacity-50 shrink-0"
         >
           <RefreshCw className={`w-4 h-4 text-amber-400 ${loading ? 'animate-spin' : ''}`} />
           <span>تحديث البيانات / Refresh</span>
@@ -154,26 +152,26 @@ function DashboardContent() {
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Total Revenue */}
-        <div className="p-6 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+        <div className="p-6 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl relative overflow-hidden flex flex-col justify-between gap-4 hover:border-emerald-500/40 transition-all duration-300 min-h-[170px]">
           <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400">
+          <div className="flex items-start justify-between gap-3 relative z-10">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
                 إجمالي الإيرادات
-              </p>
-              <p className="text-xs text-zinc-400 font-medium">Total Revenue</p>
+              </span>
+              <span className="text-[11px] font-semibold text-zinc-400">Total Revenue</span>
             </div>
-            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner">
+            <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-5">
+          <div className="flex flex-col gap-1 relative z-10">
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {loading ? '...' : formatPrice(metrics?.totalRevenue || 0, 'fr')}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold mt-2.5">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>+14.2% مقارنة بالشهر الماضي</span>
             </div>
@@ -181,24 +179,24 @@ function DashboardContent() {
         </div>
 
         {/* Card 2: Total Orders */}
-        <div className="p-6 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300">
+        <div className="p-6 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl relative overflow-hidden flex flex-col justify-between gap-4 hover:border-amber-500/40 transition-all duration-300 min-h-[170px]">
           <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">
+          <div className="flex items-start justify-between gap-3 relative z-10">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-400">
                 إجمالي الطلبات
-              </p>
-              <p className="text-xs text-zinc-400 font-medium">Total Orders</p>
+              </span>
+              <span className="text-[11px] font-semibold text-zinc-400">Total Orders</span>
             </div>
-            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-inner">
+            <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
               <ShoppingBag className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-5">
+          <div className="flex flex-col gap-1 relative z-10">
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {loading ? '...' : metrics?.totalOrders || 0}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold mt-2.5">
+            <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>+8.5% مقارنة بالأسبوع الماضي</span>
             </div>
@@ -206,24 +204,24 @@ function DashboardContent() {
         </div>
 
         {/* Card 3: Total Customers */}
-        <div className="p-6 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl relative overflow-hidden group hover:border-blue-500/40 transition-all duration-300">
+        <div className="p-6 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl relative overflow-hidden flex flex-col justify-between gap-4 hover:border-blue-500/40 transition-all duration-300 min-h-[170px]">
           <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all pointer-events-none" />
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-blue-400">
+          <div className="flex items-start justify-between gap-3 relative z-10">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-blue-400">
                 إجمالي العملاء
-              </p>
-              <p className="text-xs text-zinc-400 font-medium">Customers</p>
+              </span>
+              <span className="text-[11px] font-semibold text-zinc-400">Customers</span>
             </div>
-            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-inner">
+            <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-5">
+          <div className="flex flex-col gap-1 relative z-10">
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {loading ? '...' : metrics?.totalCustomers || 0}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-blue-400 font-semibold mt-2.5">
+            <div className="flex items-center gap-1.5 text-xs text-blue-400 font-semibold">
               <Users className="w-3.5 h-3.5" />
               <span>قاعدة العملاء المسجلين والنشطين</span>
             </div>
@@ -231,24 +229,24 @@ function DashboardContent() {
         </div>
 
         {/* Card 4: Total Products */}
-        <div className="p-6 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300">
+        <div className="p-6 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl relative overflow-hidden flex flex-col justify-between gap-4 hover:border-purple-500/40 transition-all duration-300 min-h-[170px]">
           <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all pointer-events-none" />
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-purple-400">
+          <div className="flex items-start justify-between gap-3 relative z-10">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-purple-400">
                 إجمالي المنتجات
-              </p>
-              <p className="text-xs text-zinc-400 font-medium">Total Products</p>
+              </span>
+              <span className="text-[11px] font-semibold text-zinc-400">Total Products</span>
             </div>
-            <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-inner">
+            <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">
               <Package className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-5">
+          <div className="flex flex-col gap-1 relative z-10">
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {loading ? '...' : metrics?.totalProducts || 0}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-purple-400 font-semibold mt-2.5">
+            <div className="flex items-center gap-1.5 text-xs text-purple-400 font-semibold">
               <Package className="w-3.5 h-3.5" />
               <span>في الكتالوج المتاح بالمتجر</span>
             </div>
@@ -257,15 +255,15 @@ function DashboardContent() {
       </div>
 
       {/* Middle Section: Chart & Top Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Sales Chart Box */}
-        <div className="lg:col-span-2 p-6 sm:p-7 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-6">
+        <div className="lg:col-span-2 p-6 sm:p-7 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl flex flex-col gap-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
                 <BarChart3 className="w-5 h-5" />
               </div>
-              <div>
+              <div className="flex flex-col gap-0.5">
                 <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                   <span>مخطط المبيعات والإيرادات</span>
                   <span className="text-xs font-normal text-zinc-500">| Sales Timeline</span>
@@ -273,7 +271,7 @@ function DashboardContent() {
                 <p className="text-xs text-zinc-400">أداء الأرباح اليومية على مدى الأيام الأخيرة</p>
               </div>
             </div>
-            <span className="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
               مبيعات يومية / Daily
             </span>
           </div>
@@ -313,76 +311,74 @@ function DashboardContent() {
         </div>
 
         {/* Top Products Sidebar Box */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
-              <div>
-                <h2 className="text-base font-black text-white flex items-center gap-2">
-                  <span>الأكثر مبيعاً</span>
-                  <span className="text-xs font-normal text-zinc-500">| Top Products</span>
-                </h2>
-                <p className="text-xs text-zinc-400 mt-0.5">المنتجات الأكثر طلباً في المتجر</p>
-              </div>
-              <Link
-                href="/admin/products"
-                className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 hover:underline"
-              >
-                <span>الكل</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
+        <div className="p-6 sm:p-7 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl flex flex-col gap-5">
+          <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <span>الأكثر مبيعاً</span>
+                <span className="text-xs font-normal text-zinc-500">| Top Products</span>
+              </h2>
+              <p className="text-xs text-zinc-400">المنتجات الأكثر طلباً في المتجر</p>
             </div>
+            <Link
+              href="/admin/products"
+              className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 hover:underline shrink-0"
+            >
+              <span>الكل</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
 
-            <div className="space-y-3.5 mt-4">
-              {topProducts.length === 0 ? (
-                <p className="py-8 text-center text-xs text-zinc-500">لا توجد منتجات مباعة حتى الآن</p>
-              ) : (
-                topProducts.map((prod, idx) => (
-                  <div
-                    key={prod.id || idx}
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-all hover:bg-zinc-850/60"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700 shadow-sm">
-                        <img
-                          src={prod.image || '/images/brand/logo-full.png'}
-                          alt={prod.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-xs font-bold text-zinc-100 truncate">{prod.name}</h3>
-                        <p className="text-[11px] font-medium text-zinc-400 mt-0.5">
-                          تم بيع {prod.salesCount} قطعة
-                        </p>
-                      </div>
+          <div className="flex flex-col gap-3.5">
+            {topProducts.length === 0 ? (
+              <p className="py-8 text-center text-xs text-zinc-500">لا توجد منتجات مباعة حتى الآن</p>
+            ) : (
+              topProducts.map((prod, idx) => (
+                <div
+                  key={prod.id || idx}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-950/60 border border-zinc-800/60 hover:border-zinc-700 transition-all hover:bg-zinc-850/60"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700 shadow-sm">
+                      <img
+                        src={prod.image || '/images/brand/logo-full.png'}
+                        alt={prod.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="text-right shrink-0 pl-2">
-                      <div className="text-xs font-black text-amber-400">
-                        {formatPrice(prod.price, 'fr')}
-                      </div>
+                    <div className="min-w-0">
+                      <h3 className="text-xs font-bold text-zinc-100 truncate">{prod.name}</h3>
+                      <p className="text-[11px] font-medium text-zinc-400 mt-0.5">
+                        تم بيع {prod.salesCount} قطعة
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                  <div className="text-right shrink-0 pl-2">
+                    <div className="text-xs font-black text-amber-400">
+                      {formatPrice(prod.price, 'fr')}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
       {/* Bottom Section: Recent Orders Table Box */}
-      <div className="p-6 sm:p-7 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl space-y-6">
+      <div className="p-6 sm:p-7 rounded-3xl bg-zinc-900/95 border border-zinc-800/90 shadow-2xl flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
-          <div>
+          <div className="flex flex-col gap-0.5">
             <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
               <span>أحدث المعاملات والطلبات</span>
               <span className="text-xs font-normal text-zinc-500">| Recent Orders</span>
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">آخر الطلبات المسجلة حديثاً في المتجر</p>
+            <p className="text-xs text-zinc-400">آخر الطلبات المسجلة حديثاً في المتجر</p>
           </div>
 
           <Link
             href="/admin/orders"
-            className="self-start sm:self-auto px-4 py-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-extrabold hover:bg-amber-500/20 transition-all flex items-center gap-2 shadow-sm"
+            className="self-start sm:self-auto px-4 py-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-extrabold hover:bg-amber-500/20 transition-all flex items-center gap-2 shadow-sm shrink-0"
           >
             <span>إدارة جميع الطلبات | Manage All</span>
             <ArrowUpRight className="w-4 h-4" />
