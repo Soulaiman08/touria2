@@ -95,52 +95,71 @@ function OrdersContent() {
     switch (status) {
       case 'DELIVERED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-extrabold uppercase">
-            <PackageCheck className="w-3 h-3" /> Delivered
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <PackageCheck style={{ width: 12, height: 12 }} /> Delivered
           </span>
         )
       case 'SHIPPED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-extrabold uppercase">
-            <Truck className="w-3 h-3" /> Shipped
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <Truck style={{ width: 12, height: 12 }} /> Shipped
           </span>
         )
       case 'PROCESSING':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-extrabold uppercase">
-            <Clock className="w-3 h-3" /> Processing
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <Clock style={{ width: 12, height: 12 }} /> Processing
           </span>
         )
       case 'CANCELLED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-extrabold uppercase">
-            <XCircle className="w-3 h-3" /> Cancelled
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <XCircle style={{ width: 12, height: 12 }} /> Cancelled
           </span>
         )
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700 text-[10px] font-extrabold uppercase">
-            <Clock className="w-3 h-3 text-zinc-400" /> Pending
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(63,63,70,0.4)', color: '#d4d4d8', border: '1px solid rgba(63,63,70,0.6)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <Clock style={{ width: 12, height: 12 }} /> Pending
           </span>
         )
     }
   }
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6 text-amber-400" /> Order Management
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">Track customer orders, update shipping status, and view customer details</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShoppingBag style={{ width: 22, height: 22 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+              Order Management
+            </h1>
+            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+              Track customer orders, update shipping status, and view customer details
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Search & Status Filter */}
-      <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-500" />
+      {/* Search & Status Filter Card */}
+      <div style={{
+        background: 'rgb(24,24,27)',
+        border: '1px solid rgba(63,63,70,0.6)',
+        borderRadius: 16,
+        padding: '16px 20px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 16,
+      }}>
+        <div style={{ position: 'relative', minWidth: 280, flex: 1 }}>
+          <Search style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
           <input
             type="text"
             value={search}
@@ -149,13 +168,22 @@ function OrdersContent() {
               setPage(1)
             }}
             placeholder="Search by order #, phone, customer..."
-            className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-200 outline-none"
+            style={{
+              width: '100%',
+              background: 'rgb(9,9,11)',
+              border: '1px solid rgba(63,63,70,0.8)',
+              borderRadius: 12,
+              padding: '10px 14px 10px 40px',
+              fontSize: 12,
+              color: '#f4f4f5',
+              outline: 'none',
+            }}
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <Filter className="w-4 h-4 text-amber-400" /> Status:
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#a1a1aa', fontWeight: 600 }}>
+            <Filter style={{ width: 14, height: 14, color: '#fbbf24' }} /> Status:
           </div>
           <select
             value={statusFilter}
@@ -163,7 +191,17 @@ function OrdersContent() {
               setStatusFilter(e.target.value)
               setPage(1)
             }}
-            className="bg-zinc-950/80 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 uppercase font-semibold"
+            style={{
+              background: 'rgb(9,9,11)',
+              border: '1px solid rgba(63,63,70,0.8)',
+              borderRadius: 12,
+              padding: '10px 14px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#f4f4f5',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
           >
             <option value="all">All Statuses</option>
             {statusOptions.map((st) => (
@@ -175,57 +213,69 @@ function OrdersContent() {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+      {/* Orders Table Card */}
+      <div style={{
+        background: 'rgb(24,24,27)',
+        border: '1px solid rgba(63,63,70,0.6)',
+        borderRadius: 20,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr className="bg-zinc-950/60 border-b border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider">
-                <th className="py-4 px-4">Order #</th>
-                <th className="py-4 px-4">Customer & City</th>
-                <th className="py-4 px-4">Region</th>
-                <th className="py-4 px-4">Items</th>
-                <th className="py-4 px-4">Shipping</th>
-                <th className="py-4 px-4">Total</th>
-                <th className="py-4 px-4">Status</th>
-                <th className="py-4 px-4">Quick Status Update</th>
-                <th className="py-4 px-4 text-right">Action</th>
+              <tr style={{ background: 'rgba(9,9,11,0.6)', borderBottom: '1px solid rgba(63,63,70,0.6)' }}>
+                {['Order #', 'Customer & City', 'Region', 'Items', 'Shipping', 'Total', 'Status', 'Quick Status Update', 'Action'].map((h, i) => (
+                  <th key={i} style={{ padding: '14px 18px', textAlign: i === 8 ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60 font-medium">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-zinc-500">
-                    <span className="inline-block w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Fetching orders list...</p>
+                  <td colSpan={9} style={{ padding: '48px 18px', textAlign: 'center', color: '#71717a' }}>
+                    <span style={{ display: 'inline-block', width: 24, height: 24, border: '2px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 8 }} />
+                    <p style={{ fontSize: 12 }}>Fetching orders list...</p>
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-zinc-500">
+                  <td colSpan={9} style={{ padding: '48px 18px', textAlign: 'center', fontSize: 12, color: '#3f3f46' }}>
                     No orders found matching filters.
                   </td>
                 </tr>
               ) : (
                 orders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-zinc-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-amber-400 font-mono">{ord.orderNumber}</td>
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-white">{ord.customerName}</div>
-                      <div className="text-[11px] text-zinc-400">
+                  <tr key={ord.id} style={{ borderBottom: '1px solid rgba(63,63,70,0.4)' }} className="hover:bg-zinc-800/30 transition-colors">
+                    <td style={{ padding: '16px 18px', fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace' }}>{ord.orderNumber}</td>
+                    <td style={{ padding: '16px 18px' }}>
+                      <div style={{ fontWeight: 700, color: '#fff' }}>{ord.customerName}</div>
+                      <div style={{ fontSize: 11, color: '#71717a', marginTop: 2 }}>
                         {ord.customerPhone} • {ord.city}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-zinc-300 text-[11px]">{ord.region || '—'}</td>
-                    <td className="py-3.5 px-4 text-zinc-300">{ord.itemsCount} item(s)</td>
-                    <td className="py-3.5 px-4 text-zinc-400 text-[11px]">{formatPrice(ord.shippingCost ?? 0, 'fr')}</td>
-                    <td className="py-3.5 px-4 font-bold text-emerald-400">{formatPrice(ord.total, 'fr')}</td>
-                    <td className="py-3.5 px-4">{getStatusBadge(ord.status)}</td>
-                    <td className="py-3.5 px-4">
+                    <td style={{ padding: '16px 18px', color: '#d4d4d8', fontSize: 12 }}>{ord.region || '—'}</td>
+                    <td style={{ padding: '16px 18px', color: '#d4d4d8' }}>{ord.itemsCount} item(s)</td>
+                    <td style={{ padding: '16px 18px', color: '#71717a', fontSize: 12 }}>{formatPrice(ord.shippingCost ?? 0, 'fr')}</td>
+                    <td style={{ padding: '16px 18px', fontWeight: 900, color: '#34d399' }}>{formatPrice(ord.total, 'fr')}</td>
+                    <td style={{ padding: '16px 18px' }}>{getStatusBadge(ord.status)}</td>
+                    <td style={{ padding: '16px 18px' }}>
                       <select
                         value={ord.status}
                         onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
-                        className="bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-zinc-200 outline-none focus:border-amber-500"
+                        style={{
+                          background: 'rgb(9,9,11)',
+                          border: '1px solid rgba(63,63,70,0.8)',
+                          borderRadius: 8,
+                          padding: '6px 10px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: '#f4f4f5',
+                          outline: 'none',
+                          cursor: 'pointer',
+                        }}
                       >
                         {statusOptions.map((st) => (
                           <option key={st} value={st}>
@@ -234,12 +284,24 @@ function OrdersContent() {
                         ))}
                       </select>
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td style={{ padding: '16px 18px', textAlign: 'right' }}>
                       <Link
                         href={`/admin/orders/${ord.id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-amber-500 hover:text-zinc-950 text-zinc-200 text-xs font-semibold transition-colors"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 14px',
+                          borderRadius: 10,
+                          background: 'rgba(63,63,70,0.7)',
+                          color: '#d4d4d8',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                        }}
+                        className="hover:bg-amber-500 hover:text-zinc-950 transition-all"
                       >
-                        <Eye className="w-3.5 h-3.5" /> Details
+                        <Eye style={{ width: 14, height: 14 }} /> Details
                       </Link>
                     </td>
                   </tr>
@@ -250,27 +312,27 @@ function OrdersContent() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 bg-zinc-950/60 border-t border-zinc-800 flex items-center justify-between">
-          <div className="text-xs text-zinc-400">Page {page} of {totalPages}</div>
-          <div className="flex items-center gap-2">
+        <div style={{ padding: '14px 20px', background: 'rgba(9,9,11,0.6)', borderTop: '1px solid rgba(63,63,70,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>Page {page} of {totalPages}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="p-2 rounded-xl bg-zinc-800 text-zinc-300 disabled:opacity-40 hover:bg-zinc-700 transition-colors"
+              style={{ padding: 8, borderRadius: 10, background: 'rgba(63,63,70,0.6)', border: 'none', color: '#d4d4d8', cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.4 : 1 }}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft style={{ width: 16, height: 16 }} />
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="p-2 rounded-xl bg-zinc-800 text-zinc-300 disabled:opacity-40 hover:bg-zinc-700 transition-colors"
+              style={{ padding: 8, borderRadius: 10, background: 'rgba(63,63,70,0.6)', border: 'none', color: '#d4d4d8', cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.4 : 1 }}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight style={{ width: 16, height: 16 }} />
             </button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

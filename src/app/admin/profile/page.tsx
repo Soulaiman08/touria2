@@ -4,11 +4,9 @@ import React, { useEffect, useState } from 'react'
 import {
   User,
   Mail,
-  Lock,
   Save,
   KeyRound,
   ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
@@ -102,122 +100,153 @@ function ProfileContent() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-zinc-500">
-        <span className="inline-block w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-3" />
-        <p>Loading profile details...</p>
+      <div style={{ padding: '80px 0', textAlign: 'center', color: '#71717a' }}>
+        <span style={{ display: 'inline-block', width: 32, height: 32, border: '3px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 12 }} />
+        <p style={{ fontSize: 14, fontWeight: 500 }}>Loading profile details...</p>
       </div>
     )
   }
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <User className="w-6 h-6 text-amber-400" /> Admin Account Profile
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">Manage administrator account name, email, and password security</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      {/* Header Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <User style={{ width: 22, height: 22 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+              Admin Account Profile
+            </h1>
+            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+              Manage administrator account name, email, and password security
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-2xl space-y-6">
-        {/* Profile Card */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-2xl space-y-6">
-          <div className="flex items-center gap-4 pb-6 border-b border-zinc-800">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-zinc-950 font-black text-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+      {/* Profile Card */}
+      <div style={{ maxWidth: 640, width: '100%' }}>
+        <div style={{
+          background: 'rgb(24,24,27)',
+          border: '1px solid rgba(63,63,70,0.6)',
+          borderRadius: 20,
+          padding: 32,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 24,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, paddingBottom: 24, borderBottom: '1px solid rgba(63,63,70,0.5)' }}>
+            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#09090b', fontWeight: 900, fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(245,158,11,0.25)' }}>
               {name ? name.charAt(0).toUpperCase() : 'A'}
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">{name || 'Admin User'}</h2>
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-400 mt-0.5">
-                <ShieldCheck className="w-4 h-4" /> Role: {role}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{name || 'Admin User'}</h2>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>
+                <ShieldCheck style={{ width: 16, height: 16 }} /> Role: {role}
               </span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Admin Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-500" />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Admin Full Name</label>
+              <div style={{ position: 'relative' }}>
+                <User style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px 10px 40px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-500" />
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Email Address</label>
+              <div style={{ position: 'relative' }}>
+                <Mail style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px 10px 40px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-zinc-800 space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-amber-400" /> Change Password
+            <div style={{ paddingTop: 16, borderTop: '1px solid rgba(63,63,70,0.5)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <KeyRound style={{ width: 16, height: 16, color: '#fbbf24' }} /> Change Password
               </h3>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Current Password</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Current Password</label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">New Password</label>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>New Password</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Confirm New Password</label>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Confirm New Password</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-zinc-800 flex justify-end">
+            <div style={{ paddingTop: 16, borderTop: '1px solid rgba(63,63,70,0.5)', display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2.5 rounded-xl bg-amber-500 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-all disabled:opacity-50 flex items-center gap-2"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 22px',
+                  borderRadius: 12,
+                  background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+                  color: '#09090b',
+                  fontWeight: 900,
+                  fontSize: 13,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(245,158,11,0.25)',
+                  opacity: saving ? 0.6 : 1,
+                }}
               >
-                <Save className="w-4 h-4" />
+                <Save style={{ width: 16, height: 16 }} />
                 <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>
               </button>
             </div>
           </form>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

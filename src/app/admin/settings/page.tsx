@@ -86,35 +86,57 @@ function SettingsContent() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-zinc-500">
-        <span className="inline-block w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-3" />
-        <p>Loading store settings...</p>
+      <div style={{ padding: '80px 0', textAlign: 'center', color: '#71717a' }}>
+        <span style={{ display: 'inline-block', width: 32, height: 32, border: '3px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 12 }} />
+        <p style={{ fontSize: 14, fontWeight: 500 }}>Loading store settings...</p>
       </div>
     )
   }
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Settings className="w-6 h-6 text-amber-400" /> Store Settings
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">Configure brand identity, shipping rates, contact details, social channels, and SEO metadata</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      {/* Header Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Settings style={{ width: 22, height: 22 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+              Store Settings
+            </h1>
+            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+              Configure brand identity, shipping rates, contact details, social channels, and SEO metadata
+            </p>
+          </div>
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="self-start sm:self-auto flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 22px',
+            borderRadius: 12,
+            background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+            color: '#09090b',
+            fontWeight: 900,
+            fontSize: 13,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 20px rgba(245,158,11,0.25)',
+            opacity: saving ? 0.6 : 1,
+          }}
         >
-          <Save className="w-4 h-4" />
+          <Save style={{ width: 16, height: 16 }} />
           <span>{saving ? 'Saving...' : 'Save All Settings'}</span>
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-zinc-800 overflow-x-auto pb-2">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid rgba(63,63,70,0.6)', overflowX: 'auto', paddingBottom: 12 }}>
         {[
           { id: 'general', label: 'Store Information', icon: Store },
           { id: 'shipping', label: 'Shipping & Delivery', icon: Truck },
@@ -128,51 +150,74 @@ function SettingsContent() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                isActive
-                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 12,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+                border: 'none',
+                background: isActive ? 'linear-gradient(90deg, #f59e0b, #d97706)' : 'rgb(24,24,27)',
+                color: isActive ? '#09090b' : '#a1a1aa',
+                boxShadow: isActive ? '0 4px 16px rgba(245,158,11,0.2)' : 'none',
+              }}
             >
-              <Icon className="w-4 h-4" />
+              <Icon style={{ width: 15, height: 15 }} />
               <span>{tab.label}</span>
             </button>
           )
         })}
       </div>
 
-      {/* Tab Form Containers */}
-      <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-3xl bg-zinc-900/90 border border-zinc-800/80 shadow-2xl space-y-6">
+      {/* Tab Form Card */}
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          background: 'rgb(24,24,27)',
+          border: '1px solid rgba(63,63,70,0.6)',
+          borderRadius: 20,
+          padding: 32,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 24,
+        }}
+      >
         {/* Tab 1: General */}
         {activeTab === 'general' && (
-          <div className="space-y-5">
-            <h2 className="text-base font-bold text-white mb-4">General Brand Settings</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>General Brand Settings</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Store Name</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Store Name</label>
                 <input
                   type="text"
                   value={settings.storeName}
                   onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
                   placeholder="Thuraya Al-Maghribi"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Default Currency Code</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Default Currency Code</label>
                 <input
                   type="text"
                   value={settings.currency}
                   onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
                   placeholder="MAD / DH"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 font-mono"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', fontFamily: 'monospace' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-2">Store Brand Logo</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 8 }}>Store Brand Logo</label>
               <ImageUploader
                 multiple={false}
                 images={settings.logo ? [settings.logo] : []}
@@ -185,58 +230,58 @@ function SettingsContent() {
 
         {/* Tab 2: Shipping */}
         {activeTab === 'shipping' && (
-          <div className="space-y-5">
-            <h2 className="text-base font-bold text-white mb-4">Shipping Rates & Policies</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>Shipping Rates & Policies</h2>
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Flat Shipping Fee (MAD)</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Flat Shipping Fee (MAD)</label>
               <input
                 type="number"
                 value={settings.shippingCost}
                 onChange={(e) => setSettings({ ...settings, shippingCost: e.target.value })}
                 placeholder="35"
-                className="w-full max-w-sm bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                style={{ width: '100%', maxWidth: 360, background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
               />
-              <p className="text-[11px] text-zinc-500 mt-1">Default nationwide delivery charge added at checkout.</p>
+              <p style={{ fontSize: 11, color: '#71717a', marginTop: 4 }}>Default nationwide delivery charge added at checkout.</p>
             </div>
           </div>
         )}
 
         {/* Tab 3: Contact */}
         {activeTab === 'contact' && (
-          <div className="space-y-5">
-            <h2 className="text-base font-bold text-white mb-4">Official Contact Information</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>Official Contact Information</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Support Email</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Support Email</label>
                 <input
                   type="email"
                   value={settings.contactEmail}
                   onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
                   placeholder="contact@thuraya.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Phone Number</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Phone Number</label>
                 <input
                   type="text"
                   value={settings.contactPhone}
                   onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
                   placeholder="+212 6 12 34 56 78"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 font-mono"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', fontFamily: 'monospace' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Physical Address / Headquarters</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Physical Address / Headquarters</label>
               <textarea
                 rows={2}
                 value={settings.address}
                 onChange={(e) => setSettings({ ...settings, address: e.target.value })}
                 placeholder="Casablanca, Morocco"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 resize-none"
+                style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', resize: 'none' }}
               />
             </div>
           </div>
@@ -244,50 +289,50 @@ function SettingsContent() {
 
         {/* Tab 4: Social */}
         {activeTab === 'social' && (
-          <div className="space-y-5">
-            <h2 className="text-base font-bold text-white mb-4">Social Media Connections</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>Social Media Connections</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Instagram URL</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Instagram URL</label>
                 <input
                   type="text"
                   value={settings.instagram}
                   onChange={(e) => setSettings({ ...settings, instagram: e.target.value })}
                   placeholder="https://instagram.com/thuraya.ma"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Facebook Page</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Facebook Page</label>
                 <input
                   type="text"
                   value={settings.facebook}
                   onChange={(e) => setSettings({ ...settings, facebook: e.target.value })}
                   placeholder="https://facebook.com/thuraya.ma"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">TikTok Handle</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>TikTok Handle</label>
                 <input
                   type="text"
                   value={settings.tiktok}
                   onChange={(e) => setSettings({ ...settings, tiktok: e.target.value })}
                   placeholder="https://tiktok.com/@thuraya.ma"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">WhatsApp Contact Number</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>WhatsApp Contact Number</label>
                 <input
                   type="text"
                   value={settings.whatsapp}
                   onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
                   placeholder="+212612345678"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 font-mono"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', fontFamily: 'monospace' }}
                 />
               </div>
             </div>
@@ -296,44 +341,44 @@ function SettingsContent() {
 
         {/* Tab 5: SEO */}
         {activeTab === 'seo' && (
-          <div className="space-y-5">
-            <h2 className="text-base font-bold text-white mb-4">Search Engine Optimization (SEO)</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>Search Engine Optimization (SEO)</h2>
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Meta Title</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Meta Title</label>
               <input
                 type="text"
                 value={settings.seoTitle}
                 onChange={(e) => setSettings({ ...settings, seoTitle: e.target.value })}
                 placeholder="الثريا المغربي – أزياء وتصاميم مغربية تقليدية وفاخرة"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Meta Description</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Meta Description</label>
               <textarea
                 rows={3}
                 value={settings.seoDescription}
                 onChange={(e) => setSettings({ ...settings, seoDescription: e.target.value })}
                 placeholder="تصفحي أرقى تشكيلات الجلابة المغربية والنقاب..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500 resize-none"
+                style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', resize: 'none' }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Meta Keywords</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Meta Keywords</label>
               <input
                 type="text"
                 value={settings.seoKeywords}
                 onChange={(e) => setSettings({ ...settings, seoKeywords: e.target.value })}
                 placeholder="جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
               />
             </div>
           </div>
         )}
       </form>
-    </>
+    </div>
   )
 }
 

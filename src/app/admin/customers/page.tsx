@@ -58,87 +58,128 @@ function CustomersContent() {
   }, [fetchCustomers])
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-amber-400" /> Customers Directory
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">View customer profiles, total lifetime spending, and order history</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      {/* Header Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Users style={{ width: 22, height: 22 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+              Customers Directory
+            </h1>
+            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+              View customer profiles, total lifetime spending, and order history
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl max-w-md">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-500" />
+      {/* Search Bar */}
+      <div style={{
+        background: 'rgb(24,24,27)',
+        border: '1px solid rgba(63,63,70,0.6)',
+        borderRadius: 16,
+        padding: '16px 20px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        maxWidth: 400,
+      }}>
+        <div style={{ position: 'relative' }}>
+          <Search style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by customer name, phone, city..."
-            className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-200 outline-none"
+            style={{
+              width: '100%',
+              background: 'rgb(9,9,11)',
+              border: '1px solid rgba(63,63,70,0.8)',
+              borderRadius: 12,
+              padding: '10px 14px 10px 40px',
+              fontSize: 12,
+              color: '#f4f4f5',
+              outline: 'none',
+            }}
           />
         </div>
       </div>
 
-      {/* Customers Table */}
-      <div className="rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+      {/* Customers Table Card */}
+      <div style={{
+        background: 'rgb(24,24,27)',
+        border: '1px solid rgba(63,63,70,0.6)',
+        borderRadius: 20,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr className="bg-zinc-950/60 border-b border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider">
-                <th className="py-4 px-4">Customer Name</th>
-                <th className="py-4 px-4">Contact Phone</th>
-                <th className="py-4 px-4">City</th>
-                <th className="py-4 px-4">Orders Placed</th>
-                <th className="py-4 px-4">Total Lifetime Spent</th>
-                <th className="py-4 px-4">Last Order</th>
-                <th className="py-4 px-4 text-right">Account Details</th>
+              <tr style={{ background: 'rgba(9,9,11,0.6)', borderBottom: '1px solid rgba(63,63,70,0.6)' }}>
+                {['Customer Name', 'Contact Phone', 'City', 'Orders Placed', 'Total Lifetime Spent', 'Last Order', 'Account Details'].map((h, i) => (
+                  <th key={i} style={{ padding: '14px 18px', textAlign: i === 6 ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60 font-medium">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-500">
-                    <span className="inline-block w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading customer profiles...</p>
+                  <td colSpan={7} style={{ padding: '48px 18px', textAlign: 'center', color: '#71717a' }}>
+                    <span style={{ display: 'inline-block', width: 24, height: 24, border: '2px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 8 }} />
+                    <p style={{ fontSize: 12 }}>Loading customer profiles...</p>
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-500">
+                  <td colSpan={7} style={{ padding: '48px 18px', textAlign: 'center', fontSize: 12, color: '#3f3f46' }}>
                     No customers found matching search.
                   </td>
                 </tr>
               ) : (
                 customers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-zinc-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-white">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-extrabold flex items-center justify-center text-xs">
+                  <tr key={cust.id} style={{ borderBottom: '1px solid rgba(63,63,70,0.4)' }} className="hover:bg-zinc-800/30 transition-colors">
+                    <td style={{ padding: '16px 18px', fontWeight: 700, color: '#fff' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>
                           {cust.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <div>{cust.name}</div>
-                          {cust.email && <div className="text-[11px] text-zinc-500 font-normal">{cust.email}</div>}
+                          {cust.email && <div style={{ fontSize: 11, color: '#71717a', fontWeight: 400 }}>{cust.email}</div>}
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-amber-400">{cust.phone}</td>
-                    <td className="py-3.5 px-4 text-zinc-300">{cust.city || '—'}</td>
-                    <td className="py-3.5 px-4 font-bold text-zinc-200">{cust.ordersCount} order(s)</td>
-                    <td className="py-3.5 px-4 font-bold text-emerald-400">{formatPrice(cust.totalSpent, 'fr')}</td>
-                    <td className="py-3.5 px-4 text-zinc-400">
+                    <td style={{ padding: '16px 18px', fontFamily: 'monospace', color: '#fbbf24', fontWeight: 700 }}>{cust.phone}</td>
+                    <td style={{ padding: '16px 18px', color: '#d4d4d8' }}>{cust.city || '—'}</td>
+                    <td style={{ padding: '16px 18px', fontWeight: 700, color: '#e4e4e7' }}>{cust.ordersCount} order(s)</td>
+                    <td style={{ padding: '16px 18px', fontWeight: 900, color: '#34d399' }}>{formatPrice(cust.totalSpent, 'fr')}</td>
+                    <td style={{ padding: '16px 18px', color: '#71717a', fontSize: 12 }}>
                       {cust.lastOrderDate ? new Date(cust.lastOrderDate).toLocaleDateString() : '—'}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td style={{ padding: '16px 18px', textAlign: 'right' }}>
                       <button
                         onClick={() => setSelectedCustomer(cust)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-amber-500 hover:text-zinc-950 text-zinc-200 text-xs font-semibold transition-colors"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 14px',
+                          borderRadius: 10,
+                          background: 'rgba(63,63,70,0.7)',
+                          color: '#d4d4d8',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                        className="hover:bg-amber-500 hover:text-zinc-950 transition-all"
                       >
                         <span>View History</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <ChevronRight style={{ width: 14, height: 14 }} />
                       </button>
                     </td>
                   </tr>
@@ -151,61 +192,71 @@ function CustomersContent() {
 
       {/* Customer Account Details Modal */}
       {selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-zinc-100">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 640, maxHeight: '85vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, padding: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
             <button
               onClick={() => setSelectedCustomer(null)}
-              className="absolute top-6 right-6 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              style={{ position: 'absolute', top: 24, right: 24, padding: 8, borderRadius: 10, background: 'none', border: 'none', color: '#71717a', cursor: 'pointer' }}
             >
-              <X className="w-5 h-5" />
+              <X style={{ width: 20, height: 20 }} />
             </button>
 
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 font-black text-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#09090b', fontWeight: 900, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(245,158,11,0.25)' }}>
                 {selectedCustomer.name.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">{selectedCustomer.name}</h2>
-                <p className="text-xs text-zinc-400">Customer Profile & Transaction Summary</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{selectedCustomer.name}</h2>
+                <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>Customer Profile & Transaction Summary</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-2xl bg-zinc-950 border border-zinc-800 mb-6 text-xs">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, padding: 16, borderRadius: 16, background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', marginBottom: 24 }}>
               <div>
-                <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Total Orders</span>
-                <span className="text-base font-bold text-white mt-0.5 block">{selectedCustomer.ordersCount}</span>
+                <span style={{ color: '#71717a', display: 'block', fontSize: 10, textTransform: 'uppercase', fontWeight: 700 }}>Total Orders</span>
+                <span style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginTop: 2, display: 'block' }}>{selectedCustomer.ordersCount}</span>
               </div>
               <div>
-                <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Total Spent</span>
-                <span className="text-base font-bold text-emerald-400 mt-0.5 block">
+                <span style={{ color: '#71717a', display: 'block', fontSize: 10, textTransform: 'uppercase', fontWeight: 700 }}>Total Spent</span>
+                <span style={{ fontSize: 16, fontWeight: 900, color: '#34d399', marginTop: 2, display: 'block' }}>
                   {formatPrice(selectedCustomer.totalSpent, 'fr')}
                 </span>
               </div>
               <div>
-                <span className="text-zinc-500 block text-[10px] uppercase font-semibold">City</span>
-                <span className="text-base font-bold text-amber-400 mt-0.5 block">{selectedCustomer.city || '—'}</span>
+                <span style={{ color: '#71717a', display: 'block', fontSize: 10, textTransform: 'uppercase', fontWeight: 700 }}>City</span>
+                <span style={{ fontSize: 16, fontWeight: 900, color: '#fbbf24', marginTop: 2, display: 'block' }}>{selectedCustomer.city || '—'}</span>
               </div>
             </div>
 
             {/* Order History */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-amber-400" /> Order History ({selectedCustomer.orders.length})
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ShoppingBag style={{ width: 16, height: 16, color: '#fbbf24' }} /> Order History ({selectedCustomer.orders.length})
               </h3>
 
-              <div className="divide-y divide-zinc-800 border border-zinc-800 rounded-2xl overflow-hidden bg-zinc-950/60">
-                {selectedCustomer.orders.map((ord) => (
-                  <div key={ord.id} className="p-4 flex items-center justify-between gap-4 hover:bg-zinc-800/40">
+              <div style={{ border: '1px solid rgba(63,63,70,0.8)', borderRadius: 16, overflow: 'hidden', background: 'rgba(9,9,11,0.6)' }}>
+                {selectedCustomer.orders.map((ord, idx) => (
+                  <div
+                    key={ord.id}
+                    style={{
+                      padding: '14px 18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 16,
+                      borderBottom: idx < selectedCustomer.orders.length - 1 ? '1px solid rgba(63,63,70,0.5)' : 'none',
+                    }}
+                  >
                     <div>
-                      <span className="font-bold text-amber-400 font-mono text-xs">{ord.orderNumber}</span>
-                      <span className="text-zinc-500 text-[11px] block mt-0.5">
+                      <span style={{ fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace', fontSize: 13 }}>{ord.orderNumber}</span>
+                      <span style={{ color: '#71717a', fontSize: 11, display: 'block', marginTop: 2 }}>
                         {new Date(ord.createdAt).toLocaleDateString()}
                       </span>
                     </div>
 
-                    <div className="text-right">
-                      <span className="font-bold text-zinc-100 text-xs block">{formatPrice(ord.total, 'fr')}</span>
-                      <span className="text-[10px] font-extrabold uppercase text-amber-400">{ord.status}</span>
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ fontWeight: 800, color: '#f4f4f5', fontSize: 13 }}>{formatPrice(ord.total, 'fr')}</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fbbf24' }}>{ord.status}</span>
                     </div>
                   </div>
                 ))}
@@ -214,7 +265,7 @@ function CustomersContent() {
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

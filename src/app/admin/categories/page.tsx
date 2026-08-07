@@ -163,103 +163,153 @@ function CategoryContent() {
   )
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <FolderTree className="w-6 h-6 text-amber-400" /> Category Management
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">Organize store product categories, sort order, and thumbnail images</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FolderTree style={{ width: 22, height: 22 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+              Category Management
+            </h1>
+            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+              Organize store product categories, sort order, and thumbnail images
+            </p>
+          </div>
         </div>
 
         <button
           onClick={openCreateModal}
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition-all"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 18px',
+            borderRadius: 12,
+            background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+            color: '#09090b',
+            fontWeight: 900,
+            fontSize: 12,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 20px rgba(245,158,11,0.25)',
+          }}
         >
-          <Plus className="w-4 h-4" />
+          <Plus style={{ width: 16, height: 16 }} />
           <span>Add Category</span>
         </button>
       </div>
 
-      {/* Search */}
-      <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl max-w-md">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-500" />
+      {/* Search Bar */}
+      <div style={{
+        background: 'rgb(24,24,27)',
+        border: '1px solid rgba(63,63,70,0.6)',
+        borderRadius: 16,
+        padding: '16px 20px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        maxWidth: 400,
+      }}>
+        <div style={{ position: 'relative' }}>
+          <Search style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search categories..."
-            className="w-full bg-zinc-950/80 border border-zinc-800 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-200 outline-none"
+            style={{
+              width: '100%',
+              background: 'rgb(9,9,11)',
+              border: '1px solid rgba(63,63,70,0.8)',
+              borderRadius: 12,
+              padding: '10px 14px 10px 40px',
+              fontSize: 12,
+              color: '#f4f4f5',
+              outline: 'none',
+            }}
           />
         </div>
       </div>
 
       {/* Grid of Categories */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div className="col-span-full text-center py-12 text-zinc-500">
-            <span className="inline-block w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-2" />
-            <p>Loading categories...</p>
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: '#71717a' }}>
+            <span style={{ display: 'inline-block', width: 24, height: 24, border: '2px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 8 }} />
+            <p style={{ fontSize: 12 }}>Loading categories...</p>
           </div>
         ) : filteredCategories.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-zinc-500">No categories found.</div>
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', fontSize: 12, color: '#3f3f46' }}>
+            No categories found.
+          </div>
         ) : (
           filteredCategories.map((cat) => (
             <div
               key={cat.id}
-              className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 shadow-xl flex flex-col justify-between group hover:border-zinc-700 transition-all"
+              style={{
+                background: 'rgb(24,24,27)',
+                border: '1px solid rgba(63,63,70,0.6)',
+                borderRadius: 20,
+                padding: 24,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
             >
               <div>
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 16, background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', overflow: 'hidden', flexShrink: 0 }}>
                     <img
                       src={cat.image || '/images/brand/logo-full.png'}
                       alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <button
                       onClick={() => openEditModal(cat)}
-                      className="p-2 rounded-xl bg-zinc-800 hover:bg-amber-500 hover:text-zinc-950 text-zinc-300 transition-colors"
+                      style={{ padding: 8, borderRadius: 10, background: 'rgba(63,63,70,0.6)', border: 'none', color: '#d4d4d8', cursor: 'pointer' }}
+                      className="hover:bg-amber-500 hover:text-zinc-950 transition-all"
                       title="Edit Category"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 style={{ width: 15, height: 15 }} />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(cat)}
-                      className="p-2 rounded-xl bg-zinc-800 hover:bg-rose-600 hover:text-white text-rose-400 transition-colors"
+                      style={{ padding: 8, borderRadius: 10, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', cursor: 'pointer' }}
+                      className="hover:bg-rose-600 hover:text-white transition-all"
                       title="Delete Category"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 style={{ width: 15, height: 15 }} />
                     </button>
                   </div>
                 </div>
 
-                <h3 className="text-base font-bold text-white">{cat.name}</h3>
-                <p className="text-xs text-zinc-400 font-mono mt-0.5">slug: /{cat.slug}</p>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>{cat.name}</h3>
+                <p style={{ fontSize: 12, color: '#71717a', fontFamily: 'monospace', marginTop: 2 }}>slug: /{cat.slug}</p>
 
-                <div className="flex items-center gap-3 mt-4 text-xs">
-                  <span className="px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 font-medium">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, fontSize: 12 }}>
+                  <span style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(63,63,70,0.4)', color: '#d4d4d8', border: '1px solid rgba(63,63,70,0.6)', fontWeight: 600 }}>
                     {cat.productsCount || 0} Products
                   </span>
-                  <span className="flex items-center gap-1 text-zinc-400">
-                    <ArrowUpDown className="w-3.5 h-3.5 text-amber-400" /> Sort: #{cat.sortOrder}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#a1a1aa' }}>
+                    <ArrowUpDown style={{ width: 13, height: 13, color: '#fbbf24' }} /> Sort: #{cat.sortOrder}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs">
-                <span className="text-zinc-500">Status</span>
+              <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid rgba(63,63,70,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
+                <span style={{ color: '#71717a' }}>Status</span>
                 {cat.isActive ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-400 font-bold uppercase text-[10px]">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Active
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#34d399', fontWeight: 800, textTransform: 'uppercase', fontSize: 10 }}>
+                    <CheckCircle2 style={{ width: 14, height: 14 }} /> Active
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-rose-400 font-bold uppercase text-[10px]">
-                    <XCircle className="w-3.5 h-3.5" /> Hidden
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#f87171', fontWeight: 800, textTransform: 'uppercase', fontSize: 10 }}>
+                    <XCircle style={{ width: 14, height: 14 }} /> Hidden
                   </span>
                 )}
               </div>
@@ -270,67 +320,67 @@ function CategoryContent() {
 
       {/* Category Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-zinc-100">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 520, background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, padding: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              style={{ position: 'absolute', top: 24, right: 24, padding: 8, borderRadius: 10, background: 'none', border: 'none', color: '#71717a', cursor: 'pointer' }}
             >
-              <X className="w-5 h-5" />
+              <X style={{ width: 20, height: 20 }} />
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-6">
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 24 }}>
               {editingCategory ? 'Edit Category' : 'Create Category'}
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">Name (French/Primary)</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Name (French/Primary)</label>
                 <input
                   type="text"
                   required
                   value={formData.nameFr}
                   onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
                   placeholder="Djellaba & Abayas"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Name (Arabic)</label>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Name (Arabic)</label>
                   <input
                     type="text"
                     value={formData.nameAr}
                     onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
                     placeholder="جلابة وعبايات"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Slug</label>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Slug</label>
                   <input
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder="djellaba-abayas"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-200 outline-none focus:border-amber-500 font-mono"
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', fontFamily: 'monospace' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">Sort Order</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Sort Order</label>
                 <input
                   type="number"
                   value={formData.sortOrder}
                   onChange={(e) => setFormData({ ...formData, sortOrder: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-200 outline-none focus:border-amber-500"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-2">Category Image</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 8 }}>Category Image</label>
                 <ImageUploader
                   multiple={false}
                   images={formData.image ? [formData.image] : []}
@@ -339,31 +389,31 @@ function CategoryContent() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div style={{ display: 'flex', itemsCenter: 'center', gap: 8 }}>
                 <input
                   type="checkbox"
                   id="catActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="w-4 h-4 accent-amber-500 rounded"
+                  style={{ width: 16, height: 16, accentColor: '#f59e0b' }}
                 />
-                <label htmlFor="catActive" className="text-xs font-semibold text-zinc-300 cursor-pointer">
+                <label htmlFor="catActive" style={{ fontSize: 12, fontWeight: 700, color: '#d4d4d8', cursor: 'pointer' }}>
                   Active Category
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-zinc-800">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, paddingTop: 20, borderTop: '1px solid rgba(63,63,70,0.8)' }}>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  style={{ padding: '10px 18px', borderRadius: 12, background: 'none', border: 'none', fontSize: 12, fontWeight: 600, color: '#a1a1aa', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:bg-amber-400"
+                  style={{ padding: '10px 24px', borderRadius: 12, background: 'linear-gradient(90deg, #f59e0b, #d97706)', color: '#09090b', fontWeight: 900, fontSize: 12, border: 'none', cursor: 'pointer', boxShadow: '0 4px 20px rgba(245,158,11,0.2)', opacity: submitting ? 0.6 : 1 }}
                 >
                   {submitting ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
                 </button>
@@ -384,7 +434,7 @@ function CategoryContent() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </>
+    </div>
   )
 }
 
