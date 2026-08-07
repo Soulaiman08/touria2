@@ -32,16 +32,95 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Products', href: '/admin/products', icon: Package },
-  { name: 'Categories', href: '/admin/categories', icon: FolderTree },
-  { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-  { name: 'Customers', href: '/admin/customers', icon: Users },
-  { name: 'Banners', href: '/admin/banners', icon: ImageIcon },
-  { name: 'Store Settings', href: '/admin/settings', icon: Settings },
-  { name: 'Profile', href: '/admin/profile', icon: User },
+  { name: 'Dashboard',      href: '/admin',            icon: LayoutDashboard },
+  { name: 'Products',       href: '/admin/products',   icon: Package         },
+  { name: 'Categories',     href: '/admin/categories', icon: FolderTree      },
+  { name: 'Orders',         href: '/admin/orders',     icon: ShoppingBag     },
+  { name: 'Customers',      href: '/admin/customers',  icon: Users           },
+  { name: 'Banners',        href: '/admin/banners',    icon: ImageIcon       },
+  { name: 'Store Settings', href: '/admin/settings',   icon: Settings        },
+  { name: 'Profile',        href: '/admin/profile',    icon: User            },
 ]
 
+/* ─── Sidebar inner content (shared between desktop + mobile drawer) ─── */
+function SidebarContent({
+  onClose,
+  pathname,
+  handleLogout,
+}: {
+  onClose: () => void
+  pathname: string
+  handleLogout: () => void
+}) {
+  return (
+    <div className="flex flex-col h-full">
+      {/* Brand Header */}
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-zinc-800/80">
+        <Link href="/admin" className="flex items-center gap-2.5 group" onClick={onClose}>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-zinc-950 font-bold shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="font-extrabold text-sm text-white tracking-wide leading-none">THURAYA</h2>
+            <p className="text-[10px] font-semibold text-amber-400/90 tracking-widest uppercase mt-0.5">Admin Panel</p>
+          </div>
+        </Link>
+        <button
+          onClick={onClose}
+          className="md:hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/admin' && pathname.startsWith(item.href))
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                isActive
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
+              }`}
+            >
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-950' : 'text-zinc-400'}`} />
+              <span>{item.name}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="pt-4 mt-4 border-t border-zinc-800/80 space-y-2">
+        <Link
+          href="/ar"
+          target="_blank"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800/40 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+        >
+          <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>View Storefront</span>
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors border border-rose-500/10"
+        >
+          <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Main AdminLayout ─────────────────────────────────────────────── */
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
@@ -62,99 +141,50 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans selection:bg-amber-500 selection:text-zinc-950">
-      {/* Mobile Sidebar Overlay */}
+    /*
+     * Outer shell: flex row, full height.
+     * On desktop the sidebar is a normal flex child (w-56, shrink-0, sticky).
+     * The main content div (flex-1) fills the remaining space naturally.
+     */
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-amber-500 selection:text-zinc-950 flex flex-row">
+
+      {/* ── Mobile overlay ───────────────────────────────────────── */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
         />
       )}
 
-      {/* Sidebar Navigation — fixed on mobile, sticky (in-flow) on desktop */}
-      <aside
-        className={`
-          fixed top-0 left-0 z-50 h-screen
-          md:sticky md:shrink-0 md:self-start
-          w-56 bg-zinc-900/95 border-r border-zinc-800/80
-          flex flex-col justify-between p-4
-          backdrop-blur-xl overflow-y-auto admin-scroll
-          transition-transform duration-300
-          md:translate-x-0
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}
-      >
-        <div>
-          {/* Brand Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
-            <Link href="/admin" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-zinc-950 font-bold shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div>
-                <h1 className="font-extrabold text-sm text-white tracking-wide leading-none">THURAYA</h1>
-                <p className="text-[10px] font-semibold text-amber-400/90 tracking-widest uppercase mt-0.5">Admin Panel</p>
-              </div>
-            </Link>
-
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="md:hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="mt-4 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-950' : 'text-zinc-400'}`} />
-                  <span className="text-sm">{item.name}</span>
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Footer Actions / Logout */}
-        <div className="pt-4 border-t border-zinc-800/80 space-y-2">
-          <Link
-            href="/ar"
-            target="_blank"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800/40 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-          >
-            <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>View Storefront</span>
-          </Link>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors border border-rose-500/10"
-          >
-            <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>Logout</span>
-          </button>
-        </div>
+      {/* ── Desktop sidebar (in document flow, not fixed) ─────── */}
+      <aside className="hidden md:flex md:flex-col md:shrink-0 md:w-52 md:min-h-screen md:sticky md:top-0 md:h-screen bg-zinc-900 border-r border-zinc-800/80 p-4 overflow-y-auto admin-scroll">
+        <SidebarContent
+          onClose={() => {}}
+          pathname={pathname}
+          handleLogout={handleLogout}
+        />
       </aside>
 
-      {/* Main Content Workspace */}
+      {/* ── Mobile drawer (fixed overlay, slides in) ─────────── */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-screen w-56 bg-zinc-900 border-r border-zinc-800/80 p-4 overflow-y-auto admin-scroll flex flex-col md:hidden transition-transform duration-300 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <SidebarContent
+          onClose={() => setMobileOpen(false)}
+          pathname={pathname}
+          handleLogout={handleLogout}
+        />
+      </aside>
+
+      {/* ── Main content area ─────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
+
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 h-16 bg-zinc-900/80 border-b border-zinc-800/80 px-4 md:px-8 flex items-center justify-between backdrop-blur-md">
+        <header className="sticky top-0 z-30 h-16 bg-zinc-900/90 border-b border-zinc-800/80 px-6 flex items-center justify-between backdrop-blur-md">
           <div className="flex items-center gap-4">
+            {/* Hamburger — mobile only */}
             <button
               onClick={() => setMobileOpen(true)}
               className="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800"
@@ -168,7 +198,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Theme Switcher */}
+            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
               title="Toggle Theme"
@@ -187,7 +217,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full" />
             </button>
 
-            {/* Profile Menu Trigger */}
+            {/* Profile */}
             <Link
               href="/admin/profile"
               className="flex items-center gap-3 pl-2 pr-3 py-1.5 rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 hover:border-zinc-700 transition-colors"
@@ -200,8 +230,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Page Body */}
-        <main className="flex-1 px-6 py-6 sm:px-8 sm:py-8 md:px-12 md:py-10 w-full">
+        {/* Page body */}
+        <main className="flex-1 p-8">
           {children}
         </main>
       </div>
