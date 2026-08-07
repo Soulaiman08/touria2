@@ -73,20 +73,20 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed md:sticky top-0 z-50 h-screen w-72 bg-zinc-900/95 border-r border-zinc-800/80 flex flex-col justify-between p-5 backdrop-blur-xl transition-transform duration-300 overflow-y-auto admin-scroll md:translate-x-0 ${
+        className={`fixed md:sticky top-0 z-50 h-screen w-56 bg-zinc-900/95 border-r border-zinc-800/80 flex flex-col justify-between p-4 backdrop-blur-xl transition-transform duration-300 overflow-y-auto admin-scroll md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div>
           {/* Brand Header */}
-          <div className="flex items-center justify-between pb-6 border-b border-zinc-800/80">
-            <Link href="/admin" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-zinc-950 font-bold shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-6 h-6" />
+          <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
+            <Link href="/admin" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-zinc-950 font-bold shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform shrink-0">
+                <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h1 className="font-extrabold text-lg text-white tracking-wide leading-none">THURAYA</h1>
-                <p className="text-[11px] font-semibold text-amber-400/90 tracking-widest uppercase mt-1">Admin Panel</p>
+                <h1 className="font-extrabold text-sm text-white tracking-wide leading-none">THURAYA</h1>
+                <p className="text-[10px] font-semibold text-amber-400/90 tracking-widest uppercase mt-0.5">Admin Panel</p>
               </div>
             </Link>
 
@@ -99,7 +99,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation Links */}
-          <nav className="mt-6 space-y-1.5">
+          <nav className="mt-4 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
@@ -108,14 +108,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20 translate-x-1'
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20'
                       : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-zinc-950' : 'text-zinc-400'}`} />
-                  <span>{item.name}</span>
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-950' : 'text-zinc-400'}`} />
+                  <span className="text-sm">{item.name}</span>
                 </Link>
               )
             })}
@@ -123,23 +123,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Footer Actions / Logout */}
-        <div className="pt-6 border-t border-zinc-800/80 space-y-3">
+        <div className="pt-4 border-t border-zinc-800/80 space-y-2">
           <Link
             href="/ar"
             target="_blank"
-            className="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800/40 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800/40 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
           >
-            <span className="flex items-center gap-2">
-              <ExternalLink className="w-4 h-4 text-amber-400" /> View Storefront
-            </span>
-            <span className="text-[10px] bg-zinc-700/60 px-1.5 py-0.5 rounded text-zinc-300">Live</span>
+            <ExternalLink className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>View Storefront</span>
           </Link>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors border border-rose-500/10"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-medium text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors border border-rose-500/10"
           >
-            <LogOut className="w-5 h-5 text-rose-400" />
+            <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
             <span>Logout</span>
           </button>
         </div>
@@ -196,7 +194,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Body */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-5 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>
