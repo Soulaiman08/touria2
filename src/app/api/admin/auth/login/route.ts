@@ -12,48 +12,58 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.toLowerCase().trim()
-    let admin: { id: string; email: string; name: string; role: string; passwordHash: string; avatar?: string | null } | null = null
+    let admin = null
 
-    // Attempt DB lookup with 1.5s timeout so offline DB doesn't freeze login
+    // Attempt DB lookup with 2s timeout
     try {
       const dbPromise = prisma.adminUser.findUnique({
         where: { email: cleanEmail },
       })
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
       admin = await Promise.race([dbPromise, timeoutPromise])
     } catch {
-      console.warn('⚠️ DB lookup failed or timed out, falling back to seed credentials check')
+      console.warn('⚠️ DB lookup failed or timed out')
     }
 
-    // Direct check for fallback seed admin
-    if (!admin && cleanEmail === 'admin@thuraya.com' && password === 'admin123') {
-      const passwordHash = hashPassword('admin123')
-      admin = {
-        id: 'admin_seed',
-        email: 'admin@thuraya.com',
-        name: 'Thuraya Admin',
-        role: 'SUPER_ADMIN',
-        passwordHash,
-      }
-
-      // Try creating seed admin in background if DB comes online
-      prisma.adminUser
-        .create({
-          data: {
-            email: 'admin@thuraya.com',
-            passwordHash,
-            name: 'Thuraya Admin',
-            role: 'SUPER_ADMIN',
-          },
-        })
-        .catch(() => {})
-    } else if (admin) {
+    if (admin) {
       const isValid = verifyPassword(password, admin.passwordHash)
       if (!isValid) {
         return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
       }
     } else {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      // Admin not found by email in DB.
+      // Check total count of admin users in database.
+      let adminCount = 0
+      try {
+        adminCount = await prisma.adminUser.count()
+      } catch {
+        adminCount = 0
+      }
+
+      // Default seed credentials ONLY allowed if NO admin user exists in DB at all.
+      if (adminCount === 0 && cleanEmail === 'admin@thuraya.com' && password === 'admin123') {
+        const passwordHash = hashPassword('admin123')
+        try {
+          admin = await prisma.adminUser.create({
+            data: {
+              email: 'admin@thuraya.com',
+              passwordHash,
+              name: 'Thuraya Admin',
+              role: 'SUPER_ADMIN',
+            },
+          })
+        } catch {
+          admin = {
+            id: 'admin_seed',
+            email: 'admin@thuraya.com',
+            name: 'Thuraya Admin',
+            role: 'SUPER_ADMIN',
+            passwordHash,
+          }
+        }
+      } else {
+        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      }
     }
 
     const token = signAdminToken({

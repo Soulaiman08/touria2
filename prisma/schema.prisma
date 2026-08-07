@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,203 +7,154 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// CATEGORIES
-// ==========================================
 model Category {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  nameAr      String    @map("name_ar")
-  nameFr      String    @map("name_fr")
-  nameEn      String    @map("name_en")
-  descriptionAr String? @map("description_ar")
-  descriptionFr String? @map("description_fr")
-  descriptionEn String? @map("description_en")
-  image       String?
-  sortOrder   Int       @default(0) @map("sort_order")
-  isActive    Boolean   @default(true) @map("is_active")
-  parentId    String?   @map("parent_id")
-  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
-  products    Product[]
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  nameAr        String     @map("name_ar")
+  nameFr        String     @map("name_fr")
+  nameEn        String     @map("name_en")
+  descriptionAr String?    @map("description_ar")
+  descriptionFr String?    @map("description_fr")
+  descriptionEn String?    @map("description_en")
+  image         String?
+  sortOrder     Int        @default(0) @map("sort_order")
+  isActive      Boolean    @default(true) @map("is_active")
+  parentId      String?    @map("parent_id")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children      Category[] @relation("CategoryHierarchy")
+  products      Product[]
 
   @@map("categories")
 }
 
-// ==========================================
-// PRODUCTS
-// ==========================================
 model Product {
-  id            String    @id @default(cuid())
-  slug          String    @unique
-  sku           String    @unique
-  nameAr        String    @map("name_ar")
-  nameFr        String    @map("name_fr")
-  nameEn        String    @map("name_en")
-  descriptionAr String    @db.Text @map("description_ar")
-  descriptionFr String    @db.Text @map("description_fr")
-  descriptionEn String    @db.Text @map("description_en")
-  basePrice     Decimal   @db.Decimal(10, 2) @map("base_price")
-  salePrice     Decimal?  @db.Decimal(10, 2) @map("sale_price")
-  categoryId    String    @map("category_id")
-  category      Category  @relation(fields: [categoryId], references: [id])
-  isActive      Boolean   @default(true) @map("is_active")
-  isFeatured    Boolean   @default(false) @map("is_featured")
-  isNiqab       Boolean   @default(false) @map("is_niqab")
-  canAddNiqab   Boolean   @default(true) @map("can_add_niqab")
-  mainImage     String    @map("main_image")
+  id            String           @id @default(cuid())
+  slug          String           @unique
+  sku           String           @unique
+  nameAr        String           @map("name_ar")
+  nameFr        String           @map("name_fr")
+  nameEn        String           @map("name_en")
+  descriptionAr String           @map("description_ar")
+  descriptionFr String           @map("description_fr")
+  descriptionEn String           @map("description_en")
+  basePrice     Decimal          @map("base_price") @db.Decimal(10, 2)
+  salePrice     Decimal?         @map("sale_price") @db.Decimal(10, 2)
+  categoryId    String           @map("category_id")
+  isActive      Boolean          @default(true) @map("is_active")
+  isFeatured    Boolean          @default(false) @map("is_featured")
+  isNiqab       Boolean          @default(false) @map("is_niqab")
+  canAddNiqab   Boolean          @default(true) @map("can_add_niqab")
+  mainImage     String           @map("main_image")
   images        String[]
   tags          String[]
-  metaTitleAr   String?   @map("meta_title_ar")
-  metaTitleFr   String?   @map("meta_title_fr")
-  metaTitleEn   String?   @map("meta_title_en")
-  metaDescAr    String?   @map("meta_desc_ar")
-  metaDescFr    String?   @map("meta_desc_fr")
-  metaDescEn    String?   @map("meta_desc_en")
-  sortOrder     Int       @default(0) @map("sort_order")
-  variants      ProductVariant[]
+  metaTitleAr   String?          @map("meta_title_ar")
+  metaTitleFr   String?          @map("meta_title_fr")
+  metaTitleEn   String?          @map("meta_title_en")
+  metaDescAr    String?          @map("meta_desc_ar")
+  metaDescFr    String?          @map("meta_desc_fr")
+  metaDescEn    String?          @map("meta_desc_en")
+  sortOrder     Int              @default(0) @map("sort_order")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
   orderItems    OrderItem[]
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  variants      ProductVariant[]
+  category      Category         @relation(fields: [categoryId], references: [id])
 
   @@map("products")
 }
 
-// ==========================================
-// PRODUCT VARIANTS (Size + Color combinations)
-// ==========================================
 model ProductVariant {
-  id            String    @id @default(cuid())
-  productId     String    @map("product_id")
-  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  productId     String      @map("product_id")
   size          String
-  colorCode     String    @map("color_code")
-  colorNameAr   String    @map("color_name_ar")
-  colorNameFr   String    @map("color_name_fr")
-  colorNameEn   String    @map("color_name_en")
-  stockQuantity Int       @default(0) @map("stock_quantity")
-  priceModifier Decimal   @default(0) @db.Decimal(10, 2) @map("price_modifier")
+  colorCode     String      @map("color_code")
+  colorNameAr   String      @map("color_name_ar")
+  colorNameFr   String      @map("color_name_fr")
+  colorNameEn   String      @map("color_name_en")
+  stockQuantity Int         @default(0) @map("stock_quantity")
+  priceModifier Decimal     @default(0) @map("price_modifier") @db.Decimal(10, 2)
   images        String[]
-  isActive      Boolean   @default(true) @map("is_active")
+  isActive      Boolean     @default(true) @map("is_active")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
   orderItems    OrderItem[]
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, size, colorCode])
   @@map("product_variants")
 }
 
-// ==========================================
-// ORDERS
-// ==========================================
 model Order {
-  id              String      @id @default(cuid())
-  orderNumber     String      @unique @map("order_number")
-  status          OrderStatus @default(PENDING)
-  paymentMethod   String      @default("COD") @map("payment_method")
-  paymentStatus   String      @default("PENDING") @map("payment_status")
-
-  // Customer info (guest only)
-  customerName    String    @map("customer_name")
-  customerPhone   String    @map("customer_phone")
-  customerPhone2  String?   @map("customer_phone_2")
-  customerEmail   String?   @map("customer_email")
-
-  // Shipping address
-  region          String    @default("")
-  city            String
-  district        String?
-  address         String
-  postalCode      String?   @map("postal_code")
-  notes           String?   @db.Text
-
-  // Pricing
-  subtotal        Decimal   @db.Decimal(10, 2)
-  shippingCost    Decimal   @db.Decimal(10, 2) @map("shipping_cost")
-  discountAmount  Decimal   @default(0) @db.Decimal(10, 2) @map("discount_amount")
-  total           Decimal   @db.Decimal(10, 2)
-
-  // Locale info
-  locale          String    @default("ar")
-
-  // Admin
-  adminNotes      String?   @db.Text @map("admin_notes")
-
-  customerId      String?   @map("customer_id")
-  customer        Customer? @relation(fields: [customerId], references: [id])
-
-  items           OrderItem[]
-  statusHistory   OrderStatusHistory[]
-
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id             String               @id @default(cuid())
+  orderNumber    String               @unique @map("order_number")
+  status         OrderStatus          @default(PENDING)
+  paymentMethod  String               @default("COD") @map("payment_method")
+  paymentStatus  String               @default("PENDING") @map("payment_status")
+  customerName   String               @map("customer_name")
+  customerPhone  String               @map("customer_phone")
+  customerPhone2 String?              @map("customer_phone_2")
+  customerEmail  String?              @map("customer_email")
+  city           String
+  district       String?
+  address        String
+  postalCode     String?              @map("postal_code")
+  notes          String?
+  subtotal       Decimal              @db.Decimal(10, 2)
+  shippingCost   Decimal              @map("shipping_cost") @db.Decimal(10, 2)
+  discountAmount Decimal              @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  total          Decimal              @db.Decimal(10, 2)
+  locale         String               @default("ar")
+  adminNotes     String?              @map("admin_notes")
+  customerId     String?              @map("customer_id")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  region         String               @default("")
+  items          OrderItem[]
+  statusHistory  OrderStatusHistory[]
+  customer       Customer?            @relation(fields: [customerId], references: [id])
 
   @@map("orders")
 }
 
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  RETURNED
-
-  @@map("order_status")
-}
-
-// ==========================================
-// ORDER ITEMS
-// ==========================================
 model OrderItem {
   id              String          @id @default(cuid())
   orderId         String          @map("order_id")
-  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId       String          @map("product_id")
-  product         Product         @relation(fields: [productId], references: [id])
   variantId       String?         @map("variant_id")
-  variant         ProductVariant? @relation(fields: [variantId], references: [id])
   quantity        Int
-  unitPrice       Decimal         @db.Decimal(10, 2) @map("unit_price")
-  totalPrice      Decimal         @db.Decimal(10, 2) @map("total_price")
-  productSnapshot Json            @map("product_snapshot") // frozen at time of order
+  unitPrice       Decimal         @map("unit_price") @db.Decimal(10, 2)
+  totalPrice      Decimal         @map("total_price") @db.Decimal(10, 2)
+  productSnapshot Json            @map("product_snapshot")
   createdAt       DateTime        @default(now()) @map("created_at")
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id])
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@map("order_items")
 }
 
-// ==========================================
-// ORDER STATUS HISTORY
-// ==========================================
 model OrderStatusHistory {
   id        String      @id @default(cuid())
   orderId   String      @map("order_id")
-  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   status    OrderStatus
   note      String?
   createdAt DateTime    @default(now()) @map("created_at")
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_status_history")
 }
 
-// ==========================================
-// SITE SETTINGS (for future admin panel)
-// ==========================================
 model SiteSetting {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String   @db.Text
+  value     String
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
 }
 
-// ==========================================
-// ADMIN USERS
-// ==========================================
 model AdminUser {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -220,27 +168,21 @@ model AdminUser {
   @@map("admin_users")
 }
 
-// ==========================================
-// BANNERS
-// ==========================================
 model Banner {
-  id          String   @id @default(cuid())
-  title       String
-  subtitle    String?
-  buttonText  String?  @map("button_text")
-  buttonUrl   String?  @map("button_url")
-  imageUrl    String   @map("image_url")
-  sortOrder   Int      @default(0) @map("sort_order")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(cuid())
+  title      String
+  subtitle   String?
+  buttonText String?  @map("button_text")
+  buttonUrl  String?  @map("button_url")
+  imageUrl   String   @map("image_url")
+  sortOrder  Int      @default(0) @map("sort_order")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("banners")
 }
 
-// ==========================================
-// CUSTOMERS
-// ==========================================
 model Customer {
   id        String   @id @default(cuid())
   name      String
@@ -248,11 +190,22 @@ model Customer {
   phone     String   @unique
   address   String?
   city      String?
-  notes     String?  @db.Text
-  orders    Order[]
+  notes     String?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  orders    Order[]
 
   @@map("customers")
 }
 
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+
+  @@map("order_status")
+}
