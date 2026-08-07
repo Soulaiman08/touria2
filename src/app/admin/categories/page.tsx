@@ -165,7 +165,7 @@ function CategoryContent() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
       {/* Page Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)', flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)', flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <FolderTree style={{ width: 22, height: 22 }} />
@@ -389,7 +389,7 @@ function CategoryContent() {
                 />
               </div>
 
-              <div style={{ display: 'flex', itemsCenter: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
                   type="checkbox"
                   id="catActive"
