@@ -128,7 +128,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#09090b', color: '#f4f4f5', display: 'flex', flexDirection: 'row', fontFamily: 'sans-serif' }}>
+    <div style={{ height: '100vh', background: '#09090b', color: '#f4f4f5', display: 'flex', flexDirection: 'row', fontFamily: 'sans-serif', overflow: 'hidden' }}>
 
       {/* Mobile overlay */}
       {mobileOpen && (
@@ -162,7 +162,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ── Main content area ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflowY: 'auto' }}>
 
         {/* Top header */}
         <header style={{
@@ -208,7 +208,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page body — generous padding away from sidebar */}
-        <main style={{ flex: 1, padding: '40px 48px', overflowX: 'hidden' }}>
+        <main style={{ flex: 1, padding: '40px 48px' }}>
           {children}
         </main>
       </div>
