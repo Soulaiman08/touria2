@@ -85,7 +85,23 @@ export async function PUT(request: Request) {
     const updateData: Record<string, unknown> = {}
 
     if (name) updateData.name = name
-    if (email) updateData.email = email.toLowerCase().trim()
+
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim()
+      if (admin) {
+        if (cleanEmail !== admin.email) {
+          const existingUser = await prisma.adminUser.findUnique({
+            where: { email: cleanEmail },
+          })
+          if (existingUser && existingUser.id !== admin.id) {
+            return NextResponse.json({ error: 'This email address is already in use by another admin account' }, { status: 400 })
+          }
+          updateData.email = cleanEmail
+        }
+      } else {
+        updateData.email = cleanEmail
+      }
+    }
 
     if (newPassword) {
       if (!currentPassword) {
@@ -119,8 +135,10 @@ export async function PUT(request: Request) {
       const newName = name || currentAdmin.name
       const newHash = newPassword ? hashPassword(newPassword) : hashPassword('admin123')
 
-      updatedAdmin = await prisma.adminUser.create({
-        data: {
+      updatedAdmin = await prisma.adminUser.upsert({
+        where: { email: newEmail },
+        update: updateData,
+        create: {
           email: newEmail,
           name: newName,
           passwordHash: newHash,
@@ -155,8 +173,11 @@ export async function PUT(request: Request) {
     })
 
     return response
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating admin profile:', error)
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json({ error: 'This email address is already in use by another account' }, { status: 400 })
+    }
     const msg = error instanceof Error ? error.message : 'Failed to update profile'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
