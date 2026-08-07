@@ -71,11 +71,18 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation — fixed on mobile, sticky (in-flow) on desktop */}
       <aside
-        className={`fixed md:sticky top-0 z-50 h-screen w-56 bg-zinc-900/95 border-r border-zinc-800/80 flex flex-col justify-between p-4 backdrop-blur-xl transition-transform duration-300 overflow-y-auto admin-scroll md:translate-x-0 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`
+          fixed top-0 left-0 z-50 h-screen
+          md:sticky md:shrink-0 md:self-start
+          w-56 bg-zinc-900/95 border-r border-zinc-800/80
+          flex flex-col justify-between p-4
+          backdrop-blur-xl overflow-y-auto admin-scroll
+          transition-transform duration-300
+          md:translate-x-0
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
       >
         <div>
           {/* Brand Header */}
