@@ -70,38 +70,38 @@ function StatCard({
   labelEn: string
   value: string | number
   sub: string
-  accent: string          // tailwind color key e.g. 'emerald'
+  accent: string
   Icon: React.ElementType
 }) {
   const colors: Record<string, { ring: string; icon: string; blob: string; text: string }> = {
-    emerald: { ring: 'border-emerald-500/25 hover:border-emerald-500/50', icon: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25', blob: 'bg-emerald-500/10', text: 'text-emerald-400' },
-    amber:   { ring: 'border-amber-500/25  hover:border-amber-500/50',  icon: 'bg-amber-500/15   text-amber-400   border-amber-500/25',  blob: 'bg-amber-500/10',  text: 'text-amber-400'  },
-    blue:    { ring: 'border-blue-500/25   hover:border-blue-500/50',   icon: 'bg-blue-500/15    text-blue-400    border-blue-500/25',   blob: 'bg-blue-500/10',   text: 'text-blue-400'   },
-    purple:  { ring: 'border-purple-500/25 hover:border-purple-500/50', icon: 'bg-purple-500/15  text-purple-400  border-purple-500/25', blob: 'bg-purple-500/10', text: 'text-purple-400' },
+    emerald: { ring: 'border-emerald-500/30 hover:border-emerald-500/60', icon: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', blob: 'bg-emerald-500/8',  text: 'text-emerald-400' },
+    amber:   { ring: 'border-amber-500/30   hover:border-amber-500/60',   icon: 'bg-amber-500/15   text-amber-400   border-amber-500/30',   blob: 'bg-amber-500/8',   text: 'text-amber-400'  },
+    blue:    { ring: 'border-blue-500/30    hover:border-blue-500/60',    icon: 'bg-blue-500/15    text-blue-400    border-blue-500/30',    blob: 'bg-blue-500/8',    text: 'text-blue-400'   },
+    purple:  { ring: 'border-purple-500/30  hover:border-purple-500/60',  icon: 'bg-purple-500/15  text-purple-400  border-purple-500/30',  blob: 'bg-purple-500/8',  text: 'text-purple-400' },
   }
   const c = colors[accent]
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-zinc-900 border ${c.ring} shadow-xl transition-all duration-300 p-6 flex flex-col gap-5`}>
+    <div className={`relative overflow-hidden rounded-2xl bg-zinc-900 border ${c.ring} shadow-xl transition-all duration-300 flex flex-col`}>
       {/* decorative blob */}
-      <div className={`absolute -right-8 -bottom-8 w-36 h-36 ${c.blob} rounded-full blur-3xl pointer-events-none`} />
+      <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${c.blob} rounded-full blur-3xl pointer-events-none`} />
 
-      {/* row: label + icon */}
-      <div className="relative z-10 flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <span className={`text-xs font-black uppercase tracking-widest ${c.text}`}>{labelAr}</span>
-          <span className="text-[11px] font-medium text-zinc-500 tracking-wide">{labelEn}</span>
+      {/* ── Top section: icon + labels ─────────────── */}
+      <div className="relative z-10 flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-zinc-800/60">
+        <div className="flex flex-col gap-2">
+          <span className={`text-sm font-black tracking-wide ${c.text}`}>{labelAr}</span>
+          <span className="text-xs font-medium text-zinc-500">{labelEn}</span>
         </div>
-        <div className={`shrink-0 p-2.5 rounded-xl border ${c.icon}`}>
+        <div className={`shrink-0 p-3 rounded-xl border ${c.icon} shadow-md`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
 
-      {/* big number */}
-      <div className="relative z-10 flex flex-col gap-2">
-        <span className="text-3xl font-black text-white tracking-tight leading-none">{value}</span>
-        <span className={`text-xs font-semibold ${c.text} flex items-center gap-1`}>
-          <TrendingUp className="w-3.5 h-3.5" />
+      {/* ── Bottom section: big number + trend ─────── */}
+      <div className="relative z-10 flex flex-col gap-3 px-6 py-5">
+        <span className="text-4xl font-black text-white tracking-tight leading-none">{value}</span>
+        <span className={`text-xs font-semibold ${c.text} flex items-center gap-1.5`}>
+          <TrendingUp className="w-3.5 h-3.5 shrink-0" />
           {sub}
         </span>
       </div>

@@ -194,7 +194,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Body */}
-        <main className="flex-1 p-5 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 px-6 py-6 sm:px-8 sm:py-8 md:px-12 md:py-10 w-full">
           {children}
         </main>
       </div>
