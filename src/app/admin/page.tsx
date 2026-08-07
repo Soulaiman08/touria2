@@ -230,92 +230,89 @@ function DashboardContent() {
       </div>
 
       {/* ── Chart + Top Products ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
 
-        {/* Sales chart */}
-        <div className="lg:col-span-2 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-xl p-6 flex flex-col gap-6">
-          {/* header */}
-          <div className="flex items-start justify-between gap-4 pb-4 border-b border-zinc-800/60">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
-                <BarChart3 className="w-5 h-5" />
+        {/* Sales chart — 2/3 width */}
+        <div style={{ gridColumn: 'span 2', background: 'rgb(24,24,27)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+          {/* Card header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '24px 24px 20px', borderBottom: '1px solid rgba(63,63,70,0.5)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <BarChart3 style={{ width: 18, height: 18 }} />
               </div>
-              <div className="flex flex-col gap-1">
-                <h2 className="text-base font-black text-white">
-                  مخطط المبيعات
-                  <span className="ml-1.5 text-xs font-normal text-zinc-500">Sales Timeline</span>
-                </h2>
-                <p className="text-xs text-zinc-500 font-medium">أداء الأرباح اليومية على مدى الأيام الأخيرة</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                  مخطط المبيعات <span style={{ fontSize: 12, fontWeight: 400, color: '#52525b' }}>Sales Timeline</span>
+                </span>
+                <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>أداء الأرباح اليومية على مدى الأيام الأخيرة</span>
               </div>
             </div>
-            <span className="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span style={{ flexShrink: 0, padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)' }}>
               Daily
             </span>
           </div>
 
-          {/* bars */}
-          <div className="h-56 flex items-end gap-3 pt-4 pb-2">
+          {/* Bars */}
+          <div style={{ padding: '24px 24px 16px', display: 'flex', alignItems: 'flex-end', gap: 10, height: 220 }}>
             {salesChart.map((item, idx) => {
               const heightPct = Math.max(10, Math.round((item.sales / maxSales) * 100))
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
-                  <span className="text-[11px] font-bold text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-950 px-2 py-0.5 rounded-lg border border-amber-500/30 whitespace-nowrap">
+                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, height: '100%', justifyContent: 'flex-end' }} className="group">
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', background: 'rgb(9,9,11)', padding: '2px 8px', borderRadius: 8, border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'nowrap', opacity: 0 }} className="group-hover:opacity-100 transition-opacity">
                     {item.sales} DH
                   </span>
-                  <div
-                    style={{ height: `${heightPct}%` }}
-                    className="w-full max-w-[40px] bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-xl group-hover:brightness-110 transition-all shadow-md shadow-amber-500/10"
-                  />
-                  <span className="text-[11px] font-semibold text-zinc-500 group-hover:text-amber-400 transition-colors">
-                    {item.date}
-                  </span>
+                  <div style={{ height: `${heightPct}%`, width: '100%', maxWidth: 40, background: 'linear-gradient(to top, #d97706, #fbbf24)', borderRadius: '8px 8px 0 0', boxShadow: '0 4px 12px rgba(245,158,11,0.15)' }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#52525b' }}>{item.date}</span>
                 </div>
               )
             })}
           </div>
 
-          {/* footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-xs text-zinc-500 font-medium">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-amber-500" />
+          {/* Footer */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderTop: '1px solid rgba(63,63,70,0.5)', fontSize: 12, color: '#71717a', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }} />
               <span>إجمالي المبيعات (MAD)</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Calendar style={{ width: 13, height: 13 }} />
               <span>تحديث تلقائي</span>
             </div>
           </div>
         </div>
 
-        {/* Top products */}
-        <div className="rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-xl p-6 flex flex-col gap-5">
-          <div className="flex items-start justify-between pb-4 border-b border-zinc-800/60">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-base font-black text-white">
-                الأكثر مبيعاً
-                <span className="ml-1.5 text-xs font-normal text-zinc-500">Top Products</span>
-              </h2>
-              <p className="text-xs text-zinc-500 font-medium">المنتجات الأكثر طلباً</p>
+        {/* Top products — 1/3 width */}
+        <div style={{ background: 'rgb(24,24,27)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, padding: '24px 24px 20px', borderBottom: '1px solid rgba(63,63,70,0.5)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <span style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>
+                الأكثر مبيعاً <span style={{ fontSize: 12, fontWeight: 400, color: '#52525b' }}>Top Products</span>
+              </span>
+              <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>المنتجات الأكثر طلباً</span>
             </div>
-            <Link href="/admin/products" className="flex items-center gap-1 text-xs text-amber-400 font-bold hover:underline shrink-0">
-              الكل <ArrowUpRight className="w-3.5 h-3.5" />
+            <Link href="/admin/products" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#fbbf24', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+              الكل <ArrowUpRight style={{ width: 14, height: 14 }} />
             </Link>
           </div>
 
-          <div className="flex flex-col gap-3">
+          {/* Product list */}
+          <div style={{ padding: '16px 16px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {topProducts.length === 0 ? (
-              <p className="py-10 text-center text-xs text-zinc-600">لا توجد منتجات مباعة بعد</p>
+              <p style={{ padding: '32px 0', textAlign: 'center', fontSize: 12, color: '#3f3f46' }}>لا توجد منتجات مباعة بعد</p>
             ) : (
               topProducts.map((prod, idx) => (
-                <div key={prod.id || idx} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-950/60 border border-zinc-800/70 hover:border-zinc-700 transition-all">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0">
-                    <img src={prod.image || '/images/brand/logo-full.png'} alt={prod.name} className="w-full h-full object-cover" />
+                <div key={prod.id || idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: 'rgba(9,9,11,0.6)', border: '1px solid rgba(63,63,70,0.6)' }}>
+                  <div style={{ width: 42, height: 42, borderRadius: 12, overflow: 'hidden', background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', flexShrink: 0 }}>
+                    <img src={prod.image || '/images/brand/logo-full.png'} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                    <span className="text-sm font-bold text-zinc-100 truncate">{prod.name}</span>
-                    <span className="text-xs text-zinc-500">{prod.salesCount} قطعة مباعة</span>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f4f4f5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prod.name}</span>
+                    <span style={{ fontSize: 11, color: '#71717a', fontWeight: 500 }}>{prod.salesCount} قطعة مباعة</span>
                   </div>
-                  <span className="text-sm font-black text-amber-400 shrink-0">{formatPrice(prod.price, 'fr')}</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: '#fbbf24', flexShrink: 0 }}>{formatPrice(prod.price, 'fr')}</span>
                 </div>
               ))
             )}
@@ -324,41 +321,35 @@ function DashboardContent() {
       </div>
 
       {/* ── Recent Orders table ───────────────────────────────────────── */}
-      <div className="rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-xl p-6 flex flex-col gap-6">
-        {/* header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/60">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-base font-black text-white">
-              أحدث الطلبات
-              <span className="ml-1.5 text-xs font-normal text-zinc-500">Recent Orders</span>
-            </h2>
-            <p className="text-xs text-zinc-500 font-medium">آخر الطلبات المسجلة في المتجر</p>
+      <div style={{ background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.6)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '24px 28px 20px', borderBottom: '1px solid rgba(63,63,70,0.5)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <span style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>
+              أحدث الطلبات <span style={{ fontSize: 12, fontWeight: 400, color: '#52525b' }}>Recent Orders</span>
+            </span>
+            <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>آخر الطلبات المسجلة في المتجر</span>
           </div>
-          <Link
-            href="/admin/orders"
-            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold hover:bg-amber-500/20 transition-all shrink-0"
-          >
-            إدارة الطلبات <ArrowUpRight className="w-4 h-4" />
+          <Link href="/admin/orders" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', fontSize: 12, fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+            إدارة الطلبات <ArrowUpRight style={{ width: 14, height: 14 }} />
           </Link>
         </div>
 
-        {/* table */}
-        <div className="overflow-x-auto rounded-xl border border-zinc-800/70">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-950/60 border-b border-zinc-800">
-              <tr className="text-zinc-500 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-4 text-left">رقم الطلب</th>
-                <th className="py-3.5 px-4 text-left">العميل</th>
-                <th className="py-3.5 px-4 text-left">الحالة</th>
-                <th className="py-3.5 px-4 text-left">المجموع</th>
-                <th className="py-3.5 px-4 text-left">التاريخ</th>
-                <th className="py-3.5 px-4 text-right">إجراء</th>
+        {/* Table */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: 'rgba(9,9,11,0.5)', borderBottom: '1px solid rgba(63,63,70,0.6)' }}>
+                {['رقم الطلب', 'العميل', 'الحالة', 'المجموع', 'التاريخ', 'إجراء'].map((h, i) => (
+                  <th key={i} style={{ padding: '14px 18px', textAlign: i === 5 ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60">
+            <tbody>
               {recentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-xs text-zinc-600">
+                  <td colSpan={6} style={{ padding: '48px 18px', textAlign: 'center', fontSize: 12, color: '#3f3f46' }}>
                     لا توجد طلبات مسجلة حتى الآن.
                   </td>
                 </tr>
@@ -366,23 +357,20 @@ function DashboardContent() {
                 recentOrders.map((ord) => {
                   const st = statusMap[ord.status] || { labelAr: ord.status, labelEn: ord.status, cls: 'bg-zinc-800 text-zinc-300 border-zinc-700' }
                   return (
-                    <tr key={ord.id} className="hover:bg-zinc-800/40 transition-colors">
-                      <td className="py-4 px-4 font-black text-amber-400 text-sm">{ord.orderNumber}</td>
-                      <td className="py-4 px-4 font-semibold text-zinc-200 text-sm">{ord.customerName}</td>
-                      <td className="py-4 px-4">
+                    <tr key={ord.id} style={{ borderBottom: '1px solid rgba(63,63,70,0.4)' }} className="hover:bg-zinc-800/30 transition-colors">
+                      <td style={{ padding: '16px 18px', fontWeight: 900, color: '#fbbf24' }}>{ord.orderNumber}</td>
+                      <td style={{ padding: '16px 18px', fontWeight: 600, color: '#e4e4e7' }}>{ord.customerName}</td>
+                      <td style={{ padding: '16px 18px' }}>
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${st.cls}`}>
                           {st.labelAr}
-                          <span className="opacity-60 text-[10px]">({st.labelEn})</span>
+                          <span style={{ opacity: 0.6, fontSize: 10 }}>({st.labelEn})</span>
                         </span>
                       </td>
-                      <td className="py-4 px-4 font-bold text-zinc-200 text-sm">{formatPrice(ord.total, 'fr')}</td>
-                      <td className="py-4 px-4 text-zinc-500 text-xs">{new Date(ord.createdAt).toLocaleDateString()}</td>
-                      <td className="py-4 px-4 text-right">
-                        <Link
-                          href={`/admin/orders/${ord.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-amber-500 hover:text-zinc-950 text-xs font-bold transition-all active:scale-95"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
+                      <td style={{ padding: '16px 18px', fontWeight: 700, color: '#e4e4e7' }}>{formatPrice(ord.total, 'fr')}</td>
+                      <td style={{ padding: '16px 18px', fontSize: 12, color: '#71717a' }}>{new Date(ord.createdAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '16px 18px', textAlign: 'right' }}>
+                        <Link href={`/admin/orders/${ord.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 10, background: 'rgba(63,63,70,0.7)', color: '#d4d4d8', fontSize: 12, fontWeight: 700, textDecoration: 'none' }} className="hover:bg-amber-500 hover:text-zinc-950 transition-all">
+                          <Eye style={{ width: 13, height: 13 }} />
                           تفاصيل
                         </Link>
                       </td>
