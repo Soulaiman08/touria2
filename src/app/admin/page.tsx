@@ -250,7 +250,7 @@ function DashboardContent() {
             </div>
             <div className="flex items-center gap-1.5 text-xs text-purple-400 font-semibold mt-2.5">
               <Package className="w-3.5 h-3.5" />
-              <span>في الكتالوج المتاح بالموجـه</span>
+              <span>في الكتالوج المتاح بالمتجر</span>
             </div>
           </div>
         </div>
@@ -374,7 +374,7 @@ function DashboardContent() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
           <div>
             <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-              <span>أحدث الطلبات المعاملات</span>
+              <span>أحدث المعاملات والطلبات</span>
               <span className="text-xs font-normal text-zinc-500">| Recent Orders</span>
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5">آخر الطلبات المسجلة حديثاً في المتجر</p>
@@ -444,7 +444,7 @@ function DashboardContent() {
                       </td>
                     </tr>
                   )
-                })}
+                })
               )}
             </tbody>
           </table>
@@ -465,4 +465,3 @@ export default function AdminDashboardPage() {
     </ThemeProvider>
   )
 }
-
