@@ -15,10 +15,10 @@ import type { ProductCard } from '@/types/product'
 interface HeaderProps { locale: string }
 
 const NAV_LINKS = (locale: string, t: (k: string) => string) => [
-  { href: `/${locale}`,                          label: t('home') },
-  { href: `/${locale}/products`,                 label: t('djellabas') },
+  { href: `/${locale}`, label: t('home') },
+  { href: `/${locale}/products`, label: t('djellabas') },
   { href: `/${locale}/products?category=niqabs`, label: t('niqabs') },
-  { href: `/${locale}/about`,                    label: t('about') },
+  { href: `/${locale}/about`, label: t('about') },
 ]
 
 export function Header({ locale }: HeaderProps) {
@@ -27,13 +27,13 @@ export function Header({ locale }: HeaderProps) {
   const totalItems = cartStore.items.reduce((s, i) => s + i.quantity, 0)
   const isRTL = locale === 'ar'
 
-  const [scrolled,   setScrolled]   = useState(false)
-  const [mounted,    setMounted]    = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQ,    setSearchQ]    = useState('')
-  const [searchRes,  setSearchRes]  = useState<ProductCard[]>([])
-  const [searching,  setSearching]  = useState(false)
+  const [searchQ, setSearchQ] = useState('')
+  const [searchRes, setSearchRes] = useState<ProductCard[]>([])
+  const [searching, setSearching] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   /* Set mounted state — deferred to avoid synchronous setState-in-effect */
@@ -175,15 +175,6 @@ export function Header({ locale }: HeaderProps) {
 
             {/* Action buttons */}
             <div className="flex items-center gap-2 sm:gap-3" dir="ltr">
-              {/* Mobile Search */}
-              <button
-                className="icon-btn lg:hidden touch-target"
-                onClick={() => setSearchOpen(true)}
-                aria-label="Search"
-              >
-                <Search className="w-[18px] h-[18px]" />
-              </button>
-
               <ThemeSwitcher />
               <LanguageSwitcher locale={locale} />
 
@@ -207,12 +198,25 @@ export function Header({ locale }: HeaderProps) {
 
               {/* Mobile Menu Toggle */}
               <button
-                className="icon-btn md:hidden touch-target"
-                onClick={() => setMobileOpen(!mobileOpen)}
+                type="button"
+                className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg touch-target"
+                onClick={() => setMobileOpen((prev) => !prev)}
                 aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileOpen}
+                style={{
+                  color: 'var(--text-primary)',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  zIndex: 50,
+                }}
               >
-                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {mobileOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>

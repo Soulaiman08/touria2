@@ -11,16 +11,19 @@ const DEFAULT_SETTINGS = {
   logo: '/images/brand/logo-full.png',
   currency: 'MAD',
   shippingCost: '35',
+
   contactEmail: 'contact@thuraya.com',
   contactPhone: '+212 6 12 34 56 78',
   address: 'Casablanca, Morocco',
+
   instagram: 'https://instagram.com/thuraya.ma',
-  facebook: 'https://facebook.com/thuraya.ma',
-  tiktok: 'https://tiktok.com/@thuraya.ma',
+  facebook: 'https://www.facebook.com/profile.php?id=100091985212461',
+  tiktok: 'https://www.tiktok.com/@thuraya.ma',
   whatsapp: '+212612345678',
+
   seoTitle: 'الثريا المغربي – أزياء وتصاميم مغربية تقليدية وفاخرة',
   seoDescription: 'تصفحي أرقى تشكيلات الجلابة المغربية والنقاب بأجود أنواع الأقمشة وتطريز يدوي أصيل.',
-  seoKeywords: 'جلابة مغربية, نقاب, أزياء مغربية, ثريa المغربي, قفطان',
+  seoKeywords: 'جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي, قفطان',
 }
 
 export async function GET() {
@@ -42,24 +45,27 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  console.log("🔥 PUT /api/admin/settings was called");
+
   try {
-    const body = await request.json()
+    const body = await request.json();
+
+    console.log('Request Body:', body)
+    console.log('DATABASE_URL:', process.env.DATABASE_URL)
 
     for (const [key, value] of Object.entries(body)) {
       if (typeof value === 'string' || typeof value === 'number') {
-        await prisma.siteSetting
-          .upsert({
-            where: { key },
-            update: { value: String(value) },
-            create: { key, value: String(value) },
-          })
-          .catch(() => {})
+        await prisma.siteSetting.upsert({
+          where: { key },
+          update: { value: String(value) },
+          create: { key, value: String(value) },
+        });
       }
     }
 
-    return NextResponse.json({ success: true, settings: body })
+    return NextResponse.json({ success: true, settings: body });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to update settings'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    const msg = error instanceof Error ? error.message : 'Failed to update settings';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
