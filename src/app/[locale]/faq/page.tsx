@@ -30,7 +30,7 @@ export default async function FaqPage({ params }: Props) {
   ]
 
   return (
-    <div className="container-brand py-16 max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="container-brand page-shell max-w-3xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>

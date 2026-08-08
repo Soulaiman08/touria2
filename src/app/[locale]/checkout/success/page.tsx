@@ -79,7 +79,7 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
   }
 
   return (
-    <div className="container-brand py-12 max-w-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="container-brand page-shell max-w-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="p-8 rounded-3xl border text-center space-y-6 shadow-xl" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
         {/* Success Icon */}
         <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-green-50 dark:bg-green-950/20 text-green-600">

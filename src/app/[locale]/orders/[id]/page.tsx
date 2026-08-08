@@ -85,7 +85,7 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
   const currentStepIndex = STEPS.findIndex((s) => s.status === order.status)
 
   return (
-    <div className="container-brand py-12 max-w-3xl" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="container-brand page-shell max-w-3xl" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="p-6 md:p-8 rounded-3xl border space-y-8 shadow-xl" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
         {/* Header Title */}
         <div className="text-center space-y-2 border-b pb-6" style={{ borderColor: 'var(--border)' }}>

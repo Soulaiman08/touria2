@@ -155,20 +155,16 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 lg:grid-cols-12 items-start"
-      style={{ gap: '40px' }}
+      className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-10"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Form Details Column (7 Cols) ───────────────────────── */}
       <div className="lg:col-span-7">
         {/* Card 1: Personal Details */}
         <div
-          className="border bg-[var(--card)] shadow-xs"
+          className="surface-card form-card mb-6 lg:mb-8"
           style={{
             borderColor: 'var(--border)',
-            marginBottom: '44px',
-            padding: '36px',
-            borderRadius: '24px',
           }}
         >
           {/* Card Title Header */}
@@ -292,11 +288,9 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
         {/* Card 2: Shipping Address */}
         <div
-          className="border bg-[var(--card)] shadow-xs"
+          className="surface-card form-card"
           style={{
             borderColor: 'var(--border)',
-            padding: '36px',
-            borderRadius: '24px',
           }}
         >
           {/* Card Title Header */}
@@ -481,11 +475,9 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
       {/* ── Order Summary Column (5 Cols - Sticky) ───────────── */}
       <div className="lg:col-span-5 lg:sticky lg:top-24">
         <div
-          className="border bg-[var(--card)] shadow-xs"
+          className="surface-card form-card"
           style={{
             borderColor: 'var(--border)',
-            padding: '36px 28px',
-            borderRadius: '24px',
           }}
         >
           {/* Card Title Header */}

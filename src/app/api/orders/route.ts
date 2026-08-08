@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server'
 import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
 
+export async function GET() {
+  /*
+   * Orders are currently created as guest orders and the application does not
+   * yet have a customer session to identify the requester. Returning an empty
+   * collection is intentional: exposing every customer's order history here
+   * would leak order data. This handler also gives the orders page a valid
+   * response until customer authentication and scoped order lookup are added.
+   */
+  return NextResponse.json({ orders: [] })
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()

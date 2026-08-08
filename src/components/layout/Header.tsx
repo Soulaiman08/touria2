@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
   ShoppingBag,
@@ -55,6 +56,7 @@ interface StoreSettings {
 export function Header({ locale }: HeaderProps) {
   const t = useTranslations('nav')
   const cartStore = useCartStore()
+  const pathname = usePathname()
 
   const isRTL = locale === 'ar'
 
@@ -669,8 +671,8 @@ export function Header({ locale }: HeaderProps) {
                 'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-200',
                 'hover:bg-[var(--accent-light)] hover:text-[var(--accent)]',
                 isRTL
-                  ? 'order-first'
-                  : 'order-last'
+                  ? 'order-last'
+                  : 'order-first'
               )}
               onClick={() => {
                 setMenuOpen(
@@ -760,25 +762,27 @@ export function Header({ locale }: HeaderProps) {
         <aside
           id="main-side-menu"
           className={cn(
-            'absolute top-0 h-full w-[320px] max-w-[88vw]',
-            'overflow-y-auto shadow-2xl',
+            'absolute top-0 h-full w-[340px] max-w-[88vw]',
+            'overflow-y-auto border shadow-2xl',
             'transition-transform duration-300 ease-out',
             isRTL
-              ? 'left-0'
-              : 'right-0',
+              ? 'right-0'
+              : 'left-0',
             isRTL
               ? menuOpen
                 ? 'translate-x-0'
-                : '-translate-x-full'
+                : 'translate-x-full'
               : menuOpen
                 ? 'translate-x-0'
-                : 'translate-x-full'
+                : '-translate-x-full'
           )}
           style={{
             background:
               'var(--card-bg)',
             color:
               'var(--text-primary)',
+            borderColor:
+              'var(--border)',
           }}
           dir={isRTL ? 'rtl' : 'ltr'}
           onClick={(event) => {
@@ -790,10 +794,12 @@ export function Header({ locale }: HeaderProps) {
           ================================================= */}
 
           <div
-            className="flex h-16 items-center justify-between border-b px-5"
+            className="relative flex h-20 items-center justify-between overflow-hidden border-b px-5"
             style={{
               borderColor:
                 'var(--border)',
+              background:
+                'linear-gradient(135deg, var(--accent-light), transparent 70%)',
             }}
           >
             <div className="flex items-center gap-3">
@@ -878,10 +884,17 @@ export function Header({ locale }: HeaderProps) {
                       key={item.href}
                       href={item.href}
                       onClick={closeMenu}
-                      className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all duration-200 hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
+                      className={cn(
+                        'flex items-center gap-3 rounded-xl border px-4 py-3.5 text-sm font-semibold transition-all duration-200',
+                        pathname === item.href
+                          ? 'border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] shadow-sm'
+                          : 'border-transparent hover:border-[var(--accent-ring)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]'
+                      )}
                       style={{
                         color:
-                          'var(--text-secondary)',
+                          pathname === item.href
+                            ? 'var(--accent)'
+                            : 'var(--text-secondary)',
                       }}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0" />
@@ -910,7 +923,7 @@ export function Header({ locale }: HeaderProps) {
             ================================================= */}
 
             <div
-              className="flex items-center gap-3 rounded-xl px-4 py-3"
+              className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3.5"
               style={{
                 color:
                   'var(--text-secondary)',
@@ -948,7 +961,7 @@ export function Header({ locale }: HeaderProps) {
                 كلها من لوحة التحكم
             ================================================= */}
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-1.5">
               {/* WhatsApp */}
 
               {whatsappUrl && (

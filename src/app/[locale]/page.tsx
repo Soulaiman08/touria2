@@ -317,7 +317,7 @@ export default async function HomePage({ params }: HomePageProps) {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 80% 60% at 70% 40%, rgba(242,228,206,0.5) 0%, transparent 70%)',
+              'radial-gradient(ellipse 80% 60% at 70% 40%, rgba(245,158,11,0.12) 0%, transparent 70%)',
           }}
         />
 
@@ -451,23 +451,19 @@ export default async function HomePage({ params }: HomePageProps) {
             <div className="lg:col-span-5 flex justify-center lg:justify-end animate-fade-in delay-200">
               <div className="relative">
                 <div
-                  className="absolute inset-0 rounded-full scale-110 animate-pulse-ring"
+                  className="hero-logo-orbit absolute inset-0 rounded-full scale-110 animate-pulse-ring"
                   style={{
                     background: 'transparent',
-                    border: '2px solid',
-                    borderColor: 'rgba(184,150,90,0.3)',
                     animationDuration: '3s',
                   }}
                 />
 
                 <div
-                  className="relative rounded-full overflow-hidden shadow-2xl"
+                  className="hero-logo-mark relative rounded-full overflow-hidden shadow-2xl"
                   style={{
                     width: 'clamp(240px, 35vw, 380px)',
                     height: 'clamp(240px, 35vw, 380px)',
                     background: 'var(--bg-muted)',
-                    border: '4px solid',
-                    borderColor: 'var(--gold)',
                     boxShadow: 'var(--shadow-gold)',
                   }}
                 >

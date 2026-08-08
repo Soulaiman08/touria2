@@ -35,7 +35,7 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
 
   return (
     <div
-      className="container-brand py-10 space-y-8"
+      className="container-brand page-shell space-y-8"
       style={{ paddingBottom: '100px', marginBottom: '40px' }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >

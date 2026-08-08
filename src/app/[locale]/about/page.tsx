@@ -13,7 +13,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const isRTL = locale === 'ar'
 
   return (
-    <div className="container-brand py-12 space-y-16" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="container-brand page-shell space-y-12 md:space-y-16" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ── Intro Section ────────────────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <div className="lg:col-span-7 space-y-6">
