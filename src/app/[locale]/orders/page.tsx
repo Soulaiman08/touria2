@@ -390,7 +390,7 @@ export default function OrdersPage({
     >
       <div className="container-brand page-shell px-4">
         {/* Page Header */}
-        <div className="mb-8 flex flex-col gap-5 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div
               className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl"
@@ -403,7 +403,7 @@ export default function OrdersPage({
             </div>
 
             <h1
-              className="text-3xl font-black tracking-tight sm:text-4xl"
+              className="text-2xl font-black tracking-tight sm:text-4xl"
               style={{
                 color: 'var(--text-primary)',
               }}
@@ -459,7 +459,7 @@ export default function OrdersPage({
         {/* Empty State */}
         {orders.length === 0 ? (
           <section
-            className="relative isolate flex min-h-[390px] items-center justify-center overflow-hidden rounded-3xl border px-6 py-12 text-center sm:min-h-[420px] sm:px-10 sm:py-16"
+            className="relative isolate flex min-h-[300px] items-center justify-center overflow-hidden rounded-3xl border px-5 py-8 text-center sm:min-h-[420px] sm:px-10 sm:py-16"
             style={{
               background: 'var(--card-bg)',
               borderColor: 'var(--border)',
@@ -556,7 +556,7 @@ export default function OrdersPage({
                 >
                   {/* Order Top */}
                   <div
-                    className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
                     style={{
                       borderColor:
                         'var(--border)',
@@ -615,7 +615,7 @@ export default function OrdersPage({
                   </div>
 
                   {/* Order Info */}
-                  <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:gap-4 sm:p-5">
                     <div>
                       <p
                         className="text-xs"
@@ -693,7 +693,7 @@ export default function OrdersPage({
 
                   {/* Order Footer */}
                   <div
-                    className="flex justify-end border-t px-5 py-4"
+                    className="flex justify-end border-t px-4 py-3 sm:px-5 sm:py-4"
                     style={{
                       borderColor:
                         'var(--border)',

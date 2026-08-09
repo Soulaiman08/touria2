@@ -134,17 +134,17 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
   if (cartStore.items.length === 0) {
     return (
-      <div className="text-center py-20 my-8 max-w-md mx-auto p-10 rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-xs">
-        <div className="w-20 h-20 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center mx-auto mb-6">
+      <div className="text-center py-10 my-4 sm:py-20 sm:my-8 max-w-md mx-auto p-5 sm:p-10 rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-xs">
+        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center mx-auto mb-4 sm:mb-6">
           <ShoppingBag className="w-10 h-10" />
         </div>
-        <h2 className="font-bold text-2xl mb-3 text-[var(--foreground)]">
+        <h2 className="font-bold text-xl sm:text-2xl mb-3 text-[var(--foreground)]">
           {cartT('empty')}
         </h2>
         <p className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6">{cartT('emptyDesc')}</p>
         <button
           onClick={() => router.push(`/${locale}/products`)}
-          className="btn btn-primary btn-round px-8 py-3.5"
+          className="btn btn-primary btn-round px-5 py-2.5 text-sm"
         >
           {cartT('startShopping')}
         </button>
@@ -169,13 +169,13 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
         >
           {/* Card Title Header */}
           <div
-            className="flex items-center gap-4 pb-6 border-b"
-            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
+            className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b"
+            style={{ borderColor: 'var(--border)', marginBottom: '20px' }}
           >
-            <div className="w-11 h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5" />
             </div>
-            <h2 className="font-bold text-xl text-[var(--foreground)]">
+            <h2 className="font-bold text-lg sm:text-xl text-[var(--foreground)]">
               {t('personal.title')}
             </h2>
           </div>

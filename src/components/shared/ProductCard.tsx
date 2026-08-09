@@ -56,7 +56,7 @@ export function ProductCard({ product, locale, onAddToCart, className, isNew }: 
             src={imgError ? '/images/placeholder-product.jpg' : product.mainImage}
             alt={name}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
             className="product-card-img"
             onError={() => setImgError(true)}
             loading="lazy"
@@ -160,7 +160,7 @@ export function ProductCard({ product, locale, onAddToCart, className, isNew }: 
 
           <Link
             href={`/${locale}/products/${product.slug}`}
-            className="btn btn-primary btn-sm btn-round text-xs px-3 py-1.5 flex-shrink-0"
+            className="btn btn-primary btn-sm btn-round text-[11px] px-2.5 py-1.5 flex-shrink-0"
             aria-label={`${viewLabel}: ${name}`}
           >
             {viewLabel}

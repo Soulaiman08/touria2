@@ -22,9 +22,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const productName = locale === 'ar' ? product.nameAr : locale === 'fr' ? product.nameFr : product.nameEn
 
   return (
-    <div className="container-brand page-shell space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="container-brand page-shell product-page-shell" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ── Breadcrumbs ────────────────────────────────────────── */}
-      <nav className="flex items-center gap-2 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+      <nav className="product-breadcrumb flex items-center gap-2 text-xs" style={{ color: 'var(--muted-foreground)' }}>
         <Link href={`/${locale}`} className="hover:text-[#C4622D] transition-colors">
           {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
         </Link>

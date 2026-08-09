@@ -101,13 +101,13 @@ export function Header({ locale }: HeaderProps) {
 
     async function loadStoreSettings() {
       try {
-        const response = await fetch('/api/admin/settings', {
+        const response = await fetch('/api/settings', {
           method: 'GET',
           cache: 'no-store',
         })
 
         if (!response.ok) {
-          throw new Error('Failed to load store settings')
+          throw new Error('Failed to load public store settings')
         }
 
         const data = await response.json()
@@ -475,8 +475,8 @@ export function Header({ locale }: HeaderProps) {
               'flex items-center gap-3 sm:gap-5',
               'transition-all duration-300',
               scrolled
-                ? 'h-14'
-                : 'h-16 md:h-[68px]'
+                ? 'h-12 sm:h-14'
+                : 'h-14 sm:h-16 md:h-[68px]'
             )}
             dir="ltr"
           >
@@ -522,7 +522,7 @@ export function Header({ locale }: HeaderProps) {
                 width={36}
                 height={36}
                 priority
-                className="h-9 w-9 object-contain sm:hidden"
+                className="h-8 w-8 object-contain sm:hidden"
               />
             </Link>
 
@@ -762,7 +762,7 @@ export function Header({ locale }: HeaderProps) {
         <aside
           id="main-side-menu"
           className={cn(
-            'absolute top-0 h-full w-[340px] max-w-[88vw]',
+            'absolute top-0 h-full w-[280px] max-w-[85vw] sm:w-[340px] sm:max-w-[88vw]',
             'overflow-y-auto border shadow-2xl',
             'transition-transform duration-300 ease-out',
             isRTL
@@ -794,7 +794,7 @@ export function Header({ locale }: HeaderProps) {
           ================================================= */}
 
           <div
-            className="relative flex h-20 items-center justify-between overflow-hidden border-b px-5"
+            className="relative flex h-16 sm:h-20 items-center justify-between overflow-hidden border-b px-4 sm:px-5"
             style={{
               borderColor:
                 'var(--border)',
@@ -871,7 +871,7 @@ export function Header({ locale }: HeaderProps) {
               MENU CONTENT
           ================================================= */}
 
-          <div className="px-4 py-5">
+          <div className="px-3 py-4 sm:px-4 sm:py-5">
             {/* Main Links */}
 
             <nav className="flex flex-col gap-1">
@@ -885,7 +885,7 @@ export function Header({ locale }: HeaderProps) {
                       href={item.href}
                       onClick={closeMenu}
                       className={cn(
-                        'flex items-center gap-3 rounded-xl border px-4 py-3.5 text-sm font-semibold transition-all duration-200',
+                        'flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200 sm:px-4 sm:py-3.5',
                         pathname === item.href
                           ? 'border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] shadow-sm'
                           : 'border-transparent hover:border-[var(--accent-ring)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]'
@@ -1119,7 +1119,7 @@ export function Header({ locale }: HeaderProps) {
       >
         <div
           className={cn(
-            'mx-auto w-full max-w-2xl',
+            'mx-3 w-auto max-w-2xl sm:mx-auto sm:w-full',
             'transition-all duration-300',
             searchOpen
               ? 'translate-y-0 opacity-100'
@@ -1138,7 +1138,7 @@ export function Header({ locale }: HeaderProps) {
           {/* Search Input */}
 
           <div
-            className="flex items-center gap-3 border-b p-4"
+            className="flex items-center gap-2 border-b p-3 sm:gap-3 sm:p-4"
             style={{
               borderColor:
                 'var(--border)',
@@ -1169,7 +1169,7 @@ export function Header({ locale }: HeaderProps) {
                     ? 'Rechercher un produit...'
                     : 'Search for a product...'
               }
-              className="flex-1 bg-transparent text-base outline-none"
+              className="flex-1 bg-transparent text-sm sm:text-base outline-none"
               style={{
                 color:
                   'var(--text-primary)',

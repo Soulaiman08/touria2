@@ -35,13 +35,13 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
 
   return (
     <div
-      className="container-brand page-shell space-y-8"
+      className="container-brand page-shell space-y-5 sm:space-y-8"
       style={{ paddingBottom: '100px', marginBottom: '40px' }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Page Header ────────────────────────────────────────── */}
-      <div className="space-y-2 border-b pb-8" style={{ borderColor: 'var(--border)' }}>
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--foreground)' }}>
+      <div className="space-y-2 border-b pb-5 sm:pb-8" style={{ borderColor: 'var(--border)' }}>
+        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--foreground)' }}>
           {category
             ? (dbCategories.find((c) => c.slug === category || c.slug === category.replace(/s$/, ''))
               ? (locale === 'ar'
@@ -60,8 +60,8 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
 
       {/* ── Products Layout (12 Cols) ──────────────────────────── */}
       <div
-        className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        style={{ marginTop: '40px', paddingTop: '12px' }}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-start"
+        style={{ marginTop: '20px', paddingTop: '12px' }}
       >
         {/* Desktop Filter Sidebar (3 Cols - Styled like Checkout Cards) */}
         <aside
@@ -175,7 +175,7 @@ export default async function ProductsPage({ params, searchParams }: ProductsPag
               ) : null}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
               {productsResponse.items.map((product) => (
                 <ProductCard key={product.id} product={product} locale={locale} />
               ))}

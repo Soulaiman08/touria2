@@ -58,7 +58,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '-100%' : '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed inset-y-0 z-50 w-full sm:max-w-md shadow-2xl flex flex-col focus:outline-none"
+            className="fixed inset-y-0 z-50 w-[92vw] max-w-[360px] sm:w-full sm:max-w-md shadow-2xl flex flex-col focus:outline-none"
             style={{
               left: isRTL ? 0 : 'auto',
               right: isRTL ? 'auto' : 0,
@@ -111,7 +111,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                       cartStore.closeCart()
                       router.push(`/${locale}/products`)
                     }}
-                    className="btn btn-primary btn-round"
+                    className="btn btn-primary btn-round text-sm"
                   >
                     {t('startShopping')}
                   </button>
@@ -122,16 +122,16 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   return (
                     <div
                       key={item.id}
-                      className="flex gap-4 p-3 rounded-xl border relative transition-all duration-200"
+                      className="flex gap-3 p-2.5 sm:gap-4 sm:p-3 rounded-xl border relative transition-all duration-200"
                       style={{ borderColor: 'var(--border)', background: 'var(--background)' }}
                     >
                       {/* Product image */}
-                      <div className="relative w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                         <Image
                           src={item.mainImage}
                           alt={locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
                           fill
-                          sizes="80px"
+                          sizes="(max-width: 640px) 64px, 80px"
                           className="object-cover"
                         />
                       </div>
@@ -237,7 +237,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full btn btn-primary btn-round py-3"
+                  className="w-full btn btn-primary btn-round py-2.5 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   {t('checkout')}

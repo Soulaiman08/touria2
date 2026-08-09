@@ -302,10 +302,10 @@ export default async function HomePage({ params }: HomePageProps) {
     <>
       {/* HERO SECTION */}
       <section
-        className="relative overflow-hidden"
+        className="home-hero relative overflow-hidden"
         style={{
           background: 'var(--bg-base)',
-          minHeight: 'calc(90vh - 120px)',
+          minHeight: 'min(72vh, 680px)',
           display: 'flex',
           alignItems: 'center',
         }}
@@ -321,10 +321,10 @@ export default async function HomePage({ params }: HomePageProps) {
           }}
         />
 
-        <div className="container-brand relative z-10 py-16 md:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-6 items-center">
+        <div className="container-brand relative z-10 py-6 md:py-10">
+          <div className="home-hero-shell grid grid-cols-1 lg:grid-cols-12 items-center">
             <div
-              className="lg:col-span-7 space-y-7 text-center lg:text-start animate-fade-in-up"
+              className="home-hero-content lg:col-span-7 space-y-7 text-center lg:text-start animate-fade-in-up"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <span
@@ -343,7 +343,7 @@ export default async function HomePage({ params }: HomePageProps) {
               <h1
                 className="font-extrabold tracking-tight leading-tight"
                 style={{
-                  fontSize: 'clamp(2.25rem, 6vw, 4rem)',
+                  fontSize: 'clamp(1.75rem, 6vw, 4rem)',
                   color: 'var(--text-primary)',
                   fontFamily: isRTL
                     ? 'var(--font-arabic)'
@@ -365,7 +365,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 <Link
                   href={`/${locale}/products`}
                   className="btn btn-primary btn-lg btn-round w-full sm:w-auto"
-                  style={{ minWidth: 180 }}
+                  style={{ minWidth: 0 }}
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -386,7 +386,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 <Link
                   href={`/${locale}/about`}
                   className="btn btn-outline btn-lg btn-round w-full sm:w-auto"
-                  style={{ minWidth: 180 }}
+                  style={{ minWidth: 0 }}
                 >
                   {labels.heroSec}
                   <svg
@@ -448,7 +448,7 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
             </div>
 
-            <div className="lg:col-span-5 flex justify-center lg:justify-end animate-fade-in delay-200">
+            <div className="home-hero-visual lg:col-span-5 flex justify-center lg:justify-end animate-fade-in delay-200">
               <div className="relative">
                 <div
                   className="hero-logo-orbit absolute inset-0 rounded-full scale-110 animate-pulse-ring"
@@ -468,13 +468,17 @@ export default async function HomePage({ params }: HomePageProps) {
                   }}
                 >
                   <Image
-                    src="/images/brand/logo-full.png"
-                    alt={siteConfig.name}
-                    fill
-                    priority
-                    className="object-contain p-10"
-                    style={{ background: 'var(--bg-subtle)' }}
-                  />
+                  src="/images/brand/logo-full.png"
+                  alt={siteConfig.name}
+                  fill
+                  priority
+                  className="object-cover"
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    objectFit: 'cover',
+                    padding: 0,
+                  }}
+                />
                 </div>
 
                 <div
@@ -493,93 +497,19 @@ export default async function HomePage({ params }: HomePageProps) {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section
-        className="section-gap"
-        style={{ background: 'var(--bg-subtle)' }}
-        aria-label={isRTL ? 'مميزاتنا' : 'Features'}
-      >
-        <div className="container-brand">
-          <div className="section-heading mb-14" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="section-eyebrow">
-              <span>✦</span>
-              {locale === 'ar'
-                ? 'لماذا ثريا المغربي'
-                : locale === 'fr'
-                  ? 'Pourquoi nous choisir'
-                  : 'Why Choose Us'}
-              <span>✦</span>
-            </div>
-
-            <h2
-              className="text-3xl sm:text-4xl font-bold mt-2"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {locale === 'ar'
-                ? 'تجربة تسوق استثنائية'
-                : locale === 'fr'
-                  ? "Une expérience d'achat exceptionnelle"
-                  : 'An Exceptional Shopping Experience'}
-            </h2>
-          </div>
-
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="card text-center p-8 space-y-5 animate-fade-in-up"
-                style={{
-                  animationDelay: `${i * 80}ms`,
-                  animationFillMode: 'both',
-                }}
-              >
-                <div
-                  className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center"
-                  style={{
-                    background: 'var(--accent-light)',
-                    color: 'var(--accent)',
-                  }}
-                >
-                  {f.icon}
-                </div>
-
-                <div className="space-y-3">
-                  <h3
-                    className="font-bold text-lg"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    {f.title}
-                  </h3>
-
-                  <p
-                    className="text-base leading-relaxed"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    {f.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* BANNERS */}
       {banners.length > 0 && (
         <section
-          className="section-gap"
+          className="home-section home-section-banners section-gap"
           aria-label={isRTL ? 'العروض الرئيسية' : 'Featured Banners'}
         >
           <div className="container-brand">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
               {banners.map((banner) => (
                 <div
                   key={banner.id}
                   className="relative overflow-hidden rounded-3xl shadow-xl"
-                  style={{ minHeight: 240, background: 'var(--bg-muted)' }}
+                  style={{ minHeight: 200, background: 'var(--bg-muted)' }}
                 >
                   <Image
                     src={banner.imageUrl}
@@ -598,7 +528,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   />
 
                   <div
-                    className="absolute bottom-0 left-0 right-0 p-6 space-y-3"
+                    className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 space-y-2 sm:space-y-3"
                     dir={isRTL ? 'rtl' : 'ltr'}
                   >
                     <h3
@@ -639,8 +569,8 @@ export default async function HomePage({ params }: HomePageProps) {
       )}
 
       {/* BEST SELLERS */}
-      <section className="section-gap" aria-label={labels.bestSellers}>
-        <div className="container-brand space-y-10">
+      <section className="home-section section-gap" aria-label={labels.bestSellers}>
+        <div className="container-brand space-y-8">
           <div
             className="flex flex-col sm:flex-row items-center justify-between gap-4"
             dir={isRTL ? 'rtl' : 'ltr'}
@@ -653,14 +583,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <h2
-                className="text-3xl sm:text-4xl font-bold"
+                className="text-xl sm:text-4xl font-bold"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {labels.bestSellers}
               </h2>
 
               <p
-                className="text-base mt-2"
+                className="text-sm sm:text-base mt-2"
                 style={{ color: 'var(--text-muted)' }}
               >
                 {labels.bestSub}
@@ -693,7 +623,7 @@ export default async function HomePage({ params }: HomePageProps) {
             <EmptyState message={labels.empty} />
           ) : (
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-7"
+              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6 md:gap-7"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {featured.map((p, i) => (
@@ -715,11 +645,11 @@ export default async function HomePage({ params }: HomePageProps) {
 
       {/* NEW ARRIVALS */}
       <section
-        className="section-gap"
+        className="home-section home-section-muted section-gap"
         style={{ background: 'var(--bg-subtle)' }}
         aria-label={labels.newCol}
       >
-        <div className="container-brand space-y-10">
+        <div className="container-brand space-y-8">
           <div
             className="flex flex-col sm:flex-row items-center justify-between gap-4"
             dir={isRTL ? 'rtl' : 'ltr'}
@@ -732,7 +662,7 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <h2
-                className="text-3xl sm:text-4xl font-bold"
+                className="text-xl sm:text-4xl font-bold"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {labels.newCol}
@@ -772,7 +702,7 @@ export default async function HomePage({ params }: HomePageProps) {
             <EmptyState message={labels.empty} />
           ) : (
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {newest.map((p, i) => (
@@ -794,7 +724,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
       {/* GOLD ORNAMENT BANNER */}
       <section
-        className="py-14"
+        className="home-brand-story py-14"
         style={{
           background:
             'linear-gradient(135deg, #3D1F0A 0%, #6B3A2A 50%, #3D1F0A 100%)',
@@ -836,7 +766,7 @@ export default async function HomePage({ params }: HomePageProps) {
       </section>
 
       {/* CONTACT SECTION */}
-      <section className="section-gap" aria-label={labels.contactTitle}>
+      <section className="home-section section-gap" aria-label={labels.contactTitle}>
         <div className="container-brand">
           <div className="section-heading mb-12" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="section-eyebrow mb-2">
@@ -1105,6 +1035,22 @@ export default async function HomePage({ params }: HomePageProps) {
                 @thuraya.almaghribi
               </p>
             </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-features-bottom section-gap" aria-label={isRTL ? 'مميزات المتجر' : 'Store features'}>
+        <div className="container-brand">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" dir={isRTL ? 'rtl' : 'ltr'}>
+            {features.map((feature, index) => (
+              <div key={index} className="card p-7 text-center">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{feature.title}</h3>
+                <p className="mt-2 text-sm leading-6" style={{ color: 'var(--text-muted)' }}>{feature.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

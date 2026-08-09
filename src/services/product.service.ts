@@ -271,7 +271,9 @@ export const productService = {
           variants: { where: { isActive: true } },
         },
       })
-      if (!dbProduct) return null
+      if (!dbProduct) {
+        return BACKUP_PRODUCTS.find((product) => product.slug === slug) || null
+      }
       return {
         ...dbProduct,
         basePrice: Number(dbProduct.basePrice),
