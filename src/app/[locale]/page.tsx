@@ -305,30 +305,53 @@ export default async function HomePage({ params }: HomePageProps) {
         className="home-hero relative overflow-hidden"
         style={{
           background: 'var(--bg-base)',
-          minHeight: 'min(72vh, 680px)',
+          minHeight: 'min(68vh, 640px)',
           display: 'flex',
           alignItems: 'center',
         }}
         aria-label={isRTL ? 'الرئيسية' : 'Hero'}
       >
+        {/* Decorative background */}
         <div className="absolute inset-0 pattern-moroccan pointer-events-none" />
 
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 80% 60% at 70% 40%, rgba(245,158,11,0.12) 0%, transparent 70%)',
+              'radial-gradient(ellipse 70% 70% at 78% 45%, rgba(245,158,11,0.10) 0%, transparent 68%)',
           }}
         />
 
-        <div className="container-brand home-hero-container home-hero-width-container relative z-10 py-6 md:py-10">
-          <div className="home-hero-shell grid grid-cols-1 lg:grid-cols-12 items-center" style={{ width: "100%", maxWidth: "none" }}>
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: 420,
+            height: 420,
+            borderRadius: '50%',
+            background:
+              'radial-gradient(circle, rgba(184,150,90,0.08) 0%, transparent 70%)',
+            right: isRTL ? 'auto' : '-120px',
+            left: isRTL ? '-120px' : 'auto',
+            top: '50%',
+            transform: 'translateY(-50%)',
+          }}
+        />
+
+        <div className="container-brand relative z-10 w-full py-8 md:py-12">
+          <div
+            className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-10"
+            style={{ width: '100%' }}
+          >
+            {/* =========================
+          HERO CONTENT
+      ========================== */}
             <div
-              className="home-hero-content lg:col-span-7 space-y-7 text-center lg:text-start animate-fade-in-up"
+              className="lg:col-span-7 xl:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-start animate-fade-in-up"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
-              <span
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
+              {/* Small badge */}
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wide mb-5"
                 style={{
                   background: 'var(--accent-light)',
                   color: 'var(--accent)',
@@ -338,34 +361,64 @@ export default async function HomePage({ params }: HomePageProps) {
                 <span style={{ color: 'var(--gold)' }}>✦</span>
                 {labels.heroBadge}
                 <span style={{ color: 'var(--gold)' }}>✦</span>
-              </span>
+              </div>
 
+              {/* Main title */}
               <h1
-                className="font-extrabold tracking-tight leading-tight"
+                className="font-extrabold tracking-tight leading-[1.12] max-w-3xl"
                 style={{
-                  fontSize: 'clamp(1.9rem, 3.8vw, 3.2rem)',
+                  fontSize: 'clamp(2rem, 4.2vw, 3.8rem)',
                   color: 'var(--text-primary)',
                   fontFamily: isRTL
                     ? 'var(--font-arabic)'
                     : 'var(--font-display)',
                 }}
               >
-                {labels.heroTitle1}{' '}
-                <span className="gradient-text">{labels.heroTitle2}</span>
+                {labels.heroTitle1}
+                <br />
+                <span className="gradient-text">
+                  {labels.heroTitle2}
+                </span>
               </h1>
 
+              {/* Elegant separator */}
+              <div
+                className="flex items-center gap-3 my-5"
+                aria-hidden="true"
+              >
+                <span
+                  className="h-px w-10 sm:w-14"
+                  style={{ background: 'var(--accent-ring)' }}
+                />
+                <span
+                  className="text-sm"
+                  style={{ color: 'var(--gold)' }}
+                >
+                  ✦
+                </span>
+                <span
+                  className="h-px w-10 sm:w-14"
+                  style={{ background: 'var(--accent-ring)' }}
+                />
+              </div>
+
+              {/* Description */}
               <p
-                className="text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed"
+                className="text-sm sm:text-base lg:text-lg max-w-xl leading-7 sm:leading-8"
                 style={{ color: 'var(--text-muted)' }}
               >
                 {labels.heroSub}
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
+              {/* CTA buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mt-7 w-full sm:w-auto">
                 <Link
                   href={`/${locale}/products`}
                   className="btn btn-primary btn-lg btn-round w-full sm:w-auto"
-                  style={{ minWidth: 0 }}
+                  style={{
+                    minWidth: 165,
+                    justifyContent: 'center',
+                  }}
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -380,21 +433,27 @@ export default async function HomePage({ params }: HomePageProps) {
                       d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
                     />
                   </svg>
+
                   {labels.heroCta}
                 </Link>
 
                 <Link
                   href={`/${locale}/about`}
                   className="btn btn-outline btn-lg btn-round w-full sm:w-auto"
-                  style={{ minWidth: 0 }}
+                  style={{
+                    minWidth: 165,
+                    justifyContent: 'center',
+                  }}
                 >
                   {labels.heroSec}
+
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2}
-                    className={`w-[16px] h-[16px] ${isRTL ? 'rotate-180' : ''}`}
+                    className={`w-[16px] h-[16px] ${isRTL ? 'rotate-180' : ''
+                      }`}
                   >
                     <path
                       strokeLinecap="round"
@@ -405,8 +464,9 @@ export default async function HomePage({ params }: HomePageProps) {
                 </Link>
               </div>
 
+              {/* Trust indicators */}
               <div
-                className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2"
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 mt-6"
                 dir="ltr"
               >
                 {[
@@ -435,61 +495,98 @@ export default async function HomePage({ params }: HomePageProps) {
                           ? 'Livraison nationale'
                           : 'Nationwide',
                   },
-                ].map((t, i) => (
+                ].map((item, i) => (
                   <span
                     key={i}
-                    className="flex items-center gap-1.5 text-xs font-medium"
+                    className="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium"
                     style={{ color: 'var(--text-muted)' }}
                   >
-                    <span>{t.icon}</span>
-                    {t.text}
+                    <span>{item.icon}</span>
+                    {item.text}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="home-hero-visual lg:col-span-5 flex justify-center lg:justify-end animate-fade-in delay-200">
-              <div className="relative">
+            {/* =========================
+          HERO VISUAL
+      ========================== */}
+            <div
+              className="lg:col-span-5 xl:col-span-5 flex justify-center lg:justify-end animate-fade-in delay-200"
+              dir="ltr"
+            >
+              <div
+                className="relative flex items-center justify-center"
+                style={{
+                  width: 'clamp(240px, 32vw, 350px)',
+                  aspectRatio: '1 / 1',
+                }}
+              >
+                {/* Soft outer glow */}
                 <div
-                  className="hero-logo-orbit absolute inset-0 rounded-full scale-110 animate-pulse-ring"
+                  className="absolute inset-2 rounded-full pointer-events-none"
                   style={{
-                    background: 'transparent',
-                    animationDuration: '3s',
+                    background:
+                      'radial-gradient(circle, rgba(184,150,90,0.12) 0%, rgba(184,150,90,0.03) 55%, transparent 72%)',
+                    filter: 'blur(4px)',
                   }}
                 />
 
+                {/* Decorative ring */}
                 <div
-                  className="hero-logo-mark relative rounded-full overflow-hidden shadow-2xl"
+                  className="absolute inset-3 rounded-full pointer-events-none"
                   style={{
-                    width: 'clamp(240px, 35vw, 380px)',
-                    height: 'clamp(240px, 35vw, 380px)',
+                    border: '1px solid var(--accent-ring)',
+                    opacity: 0.65,
+                  }}
+                />
+
+                {/* Second decorative ring */}
+                <div
+                  className="absolute rounded-full pointer-events-none"
+                  style={{
+                    inset: 13,
+                    border: '1px dashed rgba(184,150,90,0.35)',
+                  }}
+                />
+
+                {/* Logo / image */}
+                <div
+                  className="relative rounded-full overflow-hidden shadow-2xl"
+                  style={{
+                    width: 'clamp(205px, 27vw, 310px)',
+                    height: 'clamp(205px, 27vw, 310px)',
                     background: 'var(--bg-muted)',
                     boxShadow: 'var(--shadow-gold)',
+                    border: '5px solid var(--bg-base)',
                   }}
                 >
                   <Image
-                  src="/images/brand/logo-full.png"
-                  alt={siteConfig.name}
-                  fill
-                  priority
-                  className="object-cover"
-                  style={{
-                    background: 'var(--bg-subtle)',
-                    objectFit: 'cover',
-                    padding: 0,
-                  }}
-                />
+                    src="/images/brand/logo-full.png"
+                    alt={siteConfig.name}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 280px, 310px"
+                    className="object-cover"
+                    style={{
+                      background: 'var(--bg-subtle)',
+                    }}
+                  />
                 </div>
 
+                {/* COD badge */}
                 <div
-                  className="absolute -bottom-3 -end-3 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg"
+                  className="absolute bottom-0 end-0 sm:bottom-1 sm:end-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold shadow-lg whitespace-nowrap min-w-max z-20"
                   style={{
                     background: 'var(--accent)',
                     color: '#fff',
                     boxShadow: 'var(--shadow-md)',
+                    lineHeight: 1.4,
                   }}
                 >
-                  {locale === 'ar' ? 'الدفع عند الاستلام ✓' : 'COD ✓'}
+                  {locale === 'ar'
+                    ? 'الدفع عند الاستلام ✓'
+                    : 'COD ✓'}
                 </div>
               </div>
             </div>
