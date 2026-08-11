@@ -463,8 +463,8 @@ export function Header({ locale }: HeaderProps) {
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderBottom: `1px solid ${scrolled
-              ? 'var(--header-border)'
-              : 'transparent'
+            ? 'var(--header-border)'
+            : 'transparent'
             }`,
         }}
         role="banner"
@@ -478,7 +478,7 @@ export function Header({ locale }: HeaderProps) {
                 ? 'h-12 sm:h-14'
                 : 'h-14 sm:h-16 md:h-[68px]'
             )}
-            dir="ltr"
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* =================================================
                 LOGO
@@ -670,9 +670,7 @@ export function Header({ locale }: HeaderProps) {
               className={cn(
                 'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-200',
                 'hover:bg-[var(--accent-light)] hover:text-[var(--accent)]',
-                isRTL
-                  ? 'order-last'
-                  : 'order-first'
+                'order-first'
               )}
               onClick={() => {
                 setMenuOpen(
@@ -702,10 +700,10 @@ export function Header({ locale }: HeaderProps) {
             >
               <span
                 className={cn(
-                  'transition-transform duration-300',
-                  menuOpen
-                    ? 'rotate-90'
-                    : 'rotate-0'
+                  'flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-all duration-200',
+                  'hover:bg-[var(--accent-light)] hover:text-[var(--accent)] hover:border-[var(--accent-ring)]',
+                  'active:scale-95',
+                  'order-first'
                 )}
               >
                 {menuOpen ? (
