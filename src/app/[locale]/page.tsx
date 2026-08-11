@@ -321,8 +321,8 @@ export default async function HomePage({ params }: HomePageProps) {
           }}
         />
 
-        <div className="container-brand relative z-10 py-6 md:py-10">
-          <div className="home-hero-shell grid grid-cols-1 lg:grid-cols-12 items-center">
+        <div className="container-brand home-hero-container home-hero-width-container relative z-10 py-6 md:py-10">
+          <div className="home-hero-shell grid grid-cols-1 lg:grid-cols-12 items-center" style={{ width: "100%", maxWidth: "none" }}>
             <div
               className="home-hero-content lg:col-span-7 space-y-7 text-center lg:text-start animate-fade-in-up"
               dir={isRTL ? 'rtl' : 'ltr'}
@@ -343,7 +343,7 @@ export default async function HomePage({ params }: HomePageProps) {
               <h1
                 className="font-extrabold tracking-tight leading-tight"
                 style={{
-                  fontSize: 'clamp(1.75rem, 6vw, 4rem)',
+                  fontSize: 'clamp(1.9rem, 3.8vw, 3.2rem)',
                   color: 'var(--text-primary)',
                   fontFamily: isRTL
                     ? 'var(--font-arabic)'
