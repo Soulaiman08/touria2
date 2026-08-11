@@ -43,7 +43,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
   const hasStock = currentVariant ? currentVariant.stockQuantity > 0 : true
   const basePriceVal = Number(product.salePrice || product.basePrice)
-  const niqabPrice = 150 // Constant for matching niqab add-on
+  const niqabPrice = 20 // Constant for matching niqab add-on
   const finalPrice = includeNiqab ? basePriceVal + niqabPrice : basePriceVal
 
   const handleAddToCart = () => {
@@ -71,17 +71,17 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
       isNiqab: product.isNiqab,
       niqabItem: includeNiqab
         ? {
-            productId: 'niqab_addon',
-            nameAr: 'نقاب مطابق',
-            nameFr: 'Niqab assorti',
-            nameEn: 'Matching Niqab',
-            mainImage: '/images/brand/logo-icon.png',
-            colorCode,
-            colorNameAr,
-            colorNameFr,
-            colorNameEn,
-            unitPrice: niqabPrice,
-          }
+          productId: 'niqab_addon',
+          nameAr: 'نقاب مطابق',
+          nameFr: 'Niqab assorti',
+          nameEn: 'Matching Niqab',
+          mainImage: '/images/brand/logo-icon.png',
+          colorCode,
+          colorNameAr,
+          colorNameFr,
+          colorNameEn,
+          unitPrice: niqabPrice,
+        }
         : undefined,
     })
   }
@@ -111,9 +111,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               <button
                 key={idx}
                 onClick={() => setActiveImage(img)}
-                className={`relative w-14 h-14 sm:w-20 sm:h-20 rounded-lg overflow-hidden border flex-shrink-0 transition-all ${
-                  activeImage === img ? 'border-2 border-[#C4622D] scale-95' : 'hover:border-[#C4622D]/60'
-                }`}
+                className={`relative w-14 h-14 sm:w-20 sm:h-20 rounded-lg overflow-hidden border flex-shrink-0 transition-all ${activeImage === img ? 'border-2 border-[#C4622D] scale-95' : 'hover:border-[#C4622D]/60'
+                  }`}
                 style={{ borderColor: activeImage === img ? '#C4622D' : 'var(--border)' }}
               >
                 <Image src={img} alt={`${productName} thumbnail ${idx + 1}`} fill className="object-cover" />
@@ -173,11 +172,10 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   <button
                     key={color.code}
                     onClick={() => setSelectedColor(color)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${
-                      isSelected
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${isSelected
                         ? 'border-[#C4622D] text-[#C4622D] bg-[rgba(196,98,45,0.05)]'
                         : 'hover:border-[#C4622D]/60'
-                    }`}
+                      }`}
                     style={{
                       borderColor: isSelected ? '#C4622D' : 'var(--border)',
                       color: isSelected ? '#C4622D' : 'var(--muted-foreground)',
@@ -212,11 +210,10 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   <button
                     key={sz}
                     onClick={() => setSelectedSize(sz)}
-                    className={`w-11 h-11 rounded-xl border flex items-center justify-center text-xs font-bold transition-all ${
-                      isSelected
+                    className={`w-11 h-11 rounded-xl border flex items-center justify-center text-xs font-bold transition-all ${isSelected
                         ? 'border-[#C4622D] text-[#C4622D] bg-[rgba(196,98,45,0.05)]'
                         : 'hover:border-[#C4622D]/60'
-                    }`}
+                      }`}
                     style={{
                       borderColor: isSelected ? '#C4622D' : 'var(--border)',
                       color: isSelected ? '#C4622D' : 'var(--muted-foreground)',
@@ -233,9 +230,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         {/* Optional Niqab Add-On Selection */}
         {product.canAddNiqab && (
           <div
-            className={`product-addon p-4 rounded-xl border-2 transition-all ${
-              includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.02)]' : 'border-dashed'
-            }`}
+            className={`product-addon p-4 rounded-xl border-2 transition-all ${includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.02)]' : 'border-dashed'
+              }`}
             style={{ borderColor: includeNiqab ? '#C4622D' : 'var(--border)' }}
           >
             <label className="flex items-start gap-3 cursor-pointer select-none">
