@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { ShoppingBag, Eye } from 'lucide-react'
+
 import { formatPrice, cn } from '@/lib/utils'
 import type { ProductCard as ProductCardType } from '@/types/product'
 
@@ -15,87 +16,225 @@ interface ProductCardProps {
   isNew?: boolean
 }
 
-export function ProductCard({ product, locale, onAddToCart, className, isNew }: ProductCardProps) {
+export function ProductCard({
+  product,
+  locale,
+  onAddToCart,
+  className,
+  isNew,
+}: ProductCardProps) {
   const [imgError, setImgError] = useState(false)
+
   const isRTL = locale === 'ar'
 
+  // ============================================================
+  // LOCALIZED DATA
+  // ============================================================
+
   const name =
-    locale === 'ar' ? product.nameAr
-    : locale === 'fr' ? product.nameFr
-    : product.nameEn
+    locale === 'ar'
+      ? product.nameAr
+      : locale === 'fr'
+        ? product.nameFr
+        : product.nameEn
 
   const categoryName =
-    locale === 'ar' ? product.category?.nameAr
-    : locale === 'fr' ? product.category?.nameFr
-    : product.category?.nameEn
+    locale === 'ar'
+      ? product.category?.nameAr
+      : locale === 'fr'
+        ? product.category?.nameFr
+        : product.category?.nameEn
+
+  const viewLabel =
+    locale === 'ar'
+      ? 'عرض المنتج'
+      : locale === 'fr'
+        ? 'Voir le produit'
+        : 'View Product'
+
+  const newLabel =
+    locale === 'ar'
+      ? 'جديد'
+      : locale === 'fr'
+        ? 'Nouveau'
+        : 'New'
+
+  // ============================================================
+  // DISCOUNT
+  // ============================================================
 
   const discount =
     product.salePrice && product.basePrice > 0
-      ? Math.round(((product.basePrice - product.salePrice) / product.basePrice) * 100)
+      ? Math.round(
+        ((product.basePrice - product.salePrice) /
+          product.basePrice) *
+        100,
+      )
       : 0
 
-  const viewLabel =
-    locale === 'ar' ? 'عرض المنتج'
-    : locale === 'fr' ? 'Voir le produit'
-    : 'View Product'
+  const saleLabel =
+    locale === 'ar'
+      ? `خصم ${discount}%`
+      : `-${discount}%`
 
+  // ============================================================
+  // OUT OF STOCK
+  // ============================================================
 
-  const newLabel  = locale === 'ar' ? 'جديد' : locale === 'fr' ? 'Nouveau' : 'New'
-  const saleLabel = locale === 'ar' ? `خصم ${discount}%` : `-${discount}%`
+  const isOutOfStock =
+    !product.availableSizes ||
+    product.availableSizes.length === 0
+
+  // ============================================================
+  // URL
+  // ============================================================
+
+  const productUrl =
+    `/${locale}/products/${product.slug}`
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
     <article
-      className={cn('product-card group', className)}
+      className={cn(
+        'product-card group',
+        className,
+      )}
       dir={isRTL ? 'rtl' : 'ltr'}
       aria-label={name}
     >
-      {/* ── Image Container ── */}
+      {/* ======================================================
+          IMAGE
+      ======================================================= */}
+
       <div className="product-card-img-wrap">
-        <Link href={`/${locale}/products/${product.slug}`} tabIndex={-1} aria-hidden>
+        <Link
+          href={productUrl}
+          tabIndex={-1}
+          aria-hidden
+          className="block"
+        >
           <Image
-            src={imgError ? '/images/placeholder-product.jpg' : product.mainImage}
+            src={
+              imgError
+                ? '/images/placeholder-product.jpg'
+                : product.mainImage
+            }
             alt={name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="
+              (max-width: 640px) 50vw,
+              (max-width: 1024px) 50vw,
+              33vw
+            "
             className="product-card-img"
             onError={() => setImgError(true)}
             loading="lazy"
           />
         </Link>
 
-        {/* Badges */}
+        {/* ====================================================
+            BADGES
+        ===================================================== */}
+
         <div className="product-card-badge flex flex-col gap-1.5">
           {isNew && (
-            <span className="badge badge-gold text-[11px]">{newLabel}</span>
+            <span className="badge badge-gold text-[11px]">
+              {newLabel}
+            </span>
           )}
+
           {discount > 0 && (
-            <span className="badge badge-accent text-[11px]">{saleLabel}</span>
+            <span className="badge badge-accent text-[11px]">
+              {saleLabel}
+            </span>
           )}
-          {!product.availableSizes?.length && (
+
+          {isOutOfStock && (
             <span
               className="badge text-[11px]"
-              style={{ background: 'rgba(0,0,0,0.5)', color: '#fff' }}
+              style={{
+                background: 'rgba(0,0,0,0.5)',
+                color: '#fff',
+              }}
             >
-              {locale === 'ar' ? 'نفذ' : 'Épuisé'}
+              {locale === 'ar'
+                ? 'نفذ'
+                : locale === 'fr'
+                  ? 'Épuisé'
+                  : 'Sold out'}
             </span>
           )}
         </div>
 
-        {/* Hover overlay actions */}
+        {/* ====================================================
+            HOVER ACTIONS - DESKTOP
+        ===================================================== */}
+
         <div className="product-card-actions">
           <Link
-            href={`/${locale}/products/${product.slug}`}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold text-white transition-all"
-            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.25)' }}
+            href={productUrl}
+            className="
+              flex-1
+              flex
+              items-center
+              justify-center
+              gap-1.5
+              py-2
+              px-3
+              rounded-lg
+              text-xs
+              font-semibold
+              text-white
+              transition-all
+            "
+            style={{
+              background:
+                'rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(4px)',
+              border:
+                '1px solid rgba(255,255,255,0.25)',
+            }}
           >
             <Eye className="w-3.5 h-3.5" />
+
             {viewLabel}
           </Link>
+
           {onAddToCart && (
             <button
-              onClick={() => onAddToCart(product)}
-              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold text-white transition-all"
-              style={{ background: 'var(--accent)', border: '1px solid rgba(255,255,255,0.2)' }}
+              type="button"
+              onClick={() =>
+                onAddToCart(product)
+              }
+              className="
+                flex
+                items-center
+                justify-center
+                gap-1.5
+                py-2
+                px-3
+                rounded-lg
+                text-xs
+                font-semibold
+                text-white
+                transition-all
+              "
+              style={{
+                background:
+                  'var(--accent)',
+                border:
+                  '1px solid rgba(255,255,255,0.2)',
+              }}
+              aria-label={
+                locale === 'ar'
+                  ? `إضافة ${name} إلى السلة`
+                  : locale === 'fr'
+                    ? `Ajouter ${name} au panier`
+                    : `Add ${name} to cart`
+              }
             >
               <ShoppingBag className="w-3.5 h-3.5" />
             </button>
@@ -103,64 +242,189 @@ export function ProductCard({ product, locale, onAddToCart, className, isNew }: 
         </div>
       </div>
 
-      {/* ── Product Info ── */}
-      <div className="product-card-info">
-        {/* Category */}
+      {/* ======================================================
+          PRODUCT INFORMATION
+      ======================================================= */}
+
+      <div
+        className="
+          product-card-info
+          px-3
+          sm:px-4
+          py-3
+          sm:py-4
+        "
+      >
+        {/* ====================================================
+            CATEGORY
+        ===================================================== */}
+
         {categoryName && (
-          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
+          <p
+            className="
+              text-[10px]
+              sm:text-[11px]
+              font-semibold
+              uppercase
+              tracking-wider
+              mb-1.5
+            "
+            style={{
+              color: 'var(--gold)',
+            }}
+          >
             {categoryName}
           </p>
         )}
 
-        {/* Name */}
-        <h3 className="font-semibold text-sm leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+        {/* ====================================================
+            NAME
+        ===================================================== */}
+
+        <h3
+          className="
+            font-semibold
+            text-sm
+            sm:text-sm
+            leading-snug
+            line-clamp-2
+            min-h-[40px]
+          "
+          style={{
+            color: 'var(--text-primary)',
+          }}
+        >
           <Link
-            href={`/${locale}/products/${product.slug}`}
-            className="transition-colors hover:text-[var(--accent)]"
+            href={productUrl}
+            className="
+              transition-colors
+              hover:text-[var(--accent)]
+            "
           >
             {name}
           </Link>
         </h3>
 
-        {/* Color swatches */}
-        {product.availableColors && product.availableColors.length > 0 && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {product.availableColors.slice(0, 5).map(c => (
-              <span
-                key={c.code}
-                className="w-4 h-4 rounded-full border shadow-sm ring-offset-1 cursor-pointer hover:ring-2 hover:ring-[var(--accent)] transition-all"
-                style={{
-                  background: c.code,
-                  borderColor: 'rgba(0,0,0,0.12)',
-                  boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.1)',
-                }}
-                title={locale === 'ar' ? c.nameAr : locale === 'fr' ? c.nameFr : c.nameEn}
-              />
-            ))}
-            {product.availableColors.length > 5 && (
-              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                +{product.availableColors.length - 5}
+        {/* ====================================================
+            COLOR SWATCHES
+        ===================================================== */}
+
+        {product.availableColors &&
+          product.availableColors.length > 0 && (
+            <div
+              className="
+                flex
+                items-center
+                gap-1.5
+                flex-wrap
+                mt-2
+                min-h-[20px]
+              "
+            >
+              {product.availableColors
+                .slice(0, 5)
+                .map((c) => (
+                  <span
+                    key={c.code}
+                    className="
+                      w-4
+                      h-4
+                      rounded-full
+                      border
+                      shadow-sm
+                      cursor-pointer
+                      hover:ring-2
+                      hover:ring-[var(--accent)]
+                      transition-all
+                      ring-offset-1
+                    "
+                    style={{
+                      background: c.code,
+                      borderColor:
+                        'rgba(0,0,0,0.12)',
+                      boxShadow:
+                        'inset 0 0 0 0.5px rgba(0,0,0,0.1)',
+                    }}
+                    title={
+                      locale === 'ar'
+                        ? c.nameAr
+                        : locale === 'fr'
+                          ? c.nameFr
+                          : c.nameEn
+                    }
+                  />
+                ))}
+
+              {product.availableColors.length >
+                5 && (
+                  <span
+                    className="
+                    text-[10px]
+                    font-medium
+                  "
+                    style={{
+                      color:
+                        'var(--text-muted)',
+                    }}
+                  >
+                    +
+                    {product.availableColors
+                      .length - 5}
+                  </span>
+                )}
+            </div>
+          )}
+
+        {/* Price + CTA */}
+        <div className="flex items-end justify-between gap-2 pt-2 min-w-0">
+          {/* Prices */}
+          <div className="flex items-baseline gap-1.5 min-w-0 whitespace-nowrap">
+            {product.salePrice ? (
+              <>
+                <span
+                  className="price-sale text-base font-bold whitespace-nowrap"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  {formatPrice(product.salePrice, locale)}
+                </span>
+
+                <span
+                  className="price-original text-xs whitespace-nowrap"
+                  style={{
+                    color: 'var(--text-muted)',
+                    textDecoration: 'line-through',
+                  }}
+                >
+                  {formatPrice(product.basePrice, locale)}
+                </span>
+              </>
+            ) : (
+              <span className="price-current text-base font-bold whitespace-nowrap">
+                {formatPrice(product.basePrice, locale)}
               </span>
             )}
           </div>
-        )}
 
-        {/* Price + CTA */}
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <div className="flex items-baseline gap-1.5">
-            {product.salePrice ? (
-              <>
-                <span className="price-sale text-base">{formatPrice(product.salePrice, locale)}</span>
-                <span className="price-original text-xs">{formatPrice(product.basePrice, locale)}</span>
-              </>
-            ) : (
-              <span className="price-current text-base">{formatPrice(product.basePrice, locale)}</span>
-            )}
-          </div>
-
+          {/* CTA */}
           <Link
             href={`/${locale}/products/${product.slug}`}
-            className="btn btn-primary btn-sm btn-round text-[11px] px-2.5 py-1.5 flex-shrink-0"
+            className="
+             flex-shrink-0
+             inline-flex
+             items-center
+             justify-center
+             whitespace-nowrap
+             rounded-full
+             font-semibold
+             transition-all
+            "
+            style={{
+              background: 'var(--accent)',
+              color: '#fff',
+              fontSize: '11px',
+              padding: '7px 11px',
+              minHeight: '32px',
+            }}
             aria-label={`${viewLabel}: ${name}`}
           >
             {viewLabel}
