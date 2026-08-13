@@ -2025,3 +2025,26 @@ body {
 .home-hero>.absolute.inset-0.pointer-events-none:not(.pattern-moroccan) {
   background-color: transparent !important;
 }
+
+/* إخفاء شريط التمرير مع إبقاء التمرير يعمل */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* ── Select Option Theme Support (Light / Dark Mode) ── */
+select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.dark select option {
+  background-color: #1f1008 !important;
+  color: #ffffff !important;
+}

@@ -116,10 +116,7 @@ export function Header({ locale }: HeaderProps) {
           setStoreSettings(data.settings)
         }
       } catch (error) {
-        console.error(
-          'Failed to load store settings:',
-          error
-        )
+        console.error('Failed to load store settings:', error)
       }
     }
 
@@ -168,7 +165,6 @@ export function Header({ locale }: HeaderProps) {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ctrl + K / Cmd + K
       if (
         (event.ctrlKey || event.metaKey) &&
         event.key.toLowerCase() === 'k'
@@ -177,7 +173,6 @@ export function Header({ locale }: HeaderProps) {
         setSearchOpen(true)
       }
 
-      // Escape
       if (event.key === 'Escape') {
         setSearchOpen(false)
         setSearchQ('')
@@ -226,9 +221,7 @@ export function Header({ locale }: HeaderProps) {
 
       try {
         const response = await fetch(
-          `/api/products?search=${encodeURIComponent(
-            query
-          )}&limit=5`
+          `/api/products?search=${encodeURIComponent(query)}&limit=5`
         )
 
         if (!response.ok) {
@@ -401,7 +394,6 @@ export function Header({ locale }: HeaderProps) {
 
   // =========================================================
   // SOCIAL LINKS
-  // تأتي من لوحة التحكم
   // =========================================================
 
   const instagramUrl =
@@ -419,10 +411,7 @@ export function Header({ locale }: HeaderProps) {
   const whatsappUrl = whatsappValue
     ? whatsappValue.startsWith('http')
       ? whatsappValue
-      : `https://wa.me/${whatsappValue.replace(
-        /[^0-9]/g,
-        ''
-      )}`
+      : `https://wa.me/${whatsappValue.replace(/[^0-9]/g, '')}`
     : ''
 
   // =========================================================
@@ -504,9 +493,7 @@ export function Header({ locale }: HeaderProps) {
                 priority
                 className={cn(
                   'hidden w-auto object-contain transition-all duration-300 sm:block',
-                  scrolled
-                    ? 'h-9'
-                    : 'h-11'
+                  scrolled ? 'h-9' : 'h-11'
                 )}
               />
 
@@ -550,8 +537,6 @@ export function Header({ locale }: HeaderProps) {
               ))}
             </nav>
 
-            {/* Spacer */}
-
             <div className="flex-1" />
 
             {/* =================================================
@@ -561,17 +546,12 @@ export function Header({ locale }: HeaderProps) {
             <div className="relative hidden lg:flex">
               <button
                 type="button"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
+                onClick={() => setSearchOpen(true)}
                 className="flex h-9 min-w-[200px] items-center gap-2 rounded-lg border px-3.5 text-sm transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]"
                 style={{
-                  background:
-                    'var(--bg-subtle)',
-                  borderColor:
-                    'var(--border)',
-                  color:
-                    'var(--text-muted)',
+                  background: 'var(--bg-subtle)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--text-muted)',
                 }}
               >
                 <Search className="h-3.5 w-3.5 flex-shrink-0" />
@@ -587,8 +567,7 @@ export function Header({ locale }: HeaderProps) {
                 <kbd
                   className="rounded border px-1 text-[10px] opacity-50"
                   style={{
-                    borderColor:
-                      'var(--border)',
+                    borderColor: 'var(--border)',
                   }}
                 >
                   ⌘K
@@ -604,14 +583,10 @@ export function Header({ locale }: HeaderProps) {
               className="flex items-center gap-1.5 sm:gap-2"
               dir="ltr"
             >
-              {/* Mobile Search */}
-
               <button
                 type="button"
                 className="icon-btn touch-target lg:hidden"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
+                onClick={() => setSearchOpen(true)}
                 aria-label={
                   locale === 'ar'
                     ? 'بحث'
@@ -621,43 +596,31 @@ export function Header({ locale }: HeaderProps) {
                 <Search className="h-[18px] w-[18px]" />
               </button>
 
-              {/* Theme */}
-
               <ThemeSwitcher />
 
-              {/* Language */}
-
-              <LanguageSwitcher
-                locale={locale}
-              />
-
-              {/* Cart */}
+              <LanguageSwitcher locale={locale} />
 
               <button
                 id="cart-toggle-btn"
                 type="button"
-                onClick={
-                  cartStore.toggleCart
-                }
+                onClick={cartStore.toggleCart}
                 className="icon-btn touch-target relative"
                 aria-label={t('cart')}
               >
                 <ShoppingBag className="h-[18px] w-[18px]" />
 
-                {mounted &&
-                  totalItems > 0 && (
-                    <span
-                      className="absolute -end-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-0.5 text-[10px] font-bold text-white"
-                      style={{
-                        background:
-                          'var(--accent)',
-                      }}
-                    >
-                      {totalItems > 9
-                        ? '9+'
-                        : totalItems}
-                    </span>
-                  )}
+                {mounted && totalItems > 0 && (
+                  <span
+                    className="absolute -end-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-0.5 text-[10px] font-bold text-white"
+                    style={{
+                      background: 'var(--accent)',
+                    }}
+                  >
+                    {totalItems > 9
+                      ? '9+'
+                      : totalItems}
+                  </span>
+                )}
               </button>
             </div>
 
@@ -668,15 +631,12 @@ export function Header({ locale }: HeaderProps) {
             <button
               type="button"
               className={cn(
-                'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-200',
+                'order-first flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-all duration-200',
                 'hover:bg-[var(--accent-light)] hover:text-[var(--accent)]',
-                'order-first'
+                'active:scale-95'
               )}
               onClick={() => {
-                setMenuOpen(
-                  (previous) =>
-                    !previous
-                )
+                setMenuOpen((previous) => !previous)
               }}
               aria-label={
                 menuOpen
@@ -690,36 +650,24 @@ export function Header({ locale }: HeaderProps) {
               aria-expanded={menuOpen}
               aria-controls="main-side-menu"
               style={{
-                color:
-                  'var(--text-primary)',
-                background:
-                  'var(--bg-subtle)',
-                borderColor:
-                  'var(--border)',
+                color: 'var(--text-primary)',
+                background: 'var(--bg-subtle)',
+                borderColor: 'var(--border)',
               }}
             >
-              <span
-                className={cn(
-                  'flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-all duration-200',
-                  'hover:bg-[var(--accent-light)] hover:text-[var(--accent)] hover:border-[var(--accent-ring)]',
-                  'active:scale-95',
-                  'order-first'
-                )}
-              >
-                {menuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
-              </span>
+              {menuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
       </header>
 
       {/* =====================================================
-          SIDE MENU OVERLAY
-      ===================================================== */}
+    SIDE MENU OVERLAY
+===================================================== */}
 
       <div
         className={cn(
@@ -731,41 +679,34 @@ export function Header({ locale }: HeaderProps) {
         )}
         aria-hidden={!menuOpen}
       >
-        {/* =================================================
-            OVERLAY
-        ================================================= */}
-
+        {/* Mobile overlay — نفس فكرة Admin */}
         <button
           type="button"
-          aria-label={
-            isRTL
-              ? 'إغلاق القائمة'
-              : 'Close menu'
-          }
+          aria-label={isRTL ? 'إغلاق القائمة' : 'Close menu'}
           onClick={closeMenu}
           className={cn(
-            'absolute inset-0 h-full w-full cursor-default border-0 p-0',
-            'bg-black/40',
+            'absolute inset-0 h-full w-full border-0 p-0 cursor-default',
+            'bg-black/40 backdrop-blur-[2px]',
             'transition-opacity duration-300',
-            menuOpen
-              ? 'opacity-100'
-              : 'opacity-0'
+            menuOpen ? 'opacity-100' : 'opacity-0'
           )}
         />
 
         {/* =================================================
-            SIDE MENU
-        ================================================= */}
+      SIDEBAR
+  ================================================= */}
 
         <aside
           id="main-side-menu"
           className={cn(
-            'absolute top-0 h-full w-[280px] max-w-[85vw] sm:w-[340px] sm:max-w-[88vw]',
-            'overflow-y-auto border shadow-2xl',
+            'scrollbar-hidden',
+            'absolute top-0 h-full',
+            'w-[260px] min-w-[260px] max-w-[260px]',
+            'overflow-y-auto',
+            'shadow-2xl',
             'transition-transform duration-300 ease-out',
-            isRTL
-              ? 'right-0'
-              : 'left-0',
+            isRTL ? 'right-0' : 'left-0',
+
             isRTL
               ? menuOpen
                 ? 'translate-x-0'
@@ -775,12 +716,16 @@ export function Header({ locale }: HeaderProps) {
                 : '-translate-x-full'
           )}
           style={{
-            background:
-              'var(--card-bg)',
-            color:
-              'var(--text-primary)',
-            borderColor:
-              'var(--border)',
+            background: 'var(--card-bg)',
+            color: 'var(--text-primary)',
+
+            borderLeft: isRTL
+              ? '1px solid var(--border)'
+              : undefined,
+
+            borderRight: !isRTL
+              ? '1px solid var(--border)'
+              : undefined,
           }}
           dir={isRTL ? 'rtl' : 'ltr'}
           onClick={(event) => {
@@ -788,39 +733,69 @@ export function Header({ locale }: HeaderProps) {
           }}
         >
           {/* =================================================
-              MENU HEADER
-          ================================================= */}
+        BRAND
+        مطابق لفكرة Admin Sidebar
+    ================================================= */}
 
           <div
-            className="relative flex h-16 sm:h-20 items-center justify-between overflow-hidden border-b px-4 sm:px-5"
             style={{
-              borderColor:
-                'var(--border)',
-              background:
-                'linear-gradient(135deg, var(--accent-light), transparent 70%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 0 16px 0',
+              margin: '16px 12px 16px 12px',
+              borderBottom: '1px solid var(--border)',
             }}
           >
-            <div className="flex items-center gap-3">
-              <Image
-                src={
-                  storeSettings?.logo ||
-                  '/images/brand/logo-icon.png'
-                }
-                alt={
-                  storeSettings?.storeName ||
-                  siteConfig.name
-                }
-                width={36}
-                height={36}
-                className="h-9 w-9 object-contain"
-              />
+            <Link
+              href={`/${locale}`}
+              onClick={closeMenu}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                textDecoration: 'none',
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'var(--accent-light)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <Image
+                  src={
+                    storeSettings?.logo ||
+                    '/images/brand/logo-icon.png'
+                  }
+                  alt={
+                    storeSettings?.storeName ||
+                    siteConfig.name
+                  }
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-[10px] object-contain"
+                />
+              </div>
 
-              <div>
-                <p
-                  className="text-sm font-bold"
+              <div className="min-w-0">
+                <div
                   style={{
-                    color:
-                      'var(--text-primary)',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    color: 'var(--text-primary)',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {storeSettings?.storeName ||
@@ -829,13 +804,16 @@ export function Header({ locale }: HeaderProps) {
                       : locale === 'fr'
                         ? 'Thuraya Marocaine'
                         : 'Thuraya Moroccan')}
-                </p>
+                </div>
 
-                <p
-                  className="text-[10px]"
+                <div
                   style={{
-                    color:
-                      'var(--text-muted)',
+                    fontWeight: 600,
+                    fontSize: 10,
+                    color: 'var(--accent)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    marginTop: 4,
                   }}
                 >
                   {locale === 'ar'
@@ -843,93 +821,147 @@ export function Header({ locale }: HeaderProps) {
                     : locale === 'fr'
                       ? 'Menu principal'
                       : 'Main Menu'}
-                </p>
+                </div>
               </div>
-            </div>
+            </Link>
 
             <button
               type="button"
               onClick={closeMenu}
-              className="flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-[var(--accent-light)]"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-[var(--accent-light)]"
               aria-label={
                 isRTL
                   ? 'إغلاق القائمة'
                   : 'Close menu'
               }
               style={{
-                color:
-                  'var(--text-primary)',
+                color: 'var(--text-muted)',
+                border: 'none',
+                background: 'transparent',
               }}
             >
-              <X className="h-5 w-5" />
+              <X className="h-[16px] w-[16px]" />
             </button>
           </div>
 
           {/* =================================================
-              MENU CONTENT
-          ================================================= */}
+        NAV LINKS
+        نفس Admin:
+        gap 4
+        padding 10px 12px
+        radius 12
+    ================================================= */}
 
-          <div className="px-3 py-4 sm:px-4 sm:py-5">
-            {/* Main Links */}
+          <nav
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              padding: '0 12px',
+            }}
+          >
+            {menuItems.map((item) => {
+              const Icon = item.icon
 
-            <nav className="flex flex-col gap-1">
-              {menuItems.map(
-                (item) => {
-                  const Icon = item.icon
+              const isActive =
+                pathname === item.href ||
+                (
+                  item.href !== `/${locale}` &&
+                  pathname.startsWith(item.href)
+                )
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={closeMenu}
-                      className={cn(
-                        'flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200 sm:px-4 sm:py-3.5',
-                        pathname === item.href
-                          ? 'border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] shadow-sm'
-                          : 'border-transparent hover:border-[var(--accent-ring)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]'
-                      )}
-                      style={{
-                        color:
-                          pathname === item.href
-                            ? 'var(--accent)'
-                            : 'var(--text-secondary)',
-                      }}
-                    >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeMenu}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
 
-                      <span>
-                        {item.label}
-                      </span>
-                    </Link>
-                  )
-                }
-              )}
-            </nav>
+                    gap: 10,
 
-            {/* Separator */}
+                    padding: '10px 12px',
 
+                    minHeight: 40,
+
+                    borderRadius: 12,
+
+                    textDecoration: 'none',
+
+                    fontWeight: 600,
+                    fontSize: 13,
+
+                    transition: 'all 0.15s',
+
+                    background: isActive
+                      ? 'var(--accent)'
+                      : 'transparent',
+
+                    color: isActive
+                      ? '#fff'
+                      : 'var(--text-secondary)',
+                  }}
+                >
+                  <Icon
+                    style={{
+                      width: 15,
+                      height: 15,
+                      flexShrink: 0,
+
+                      color: isActive
+                        ? '#fff'
+                        : 'var(--text-muted)',
+                    }}
+                  />
+
+                  <span>
+                    {item.label}
+                  </span>
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* =================================================
+        LANGUAGE
+    ================================================= */}
+
+          <div
+            style={{
+              paddingTop: 16,
+              marginTop: 16,
+              borderTop: '1px solid var(--border)',
+              paddingLeft: 12,
+              paddingRight: 12,
+            }}
+          >
             <div
-              className="my-4 h-px w-full"
               style={{
-                background:
-                  'var(--border)',
-              }}
-            />
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                borderRadius: 12,
 
-            {/* =================================================
-                LANGUAGE
-            ================================================= */}
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border)',
 
-            <div
-              className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3.5"
-              style={{
-                color:
-                  'var(--text-secondary)',
+                color: 'var(--text-secondary)',
+                fontSize: 13,
+                fontWeight: 600,
               }}
             >
-              <Globe className="h-5 w-5 flex-shrink-0" />
+              <Globe
+                style={{
+                  width: 15,
+                  height: 15,
+                  flexShrink: 0,
+                  color: 'var(--text-muted)',
+                }}
+              />
 
-              <span className="text-sm font-semibold">
+              <span style={{ flex: 1 }}>
                 {locale === 'ar'
                   ? 'اللغة'
                   : locale === 'fr'
@@ -937,156 +969,210 @@ export function Header({ locale }: HeaderProps) {
                     : 'Language'}
               </span>
 
-              <div className="ms-auto">
-                <LanguageSwitcher
-                  locale={locale}
-                />
-              </div>
+              <LanguageSwitcher locale={locale} />
             </div>
+          </div>
 
-            {/* Separator */}
+          {/* =================================================
+        SOCIAL
+    ================================================= */}
 
-            <div
-              className="my-4 h-px w-full"
-              style={{
-                background:
-                  'var(--border)',
-              }}
-            />
-
-            {/* =================================================
-                SOCIAL LINKS
-                كلها من لوحة التحكم
-            ================================================= */}
-
-            <div className="flex flex-col gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-1.5">
-              {/* WhatsApp */}
-
-              {whatsappUrl && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
-                  style={{
-                    color:
-                      'var(--text-secondary)',
-                  }}
-                >
-                  <MessageCircle className="h-5 w-5 flex-shrink-0" />
-
-                  <span>
-                    {locale === 'ar'
-                      ? 'واتساب'
-                      : 'WhatsApp'}
-                  </span>
-                </a>
-              )}
-
-              {/* Instagram */}
-
-              {instagramUrl && (
-                <a
-                  href={instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
-                  style={{
-                    color:
-                      'var(--text-secondary)',
-                  }}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center text-base">
-                    📷
-                  </span>
-
-                  <span>
-                    {locale === 'ar'
-                      ? 'إنستغرام'
-                      : 'Instagram'}
-                  </span>
-                </a>
-              )}
-
-              {/* Facebook */}
-
-              {facebookUrl && (
-                <a
-                  href={facebookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
-                  style={{
-                    color:
-                      'var(--text-secondary)',
-                  }}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center text-base">
-                    📘
-                  </span>
-
-                  <span>
-                    {locale === 'ar'
-                      ? 'فيسبوك'
-                      : 'Facebook'}
-                  </span>
-                </a>
-              )}
-
-              {/* TikTok */}
-
-              {tiktokUrl && (
-                <a
-                  href={tiktokUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
-                  style={{
-                    color:
-                      'var(--text-secondary)',
-                  }}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center text-base font-bold">
-                    ♪
-                  </span>
-
-                  <span>
-                    TikTok
-                  </span>
-                </a>
-              )}
-            </div>
-
-            {/* Separator */}
-
-            {(whatsappUrl ||
-              instagramUrl ||
-              facebookUrl ||
-              tiktokUrl) && (
+          {(whatsappUrl ||
+            instagramUrl ||
+            facebookUrl ||
+            tiktokUrl) && (
+              <div
+                style={{
+                  paddingTop: 16,
+                  marginTop: 16,
+                  borderTop: '1px solid var(--border)',
+                  paddingLeft: 12,
+                  paddingRight: 12,
+                }}
+              >
                 <div
-                  className="my-4 h-px w-full"
                   style={{
-                    background:
-                      'var(--border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
                   }}
-                />
-              )}
+                >
+                  {/* WhatsApp */}
+                  {whatsappUrl && (
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        textDecoration: 'none',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <MessageCircle
+                        style={{
+                          width: 15,
+                          height: 15,
+                          color: 'var(--text-muted)',
+                          flexShrink: 0,
+                        }}
+                      />
 
-            {/* =================================================
-                COPYRIGHT
-            ================================================= */}
+                      <span>
+                        {locale === 'ar'
+                          ? 'واتساب'
+                          : 'WhatsApp'}
+                      </span>
+                    </a>
+                  )}
 
-            <div
-              className="pb-4 text-center text-xs"
-              style={{
-                color:
-                  'var(--text-muted)',
-              }}
-            >
-              © {new Date().getFullYear()}{' '}
-              {storeSettings?.storeName ||
-                siteConfig.name}
-            </div>
+                  {/* Instagram */}
+                  {instagramUrl && (
+                    <a
+                      href={instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        textDecoration: 'none',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 15,
+                          height: 15,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 12,
+                        }}
+                      >
+                        📷
+                      </span>
+
+                      <span>
+                        {locale === 'ar'
+                          ? 'إنستغرام'
+                          : 'Instagram'}
+                      </span>
+                    </a>
+                  )}
+
+                  {/* Facebook */}
+                  {facebookUrl && (
+                    <a
+                      href={facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        textDecoration: 'none',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 15,
+                          height: 15,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 12,
+                        }}
+                      >
+                        📘
+                      </span>
+
+                      <span>
+                        {locale === 'ar'
+                          ? 'فيسبوك'
+                          : 'Facebook'}
+                      </span>
+                    </a>
+                  )}
+
+                  {/* TikTok */}
+                  {tiktokUrl && (
+                    <a
+                      href={tiktokUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        textDecoration: 'none',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 15,
+                          height: 15,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                      >
+                        ♪
+                      </span>
+
+                      <span>TikTok</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+          {/* =================================================
+        COPYRIGHT
+    ================================================= */}
+
+          <div
+            style={{
+              paddingTop: 16,
+              marginTop: 16,
+              borderTop: '1px solid var(--border)',
+              paddingLeft: 12,
+              paddingRight: 12,
+              paddingBottom: 16,
+              textAlign: 'center',
+              fontSize: 10,
+              color: 'var(--text-muted)',
+            }}
+          >
+            © {new Date().getFullYear()}{' '}
+            {storeSettings?.storeName ||
+              siteConfig.name}
           </div>
         </aside>
       </div>
@@ -1104,15 +1190,13 @@ export function Header({ locale }: HeaderProps) {
         )}
         onClick={(event) => {
           if (
-            event.target ===
-            event.currentTarget
+            event.target === event.currentTarget
           ) {
             closeSearch()
           }
         }}
         style={{
-          background:
-            'rgba(0, 0, 0, 0.45)',
+          background: 'rgba(0, 0, 0, 0.45)',
         }}
       >
         <div
@@ -1124,8 +1208,7 @@ export function Header({ locale }: HeaderProps) {
               : '-translate-y-4 opacity-0'
           )}
           style={{
-            background:
-              'var(--card-bg)',
+            background: 'var(--card-bg)',
             marginTop: '8vh',
             borderRadius: '16px',
             overflow: 'hidden',
@@ -1138,16 +1221,14 @@ export function Header({ locale }: HeaderProps) {
           <div
             className="flex items-center gap-2 border-b p-3 sm:gap-3 sm:p-4"
             style={{
-              borderColor:
-                'var(--border)',
+              borderColor: 'var(--border)',
             }}
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             <Search
               className="h-5 w-5 flex-shrink-0"
               style={{
-                color:
-                  'var(--text-muted)',
+                color: 'var(--text-muted)',
               }}
             />
 
@@ -1156,9 +1237,7 @@ export function Header({ locale }: HeaderProps) {
               type="text"
               value={searchQ}
               onChange={(event) =>
-                setSearchQ(
-                  event.target.value
-                )
+                setSearchQ(event.target.value)
               }
               placeholder={
                 isRTL
@@ -1167,34 +1246,26 @@ export function Header({ locale }: HeaderProps) {
                     ? 'Rechercher un produit...'
                     : 'Search for a product...'
               }
-              className="flex-1 bg-transparent text-sm sm:text-base outline-none"
+              className="flex-1 bg-transparent text-sm outline-none sm:text-base"
               style={{
-                color:
-                  'var(--text-primary)',
+                color: 'var(--text-primary)',
               }}
               dir={isRTL ? 'rtl' : 'ltr'}
             />
 
-            {/* Clear */}
-
             {searchQ && (
               <button
                 type="button"
-                onClick={() =>
-                  setSearchQ('')
-                }
+                onClick={() => setSearchQ('')}
                 className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--accent-light)]"
                 aria-label="Clear search"
                 style={{
-                  color:
-                    'var(--text-muted)',
+                  color: 'var(--text-muted)',
                 }}
               >
                 <X className="h-4 w-4" />
               </button>
             )}
-
-            {/* Close */}
 
             <button
               type="button"
@@ -1206,8 +1277,7 @@ export function Header({ locale }: HeaderProps) {
                   : 'Close search'
               }
               style={{
-                color:
-                  'var(--text-muted)',
+                color: 'var(--text-muted)',
               }}
             >
               <X className="h-5 w-5" />
@@ -1221,91 +1291,78 @@ export function Header({ locale }: HeaderProps) {
               <div
                 className="p-8 text-center"
                 style={{
-                  color:
-                    'var(--text-muted)',
+                  color: 'var(--text-muted)',
                 }}
               >
                 <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
               </div>
             ) : searchRes.length > 0 ? (
-              searchRes.map(
-                (product) => (
-                  <Link
-                    key={product.id}
-                    href={`/${locale}/products/${product.slug}`}
-                    onClick={closeSearch}
-                    className="flex items-center gap-3 border-b px-4 py-3 transition-colors hover:bg-[var(--accent-light)]"
-                    style={{
-                      borderColor:
-                        'var(--border-subtle)',
-                    }}
-                    dir={
-                      isRTL
-                        ? 'rtl'
-                        : 'ltr'
-                    }
-                  >
-                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--bg-muted)]">
-                      <Image
-                        src={
-                          product.mainImage ||
-                          '/images/brand/logo-icon.png'
-                        }
-                        alt={
-                          product.nameAr ||
-                          product.nameFr ||
-                          product.nameEn
-                        }
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                      />
-                    </div>
+              searchRes.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/${locale}/products/${product.slug}`}
+                  onClick={closeSearch}
+                  className="flex items-center gap-3 border-b px-4 py-3 transition-colors hover:bg-[var(--accent-light)]"
+                  style={{
+                    borderColor:
+                      'var(--border-subtle)',
+                  }}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                >
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--bg-muted)]">
+                    <Image
+                      src={
+                        product.mainImage ||
+                        '/images/brand/logo-icon.png'
+                      }
+                      alt={
+                        product.nameAr ||
+                        product.nameFr ||
+                        product.nameEn
+                      }
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className="truncate text-sm font-semibold"
-                        style={{
-                          color:
-                            'var(--text-primary)',
-                        }}
-                      >
-                        {locale === 'ar'
-                          ? product.nameAr
-                          : locale === 'fr'
-                            ? product.nameFr
-                            : product.nameEn}
-                      </p>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate text-sm font-semibold"
+                      style={{
+                        color:
+                          'var(--text-primary)',
+                      }}
+                    >
+                      {locale === 'ar'
+                        ? product.nameAr
+                        : locale === 'fr'
+                          ? product.nameFr
+                          : product.nameEn}
+                    </p>
 
-                      <p
-                        className="mt-0.5 text-xs"
-                        style={{
-                          color:
-                            'var(--accent)',
-                        }}
-                      >
-                        {product.salePrice
-                          ? `${product.salePrice} د.م.`
-                          : `${product.basePrice} د.م.`}
-                      </p>
-                    </div>
-                  </Link>
-                )
-              )
+                    <p
+                      className="mt-0.5 text-xs"
+                      style={{
+                        color: 'var(--accent)',
+                      }}
+                    >
+                      {product.salePrice
+                        ? `${product.salePrice} د.م.`
+                        : `${product.basePrice} د.م.`}
+                    </p>
+                  </div>
+                </Link>
+              ))
             ) : searchQ.trim() ? (
               <div
                 className="p-8 text-center"
-                dir={
-                  isRTL
-                    ? 'rtl'
-                    : 'ltr'
-                }
+                dir={isRTL ? 'rtl' : 'ltr'}
               >
                 <p
                   className="text-sm font-medium"
                   style={{
-                    color:
-                      'var(--text-primary)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {isRTL
@@ -1318,8 +1375,7 @@ export function Header({ locale }: HeaderProps) {
                 <p
                   className="mt-1 text-xs"
                   style={{
-                    color:
-                      'var(--text-muted)',
+                    color: 'var(--text-muted)',
                   }}
                 >
                   {isRTL
@@ -1333,14 +1389,9 @@ export function Header({ locale }: HeaderProps) {
               <div
                 className="p-8 text-center text-xs"
                 style={{
-                  color:
-                    'var(--text-muted)',
+                  color: 'var(--text-muted)',
                 }}
-                dir={
-                  isRTL
-                    ? 'rtl'
-                    : 'ltr'
-                }
+                dir={isRTL ? 'rtl' : 'ltr'}
               >
                 {isRTL
                   ? 'اكتبي اسم المنتج للبحث...'

@@ -498,34 +498,50 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
             className="divide-y max-h-[380px] overflow-y-auto pe-1"
             style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
           >
-            {cartStore.items.map((item) => (
-              <div key={item.id} className="py-4 flex items-center gap-4 text-xs first:pt-0 last:pb-0">
-                <Image
-                  src={item.mainImage}
-                  alt={item.nameAr}
-                  width={64}
-                  height={64}
-                  className="w-16 h-16 object-cover rounded-2xl flex-shrink-0 border"
-                  style={{ borderColor: 'var(--border)' }}
-                />
+            {cartStore.items.map((item) => {
+              const niqabTotal =
+                item.niqabItems?.reduce(
+                  (sum, n) =>
+                    sum + n.unitPrice * n.quantity,
+                  0,
+                ) || 0
+              const lineTotal =
+                item.unitPrice * item.quantity + niqabTotal
 
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate mb-1" style={{ color: 'var(--foreground)' }}>
-                    {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
-                  </p>
-                  <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                    {cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span> | {cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span>
-                  </p>
+              return (
+                <div key={item.id} className="py-4 flex items-center gap-4 text-xs first:pt-0 last:pb-0">
+                  <Image
+                    src={item.mainImage}
+                    alt={item.nameAr}
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 object-cover rounded-2xl flex-shrink-0 border"
+                    style={{ borderColor: 'var(--border)' }}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm truncate mb-1" style={{ color: 'var(--foreground)' }}>
+                      {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                      {cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span> | {cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span>
+                    </p>
+                    {item.niqabItems && item.niqabItems.length > 0 && (
+                      <div className="mt-1 text-[11px] text-[#b8965a]">
+                        {item.niqabItems.map((n, i) => {
+                          const cName = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
+                          return <div key={i}>+ {cName} × {n.quantity} ({formatPrice(n.unitPrice * n.quantity, locale)})</div>
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap">
+                    {formatPrice(lineTotal, locale)}
+                  </span>
                 </div>
-
-                <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap">
-                  {formatPrice(
-                    (item.unitPrice + (item.niqabItem?.unitPrice ?? 0)) * item.quantity,
-                    locale,
-                  )}
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* ── Order Pricing Sub-Box (Spacious Sub-Box) ───────────── */}

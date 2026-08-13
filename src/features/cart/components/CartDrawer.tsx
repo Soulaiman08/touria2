@@ -118,7 +118,17 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                 </div>
               ) : (
                 cartStore.items.map((item) => {
-                  const hasNiqab = !!item.niqabItem
+                  const niqabSubtotal =
+                    item.niqabItems?.reduce(
+                      (sum, n) =>
+                        sum + n.unitPrice * n.quantity,
+                      0,
+                    ) || 0
+
+                  const itemTotal =
+                    item.unitPrice * item.quantity +
+                    niqabSubtotal
+
                   return (
                     <div
                       key={item.id}
@@ -151,13 +161,26 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                             </span>
                           </div>
 
-                          {/* Matching Niqab Subitem Display */}
-                          {hasNiqab && (
-                            <div className="mt-2 p-1.5 rounded bg-[rgba(184,150,90,0.08)] border border-[rgba(184,150,90,0.2)] text-xs flex items-center justify-between">
-                              <span className="font-medium flex items-center gap-1 text-[#b8965a]">
-                                🌟 {locale === 'ar' ? 'مع نقاب مطابق' : locale === 'fr' ? 'Avec niqab assorti' : 'With matching niqab'}
-                              </span>
-                              <span className="font-semibold">{formatPrice(item.niqabItem!.unitPrice, locale)}</span>
+                          {/* Multiple Niqabs Subitem Display */}
+                          {item.niqabItems && item.niqabItems.length > 0 && (
+                            <div className="mt-2 space-y-1 p-2 rounded bg-[rgba(184,150,90,0.08)] border border-[rgba(184,150,90,0.2)] text-xs">
+                              <div className="font-semibold text-[#b8965a] text-[11px]">
+                                {locale === 'ar' ? 'النقابات الإضافية:' : locale === 'fr' ? 'Niqabs inclus :' : 'Included niqabs:'}
+                              </div>
+                              {item.niqabItems.map((n, idx) => {
+                                const colorLabel = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
+                                return (
+                                  <div key={idx} className="flex items-center justify-between text-[11px]">
+                                    <span className="flex items-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full inline-block border" style={{ background: n.colorCode }} />
+                                      {colorLabel} × {n.quantity}
+                                    </span>
+                                    <span className="font-semibold text-[#C4622D]">
+                                      +{formatPrice(n.unitPrice * n.quantity, locale)}
+                                    </span>
+                                  </div>
+                                )
+                              })}
                             </div>
                           )}
                         </div>
@@ -189,10 +212,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                           {/* Price */}
                           <div className="text-right">
                             <span className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
-                              {formatPrice(
-                                (item.unitPrice + (item.niqabItem?.unitPrice ?? 0)) * item.quantity,
-                                locale,
-                              )}
+                              {formatPrice(itemTotal, locale)}
                             </span>
                           </div>
                         </div>

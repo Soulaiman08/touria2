@@ -39,55 +39,94 @@ export interface Product {
   id: string
   slug: string
   sku: string
+
   nameAr: string
   nameFr: string
   nameEn: string
+
   descriptionAr: string
   descriptionFr: string
   descriptionEn: string
+
   basePrice: number | string
   salePrice?: number | string | null
+
   categoryId: string
   category?: Category
+
   isActive: boolean
   isFeatured: boolean
+
   isNiqab: boolean
   canAddNiqab: boolean
+
+  // ==========================================
+  // LINKED NIQAB PRODUCT
+  // ==========================================
+  // يحتوي على ألوان النقاب التي أضافها المدير
+  // من لوحة الإدارة لهذا المنتج.
+  niqabProduct?: {
+    id: string
+    nameAr: string
+    nameFr: string
+    nameEn: string
+    mainImage: string
+    variants?: ProductVariant[]
+  }
+
   mainImage: string
   images: string[]
   tags: string[]
+
   metaTitleAr?: string | null
   metaTitleFr?: string | null
   metaTitleEn?: string | null
+
   metaDescAr?: string | null
   metaDescFr?: string | null
   metaDescEn?: string | null
+
   sortOrder: number
+
   variants?: ProductVariant[]
+
   createdAt: Date
   updatedAt: Date
 }
 
-// Simplified product card type for listing
+// ==========================================
+// SIMPLIFIED PRODUCT CARD TYPE
+// ==========================================
+
 export interface ProductCard {
   id: string
   slug: string
+
   nameAr: string
   nameFr: string
   nameEn: string
+
   basePrice: number
   salePrice?: number | null
+
   mainImage: string
+
   isFeatured: boolean
   isNiqab: boolean
   canAddNiqab: boolean
-  category?: Pick<Category, 'id' | 'slug' | 'nameAr' | 'nameFr' | 'nameEn'>
+
+  category?: Pick<
+    Category,
+    'id' | 'slug' | 'nameAr' | 'nameFr' | 'nameEn'
+  >
+
   availableColors?: Array<{
     code: string
     nameAr: string
     nameFr: string
     nameEn: string
   }>
+
   availableSizes?: string[]
 }
 
