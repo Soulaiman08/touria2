@@ -125,9 +125,8 @@ function NiqabColorDropdown({
           <span className="truncate">{selectedLabel}</span>
         </span>
         <ChevronDown
-          className={`h-4.5 w-4.5 flex-shrink-0 text-muted-foreground transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-[#C4622D]' : ''
-          }`}
+          className={`h-4.5 w-4.5 flex-shrink-0 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#C4622D]' : ''
+            }`}
         />
       </button>
 
@@ -149,11 +148,10 @@ function NiqabColorDropdown({
                   onSelectColor(selectionId, color.code)
                   setIsOpen(false)
                 }}
-                className={`w-full flex items-center justify-between gap-4 rounded-xl text-sm font-bold transition-all mb-1 last:mb-0 ${
-                  isSelected
-                    ? 'bg-[#C4622D]/10 text-[#C4622D]'
-                    : 'text-foreground hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]'
-                }`}
+                className={`w-full flex items-center justify-between gap-4 rounded-xl text-sm font-bold transition-all mb-1 last:mb-0 ${isSelected
+                  ? 'bg-[#C4622D]/10 text-[#C4622D]'
+                  : 'text-foreground hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]'
+                  }`}
                 style={{ padding: '12px 20px' }}
               >
                 <span className="flex items-center gap-3 min-w-0 truncate">
@@ -294,8 +292,9 @@ export function ProductDetail({
     selectedSize,
     setSelectedSize,
   ] = useState<string>(
-    sizes[0] ||
-    'Standard',
+    product.isNiqab
+      ? 'Standard'
+      : sizes[0] || '',
   )
 
   const [
@@ -341,12 +340,13 @@ export function ProductDetail({
   const currentVariant =
     product.variants?.find(
       (variant) =>
-        variant.size ===
-        selectedSize &&
+        (
+          product.isNiqab ||
+          variant.size === selectedSize
+        ) &&
         (
           !selectedColor ||
-          variant.colorCode ===
-          selectedColor.code
+          variant.colorCode === selectedColor.code
         ),
     )
 
@@ -702,6 +702,14 @@ export function ProductDetail({
 
   const handleAddToCart =
     () => {
+      if (
+        !product.isNiqab &&
+        sizes.length > 0 &&
+        !selectedSize
+      ) {
+        return
+      }
+
       const colorNameAr =
         selectedColor?.nameAr ||
         ''
@@ -741,7 +749,9 @@ export function ProductDetail({
           product.mainImage,
 
         size:
-          selectedSize,
+          product.isNiqab
+            ? 'Standard'
+            : selectedSize,
 
         colorCode,
 
@@ -759,19 +769,13 @@ export function ProductDetail({
         isNiqab:
           product.isNiqab,
 
-        // ========================================
-        // MULTIPLE NIQABS
-        // ========================================
-
         niqabItems:
           includeNiqab &&
-            niqabSelections.length >
-            0
+            niqabSelections.length > 0
             ? niqabSelections.map(
               (item) => ({
                 productId:
-                  product
-                    .niqabProduct
+                  product.niqabProduct
                     ?.id ||
                   'niqab',
 
@@ -779,26 +783,22 @@ export function ProductDetail({
                   item.variantId,
 
                 nameAr:
-                  product
-                    .niqabProduct
+                  product.niqabProduct
                     ?.nameAr ||
                   'نقاب',
 
                 nameFr:
-                  product
-                    .niqabProduct
+                  product.niqabProduct
                     ?.nameFr ||
                   'Niqab',
 
                 nameEn:
-                  product
-                    .niqabProduct
+                  product.niqabProduct
                     ?.nameEn ||
                   'Niqab',
 
                 mainImage:
-                  product
-                    .niqabProduct
+                  product.niqabProduct
                     ?.mainImage ||
                   '/images/brand/logo-icon.png',
 
@@ -817,7 +817,6 @@ export function ProductDetail({
                 quantity:
                   item.quantity,
 
-                // 20 DH لكل نقاب
                 unitPrice:
                   NIQAB_PRICE,
               }),
@@ -910,9 +909,9 @@ export function ProductDetail({
                       )
                     }
                     className={`relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border transition-all sm:h-20 sm:w-20 ${activeImage ===
-                        img
-                        ? 'scale-95 border-2 border-[#C4622D]'
-                        : 'hover:border-[#C4622D]/60'
+                      img
+                      ? 'scale-95 border-2 border-[#C4622D]'
+                      : 'hover:border-[#C4622D]/60'
                       }`}
                     style={{
                       borderColor:
@@ -1110,8 +1109,8 @@ export function ProductDetail({
                           )
                         }
                         className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all ${isSelected
-                            ? 'border-[#C4622D] bg-[rgba(196,98,45,0.05)] text-[#C4622D]'
-                            : 'hover:border-[#C4622D]/60'
+                          ? 'border-[#C4622D] bg-[rgba(196,98,45,0.05)] text-[#C4622D]'
+                          : 'hover:border-[#C4622D]/60'
                           }`}
                         style={{
                           borderColor:
@@ -1148,8 +1147,8 @@ export function ProductDetail({
             SIZE
         ====================================== */}
 
-        {sizes.length >
-          0 && (
+        {!product.isNiqab &&
+          sizes.length > 0 && (
             <div className="product-option-group space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <label
@@ -1199,8 +1198,8 @@ export function ProductDetail({
                           )
                         }
                         className={`flex h-11 w-11 items-center justify-center rounded-xl border text-xs font-bold transition-all ${isSelected
-                            ? 'border-[#C4622D] bg-[rgba(196,98,45,0.05)] text-[#C4622D]'
-                            : 'hover:border-[#C4622D]/60'
+                          ? 'border-[#C4622D] bg-[rgba(196,98,45,0.05)] text-[#C4622D]'
+                          : 'hover:border-[#C4622D]/60'
                           }`}
                         style={{
                           borderColor:
@@ -1231,9 +1230,8 @@ export function ProductDetail({
 
         {product.canAddNiqab && !product.isNiqab && niqabColors.length > 0 && (
           <div
-            className={`product-addon p-4 sm:p-5 rounded-2xl border-2 transition-all ${
-              includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.025)] shadow-sm' : 'border-dashed hover:border-[#C4622D]/50'
-            }`}
+            className={`product-addon p-4 sm:p-5 rounded-2xl border-2 transition-all ${includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.025)] shadow-sm' : 'border-dashed hover:border-[#C4622D]/50'
+              }`}
             style={{ borderColor: includeNiqab ? '#C4622D' : 'var(--border)' }}
           >
             <label className="flex items-start gap-3.5 cursor-pointer select-none">
@@ -1252,15 +1250,15 @@ export function ProductDetail({
                   {locale === 'ar'
                     ? 'أضيفي نقاباً متناسقاً'
                     : locale === 'fr'
-                    ? 'Ajouter un niqab assorti'
-                    : 'Add a matching niqab'}
+                      ? 'Ajouter un niqab assorti'
+                      : 'Add a matching niqab'}
                 </span>
                 <span className="text-xs font-medium block leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
                   {locale === 'ar'
                     ? 'اختاري نقاباً يتناسق مع جلابتك (+20 د.م)'
                     : locale === 'fr'
-                    ? 'Choisissez un niqab assorti à votre djellaba (+20 DH)'
-                    : 'Choose a matching niqab for your djellaba (+20 DH)'}
+                      ? 'Choisissez un niqab assorti à votre djellaba (+20 DH)'
+                      : 'Choose a matching niqab for your djellaba (+20 DH)'}
                 </span>
               </div>
             </label>
@@ -1363,8 +1361,8 @@ export function ProductDetail({
                     {locale === 'ar'
                       ? 'إضافة لون آخر'
                       : locale === 'fr'
-                      ? 'Ajouter une autre couleur'
-                      : 'Add another color'}
+                        ? 'Ajouter une autre couleur'
+                        : 'Add another color'}
                   </button>
                 )}
 
@@ -1380,8 +1378,8 @@ export function ProductDetail({
                     {locale === 'ar'
                       ? `مجموع النقابات: ${selectedNiqabQuantity}`
                       : locale === 'fr'
-                      ? `Total niqabs : ${selectedNiqabQuantity}`
-                      : `Total niqabs: ${selectedNiqabQuantity}`}
+                        ? `Total niqabs : ${selectedNiqabQuantity}`
+                        : `Total niqabs: ${selectedNiqabQuantity}`}
                   </span>
                   <span className="text-sm sm:text-base font-extrabold text-[#C4622D]">
                     +{formatPrice(niqabTotal, locale)}
@@ -1403,8 +1401,8 @@ export function ProductDetail({
               {locale === 'ar'
                 ? '⚠️ الحد الأدنى للطلب: 5 نقابات'
                 : locale === 'fr'
-                ? '⚠️ Quantité minimale : 5 niqabs'
-                : '⚠️ Minimum order: 5 niqabs'}
+                  ? '⚠️ Quantité minimale : 5 niqabs'
+                  : '⚠️ Minimum order: 5 niqabs'}
             </span>
           </div>
         )}
