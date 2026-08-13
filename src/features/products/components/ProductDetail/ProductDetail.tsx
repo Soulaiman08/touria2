@@ -114,8 +114,8 @@ function NiqabColorDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-12 px-5 sm:px-6 flex items-center justify-between gap-4 rounded-xl border text-sm sm:text-base font-bold transition-all bg-white dark:bg-[#1f1008] text-foreground outline-none focus:outline-none"
-        style={{ borderColor: 'var(--border)' }}
+        className="w-full h-12 px-5 sm:px-6 flex items-center justify-between gap-4 rounded-xl border text-sm sm:text-base font-bold transition-all outline-none focus:outline-none"
+        style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
       >
         <span className="flex items-center gap-4 min-w-0 truncate">
           <span
@@ -134,8 +134,8 @@ function NiqabColorDropdown({
       {/* Floating Options Menu */}
       {isOpen && (
         <div
-          className="absolute z-50 top-[calc(100%+6px)] start-0 end-0 w-full max-h-64 overflow-y-auto rounded-2xl border bg-white dark:bg-[#1a0c06] shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
-          style={{ borderColor: 'var(--border)', padding: '10px' }}
+          className="absolute z-50 top-[calc(100%+6px)] start-0 end-0 w-full max-h-64 overflow-y-auto rounded-2xl border shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)', padding: '10px' }}
         >
           {availableColors.map((color) => {
             const label = getDisplayColorName(color)
@@ -1305,19 +1305,19 @@ export function ProductDetail({
                       {/* Quantity Controls + Delete */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <div
-                          className="flex items-center h-11 border rounded-xl overflow-hidden bg-white dark:bg-black/50 shadow-xs"
-                          style={{ borderColor: 'var(--border)' }}
+                          className="flex items-center h-9 border rounded-lg overflow-hidden shadow-xs"
+                          style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
                         >
                           <button
                             type="button"
                             onClick={() => updateNiqabQuantity(selection.id, -1)}
-                            className="w-10 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-base"
+                            className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-sm"
                             aria-label="Decrease niqab quantity"
                           >
-                            <Minus className="h-3.5 w-3.5" />
+                            <Minus className="h-3 w-3" />
                           </button>
                           <span
-                            className="px-3 h-full flex items-center justify-center text-sm font-extrabold border-x min-w-[2.5rem]"
+                            className="px-2 h-full flex items-center justify-center text-sm font-extrabold border-x min-w-[2rem]"
                             style={{ borderColor: 'var(--border)' }}
                           >
                             {selection.quantity}
@@ -1325,10 +1325,10 @@ export function ProductDetail({
                           <button
                             type="button"
                             onClick={() => updateNiqabQuantity(selection.id, 1)}
-                            className="w-10 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-base"
+                            className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-sm"
                             aria-label="Increase niqab quantity"
                           >
-                            <Plus className="h-3.5 w-3.5" />
+                            <Plus className="h-3 w-3" />
                           </button>
                         </div>
 
@@ -1336,8 +1336,8 @@ export function ProductDetail({
                           <button
                             type="button"
                             onClick={() => removeNiqabColor(selection.id)}
-                            className="w-10 h-10 flex items-center justify-center rounded-xl border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-colors bg-white dark:bg-black/30"
-                            style={{ borderColor: 'rgba(239,68,68,0.25)' }}
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-colors"
+                            style={{ borderColor: 'rgba(239,68,68,0.25)', background: 'var(--card)' }}
                             aria-label="Remove niqab color"
                           >
                             <Trash2 className="h-4 w-4" />
