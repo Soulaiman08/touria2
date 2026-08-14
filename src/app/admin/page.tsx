@@ -143,23 +143,43 @@ function DashboardContent() {
     setLoading(true)
     try {
       const res = await fetch('/api/admin/stats')
+      if (!res.ok) {
+        setMetrics(null)
+        setSalesChart([])
+        setTopProducts([])
+        setRecentOrders([])
+        return
+      }
       const data = await res.json()
       if (data.metrics) {
         setMetrics(data.metrics)
         setSalesChart(data.charts?.salesChart || [])
         setTopProducts(data.charts?.topProducts || [])
         setRecentOrders(data.recentOrders || [])
+      } else {
+        setMetrics(null)
+        setSalesChart([])
+        setTopProducts([])
+        setRecentOrders([])
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err)
+      setMetrics(null)
+      setSalesChart([])
+      setTopProducts([])
+      setRecentOrders([])
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { fetchStats() }, [fetchStats])
+  useEffect(() => {
+    const timeoutId = window.setTimeout(fetchStats, 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [fetchStats])
 
   const maxSales = Math.max(...salesChart.map((s) => s.sales), 1)
+  const hasSales = salesChart.some((item) => item.sales > 0)
 
   return (
     <div className="flex flex-col gap-8">
@@ -195,7 +215,7 @@ function DashboardContent() {
           labelAr="إجمالي الإيرادات"
           labelEn="Total Revenue"
           value={loading ? '—' : formatPrice(metrics?.totalRevenue || 0, 'fr')}
-          sub="+14.2% عن الشهر الماضي"
+          sub="Delivered orders only"
           accentColor="#34d399"
           bgColor="rgba(52,211,153,0.12)"
           Icon={DollarSign}
@@ -204,7 +224,7 @@ function DashboardContent() {
           labelAr="إجمالي الطلبات"
           labelEn="Total Orders"
           value={loading ? '—' : metrics?.totalOrders ?? 0}
-          sub="+8.5% عن الأسبوع الماضي"
+          sub="All order statuses"
           accentColor="#fbbf24"
           bgColor="rgba(251,191,36,0.12)"
           Icon={ShoppingBag}
@@ -213,7 +233,7 @@ function DashboardContent() {
           labelAr="إجمالي العملاء"
           labelEn="Customers"
           value={loading ? '—' : metrics?.totalCustomers ?? 0}
-          sub="قاعدة العملاء النشطين"
+          sub="Customer database"
           accentColor="#60a5fa"
           bgColor="rgba(96,165,250,0.12)"
           Icon={Users}
@@ -222,7 +242,7 @@ function DashboardContent() {
           labelAr="إجمالي المنتجات"
           labelEn="Products"
           value={loading ? '—' : metrics?.totalProducts ?? 0}
-          sub="منتجات في الكتالوج"
+          sub="Products in catalog"
           accentColor="#c084fc"
           bgColor="rgba(192,132,252,0.12)"
           Icon={Package}
@@ -255,7 +275,7 @@ function DashboardContent() {
 
           {/* Bars */}
           <div style={{ padding: '24px 24px 16px', display: 'flex', alignItems: 'flex-end', gap: 10, height: 220 }}>
-            {salesChart.map((item, idx) => {
+            {hasSales ? salesChart.map((item, idx) => {
               const heightPct = Math.max(10, Math.round((item.sales / maxSales) * 100))
               return (
                 <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, height: '100%', justifyContent: 'flex-end' }} className="group">
@@ -266,7 +286,11 @@ function DashboardContent() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: '#52525b' }}>{item.date}</span>
                 </div>
               )
-            })}
+            }) : (
+              <p style={{ width: '100%', textAlign: 'center', color: '#52525b', fontSize: 12 }}>
+                No delivered sales yet.
+              </p>
+            )}
           </div>
 
           {/* Footer */}

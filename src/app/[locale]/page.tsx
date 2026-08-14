@@ -832,14 +832,14 @@ export default async function HomePage({ params }: HomePageProps) {
           className="container-brand text-center space-y-6"
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <div className="ornament justify-center" style={{ color: '#b8965a' }}>
+          <div className="ornament justify-center" style={{ color: '#000000' }}>
             <span style={{ fontSize: '1.5rem' }}>✦</span>
           </div>
 
           <blockquote
             className="text-xl sm:text-2xl font-bold leading-relaxed max-w-2xl mx-auto"
             style={{
-              color: '#f2e4ce',
+              color: '#000000',
               fontFamily: isRTL
                 ? 'var(--font-arabic)'
                 : 'var(--font-display)',
@@ -852,20 +852,20 @@ export default async function HomePage({ params }: HomePageProps) {
                 : '"Every djellaba tells a story of our authentic Moroccan heritage"'}
           </blockquote>
 
-          <p className="text-sm" style={{ color: '#b8965a' }}>
+          <p className="text-sm" style={{ color: '#964B00' }}>
             — {siteConfig.name}
           </p>
 
-          <div className="ornament justify-center" style={{ color: '#b8965a' }}>
+          <div className="ornament justify-center" style={{ color: '#000000' }}>
             <span style={{ fontSize: '1.5rem' }}>✦</span>
           </div>
         </div>
       </section>
 
       {/* CONTACT SECTION */}
-      <section className="home-section section-gap" aria-label={labels.contactTitle}>
+      <section className="home-section section-gap home-contact-section" aria-label={labels.contactTitle}>
         <div className="container-brand">
-          <div className="section-heading mb-12" dir={isRTL ? 'rtl' : 'ltr'}>
+          <div className="section-heading mb-12 home-contact-heading" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="section-eyebrow mb-2">
               <span>✦</span>
               {labels.contactTitle}
@@ -888,7 +888,7 @@ export default async function HomePage({ params }: HomePageProps) {
           </div>
 
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto home-contact-grid"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* WhatsApp */}
@@ -904,10 +904,10 @@ export default async function HomePage({ params }: HomePageProps) {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all"
+              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
             >
               <div
-                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105"
+                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
                 style={{
                   background: 'rgba(37,211,102,0.1)',
                   color: '#25D366',
@@ -923,14 +923,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <p
-                className="font-bold text-base"
+                className="font-bold text-base home-contact-label"
                 style={{ color: 'var(--text-primary)' }}
               >
                 WhatsApp
               </p>
 
               <p
-                className="text-sm"
+                className="text-sm home-contact-detail"
                 style={{ color: 'var(--text-muted)' }}
                 dir="ltr"
               >
@@ -941,10 +941,10 @@ export default async function HomePage({ params }: HomePageProps) {
             {/* Phone */}
             <a
               href={`tel:${settings.contactPhone || ''}`}
-              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all"
+              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
             >
               <div
-                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105"
+                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
                 style={{
                   background: 'var(--accent-light)',
                   color: 'var(--accent)',
@@ -966,14 +966,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <p
-                className="font-bold text-base"
+                className="font-bold text-base home-contact-label"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {labels.callCta}
               </p>
 
               <p
-                className="text-sm"
+                className="text-sm home-contact-detail"
                 style={{ color: 'var(--text-muted)' }}
                 dir="ltr"
               >
@@ -986,10 +986,10 @@ export default async function HomePage({ params }: HomePageProps) {
               href={settings.instagram || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all"
+              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
             >
               <div
-                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105"
+                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
                 style={{
                   background: 'rgba(225,48,108,0.08)',
                   color: '#E1306C',
@@ -1005,14 +1005,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <p
-                className="font-bold text-base"
+                className="font-bold text-base home-contact-label"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Instagram
               </p>
 
               <p
-                className="text-sm"
+                className="text-sm home-contact-detail"
                 style={{ color: 'var(--text-muted)' }}
               >
                 @thuraya.almaghribi
@@ -1024,10 +1024,10 @@ export default async function HomePage({ params }: HomePageProps) {
               href={settings.tiktok || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all"
+              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
             >
               <div
-                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105"
+                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
                 style={{
                   background: 'rgba(0,0,0,0.06)',
                   color: 'var(--text-primary)',
@@ -1043,14 +1043,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <p
-                className="font-bold text-base"
+                className="font-bold text-base home-contact-label"
                 style={{ color: 'var(--text-primary)' }}
               >
                 TikTok
               </p>
 
               <p
-                className="text-sm"
+                className="text-sm home-contact-detail"
                 style={{ color: 'var(--text-muted)' }}
               >
                 @thuraya.almaghribi
@@ -1062,10 +1062,10 @@ export default async function HomePage({ params }: HomePageProps) {
               href={settings.facebook || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all"
+              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
             >
               <div
-                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105"
+                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
                 style={{
                   background: 'rgba(24,119,242,0.08)',
                   color: '#1877F2',
@@ -1081,14 +1081,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <p
-                className="font-bold text-base"
+                className="font-bold text-base home-contact-label"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Facebook
               </p>
 
               <p
-                className="text-sm"
+                className="text-sm home-contact-detail"
                 style={{ color: 'var(--text-muted)' }}
               >
                 thuraya.almaghribi
@@ -1100,10 +1100,10 @@ export default async function HomePage({ params }: HomePageProps) {
               href="https://youtube.com/@thuraya.almaghribi"
               target="_blank"
               rel="noopener noreferrer"
-              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all"
+              className="card p-7 text-center space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
             >
               <div
-                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105"
+                className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
                 style={{
                   background: 'rgba(255,0,0,0.08)',
                   color: '#FF0000',
@@ -1119,14 +1119,14 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               <p
-                className="font-bold text-base"
+                className="font-bold text-base home-contact-label"
                 style={{ color: 'var(--text-primary)' }}
               >
                 YouTube
               </p>
 
               <p
-                className="text-sm"
+                className="text-sm home-contact-detail"
                 style={{ color: 'var(--text-muted)' }}
               >
                 @thuraya.almaghribi

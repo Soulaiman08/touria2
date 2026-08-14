@@ -2060,3 +2060,75 @@ select option {
   background-color: #1f1008 !important;
   color: #ffffff !important;
 }
+
+/* Homepage contact links use the same compact layout on every screen size. */
+  .home-contact-section.section-gap {
+    padding-block: 1rem;
+  }
+
+  .home-contact-section > .container-brand {
+    padding-block: 1.25rem;
+  }
+
+  .home-contact-heading {
+    margin-bottom: 1.25rem;
+  }
+
+  .home-contact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.5rem;
+    max-width: none;
+  }
+
+  .home-contact-card {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 0;
+    min-height: 4.5rem;
+    padding: 0.5rem 0.25rem;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .home-contact-card > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0;
+  }
+
+  .home-contact-icon {
+    width: 2rem;
+    height: 2rem;
+    margin: 0;
+    border-radius: 0.625rem;
+  }
+
+  .home-contact-icon svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .home-contact-label,
+  .home-contact-detail {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-contact-label {
+    font-size: 0.625rem;
+    line-height: 1.1;
+  }
+
+  .home-contact-detail {
+    display: none;
+  }
+
+@media (min-width: 1024px) {
+  .home-contact-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
