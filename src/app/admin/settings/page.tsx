@@ -33,6 +33,7 @@ function SettingsContent() {
     instagram: '',
     facebook: '',
     tiktok: '',
+    youtube: '',
     whatsapp: '',
     seoTitle: '',
     seoDescription: '',
@@ -321,6 +322,17 @@ function SettingsContent() {
                   value={settings.tiktok}
                   onChange={(e) => setSettings({ ...settings, tiktok: e.target.value })}
                   placeholder="https://tiktok.com/@thuraya.ma"
+                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>YouTube Channel</label>
+                <input
+                  type="text"
+                  value={settings.youtube}
+                  onChange={(e) => setSettings({ ...settings, youtube: e.target.value })}
+                  placeholder="https://youtube.com/@thuraya.almaghribi"
                   style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                 />
               </div>

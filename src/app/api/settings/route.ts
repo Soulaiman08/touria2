@@ -5,9 +5,13 @@ const DEFAULT_PUBLIC_SETTINGS = {
   storeName: 'Thuraya Al-Maghribi',
   logo: '/images/brand/logo-full.png',
   currency: 'MAD',
+  contactEmail: 'contact@thuraya.com',
+  contactPhone: '+212 6 12 34 56 78',
+  address: 'Casablanca, Morocco',
   instagram: 'https://instagram.com/thuraya.ma',
   facebook: 'https://www.facebook.com/profile.php?id=100091985212461',
   tiktok: 'https://www.tiktok.com/@thuraya.ma',
+  youtube: 'https://youtube.com/@thuraya.almaghribi',
   whatsapp: '+212612345678',
 }
 

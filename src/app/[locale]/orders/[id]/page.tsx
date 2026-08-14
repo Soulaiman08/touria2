@@ -160,7 +160,7 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
                       {locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
                     </p>
                     <p className="mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                      {cartT('size')}: {snap.size} | {cartT('quantity')}: {item.quantity}
+                      {cartT('size')}: {snap.selectedSize} | {cartT('quantity')}: {item.quantity}
                     </p>
                   </div>
                   <span className="font-bold" style={{ color: 'var(--foreground)' }}>

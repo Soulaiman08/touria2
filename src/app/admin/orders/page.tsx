@@ -35,7 +35,7 @@ interface OrderItem {
   createdAt: string
 }
 
-const statusOptions = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+const statusOptions = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']
 
 function OrdersContent() {
   const [orders, setOrders] = useState<OrderItem[]>([])

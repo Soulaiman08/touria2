@@ -10,7 +10,7 @@
     "home": "Accueil",
     "products": "Produits",
     "djellabas": "Djellabas",
-    "niqabs": "Niqabs",
+    "niqabs": "Niquab",
     "about": "À propos",
     "contact": "Contact",
     "cart": "Panier",
@@ -38,9 +38,9 @@
       "title": "Acheter par catégorie",
       "subtitle": "Découvrez notre collection exclusive",
       "djellabas": "Djellabas",
-      "niqabs": "Niqabs",
+      "niqabs": "Niquab",
       "djellabas_desc": "Djellabas marocaines dans les meilleures étoffes",
-      "niqabs_desc": "Niqabs élégants assortis à nos djellabas"
+      "niqabs_desc": "Niquab élégant assorti à nos djellabas"
     },
     "features": {
       "title": "Pourquoi Thuraya Al-Maghribi ?",
@@ -69,7 +69,7 @@
   "products": {
     "title": "Tous les produits",
     "djellabas_title": "Djellabas",
-    "niqabs_title": "Niqabs",
+    "niqabs_title": "Niquab",
     "filter": "Filtrer",
     "sort": "Trier",
     "sortBy": {
@@ -273,7 +273,7 @@
     "categories": {
       "title": "Catégories",
       "djellabas": "Djellabas",
-      "niqabs": "Niqabs"
+      "niqabs": "Niquab"
     },
     "contact": {
       "title": "Contactez-nous",

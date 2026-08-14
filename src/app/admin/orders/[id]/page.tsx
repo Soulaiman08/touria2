@@ -17,6 +17,7 @@ import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
 import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { formatPrice } from '@/lib/utils'
+import { getColorName } from '@/lib/color-names'
 
 interface OrderDetail {
   id: string
@@ -55,7 +56,34 @@ interface OrderDetail {
   }[]
 }
 
-const statusOptions = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+interface SnapshotColor { code?: string; nameAr?: string; nameFr?: string; nameEn?: string }
+interface SnapshotNiqab { id: string; nameAr?: string; nameFr?: string; image?: string; color?: SnapshotColor; quantity?: number; unitPrice?: number; totalPrice?: number }
+interface Snapshot extends Record<string, unknown> { nameAr?: string; nameFr?: string; mainImage?: string; sku?: string; selectedSize?: string; selectedColor?: SnapshotColor | string; niqabs?: SnapshotNiqab[] }
+
+const statusOptions = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']
+const text = (value: unknown) => typeof value === 'string' ? value : ''
+const colorText = (value: unknown) => {
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object') {
+    const color = value as SnapshotColor
+    return [color.nameFr || color.nameAr || color.nameEn || color.code, color.code].filter(Boolean).join(' ')
+  }
+  return ''
+}
+const colorCode = (value: unknown) => {
+  if (!value || typeof value !== 'object') return ''
+  const code = (value as SnapshotColor).code || ''
+  return /^#[0-9a-f]{3,8}$/i.test(code) ? code : ''
+}
+const displayColorName = (value: unknown) => {
+  const savedName = colorText(value).replace(colorCode(value), '').trim()
+  if (savedName && !['couleur', 'color', 'لون'].includes(savedName.toLowerCase())) return savedName
+  return getColorName(colorCode(value), 'en')
+}
+function ColorDot({ code }: { code: string }) {
+  if (!code) return null
+  return <span title={code} aria-label={`Color ${code}`} style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: code, border: '1px solid rgba(255,255,255,0.55)', verticalAlign: 'middle', marginInline: 5 }} />
+}
 
 function OrderDetailContent({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<OrderDetail | null>(null)
@@ -231,7 +259,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 
             <div style={{ padding: '8px 24px 20px', display: 'flex', flexDirection: 'column' }}>
               {order.items.map((item, idx) => {
-                const snap = (item.productSnapshot ?? {}) as any
+                const snap = (item.productSnapshot ?? {}) as Snapshot
                 return (
                   <div
                     key={item.id}
@@ -254,15 +282,21 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f4f4f5' }}>
-                          {snap.nameFr || snap.nameAr || 'Product'}
+                          {text(snap.nameFr) || text(snap.nameAr) || item.product?.nameFr || item.product?.nameAr || 'Product'}
                         </h3>
                         <p style={{ fontSize: 12, color: '#71717a' }}>
-                          {snap.selectedSize ? `Size: ${snap.selectedSize}` : ''}{' '}
-                          {snap.selectedColor ? `• Color: ${snap.selectedColor}` : ''}
+                          {text(snap.selectedSize) || text(snap.size) ? `Size: ${text(snap.selectedSize) || text(snap.size)}` : ''}{' '}
+                          {colorText(snap.selectedColor) && <>• Color: <ColorDot code={colorCode(snap.selectedColor)} />{displayColorName(snap.selectedColor)}</>}
                         </p>
                         <p style={{ fontSize: 11, color: '#52525b', fontFamily: 'monospace' }}>
                           {formatPrice(item.unitPrice, 'fr')} each
                         </p>
+                        {Array.isArray(snap.niqabs) && snap.niqabs.map((niqab, niqabIndex) => (
+                          <div key={`${niqab.id}-${niqabIndex}`} style={{ fontSize: 11, color: '#fbbf24', marginTop: 3 }}>
+                            {niqab.image && <img src={niqab.image} alt="Niqab" style={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 5, verticalAlign: 'middle', marginRight: 6 }} />}
+                            Niqab: {niqab.nameFr || niqab.nameAr || 'Niqab'} — <ColorDot code={colorCode(niqab.color)} />{displayColorName(niqab.color)} × {niqab.quantity ?? 0} · {formatPrice(niqab.unitPrice ?? 0, 'fr')} / {formatPrice(niqab.totalPrice ?? 0, 'fr')}
+                          </div>
+                        ))}
                       </div>
                     </div>
 

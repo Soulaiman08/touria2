@@ -165,7 +165,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                           {item.niqabItems && item.niqabItems.length > 0 && (
                             <div className="mt-2 space-y-1 p-2 rounded bg-[rgba(184,150,90,0.08)] border border-[rgba(184,150,90,0.2)] text-xs">
                               <div className="font-semibold text-[#b8965a] text-[11px]">
-                                {locale === 'ar' ? 'النقابات الإضافية:' : locale === 'fr' ? 'Niqabs inclus :' : 'Included niqabs:'}
+                                {locale === 'ar' ? 'النقابات الإضافية:' : locale === 'fr' ? 'Niquab inclus :' : 'Included niqabs:'}
                               </div>
                               {item.niqabItems.map((n, idx) => {
                                 const colorLabel = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn

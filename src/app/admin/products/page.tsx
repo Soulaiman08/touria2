@@ -25,6 +25,7 @@ import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 import { formatPrice } from '@/lib/utils'
+import { getColorNames } from '@/lib/color-names'
 
 interface ProductItem {
   id: string
@@ -611,18 +612,7 @@ function ProductContent() {
             c.trim()
           )
           .filter(Boolean)
-          .map((code) => ({
-            code,
-
-            nameAr:
-              'لون',
-
-            nameFr:
-              'Couleur',
-
-            nameEn:
-              'Color',
-          }))
+          .map((code) => ({ code, ...getColorNames(code) }))
 
       /*
        * =====================================================

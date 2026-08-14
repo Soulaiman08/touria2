@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS = {
   instagram: 'https://instagram.com/thuraya.ma',
   facebook: 'https://www.facebook.com/profile.php?id=100091985212461',
   tiktok: 'https://www.tiktok.com/@thuraya.ma',
+  youtube: 'https://youtube.com/@thuraya.almaghribi',
   whatsapp: '+212612345678',
 
   seoTitle: 'الثريا المغربي – أزياء وتصاميم مغربية تقليدية وفاخرة',

@@ -245,10 +245,9 @@ export function ProductDetail({
 
   const niqabColors =
     useMemo(() => {
-      const variants =
-        product
-          .niqabProduct
-          ?.variants || []
+      const variants = product.isNiqab
+        ? product.variants || []
+        : product.niqabProduct?.variants || []
 
       return Array.from(
         new Map(
@@ -281,7 +280,9 @@ export function ProductDetail({
         ).values(),
       )
     }, [
-      product.niqabProduct,
+    product.isNiqab,
+    product.niqabProduct,
+    product.variants,
     ])
 
   // ==========================================
@@ -324,7 +325,15 @@ export function ProductDetail({
     setNiqabSelections,
   ] = useState<
     NiqabSelection[]
-  >([])
+  >(() => product.isNiqab && niqabColors[0] ? [{
+    id: crypto.randomUUID(),
+    colorCode: niqabColors[0].code,
+    colorNameAr: niqabColors[0].nameAr,
+    colorNameFr: niqabColors[0].nameFr,
+    colorNameEn: niqabColors[0].nameEn,
+    variantId: niqabColors[0].variantId,
+    quantity: 5,
+  }] : [])
 
   const [
     activeImage,
@@ -389,9 +398,9 @@ export function ProductDetail({
   // FINAL PRICE
   // ==========================================
 
-  const finalPrice =
-    basePriceVal +
-    niqabTotal
+  const finalPrice = product.isNiqab
+    ? basePriceVal
+    : basePriceVal + niqabTotal
 
   // ==========================================
   // USED NIQAB COLORS
@@ -702,6 +711,23 @@ export function ProductDetail({
 
   const handleAddToCart =
     () => {
+      if (product.isNiqab) {
+        if (selectedNiqabQuantity < 5) return
+        niqabSelections.forEach((selection) => {
+          const variant = product.variants?.find((entry) => entry.id === selection.variantId)
+          cartStore.addItem({
+            productId: product.id, variantId: selection.variantId, slug: product.slug,
+            nameAr: product.nameAr, nameFr: product.nameFr, nameEn: product.nameEn,
+            mainImage: variant?.images[0] || product.mainImage, size: variant?.size || 'Standard',
+            colorCode: selection.colorCode, colorNameAr: selection.colorNameAr,
+            colorNameFr: selection.colorNameFr, colorNameEn: selection.colorNameEn,
+            quantity: selection.quantity,
+            unitPrice: basePriceVal + Number(variant?.priceModifier || 0),
+            isNiqab: true,
+          })
+        })
+        return
+      }
       if (
         !product.isNiqab &&
         sizes.length > 0 &&
@@ -764,7 +790,12 @@ export function ProductDetail({
         quantity,
 
         unitPrice:
-          basePriceVal,
+          basePriceVal +
+          Number(
+            currentVariant
+              ?.priceModifier ||
+            0,
+          ),
 
         isNiqab:
           product.isNiqab,
@@ -1002,7 +1033,7 @@ export function ProductDetail({
             PRICE
         ====================================== */}
 
-        <div className="product-price-row flex items-baseline gap-3">
+        <div className="product-price-row flex flex-wrap items-baseline gap-x-3 gap-y-1">
           {product.salePrice ? (
             <>
               <span className="text-xl font-bold text-[#C4622D] sm:text-2xl">
@@ -1042,6 +1073,18 @@ export function ProductDetail({
               )}
             </span>
           )}
+          {product.isNiqab && (
+            <span
+              className="whitespace-nowrap text-xs font-semibold sm:text-sm"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              {locale === 'ar'
+                ? 'لنقاب الواحد'
+                : locale === 'fr'
+                  ? 'pour un niqab'
+                  : 'for one niqab'}
+            </span>
+          )}
         </div>
 
         {/* ======================================
@@ -1064,7 +1107,7 @@ export function ProductDetail({
             PRODUCT COLOR
         ====================================== */}
 
-        {colors.length >
+        {!product.isNiqab && colors.length >
           0 && (
             <div className="product-option-group space-y-3">
               <label
@@ -1228,13 +1271,14 @@ export function ProductDetail({
             NIQAB ADD-ON
         ====================================== */}
 
-        {product.canAddNiqab && !product.isNiqab && niqabColors.length > 0 && (
+        {((product.canAddNiqab && !product.isNiqab) || product.isNiqab) && niqabColors.length > 0 && (
           <div
             className={`product-addon p-4 sm:p-5 rounded-2xl border-2 transition-all ${includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.025)] shadow-sm' : 'border-dashed hover:border-[#C4622D]/50'
               }`}
             style={{ borderColor: includeNiqab ? '#C4622D' : 'var(--border)' }}
           >
             <label className="flex items-start gap-3.5 cursor-pointer select-none">
+              {!product.isNiqab && <>
               <input
                 type="checkbox"
                 checked={includeNiqab}
@@ -1245,9 +1289,12 @@ export function ProductDetail({
                 }
                 className="mt-1 accent-[#C4622D] w-4.5 h-4.5 rounded cursor-pointer flex-shrink-0"
               />
+              </>}
               <div className="space-y-1">
                 <span className="font-extrabold text-sm sm:text-base block" style={{ color: 'var(--foreground)' }}>
-                  {locale === 'ar'
+                  {product.isNiqab
+                    ? locale === 'ar' ? 'اختاري الألوان والكميات' : locale === 'fr' ? 'Choisissez les couleurs et les quantités' : 'Choose colors and quantities'
+                    : locale === 'ar'
                     ? 'أضيفي نقاباً متناسقاً'
                     : locale === 'fr'
                       ? 'Ajouter un niqab assorti'
@@ -1267,7 +1314,7 @@ export function ProductDetail({
                 NIQAB ROWS
             ================================== */}
 
-            {includeNiqab && niqabSelections.length > 0 && (
+            {(product.isNiqab || includeNiqab) && niqabSelections.length > 0 && (
               <div className="mt-5 flex flex-col gap-5 sm:gap-6">
                 {niqabSelections.map((selection, index) => {
                   const currentLabel = getDisplayColorName({
@@ -1442,7 +1489,7 @@ export function ProductDetail({
         ====================================== */}
 
         <div className="product-actions flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
-          {hasStock && (
+          {!product.isNiqab && hasStock && (
             <div
               className="flex h-12 items-center justify-between overflow-hidden rounded-xl border sm:justify-start"
               style={{
@@ -1507,7 +1554,8 @@ export function ProductDetail({
               handleAddToCart
             }
             disabled={
-              !hasStock
+              (!product.isNiqab && !hasStock) ||
+              (product.isNiqab && selectedNiqabQuantity < 5)
             }
             className="btn btn-primary btn-round flex h-10 w-full items-center justify-center gap-2 text-sm sm:h-12 sm:flex-1"
           >

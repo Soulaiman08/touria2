@@ -148,6 +148,13 @@
   --header-border: rgba(184, 150, 90, 0.28);
   --header-height: 68px;
 
+  /* Footer */
+  --footer-bg: #b97845;
+  --footer-text: #2f1608;
+  --footer-muted: #4a2619;
+  --footer-heading: #2f1608;
+  --footer-accent: #fff7e8;
+
   /* Inputs */
   --input: #ffffff;
   --input-bg: #ffffff;
@@ -218,6 +225,11 @@
   --bg-subtle: #1c0f06;
   --bg-muted: #251509;
   --bg-overlay: rgba(242, 228, 206, 0.04);
+  --footer-bg: #1e0d04;
+  --footer-text: #ffffff;
+  --footer-muted: #ffffff;
+  --footer-heading: #ffffff;
+  --footer-accent: #ffffff;
 
   --card-bg: #1f1008;
   --card-border: rgba(184, 150, 90, 0.12);

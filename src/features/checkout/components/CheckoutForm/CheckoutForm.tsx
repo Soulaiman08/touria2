@@ -53,7 +53,13 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   })
 
   // Calculations – react to the selected city
-  const subtotal = cartStore.subtotal
+  const subtotal = cartStore.items.reduce((sum, item) => {
+    const niqabTotal = item.niqabItems?.reduce(
+      (niqabSum, niqab) => niqabSum + niqab.unitPrice * niqab.quantity,
+      0,
+    ) ?? 0
+    return sum + item.unitPrice * item.quantity + niqabTotal
+  }, 0)
   const shippingCost = selectedCity ? getShippingCost(selectedCity) : 0
   const total = subtotal + shippingCost
 
@@ -89,19 +95,11 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
         productId: item.productId,
         variantId: item.variantId,
         quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        productSnapshot: {
-          nameAr: item.nameAr,
-          nameFr: item.nameFr,
-          nameEn: item.nameEn,
-          mainImage: item.mainImage,
-          size: item.size,
-          colorCode: item.colorCode,
-          colorNameAr: item.colorNameAr,
-          colorNameFr: item.colorNameFr,
-          colorNameEn: item.colorNameEn,
-          sku: item.slug,
-        },
+        niqabItems: item.niqabItems?.map((niqab) => ({
+          productId: niqab.productId,
+          variantId: niqab.variantId,
+          quantity: niqab.quantity,
+        })),
       }))
 
       const response = await fetch('/api/orders', {
@@ -110,9 +108,6 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
         body: JSON.stringify({
           formData: data,
           items: orderItems,
-          subtotal,
-          shippingCost,
-          total,
           locale,
         }),
       })
@@ -165,6 +160,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
           className="surface-card form-card mb-6 lg:mb-8"
           style={{
             borderColor: 'var(--border)',
+            marginBottom: '16px',
           }}
         >
           {/* Card Title Header */}
@@ -291,6 +287,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
           className="surface-card form-card"
           style={{
             borderColor: 'var(--border)',
+            marginTop: '16px',
           }}
         >
           {/* Card Title Header */}

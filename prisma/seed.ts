@@ -27,10 +27,10 @@ async function main() {
     create: {
       slug: 'niqabs',
       nameAr: 'نقابات',
-      nameFr: 'Niqabs',
+      nameFr: 'Niquab',
       nameEn: 'Niqabs',
       descriptionAr: 'نقابات مغربية أنيقة تتناسق مع جلابياتنا',
-      descriptionFr: 'Niqabs marocains élégants assortis à nos djellabas',
+      descriptionFr: 'Niquab marocain élégant assorti à nos djellabas',
       descriptionEn: 'Elegant Moroccan niqabs matching our djellabas',
       sortOrder: 2,
     },

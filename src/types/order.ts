@@ -24,16 +24,31 @@ export interface OrderItem {
 }
 
 export interface ProductSnapshot {
+  productId: string
+  variantId?: string | null
   nameAr: string
   nameFr: string
   nameEn: string
   mainImage: string
-  size: string
-  colorCode: string
-  colorNameAr: string
-  colorNameFr: string
-  colorNameEn: string
+  selectedSize: string
+  selectedColor: { code: string; nameAr: string; nameFr: string; nameEn: string }
   sku: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  niqabs: Array<{
+    id: string
+    productId: string
+    variantId?: string | null
+    nameAr: string
+    nameFr: string
+    nameEn: string
+    image: string
+    color: { code: string; nameAr: string; nameFr: string; nameEn: string }
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+  }>
 }
 
 export interface Order {
@@ -99,12 +114,8 @@ export interface CreateOrderRequest {
     productId: string
     variantId?: string
     quantity: number
-    unitPrice: number
-    productSnapshot: ProductSnapshot
+    niqabItems?: Array<{ productId: string; variantId?: string; quantity: number }>
   }>
-  subtotal: number
-  shippingCost: number
-  total: number
   locale: string
 }
 
