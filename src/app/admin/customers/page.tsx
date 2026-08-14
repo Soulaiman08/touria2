@@ -40,21 +40,30 @@ function CustomersContent() {
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true)
+    setSelectedCustomer(null)
     try {
       const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(search)}`)
+      if (!res.ok) {
+        setCustomers([])
+        return
+      }
       const data = await res.json()
-      if (data.customers) {
+      if (Array.isArray(data.customers)) {
         setCustomers(data.customers)
+      } else {
+        setCustomers([])
       }
     } catch (err) {
       console.error('Error fetching customers:', err)
+      setCustomers([])
     } finally {
       setLoading(false)
     }
   }, [search])
 
   useEffect(() => {
-    fetchCustomers()
+    const timeoutId = window.setTimeout(fetchCustomers, 0)
+    return () => window.clearTimeout(timeoutId)
   }, [fetchCustomers])
 
   return (

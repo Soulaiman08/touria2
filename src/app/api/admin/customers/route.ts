@@ -1,49 +1,46 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
-  const timeout = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
-  return Promise.race([promise.catch(() => fallback), timeout])
+interface CustomerRecord {
+  id: string
+  name: string
+  phone: string
+  email: string
+  city: string
+  address: string
+  totalSpent: number
+  ordersCount: number
+  lastOrderDate: Date
+  orders: Array<{
+    id: string
+    orderNumber: string
+    total: number
+    status: string
+    createdAt: Date
+  }>
 }
-
-const BACKUP_CUSTOMERS = [
-  {
-    id: 'cust_1',
-    name: 'Fatima Zohra Alami',
-    phone: '0661234567',
-    email: 'fatima.alami@gmail.com',
-    city: 'Casablanca',
-    address: '15 Rue Aïn Harrouda',
-    totalSpent: 1250,
-    ordersCount: 2,
-    lastOrderDate: new Date().toISOString(),
-    orders: [
-      { id: 'ord_1', orderNumber: 'TH-20260729-84920', total: 634, status: 'PROCESSING', createdAt: new Date().toISOString() },
-      { id: 'ord_3', orderNumber: 'TH-20260615-11029', total: 616, status: 'DELIVERED', createdAt: new Date(Date.now() - 3600000000).toISOString() },
-    ],
-  },
-  {
-    id: 'cust_2',
-    name: 'Khadija Mansouri',
-    phone: '0678901234',
-    email: 'khadija.m@hotmail.com',
-    city: 'Rabat',
-    address: '42 Avenue de France',
-    totalSpent: 935,
-    ordersCount: 1,
-    lastOrderDate: new Date(Date.now() - 86400000).toISOString(),
-    orders: [
-      { id: 'ord_2', orderNumber: 'TH-20260729-19284', total: 935, status: 'DELIVERED', createdAt: new Date(Date.now() - 86400000).toISOString() },
-    ],
-  },
-]
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || ''
+    const search = searchParams.get('search')?.trim().toLowerCase() || ''
 
-    const orders = await withTimeout(
+    // Guest checkout orders do not currently have a Customer relation. Read
+    // both real data sources so saved customers and guest-order customers are
+    // represented without inventing fallback records.
+    const [savedCustomers, orders] = await prisma.$transaction([
+      prisma.customer.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          email: true,
+          city: true,
+          address: true,
+          createdAt: true,
+        },
+      }),
       prisma.order.findMany({
         orderBy: { createdAt: 'desc' },
         select: {
@@ -59,93 +56,76 @@ export async function GET(request: Request) {
           createdAt: true,
         },
       }),
-      null
-    )
-
-    if (!orders || !Array.isArray(orders) || orders.length === 0) {
-      let filtered = [...BACKUP_CUSTOMERS]
-      if (search) {
-        const s = search.toLowerCase()
-        filtered = filtered.filter(
-          (c) =>
-            c.name.toLowerCase().includes(s) ||
-            c.phone.toLowerCase().includes(s) ||
-            c.email.toLowerCase().includes(s) ||
-            c.city.toLowerCase().includes(s)
-        )
-      }
-      return NextResponse.json({ customers: filtered, total: filtered.length })
-    }
-
-    interface CustomerRecord {
-      id: string
-      name: string
-      phone: string
-      email: string
-      city: string
-      address: string
-      totalSpent: number
-      ordersCount: number
-      lastOrderDate: Date
-      orders: Array<{
-        id: string
-        orderNumber: string
-        total: number
-        status: string
-        createdAt: Date
-      }>
-    }
+    ])
 
     const customerMap = new Map<string, CustomerRecord>()
-    orders.forEach((o) => {
-      const key = (o.customerPhone || o.customerEmail || o.customerName).trim().toLowerCase()
+    for (const customer of savedCustomers) {
+      const key = (customer.phone || customer.email || customer.name).trim().toLowerCase()
+      if (!key) continue
+
+      customerMap.set(key, {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email || '',
+        city: customer.city || '',
+        address: customer.address || '',
+        totalSpent: 0,
+        ordersCount: 0,
+        lastOrderDate: customer.createdAt,
+        orders: [],
+      })
+    }
+
+    for (const order of orders) {
+      const key = (order.customerPhone || order.customerEmail || order.customerName).trim().toLowerCase()
+      if (!key) continue
+
       if (!customerMap.has(key)) {
         customerMap.set(key, {
-          id: `cust_${Buffer.from(key).toString('hex').slice(0, 12)}`,
-          name: o.customerName,
-          phone: o.customerPhone,
-          email: o.customerEmail || '',
-          city: o.city,
-          address: o.address,
+          id: `guest_${Buffer.from(key).toString('hex').slice(0, 12)}`,
+          name: order.customerName,
+          phone: order.customerPhone,
+          email: order.customerEmail || '',
+          city: order.city,
+          address: order.address,
           totalSpent: 0,
           ordersCount: 0,
-          lastOrderDate: o.createdAt,
+          lastOrderDate: order.createdAt,
           orders: [],
         })
       }
 
-      const cust = customerMap.get(key)!
-      cust.ordersCount += 1
-      if (o.status !== 'CANCELLED') {
-        cust.totalSpent += Number(o.total || 0)
+      const customer = customerMap.get(key)!
+      customer.lastOrderDate = customer.ordersCount === 0 || order.createdAt > customer.lastOrderDate
+        ? order.createdAt
+        : customer.lastOrderDate
+      customer.ordersCount += 1
+      if (order.status !== 'CANCELLED') {
+        customer.totalSpent += Number(order.total)
       }
-      cust.orders.push({
-        id: o.id,
-        orderNumber: o.orderNumber,
-        total: Number(o.total),
-        status: o.status,
-        createdAt: o.createdAt,
+      customer.orders.push({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        total: Number(order.total),
+        status: order.status,
+        createdAt: order.createdAt,
       })
-    })
+    }
 
-    let customerList = Array.from(customerMap.values())
-
+    let customers = Array.from(customerMap.values())
     if (search) {
-      const s = search.toLowerCase()
-      customerList = customerList.filter(
-        (c) =>
-          c.name.toLowerCase().includes(s) ||
-          c.phone.toLowerCase().includes(s) ||
-          c.email.toLowerCase().includes(s) ||
-          c.city.toLowerCase().includes(s)
+      customers = customers.filter((customer) =>
+        customer.name.toLowerCase().includes(search) ||
+        customer.phone.toLowerCase().includes(search) ||
+        customer.email.toLowerCase().includes(search) ||
+        customer.city.toLowerCase().includes(search)
       )
     }
 
-    return NextResponse.json({
-      customers: customerList.length > 0 ? customerList : BACKUP_CUSTOMERS,
-      total: customerList.length || BACKUP_CUSTOMERS.length,
-    })
-  } catch {
-    return NextResponse.json({ customers: BACKUP_CUSTOMERS, total: BACKUP_CUSTOMERS.length })
+    return NextResponse.json({ customers, total: customers.length })
+  } catch (error) {
+    console.error('Failed to load admin customers:', error)
+    return NextResponse.json({ error: 'Unable to load customers' }, { status: 500 })
   }
 }
