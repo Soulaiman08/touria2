@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useCartStore } from '@/store/cart.store'
-import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react'
+import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 
@@ -21,7 +21,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
   const isRTL = locale === 'ar'
   const drawerRef = useRef<HTMLDivElement>(null)
 
-  // Close drawer on pressing Escape key
+  // Close on Escape key
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && cartStore.isOpen) {
@@ -41,7 +41,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
     <AnimatePresence>
       {cartStore.isOpen && (
         <>
-          {/* Overlay */}
+          {/* ── Overlay ─────────────────────────────────────────── */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
@@ -51,58 +51,132 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             aria-hidden="true"
           />
 
-          {/* Drawer container */}
+          {/* ── Drawer ──────────────────────────────────────────── */}
           <motion.div
             ref={drawerRef}
             initial={{ x: isRTL ? '-100%' : '100%' }}
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '-100%' : '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed inset-y-0 z-50 w-[92vw] max-w-[360px] sm:w-full sm:max-w-md shadow-2xl flex flex-col focus:outline-none"
+            className="fixed inset-y-0 z-50 flex flex-col focus:outline-none"
             style={{
+              width: 'min(92vw, 400px)',
               left: isRTL ? 0 : 'auto',
               right: isRTL ? 'auto' : 0,
               background: 'var(--card)',
               borderLeft: isRTL ? 'none' : '1px solid var(--border)',
               borderRight: isRTL ? '1px solid var(--border)' : 'none',
+              boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
             }}
             role="dialog"
             aria-modal="true"
             aria-label={t('title')}
           >
-            {/* Header */}
-            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-[#C4622D]" />
-                <h2 className="font-semibold text-lg" style={{ color: 'var(--foreground)' }}>
+            {/* ── Header ────────────────────────────────────────── */}
+            <div
+              className="flex items-center justify-between flex-shrink-0"
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border)',
+              }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: 'rgba(196,98,45,0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ShoppingBag style={{ width: 18, height: 18, color: '#C4622D' }} />
+                </div>
+                <h2
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: 'var(--foreground)',
+                    lineHeight: 1,
+                  }}
+                >
                   {t('title')}
                 </h2>
-                <span className="px-2 py-0.5 text-xs font-bold rounded-full text-[#C4622D] bg-[rgba(196,98,45,0.08)]">
-                  {cartStore.totalItems}
-                </span>
+                {cartStore.items.length > 0 && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: '#C4622D',
+                      background: 'rgba(196,98,45,0.1)',
+                      padding: '2px 8px',
+                      borderRadius: 100,
+                    }}
+                  >
+                    {cartStore.items.reduce((sum, item) => sum + item.quantity, 0)}
+                  </span>
+                )}
               </div>
               <button
                 onClick={cartStore.closeCart}
-                className="p-2 rounded-xl transition-colors hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]"
-                style={{ color: 'var(--muted-foreground)' }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--muted-foreground)',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  cursor: 'pointer',
+                }}
                 aria-label={t('close')}
               >
-                <X className="w-5 h-5" />
+                <X style={{ width: 16, height: 16 }} />
               </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* ── Item List ─────────────────────────────────────── */}
+            <div
+              className="flex-1 overflow-y-auto"
+              style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
               {cartStore.items.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center space-y-4 p-8">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[rgba(196,98,45,0.05)] text-[#C4622D]">
-                    <ShoppingBag className="w-8 h-8" />
+                <div
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    padding: '48px 24px',
+                    gap: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'rgba(196,98,45,0.06)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ShoppingBag style={{ width: 28, height: 28, color: '#C4622D' }} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-base" style={{ color: 'var(--foreground)' }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--foreground)', margin: 0 }}>
                       {t('empty')}
                     </h3>
-                    <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                    <p style={{ fontSize: 13, color: 'var(--muted-foreground)', marginTop: 6 }}>
                       {t('emptyDesc')}
                     </p>
                   </div>
@@ -119,116 +193,238 @@ export function CartDrawer({ locale }: CartDrawerProps) {
               ) : (
                 cartStore.items.map((item) => {
                   const niqabSubtotal =
-                    item.niqabItems?.reduce(
-                      (sum, n) =>
-                        sum + n.unitPrice * n.quantity,
-                      0,
-                    ) || 0
-
-                  const itemTotal =
-                    item.unitPrice * item.quantity +
-                    niqabSubtotal
+                    item.niqabItems?.reduce((sum, n) => sum + n.unitPrice * n.quantity, 0) || 0
+                  const itemTotal = item.unitPrice * item.quantity + niqabSubtotal
 
                   return (
                     <div
                       key={item.id}
-                      className="flex gap-3 p-2.5 sm:gap-4 sm:p-3 rounded-xl border relative transition-all duration-200"
-                      style={{ borderColor: 'var(--border)', background: 'var(--background)' }}
+                      style={{
+                        display: 'flex',
+                        gap: 12,
+                        padding: '12px',
+                        borderRadius: 14,
+                        border: '1px solid var(--border)',
+                        background: 'var(--background)',
+                        position: 'relative',
+                      }}
                     >
                       {/* Product image */}
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                      <div
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                          background: 'var(--bg-subtle)',
+                          position: 'relative',
+                        }}
+                      >
                         <Image
                           src={item.mainImage}
                           alt={locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
                           fill
-                          sizes="(max-width: 640px) 64px, 80px"
+                          sizes="64px"
                           className="object-cover"
                         />
                       </div>
 
-                      {/* Item Details */}
-                      <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <h4 className="font-medium text-sm leading-snug line-clamp-1" style={{ color: 'var(--foreground)' }}>
-                            {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
-                          </h4>
-                          <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1 text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                            {!item.isNiqab && item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
-                              <>
-                                <span>{t('size')}: {item.size}</span>
-                                <span>•</span>
-                              </>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.colorCode }} />
-                              {locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn}
-                            </span>
-                          </div>
+                      {/* Details */}
+                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {/* Name */}
+                        <h4
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: 'var(--foreground)',
+                            lineHeight: 1.3,
+                            margin: 0,
+                            paddingInlineEnd: 24,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
+                        </h4>
 
-                          {/* Multiple Niqabs Subitem Display */}
-                          {item.niqabItems && item.niqabItems.length > 0 && (
-                            <div className="mt-2 space-y-1 p-2 rounded bg-[rgba(184,150,90,0.08)] border border-[rgba(184,150,90,0.2)] text-xs">
-                              <div className="font-semibold text-[#b8965a] text-[11px]">
-                                {locale === 'ar' ? 'النقابات الإضافية:' : locale === 'fr' ? 'Niquab inclus :' : 'Included niqabs:'}
-                              </div>
-                              {item.niqabItems.map((n, idx) => {
-                                const colorLabel = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
-                                return (
-                                  <div key={idx} className="flex items-center justify-between text-[11px]">
-                                    <span className="flex items-center gap-1.5">
-                                      <span className="w-2 h-2 rounded-full inline-block border" style={{ background: n.colorCode }} />
-                                      {colorLabel} × {n.quantity}
-                                    </span>
-                                    <span className="font-semibold text-[#C4622D]">
-                                      +{formatPrice(n.unitPrice * n.quantity, locale)}
-                                    </span>
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          )}
+                        {/* Size + Color */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px', alignItems: 'center' }}>
+                          {!item.isNiqab &&
+                            item.size &&
+                            !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(
+                              item.size.toLowerCase().trim()
+                            ) && (
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  color: 'var(--muted-foreground)',
+                                  background: 'var(--bg-subtle)',
+                                  padding: '1px 7px',
+                                  borderRadius: 6,
+                                  border: '1px solid var(--border)',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {item.size}
+                              </span>
+                            )}
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--muted-foreground)' }}>
+                            <span
+                              style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: '50%',
+                                background: item.colorCode,
+                                border: '1px solid rgba(0,0,0,0.12)',
+                                flexShrink: 0,
+                                display: 'inline-block',
+                              }}
+                            />
+                            {locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn}
+                          </span>
                         </div>
 
-                        <div className="flex items-center justify-between mt-3">
-                          {/* Quantity Selector */}
-                          <div className="flex items-center border rounded-lg overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                        {/* Niqab Add-ons */}
+                        {item.niqabItems && item.niqabItems.length > 0 && (
+                          <div
+                            style={{
+                              marginTop: 4,
+                              padding: '6px 8px',
+                              borderRadius: 8,
+                              background: 'rgba(184,150,90,0.06)',
+                              border: '1px solid rgba(184,150,90,0.2)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 3,
+                            }}
+                          >
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#b8965a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              {locale === 'ar' ? 'النقابات:' : locale === 'fr' ? 'Niquab :' : 'Niqabs:'}
+                            </div>
+                            {item.niqabItems.map((n, idx) => {
+                              const colorLabel =
+                                locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
+                              return (
+                                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11 }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--muted-foreground)' }}>
+                                    <span
+                                      style={{
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        background: n.colorCode,
+                                        border: '1px solid rgba(0,0,0,0.12)',
+                                        flexShrink: 0,
+                                        display: 'inline-block',
+                                      }}
+                                    />
+                                    {colorLabel} × {n.quantity}
+                                  </span>
+                                  <span style={{ fontWeight: 600, color: '#C4622D' }}>
+                                    +{formatPrice(n.unitPrice * n.quantity, locale)}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {/* Bottom row: Qty controls + Price */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                          {/* Quantity */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              border: '1px solid var(--border)',
+                              borderRadius: 8,
+                              overflow: 'hidden',
+                            }}
+                          >
                             <button
                               onClick={() => cartStore.updateQuantity(item.id, item.quantity - 1)}
-                              className="p-1.5 transition-colors hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]"
-                              style={{ color: 'var(--muted-foreground)' }}
+                              style={{
+                                width: 30,
+                                height: 28,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--muted-foreground)',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus style={{ width: 12, height: 12 }} />
                             </button>
-                            <span className="px-3 text-sm font-medium" style={{ color: 'var(--foreground)' }}>
+                            <span
+                              style={{
+                                minWidth: 28,
+                                height: 28,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: 'var(--foreground)',
+                                borderLeft: '1px solid var(--border)',
+                                borderRight: '1px solid var(--border)',
+                              }}
+                            >
                               {item.quantity}
                             </span>
                             <button
                               onClick={() => cartStore.updateQuantity(item.id, item.quantity + 1)}
-                              className="p-1.5 transition-colors hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]"
-                              style={{ color: 'var(--muted-foreground)' }}
+                              style={{
+                                width: 30,
+                                height: 28,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--muted-foreground)',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus style={{ width: 12, height: 12 }} />
                             </button>
                           </div>
 
                           {/* Price */}
-                          <div className="text-right">
-                            <span className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
-                              {formatPrice(itemTotal, locale)}
-                            </span>
-                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: '#C4622D' }}>
+                            {formatPrice(itemTotal, locale)}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Remove Button */}
+                      {/* Remove button */}
                       <button
                         onClick={() => cartStore.removeItem(item.id)}
-                        className="absolute top-2 inset-inline-end-2 p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:dark:bg-rose-950/30 transition-colors"
+                        style={{
+                          position: 'absolute',
+                          top: 8,
+                          [isRTL ? 'left' : 'right']: 8,
+                          width: 24,
+                          height: 24,
+                          borderRadius: 6,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#f87171',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s',
+                        }}
                         aria-label="Remove item"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 style={{ width: 13, height: 13 }} />
                       </button>
                     </div>
                   )
@@ -236,41 +432,98 @@ export function CartDrawer({ locale }: CartDrawerProps) {
               )}
             </div>
 
-            {/* Footer Summary */}
+            {/* ── Footer ────────────────────────────────────────── */}
             {cartStore.items.length > 0 && (
-              <div className="p-4 border-t space-y-4" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
-                <div className="space-y-1.5 text-sm" style={{ color: 'var(--muted-foreground)' }}>
-                  <div className="flex justify-between">
+              <div
+                style={{
+                  padding: '16px 20px',
+                  borderTop: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  flexShrink: 0,
+                }}
+                dir={isRTL ? 'rtl' : 'ltr'}
+              >
+                {/* Subtotal rows */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted-foreground)' }}>
                     <span>{t('subtotal')}</span>
-                    <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
                       {formatPrice(cartStore.subtotal, locale)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted-foreground)' }}>
                     <span>{t('shipping')}</span>
-                    <span className="font-medium text-[#C4622D]">
-                      {locale === 'ar' ? 'يُحسب عند إتمام الطلب' : locale === 'fr' ? 'Calculé à la caisse' : 'Calculated at checkout'}
+                    <span style={{ fontWeight: 500, color: '#C4622D', fontSize: 11 }}>
+                      {locale === 'ar'
+                        ? 'يُحسب عند إتمام الطلب'
+                        : locale === 'fr'
+                          ? 'Calculé à la caisse'
+                          : 'Calculated at checkout'}
                     </span>
                   </div>
                 </div>
 
-                <div className="border-t pt-3 flex justify-between font-semibold text-base" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                  <span>{t('total')}</span>
-                  <span className="text-[#C4622D]">{formatPrice(cartStore.subtotal, locale)}</span>
+                {/* Total */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: 12,
+                    borderTop: '1px solid var(--border)',
+                  }}
+                >
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground)' }}>
+                    {t('total')}
+                  </span>
+                  <span style={{ fontSize: 18, fontWeight: 900, color: '#C4622D' }}>
+                    {formatPrice(cartStore.subtotal, locale)}
+                  </span>
                 </div>
 
+                {/* Checkout button */}
                 <button
                   onClick={handleCheckout}
-                  className="w-full btn btn-primary btn-round py-2.5 text-sm"
+                  style={{
+                    width: '100%',
+                    padding: '12px 20px',
+                    borderRadius: 12,
+                    background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+                    color: '#fff',
+                    fontSize: 14,
+                    fontWeight: 800,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    boxShadow: '0 4px 16px rgba(196,98,45,0.25)',
+                  }}
                 >
-                  <ShoppingBag className="w-4 h-4" />
+                  <ShoppingBag style={{ width: 16, height: 16 }} />
                   {t('checkout')}
+                  <ArrowRight style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
                 </button>
 
+                {/* Continue shopping */}
                 <button
                   onClick={cartStore.closeCart}
-                  className="w-full text-center text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#C4622D] mt-3"
-                  style={{ color: 'var(--text-muted)' }}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    padding: '4px 0',
+                  }}
                 >
                   {t('continueShopping')}
                 </button>

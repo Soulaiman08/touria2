@@ -255,7 +255,8 @@
     "currency": "DH",
     "or": "ou",
     "and": "et",
-    "search": "Rechercher...",
+    "search": "Rechercher un produit...",
+    "searchPlaceholder": "Rechercher un produit...",
     "noResults": "Aucun résultat",
     "seeAll": "Voir tout",
     "backToTop": "Retour en haut"

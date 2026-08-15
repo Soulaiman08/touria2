@@ -255,7 +255,8 @@
     "currency": "د.م.",
     "or": "أو",
     "and": "و",
-    "search": "بحث...",
+    "search": "ابحث عن منتج...",
+    "searchPlaceholder": "ابحث عن منتج...",
     "noResults": "لا توجد نتائج",
     "seeAll": "عرض الكل",
     "backToTop": "العودة للأعلى"

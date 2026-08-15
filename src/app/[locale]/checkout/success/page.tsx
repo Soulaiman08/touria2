@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
-import { CheckCircle2, Truck, ShoppingBag, ArrowRight } from 'lucide-react'
+import { CheckCircle2, Truck, ShoppingBag, ArrowRight, Phone, MapPin, User } from 'lucide-react'
 import type { Order } from '@/types/order'
 
 interface SuccessPageProps {
@@ -27,7 +27,6 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
 
   useEffect(() => {
     if (!orderId) return
-
     let isMounted = true
     fetch(`/api/orders/${orderId}`)
       .then((res) => {
@@ -35,20 +34,10 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
         return res.json()
       })
       .then((res) => {
-        if (isMounted) {
-          setOrder(res)
-          setLoading(false)
-        }
+        if (isMounted) { setOrder(res); setLoading(false) }
       })
-      .catch(() => {
-        if (isMounted) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
+      .catch(() => { if (isMounted) setLoading(false) })
+    return () => { isMounted = false }
   }, [orderId])
 
   if (loading) {
@@ -79,75 +68,201 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
   }
 
   return (
-    <div className="container-brand page-shell max-w-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="p-8 rounded-3xl border text-center space-y-6 shadow-xl" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-        {/* Success Icon */}
-        <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-green-50 dark:bg-green-950/20 text-green-600">
-          <CheckCircle2 className="w-10 h-10" />
-        </div>
-
-        {/* Title */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--foreground)' }}>{t('title')}</h1>
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('subtitle')}</p>
-        </div>
-
-        {/* Order Number Box */}
-        <div className="p-4 rounded-2xl bg-[rgba(196,98,45,0.04)] border border-[rgba(196,98,45,0.15)] flex justify-between items-center text-sm font-semibold">
-          <span style={{ color: 'var(--muted-foreground)' }}>{t('orderNumber')}</span>
-          <span className="text-[#C4622D]">{order.orderNumber}</span>
-        </div>
-
-        {/* Order Details Details */}
-        <div className="border-t pt-6 space-y-4 text-start text-sm" style={{ borderColor: 'var(--border)' }}>
-          <div className="flex justify-between">
-            <span style={{ color: 'var(--muted-foreground)' }}>{locale === 'ar' ? 'الاسم' : 'Nom'}</span>
-            <span className="font-medium" style={{ color: 'var(--foreground)' }}>{order.customerName}</span>
+    <div
+      className="container-brand page-shell"
+      dir={isRTL ? 'rtl' : 'ltr'}
+      style={{ maxWidth: 560, paddingLeft: 'max(16px, 5vw)', paddingRight: 'max(16px, 5vw)' }}
+    >
+      <div
+        style={{
+          borderRadius: 24,
+          border: '1px solid var(--border)',
+          background: 'var(--card)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* ── Success Header ──────────────────────────────────────── */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(196,98,45,0.02) 100%)',
+            padding: '32px 28px 24px',
+            textAlign: 'center',
+            borderBottom: '1px solid var(--border)',
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'rgba(34,197,94,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
+          >
+            <CheckCircle2 style={{ width: 34, height: 34, color: '#22c55e' }} />
           </div>
-          <div className="flex justify-between">
-            <span style={{ color: 'var(--muted-foreground)' }}>{locale === 'ar' ? 'الهاتف' : 'Téléphone'}</span>
-            <span className="font-medium" style={{ color: 'var(--foreground)' }}>{order.customerPhone}</span>
-          </div>
-          <div className="flex justify-between">
-            <span style={{ color: 'var(--muted-foreground)' }}>{locale === 'ar' ? 'العنوان' : 'Adresse'}</span>
-            <span className="font-medium" style={{ color: 'var(--foreground)' }}>
-              {order.address}, {order.city}
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 6px' }}>
+            {t('title')}
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--muted-foreground)', margin: 0 }}>
+            {t('subtitle')}
+          </p>
+        </div>
+
+        {/* ── Order Number ─────────────────────────────────────────── */}
+        <div style={{ padding: '20px 28px', borderBottom: '1px solid var(--border)' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 16px',
+              borderRadius: 12,
+              background: 'rgba(196,98,45,0.04)',
+              border: '1px solid rgba(196,98,45,0.15)',
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {t('orderNumber')}
+            </span>
+            <span style={{ fontSize: 16, fontWeight: 900, color: '#C4622D', fontFamily: 'monospace' }}>
+              {order.orderNumber}
             </span>
           </div>
-          <div className="border-t pt-4 flex justify-between font-bold" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <span>{cartT('total')}</span>
-            <span className="text-[#C4622D]">{formatPrice(order.total, locale)}</span>
+        </div>
+
+        {/* ── Customer Info ─────────────────────────────────────────── */}
+        <div style={{ padding: '20px 28px', borderBottom: '1px solid var(--border)' }}>
+          <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>
+            {locale === 'ar' ? 'معلومات الطلب' : locale === 'fr' ? 'Informations de commande' : 'Order Info'}
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Name */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <User style={{ width: 14, height: 14, color: 'var(--muted-foreground)' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {locale === 'ar' ? 'الاسم' : 'Nom'}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginTop: 2 }}>
+                  {order.customerName}
+                </div>
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Phone style={{ width: 14, height: 14, color: 'var(--muted-foreground)' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {locale === 'ar' ? 'الهاتف' : 'Téléphone'}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginTop: 2, fontFamily: 'monospace' }}>
+                  {order.customerPhone}
+                </div>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <MapPin style={{ width: 14, height: 14, color: 'var(--muted-foreground)' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {locale === 'ar' ? 'العنوان' : 'Adresse'}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)', marginTop: 2, lineHeight: 1.4 }}>
+                  {order.address}
+                  <span style={{ color: '#C4622D', fontWeight: 700 }}> — {order.city}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Info Message Box */}
-        <div className="p-4 rounded-xl border flex gap-3 text-start" style={{ borderColor: '#b8965a', background: 'rgba(184,150,90,0.04)' }}>
-          <Truck className="w-5 h-5 text-[#C4622D] flex-shrink-0" />
-          <div className="space-y-0.5">
-            <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{t('message')}</p>
-            <p className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
-              {t('estimatedDelivery')}: {t('deliveryDays')}
-            </p>
+        {/* ── Total ─────────────────────────────────────────────────── */}
+        <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)' }}>{cartT('total')}</span>
+            <span style={{ fontSize: 22, fontWeight: 900, color: '#C4622D' }}>{formatPrice(order.total, locale)}</span>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Link
-            href={`/${locale}/products`}
-            className="flex-1 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:bg-[#A34E23] flex items-center justify-center gap-2"
-            style={{ background: '#C4622D' }}
+        {/* ── Info Message ──────────────────────────────────────────── */}
+        <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)' }}>
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 12,
+              border: '1px solid rgba(184,150,90,0.3)',
+              background: 'rgba(184,150,90,0.05)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10,
+            }}
           >
-            <ShoppingBag className="w-5 h-5" />
-            {t('continueShopping')}
-          </Link>
+            <Truck style={{ width: 16, height: 16, color: '#C4622D', flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground)', margin: '0 0 2px' }}>{t('message')}</p>
+              <p style={{ fontSize: 11, color: 'var(--muted-foreground)', margin: 0 }}>
+                {t('estimatedDelivery')}: {t('deliveryDays')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Actions ───────────────────────────────────────────────── */}
+        <div style={{ padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Link
             href={`/${locale}/orders/${order.id}`}
-            className="flex-1 py-3 rounded-xl font-semibold border transition-all duration-200 hover:bg-[rgba(196,98,45,0.05)] flex items-center justify-center gap-1.5"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '13px 20px',
+              borderRadius: 12,
+              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 800,
+              textDecoration: 'none',
+              boxShadow: '0 4px 16px rgba(196,98,45,0.25)',
+            }}
           >
             {t('trackOrder')}
-            <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+            <ArrowRight style={{ width: 15, height: 15, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+          </Link>
+
+          <Link
+            href={`/${locale}/products`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '12px 20px',
+              borderRadius: 12,
+              border: '1px solid var(--border)',
+              color: 'var(--foreground)',
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+              background: 'var(--bg-subtle)',
+            }}
+          >
+            <ShoppingBag style={{ width: 14, height: 14 }} />
+            {t('continueShopping')}
           </Link>
         </div>
       </div>

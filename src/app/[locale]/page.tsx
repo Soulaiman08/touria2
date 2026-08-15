@@ -304,8 +304,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <section
         className="home-hero relative overflow-hidden"
         style={{
-          background: 'var(--bg-base)',
-          minHeight: 'min(68vh, 640px)',
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
         }}
@@ -337,7 +336,7 @@ export default async function HomePage({ params }: HomePageProps) {
           }}
         />
 
-        <div className="container-brand relative z-10 w-full py-8 md:py-12">
+        <div className="container-brand relative z-10 w-full py-6 sm:py-8 md:py-10">
           <div
             className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-10"
             style={{ width: '100%' }}
@@ -743,7 +742,6 @@ export default async function HomePage({ params }: HomePageProps) {
       {/* NEW ARRIVALS */}
       <section
         className="home-section home-section-muted section-gap"
-        style={{ background: 'var(--bg-subtle)' }}
         aria-label={labels.newCol}
       >
         <div className="container-brand space-y-8">
@@ -898,7 +896,9 @@ export default async function HomePage({ params }: HomePageProps) {
                   ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
                     locale === 'ar'
                       ? 'مرحباً، أريد الاستفسار عن منتجاتكم'
-                      : 'Hello, I would like to inquire about your products'
+                      : locale === 'fr'
+                        ? 'Bonjour, je souhaite me renseigner sur vos produits'
+                        : 'Hello, I would like to inquire about your products'
                   )}`
                   : '#'
               }

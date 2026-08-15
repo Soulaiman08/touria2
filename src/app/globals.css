@@ -148,12 +148,13 @@
   --header-border: rgba(184, 150, 90, 0.28);
   --header-height: 68px;
 
-  /* Footer */
-  --footer-bg: #b97845;
-  --footer-text: #2f1608;
-  --footer-muted: #4a2619;
-  --footer-heading: #2f1608;
-  --footer-accent: #fff7e8;
+  /* Footer - Deep Moroccan chocolate brown in light mode */
+  --footer-bg: #221209;
+  --footer-text: #eadecd;
+  --footer-muted: #af9782;
+  --footer-heading: #ffffff;
+  --footer-accent: #d4ae78;
+  --footer-border: rgba(184, 150, 90, 0.22);
 
   /* Inputs */
   --input: #ffffff;
@@ -225,11 +226,12 @@
   --bg-subtle: #1c0f06;
   --bg-muted: #251509;
   --bg-overlay: rgba(242, 228, 206, 0.04);
-  --footer-bg: #1e0d04;
-  --footer-text: #ffffff;
-  --footer-muted: #ffffff;
-  --footer-heading: #ffffff;
-  --footer-accent: #ffffff;
+  --footer-bg: #090402;
+  --footer-text: #d8c2aa;
+  --footer-muted: #8e745d;
+  --footer-heading: #fcf6eb;
+  --footer-accent: #d4ae78;
+  --footer-border: rgba(184, 150, 90, 0.25);
 
   --card-bg: #1f1008;
   --card-border: rgba(184, 150, 90, 0.12);
@@ -293,8 +295,17 @@ html {
   overflow-x: hidden;
 }
 
+/* ── Moroccan SVG pattern (Light Mode) ── */
+body,
+.storefront-shell,
+.pattern-moroccan {
+  background-color: var(--bg-base);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none'%3E%3Cpath d='M40 0L80 40 40 80 0 40z' fill='%23b8965a' fill-opacity='0.055'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' stroke='%23b8965a' stroke-opacity='0.09' stroke-width='1.2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 80px 80px;
+}
+
 body {
-  background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100dvh;
@@ -302,6 +313,34 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   position: relative;
+}
+
+/* ── Moroccan pattern dark mode override ── */
+.dark body,
+.dark .storefront-shell,
+.dark .pattern-moroccan {
+  background-color: var(--bg-base);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none'%3E%3Cpath d='M40 0L80 40 40 80 0 40z' fill='%23d4ae78' fill-opacity='0.035'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' stroke='%23d4ae78' stroke-opacity='0.065' stroke-width='1.2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 80px 80px;
+}
+
+/* ── Footer resets body pattern — isolated dark luxury background ── */
+footer {
+  background-image: none !important;
+  background-color: var(--footer-bg) !important;
+}
+
+/* ── Main content wrappers remain transparent to let global pattern flow ── */
+#main-content,
+main,
+.page-shell,
+.home-section,
+.home-section-muted,
+.home-section-banners,
+.home-features-bottom {
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 /* Arabic locale override */
@@ -521,18 +560,14 @@ h6 {
 
 /* Homepage refresh: a premium editorial storefront while retaining all content. */
 .home-hero {
-  min-height: auto !important;
-  background: var(--bg-base) !important;
+  background: transparent !important;
   border-bottom: 0 !important;
 }
 
 .home-hero-shell {
-  min-height: 580px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 2rem;
-  background: var(--card-bg);
-  box-shadow: var(--shadow-xl);
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .home-hero-content {
@@ -557,10 +592,6 @@ h6 {
 .home-section {
   padding-block: 1rem;
   background: var(--bg-base);
-}
-
-.home-section-muted {
-  background: var(--bg-base) !important;
 }
 
 .home-section .section-heading {
@@ -816,6 +847,13 @@ h6 {
   border-bottom: 1px solid var(--border);
 }
 
+/* ── Main Site Moroccan Pattern (Connected seamlessly across all pages) ── */
+/* Pattern lives on body — see top of globals.css. #main-content is transparent. */
+#main-content {
+  background-color: transparent;
+  background-image: none;
+}
+
 .product-option-group {
   padding: 1.25rem;
   border: 1px solid var(--border);
@@ -863,9 +901,6 @@ h6 {
 }
 
 /* ── Moroccan Pattern ── */
-.pattern-moroccan {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23fbbf24' fill-opacity='0.025'%3E%3Cpath d='M40 0L80 40 40 80 0 40z'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' fill='none' stroke='%23fbbf24' stroke-opacity='0.05' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E");
-}
 
 /* ═══════════════════════════════════════════════
    CARD SYSTEM
@@ -1626,7 +1661,38 @@ h6 {
   }
 }
 
-@media (max-width: 767px) {
+/* ============================================================
+   THURAYA HOMEPAGE — CONTAINER GEOMETRY & TRANSPARENT SECTIONS
+   ============================================================ */
+
+/* The container grid alignment */
+.home-hero > .container-brand,
+.home-section > .container-brand,
+.home-section-banners > .container-brand {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+/* Sections and hero remain transparent so the global pattern shows seamlessly */
+.home-hero,
+.home-section,
+.home-section-banners,
+.home-hero-shell,
+.home-features-bottom {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+/* On mobile, preserve the normal page breathing room */
+@media (max-width: 639px) {
+  .home-hero > .container-brand,
+  .home-section > .container-brand,
+  .home-section-banners > .container-brand {
+    padding-inline: 1rem !important;
+  }
   .admin-sidebar {
     position: fixed !important;
     inset: 0 auto 0 0 !important;
@@ -1871,10 +1937,7 @@ body {
   color: var(--text-primary);
 }
 
-.dark body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
+/* dark body pattern handled at top of globals.css — this duplicate removed */
 
 /* HERO and the sections below use the exact same container geometry.
    Do NOT remove the container padding on desktop. */

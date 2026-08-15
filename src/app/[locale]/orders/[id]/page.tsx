@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
-import { Truck, Check, Package, ShoppingBag, Clock, type LucideIcon } from 'lucide-react'
+import { Truck, Check, Package, ShoppingBag, Clock, ArrowLeft, type LucideIcon } from 'lucide-react'
 import type { Order, OrderStatus } from '@/types/order'
 
 interface TrackingPageProps {
@@ -38,20 +38,10 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
         return res.json()
       })
       .then((res) => {
-        if (isMounted) {
-          setOrder(res)
-          setLoading(false)
-        }
+        if (isMounted) { setOrder(res); setLoading(false) }
       })
-      .catch(() => {
-        if (isMounted) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
+      .catch(() => { if (isMounted) setLoading(false) })
+    return () => { isMounted = false }
   }, [id])
 
   if (loading) {
@@ -81,77 +71,153 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
     )
   }
 
-  // Get index of current step
   const currentStepIndex = STEPS.findIndex((s) => s.status === order.status)
 
   return (
-    <div className="container-brand page-shell max-w-3xl" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="p-6 md:p-8 rounded-3xl border space-y-8 shadow-xl" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-        {/* Header Title */}
-        <div className="text-center space-y-2 border-b pb-6" style={{ borderColor: 'var(--border)' }}>
-          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--foreground)' }}>{t('title')}</h1>
-          <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-            {t('orderNumber')}: <span className="font-semibold text-[#C4622D]">{order.orderNumber}</span>
+    <div
+      className="container-brand page-shell"
+      dir={isRTL ? 'rtl' : 'ltr'}
+      style={{ maxWidth: 640, paddingLeft: 'max(16px, 5vw)', paddingRight: 'max(16px, 5vw)' }}
+    >
+      {/* ── Back link ─────────────────────────────────────────────── */}
+      <Link
+        href={`/${locale}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--muted-foreground)',
+          textDecoration: 'none',
+          marginBottom: 20,
+        }}
+      >
+        <ArrowLeft style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+        {locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to home'}
+      </Link>
+
+      <div
+        style={{
+          borderRadius: 24,
+          border: '1px solid var(--border)',
+          background: 'var(--card)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* ── Page Header ───────────────────────────────────────────── */}
+        <div
+          style={{
+            padding: '24px 24px 20px',
+            borderBottom: '1px solid var(--border)',
+            background: 'linear-gradient(135deg, rgba(196,98,45,0.04) 0%, transparent 100%)',
+          }}
+        >
+          <h1 style={{ fontSize: 20, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 4px' }}>
+            {t('title')}
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0 }}>
+            {t('orderNumber')}:{' '}
+            <span style={{ color: '#C4622D', fontWeight: 800, fontFamily: 'monospace' }}>
+              {order.orderNumber}
+            </span>
           </p>
         </div>
 
-        {/* ── Status Timeline/Tracker ─────────────────────────── */}
-        <div className="relative py-4" dir={isRTL ? 'rtl' : 'ltr'}>
-          {/* Progress bar line */}
-          <div
-            className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 bg-muted rounded pointer-events-none"
-            style={{ background: 'var(--muted)' }}
-          />
-          <div
-            className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 bg-[#C4622D] rounded transition-all duration-500 pointer-events-none"
-            style={{
-              width: `${(currentStepIndex / (STEPS.length - 1)) * 100}%`,
-              left: isRTL ? 'auto' : 0,
-              right: isRTL ? 0 : 'auto',
-            }}
-          />
+        {/* ── Status Timeline ────────────────────────────────────────── */}
+        <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--border)' }}>
+          {/* Progress bar background */}
+          <div style={{ position: 'relative', paddingBottom: 4 }}>
+            {/* Track line */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 18,
+                left: isRTL ? 0 : '10%',
+                right: isRTL ? '10%' : 0,
+                height: 3,
+                background: 'var(--border)',
+                borderRadius: 99,
+                zIndex: 0,
+              }}
+            />
+            {/* Filled track */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 18,
+                left: isRTL ? 'auto' : '10%',
+                right: isRTL ? '10%' : 'auto',
+                height: 3,
+                width: `${(currentStepIndex / (STEPS.length - 1)) * 80}%`,
+                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+                borderRadius: 99,
+                zIndex: 1,
+                transition: 'width 0.5s ease',
+              }}
+            />
 
-          {/* Timeline Nodes */}
-          <div className="relative flex justify-between">
-            {STEPS.map((step, idx) => {
-              const StepIcon = step.icon
-              const isCompleted = idx <= currentStepIndex
-              const isCurrent = idx === currentStepIndex
-              const stepLabel = locale === 'ar' ? step.labelAr : locale === 'fr' ? step.labelFr : step.labelEn
+            {/* Steps */}
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', zIndex: 2 }}>
+              {STEPS.map((step, idx) => {
+                const StepIcon = step.icon
+                const isCompleted = idx <= currentStepIndex
+                const isCurrent = idx === currentStepIndex
+                const stepLabel = locale === 'ar' ? step.labelAr : locale === 'fr' ? step.labelFr : step.labelEn
 
-              return (
-                <div key={step.status} className="flex flex-col items-center space-y-2">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                      isCompleted
-                        ? 'bg-[#C4622D] border-transparent text-white scale-110 shadow-md'
-                        : 'bg-white dark:bg-[#2a1508] border-muted text-muted-foreground'
-                    } ${isCurrent ? 'ring-4 ring-orange-100 dark:ring-orange-950' : ''}`}
-                    style={{ borderColor: isCompleted ? 'transparent' : 'var(--border)' }}
-                  >
-                    <StepIcon className="w-5 h-5" />
+                return (
+                  <div key={step.status} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1 }}>
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: isCompleted ? '#C4622D' : 'var(--bg-subtle)',
+                        border: isCurrent ? '3px solid #C4622D' : `2px solid ${isCompleted ? '#C4622D' : 'var(--border)'}`,
+                        boxShadow: isCurrent ? '0 0 0 4px rgba(196,98,45,0.12)' : 'none',
+                        transition: 'all 0.3s',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <StepIcon
+                        style={{
+                          width: 15,
+                          height: 15,
+                          color: isCompleted ? '#fff' : 'var(--muted-foreground)',
+                        }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: isCompleted ? 700 : 500,
+                        color: isCompleted ? 'var(--foreground)' : 'var(--muted-foreground)',
+                        textAlign: 'center',
+                        lineHeight: 1.2,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {stepLabel}
+                    </span>
                   </div>
-                  <span
-                    className={`text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
-                      isCompleted ? 'text-foreground' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {stepLabel}
-                  </span>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
 
-        {/* ── Order Summary Detail lists ──────────────────────── */}
-        <div className="space-y-4 border-t pt-6 text-sm" style={{ borderColor: 'var(--border)' }}>
-          <h3 className="font-bold text-base" style={{ color: 'var(--foreground)' }}>
+        {/* ── Order Items ────────────────────────────────────────────── */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
+          <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>
             {locale === 'ar' ? 'تفاصيل طلبكِ' : 'Détails de votre commande'}
-          </h3>
+          </h2>
 
-          <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-            {order.items.map((item) => {
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {order.items.map((item, idx) => {
               const snap = item.productSnapshot
               const rawSize = snap.selectedSize || ''
               const isNiqabItem = Boolean(
@@ -165,54 +231,89 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
                 !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(rawSize.toLowerCase().trim())
 
               return (
-                <div key={item.id} className="py-3.5 flex justify-between items-center text-xs">
-                  <div>
-                    <p className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                <div
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    padding: '12px 0',
+                    borderBottom: idx < order.items.length - 1 ? '1px solid var(--border)' : 'none',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.3 }}>
                       {locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
                     </p>
-                    <p className="mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                      {hasRealSize && <>{cartT('size')}: {rawSize} | </>}
-                      {cartT('quantity')}: {item.quantity}
+                    <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>
+                      {hasRealSize && (
+                        <>
+                          <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{rawSize}</span>
+                          {' · '}
+                        </>
+                      )}
+                      {cartT('quantity')}: <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{item.quantity}</span>
                     </p>
                   </div>
-                  <span className="font-bold" style={{ color: 'var(--foreground)' }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: '#C4622D', flexShrink: 0 }}>
                     {formatPrice(item.totalPrice, locale)}
                   </span>
                 </div>
               )
             })}
           </div>
-
-          <div className="border-t pt-4 space-y-2 text-xs" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-            <div className="flex justify-between">
-              <span>{cartT('subtotal')}</span>
-              <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                {formatPrice(order.subtotal, locale)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>{cartT('shipping')}</span>
-              <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                {formatPrice(order.shippingCost, locale)}
-              </span>
-            </div>
-            <div className="border-t pt-3 flex justify-between font-bold text-sm" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-              <span>{cartT('total')}</span>
-              <span className="text-[#C4622D]">{formatPrice(order.total, locale)}</span>
-            </div>
-          </div>
         </div>
 
-        {/* Home Link */}
-        <div className="pt-4 text-center">
-          <Link
-            href={`/${locale}`}
-            className="inline-flex py-3 px-8 rounded-xl font-semibold text-white transition-all duration-200 hover:bg-[#A34E23] items-center gap-2"
-            style={{ background: '#C4622D' }}
-          >
-            <ShoppingBag className="w-5 h-5" />
-            {locale === 'ar' ? 'العودة للرئيسية' : 'Retour à l\'accueil'}
-          </Link>
+        {/* ── Price Summary ──────────────────────────────────────────── */}
+        <div style={{ padding: '16px 24px 20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted-foreground)' }}>
+              <span>{cartT('subtotal')}</span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{formatPrice(order.subtotal, locale)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted-foreground)' }}>
+              <span>{cartT('shipping')}</span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{formatPrice(order.shippingCost, locale)}</span>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                paddingTop: 12,
+                marginTop: 4,
+                borderTop: '1px solid var(--border)',
+              }}
+            >
+              <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--foreground)' }}>{cartT('total')}</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: '#C4622D' }}>{formatPrice(order.total, locale)}</span>
+            </div>
+          </div>
+
+          {/* ── Return button ───────────────────────────────────────── */}
+          <div style={{ marginTop: 20 }}>
+            <Link
+              href={`/${locale}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '13px 20px',
+                borderRadius: 12,
+                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 800,
+                textDecoration: 'none',
+                boxShadow: '0 4px 16px rgba(196,98,45,0.22)',
+              }}
+            >
+              <ShoppingBag style={{ width: 15, height: 15 }} />
+              {locale === 'ar' ? 'العودة للرئيسية' : 'Retour à l\'accueil'}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

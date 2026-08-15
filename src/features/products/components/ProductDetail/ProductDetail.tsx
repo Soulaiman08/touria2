@@ -27,6 +27,7 @@ import { useCartStore } from '@/store/cart.store'
 import { formatPrice } from '@/lib/utils'
 
 import type { Product } from '@/types/product'
+import { ProductGallery } from './ProductGallery'
 
 // ==========================================
 // PROPS
@@ -902,79 +903,14 @@ export function ProductDetail({
           GALLERY
       ======================================== */}
 
-      <div className="product-gallery-panel space-y-4 lg:sticky lg:top-24 lg:self-start">
-        <div
-          className="product-main-image relative aspect-[4/5] overflow-hidden"
-          style={{
-            borderColor:
-              'var(--border)',
-          }}
-        >
-          <Image
-            src={
-              activeImage
-            }
-            alt={
-              productName
-            }
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-            priority
-          />
-        </div>
-
-        {product.images &&
-          product.images
-            .length > 1 && (
-            <div
-              className="product-thumbnails flex gap-3 overflow-x-auto pb-1"
-              dir="ltr"
-            >
-              {product.images.map(
-                (
-                  img,
-                  idx,
-                ) => (
-                  <button
-                    key={
-                      idx
-                    }
-                    type="button"
-                    onClick={() =>
-                      setActiveImage(
-                        img,
-                      )
-                    }
-                    className={`relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border transition-all sm:h-20 sm:w-20 ${activeImage ===
-                      img
-                      ? 'scale-95 border-2 border-[#C4622D]'
-                      : 'hover:border-[#C4622D]/60'
-                      }`}
-                    style={{
-                      borderColor:
-                        activeImage ===
-                          img
-                          ? '#C4622D'
-                          : 'var(--border)',
-                    }}
-                  >
-                    <Image
-                      src={
-                        img
-                      }
-                      alt={`${productName} thumbnail ${idx +
-                        1
-                        }`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ),
-              )}
-            </div>
-          )}
-      </div>
+      <ProductGallery
+        images={product.images || []}
+        mainImage={product.mainImage}
+        productName={productName}
+        activeImage={activeImage}
+        onSelectImage={setActiveImage}
+        locale={locale}
+      />
 
       {/* ========================================
           PRODUCT INFO

@@ -17,13 +17,15 @@ import {
   Phone,
   Globe,
   MessageCircle,
+  ArrowRight,
+  Sparkles,
 } from 'lucide-react'
 
 import { useCartStore } from '@/store/cart.store'
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { siteConfig } from '@/config/site'
-import { cn } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import type { ProductCard } from '@/types/product'
 
 interface HeaderProps {
@@ -55,12 +57,15 @@ interface StoreSettings {
 
 export function Header({ locale }: HeaderProps) {
   const t = useTranslations('nav')
-  const cartStore = useCartStore()
+  const tCommon = useTranslations('common')
+  const cartItems = useCartStore((state) => state.items)
+  const toggleCart = useCartStore((state) => state.toggleCart)
   const pathname = usePathname()
 
   const isRTL = locale === 'ar'
 
-  const totalItems = cartStore.items.reduce(
+  // Direct calculation from the single source of truth (Zustand items)
+  const totalItems = cartItems.reduce(
     (sum, item) => sum + item.quantity,
     0
   )
@@ -128,17 +133,11 @@ export function Header({ locale }: HeaderProps) {
   }, [])
 
   // =========================================================
-  // MOUNT
+  // MOUNT (Hydration-safe)
   // =========================================================
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMounted(true)
-    }, 0)
-
-    return () => {
-      clearTimeout(timer)
-    }
+    setMounted(true)
   }, [])
 
   // =========================================================
@@ -540,34 +539,47 @@ export function Header({ locale }: HeaderProps) {
             <div className="flex-1" />
 
             {/* =================================================
-                DESKTOP SEARCH
+                DESKTOP SEARCH TRIGGER
             ================================================= */}
 
             <div className="relative hidden lg:flex">
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="flex h-9 min-w-[200px] items-center gap-2 rounded-lg border px-3.5 text-sm transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                className="group flex h-10 w-[220px] xl:w-[260px] items-center gap-2.5 rounded-xl border transition-all duration-200 hover:border-[var(--accent)] hover:shadow-sm"
                 style={{
                   background: 'var(--bg-subtle)',
                   borderColor: 'var(--border)',
                   color: 'var(--text-muted)',
+                  paddingInline: '12px',
                 }}
+                dir={isRTL ? 'rtl' : 'ltr'}
+                aria-label={t('search')}
               >
-                <Search className="h-3.5 w-3.5 flex-shrink-0" />
+                <div
+                  className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md transition-colors group-hover:text-[var(--accent)]"
+                  style={{
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  <Search className="h-4 w-4" />
+                </div>
 
-                <span className="flex-1 text-start">
-                  {isRTL
-                    ? 'بحث...'
-                    : locale === 'fr'
-                      ? 'Rechercher...'
-                      : 'Search...'}
+                <span
+                  className="flex-1 truncate text-start text-xs font-medium"
+                  style={{
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  {tCommon('search')}
                 </span>
 
                 <kbd
-                  className="rounded border px-1 text-[10px] opacity-50"
+                  className="rounded-md border px-1.5 py-0.5 text-[10px] font-semibold opacity-60 transition-opacity group-hover:opacity-100"
                   style={{
                     borderColor: 'var(--border)',
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   ⌘K
@@ -587,11 +599,7 @@ export function Header({ locale }: HeaderProps) {
                 type="button"
                 className="icon-btn touch-target lg:hidden"
                 onClick={() => setSearchOpen(true)}
-                aria-label={
-                  locale === 'ar'
-                    ? 'بحث'
-                    : 'Search'
-                }
+                aria-label={t('search')}
               >
                 <Search className="h-[18px] w-[18px]" />
               </button>
@@ -603,7 +611,7 @@ export function Header({ locale }: HeaderProps) {
               <button
                 id="cart-toggle-btn"
                 type="button"
-                onClick={cartStore.toggleCart}
+                onClick={toggleCart}
                 className="icon-btn touch-target relative"
                 aria-label={t('cart')}
               >
@@ -616,9 +624,7 @@ export function Header({ locale }: HeaderProps) {
                       background: 'var(--accent)',
                     }}
                   >
-                    {totalItems > 9
-                      ? '9+'
-                      : totalItems}
+                    {totalItems > 9 ? '9+' : totalItems}
                   </span>
                 )}
               </button>
@@ -1178,226 +1184,363 @@ export function Header({ locale }: HeaderProps) {
       </div>
 
       {/* =====================================================
-          SEARCH OVERLAY
+          SEARCH OVERLAY (Responsive & Multi-Language)
       ===================================================== */}
 
       <div
         className={cn(
-          'fixed inset-0 z-[70] transition-all duration-300',
+          'fixed inset-0 z-[70] flex items-start justify-center transition-all duration-300',
           searchOpen
             ? 'visible opacity-100'
             : 'invisible pointer-events-none opacity-0'
         )}
         onClick={(event) => {
-          if (
-            event.target === event.currentTarget
-          ) {
+          if (event.target === event.currentTarget) {
             closeSearch()
           }
         }}
         style={{
-          background: 'rgba(0, 0, 0, 0.45)',
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          paddingInline: '12px',
         }}
       >
         <div
           className={cn(
-            'mx-3 w-auto max-w-2xl sm:mx-auto sm:w-full',
-            'transition-all duration-300',
+            'w-full overflow-hidden transition-all duration-300',
             searchOpen
-              ? 'translate-y-0 opacity-100'
-              : '-translate-y-4 opacity-0'
+              ? 'translate-y-0 scale-100 opacity-100'
+              : '-translate-y-3 scale-[0.98] opacity-0'
           )}
           style={{
             background: 'var(--card-bg)',
-            marginTop: '8vh',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow:
-              '0 25px 60px rgba(0,0,0,0.25)',
+            borderRadius: '22px',
+            boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border)',
+            marginTop: 'clamp(68px, 12vh, 92px)',
+            width: 'min(680px, calc(100vw - 24px))',
+            marginInline: 'auto',
           }}
+          dir={isRTL ? 'rtl' : 'ltr'}
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Search Input */}
-
+          {/* ── Search Input Header ────────────────────────── */}
           <div
-            className="flex items-center gap-2 border-b p-3 sm:gap-3 sm:p-4"
+            className="flex items-center gap-2.5 sm:gap-3 border-b"
             style={{
               borderColor: 'var(--border)',
+              paddingInline: '14px',
+              paddingBlock: '12px',
+              background: 'var(--bg-subtle)',
             }}
-            dir={isRTL ? 'rtl' : 'ltr'}
           >
-            <Search
-              className="h-5 w-5 flex-shrink-0"
+            {/* Search Icon Badge */}
+            <div
+              className="flex items-center justify-center flex-shrink-0"
               style={{
-                color: 'var(--text-muted)',
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'var(--accent-light)',
+                color: 'var(--accent)',
               }}
-            />
+            >
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+            </div>
 
+            {/* Input Field */}
             <input
               ref={searchRef}
               type="text"
               value={searchQ}
-              onChange={(event) =>
-                setSearchQ(event.target.value)
-              }
-              placeholder={
-                isRTL
-                  ? 'ابحثي عن منتج...'
-                  : locale === 'fr'
-                    ? 'Rechercher un produit...'
-                    : 'Search for a product...'
-              }
-              className="flex-1 bg-transparent text-sm outline-none sm:text-base"
+              onChange={(e) => setSearchQ(e.target.value)}
+              placeholder={tCommon('search')}
+              className="flex-1 bg-transparent text-sm sm:text-base outline-none min-w-0 font-medium"
               style={{
                 color: 'var(--text-primary)',
+                textAlign: 'start',
+                paddingInline: '4px',
               }}
               dir={isRTL ? 'rtl' : 'ltr'}
+              autoComplete="off"
+              spellCheck="false"
             />
 
+            {/* Clear Button */}
             {searchQ && (
               <button
                 type="button"
-                onClick={() => setSearchQ('')}
-                className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--accent-light)]"
-                aria-label="Clear search"
-                style={{
-                  color: 'var(--text-muted)',
+                onClick={() => {
+                  setSearchQ('')
+                  searchRef.current?.focus()
                 }}
+                className="flex items-center justify-center flex-shrink-0 transition-colors hover:bg-[var(--border)]"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-muted)',
+                }}
+                aria-label="Clear"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
 
+            {/* Close Button */}
             <button
               type="button"
               onClick={closeSearch}
-              className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[var(--accent-light)]"
-              aria-label={
-                isRTL
-                  ? 'إغلاق البحث'
-                  : 'Close search'
-              }
+              className="flex items-center justify-center gap-1.5 flex-shrink-0 transition-all hover:border-[var(--accent)] hover:text-[var(--accent)]"
               style={{
+                height: 34,
+                paddingInline: '10px',
+                borderRadius: 8,
                 color: 'var(--text-muted)',
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border)',
+                fontSize: 11,
+                fontWeight: 700,
               }}
+              aria-label={tCommon('close')}
             >
-              <X className="h-5 w-5" />
+              <span className="hidden sm:inline">ESC</span>
+              <X className="h-4 w-4 sm:hidden" />
             </button>
           </div>
 
-          {/* Search Results */}
-
-          <div className="max-h-[60vh] overflow-y-auto sm:max-h-[420px]">
+          {/* ── Search Body & Results ────────────────────────── */}
+          <div className="max-h-[60vh] sm:max-h-[440px] overflow-y-auto">
             {searching ? (
               <div
-                className="p-8 text-center"
-                style={{
-                  color: 'var(--text-muted)',
-                }}
+                className="flex flex-col items-center justify-center p-10 text-center"
+                style={{ color: 'var(--text-muted)' }}
               >
-                <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+                <div className="h-7 w-7 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent mb-3" />
+                <p className="text-xs font-medium">{tCommon('loading')}</p>
               </div>
             ) : searchRes.length > 0 ? (
-              searchRes.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/${locale}/products/${product.slug}`}
-                  onClick={closeSearch}
-                  className="flex items-center gap-3 border-b px-4 py-3 transition-colors hover:bg-[var(--accent-light)]"
+              <div>
+                {/* Result header count */}
+                <div
+                  className="flex items-center justify-between border-b text-[11px] font-bold uppercase tracking-wider"
                   style={{
-                    borderColor:
-                      'var(--border-subtle)',
-                  }}
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                >
-                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--bg-muted)]">
-                    <Image
-                      src={
-                        product.mainImage ||
-                        '/images/brand/logo-icon.png'
-                      }
-                      alt={
-                        product.nameAr ||
-                        product.nameFr ||
-                        product.nameEn
-                      }
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="truncate text-sm font-semibold"
-                      style={{
-                        color:
-                          'var(--text-primary)',
-                      }}
-                    >
-                      {locale === 'ar'
-                        ? product.nameAr
-                        : locale === 'fr'
-                          ? product.nameFr
-                          : product.nameEn}
-                    </p>
-
-                    <p
-                      className="mt-0.5 text-xs"
-                      style={{
-                        color: 'var(--accent)',
-                      }}
-                    >
-                      {product.salePrice
-                        ? `${product.salePrice} د.م.`
-                        : `${product.basePrice} د.م.`}
-                    </p>
-                  </div>
-                </Link>
-              ))
-            ) : searchQ.trim() ? (
-              <div
-                className="p-8 text-center"
-                dir={isRTL ? 'rtl' : 'ltr'}
-              >
-                <p
-                  className="text-sm font-medium"
-                  style={{
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  {isRTL
-                    ? 'لا توجد نتائج'
-                    : locale === 'fr'
-                      ? 'Aucun résultat'
-                      : 'No results found'}
-                </p>
-
-                <p
-                  className="mt-1 text-xs"
-                  style={{
+                    paddingInline: '16px',
+                    paddingBlock: '8px',
+                    borderColor: 'var(--border-subtle)',
+                    background: 'var(--bg-subtle)',
                     color: 'var(--text-muted)',
                   }}
                 >
-                  {isRTL
-                    ? `لا يوجد منتج يطابق "${searchQ}"`
+                  <span>
+                    {locale === 'ar'
+                      ? `نتائج البحث (${searchRes.length})`
+                      : locale === 'fr'
+                        ? `Résultats (${searchRes.length})`
+                        : `Search Results (${searchRes.length})`}
+                  </span>
+                </div>
+
+                {/* Items list */}
+                <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+                  {searchRes.map((product) => {
+                    const productName =
+                      locale === 'ar'
+                        ? product.nameAr
+                        : locale === 'fr'
+                          ? product.nameFr
+                          : product.nameEn
+
+                    const categoryName = product.category
+                      ? locale === 'ar'
+                        ? product.category.nameAr
+                        : locale === 'fr'
+                          ? product.category.nameFr
+                          : product.category.nameEn
+                      : null
+
+                    const displayPrice = product.salePrice ?? product.basePrice
+                    const hasDiscount = Boolean(
+                      product.salePrice && product.salePrice < product.basePrice
+                    )
+
+                    return (
+                      <Link
+                        key={product.id}
+                        href={`/${locale}/products/${product.slug}`}
+                        onClick={closeSearch}
+                        className="group flex items-center gap-3.5 transition-colors hover:bg-[var(--accent-light)]"
+                        style={{
+                          paddingInline: '16px',
+                          paddingBlock: '12px',
+                        }}
+                      >
+                        {/* Thumbnail */}
+                        <div
+                          className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl border"
+                          style={{
+                            borderColor: 'var(--border)',
+                            background: 'var(--bg-muted)',
+                          }}
+                        >
+                          <Image
+                            src={product.mainImage || '/images/brand/logo-icon.png'}
+                            alt={productName}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="56px"
+                          />
+                        </div>
+
+                        {/* Info */}
+                        <div className="min-w-0 flex-1 flex flex-col gap-1">
+                          <p
+                            className="truncate text-sm font-bold transition-colors group-hover:text-[var(--accent)]"
+                            style={{
+                              color: 'var(--text-primary)',
+                              textAlign: 'start',
+                            }}
+                          >
+                            {productName}
+                          </p>
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {/* Price */}
+                            <span
+                              className="text-sm font-extrabold"
+                              style={{ color: 'var(--accent)' }}
+                            >
+                              {formatPrice(displayPrice, locale)}
+                            </span>
+
+                            {/* Original Price if discounted */}
+                            {hasDiscount && (
+                              <span
+                                className="text-xs line-through"
+                                style={{ color: 'var(--text-muted)' }}
+                              >
+                                {formatPrice(product.basePrice, locale)}
+                              </span>
+                            )}
+
+                            {/* Category Tag */}
+                            {categoryName && (
+                              <span
+                                className="text-[10px] font-semibold rounded-md border"
+                                style={{
+                                  paddingInline: '6px',
+                                  paddingBlock: '1px',
+                                  background: 'var(--bg-subtle)',
+                                  borderColor: 'var(--border)',
+                                  color: 'var(--text-muted)',
+                                }}
+                              >
+                                {categoryName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Arrow indicator */}
+                        <div
+                          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
+                          style={{
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          <ArrowRight
+                            className={cn('h-4 w-4', isRTL ? 'rotate-180' : '')}
+                          />
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : searchQ.trim() ? (
+              /* No Results State */
+              <div
+                className="flex flex-col items-center justify-center p-10 text-center"
+                style={{ paddingInline: '20px' }}
+              >
+                <div
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl mb-2.5"
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  <Search className="h-5 w-5" />
+                </div>
+
+                <p
+                  className="text-sm font-bold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {tCommon('noResults')}
+                </p>
+
+                <p
+                  className="mt-1 text-xs max-w-xs"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  {locale === 'ar'
+                    ? `لم نتمكن من العثور على أي منتج يطابق "${searchQ}". يرجى التحقق من صحة الكلمات.`
                     : locale === 'fr'
-                      ? `Aucun produit ne correspond à "${searchQ}"`
-                      : `No product matched "${searchQ}"`}
+                      ? `Aucun produit ne correspond à "${searchQ}". Veuillez vérifier l'orthographe.`
+                      : `No products matched "${searchQ}". Please check your spelling and try again.`}
                 </p>
               </div>
             ) : (
+              /* Empty Initial State: Popular Searches */
               <div
-                className="p-8 text-center text-xs"
                 style={{
-                  color: 'var(--text-muted)',
+                  paddingInline: '16px',
+                  paddingBlock: '18px',
                 }}
-                dir={isRTL ? 'rtl' : 'ltr'}
               >
-                {isRTL
-                  ? 'اكتبي اسم المنتج للبحث...'
-                  : locale === 'fr'
-                    ? 'Recherchez un produit...'
-                    : 'Type to search products...'}
+                <div className="flex items-center gap-1.5 mb-3" style={{ paddingInline: '2px' }}>
+                  <Sparkles className="h-3.5 w-3.5" style={{ color: 'var(--accent)' }} />
+                  <span
+                    className="text-[11px] font-bold uppercase tracking-wider"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    {locale === 'ar'
+                      ? 'عمليات البحث الشائعة'
+                      : locale === 'fr'
+                        ? 'RECHERCHES POPULAIRES'
+                        : 'POPULAR SEARCHES'}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {(locale === 'ar'
+                    ? ['جلابة', 'نقاب', 'مخزنية', 'حرير', 'عروض']
+                    : locale === 'fr'
+                      ? ['Jellaba', 'Niqab', 'Soie', 'Offres', 'Makhzania']
+                      : ['Djellaba', 'Niqab', 'Silk', 'Offers', 'Makhzania']
+                  ).map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        setSearchQ(tag)
+                        searchRef.current?.focus()
+                      }}
+                      className="text-xs font-semibold rounded-xl border transition-all hover:border-[var(--accent)] hover:text-[var(--accent)] hover:scale-105 active:scale-95"
+                      style={{
+                        paddingInline: '12px',
+                        paddingBlock: '7px',
+                        background: 'var(--bg-subtle)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
