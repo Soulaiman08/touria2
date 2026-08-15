@@ -270,15 +270,6 @@ export function Header({ locale }: HeaderProps) {
             : 'Products',
     },
     {
-      href: `/${locale}/products?sort=sale`,
-      label:
-        locale === 'ar'
-          ? 'العروض'
-          : locale === 'fr'
-            ? 'Offres'
-            : 'Offers',
-    },
-    {
       href: `/${locale}/orders`,
       label:
         locale === 'ar'
@@ -420,40 +411,20 @@ export function Header({ locale }: HeaderProps) {
   return (
     <>
       {/* =====================================================
-          TOP INFO BAR
-      ===================================================== */}
-
-      <div
-        className="hidden w-full px-4 py-2 text-center text-xs font-medium sm:block"
-        style={{
-          background: 'var(--accent)',
-          color: '#fff',
-        }}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
-        <span className="opacity-90">✦</span>{' '}
-        نوفر لكم نقاب مغربي وجلابة مخزنية بقب كبير
-        للمنقبات وبقب صغير لغير المنقبات{' '}
-        <span className="opacity-90">✦</span>
-      </div>
-
-      {/* =====================================================
           HEADER
       ===================================================== */}
 
       <header
         className={cn(
-          'sticky top-0 z-50 w-full transition-all duration-300',
+          'storefront-header sticky top-0 z-50 w-full transition-all duration-300',
           scrolled ? 'header-scrolled' : ''
         )}
         style={{
           background: 'var(--header-bg)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: `1px solid ${scrolled
-            ? 'var(--header-border)'
-            : 'transparent'
-            }`,
+          // Keep the navigation visually separated from page content on every route.
+          borderBottom: '1px solid var(--header-border)',
         }}
         role="banner"
       >
@@ -517,7 +488,7 @@ export function Header({ locale }: HeaderProps) {
             ================================================= */}
 
             <nav
-              className="ms-2 hidden items-center gap-1.5 md:flex"
+              className="ms-2 hidden items-center gap-1.5 xl:flex"
               aria-label={
                 isRTL
                   ? 'التنقل الرئيسي'

@@ -376,7 +376,7 @@ export function ProductCard({
           )}
 
         {/* Price + CTA */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2.5 sm:pt-3 mt-auto border-t border-[var(--border)]/40 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2.5 sm:pt-3 mt-auto min-w-0">
           {/* Prices */}
           <div className="flex items-baseline gap-1.5 min-w-0">
             {product.salePrice ? (
