@@ -521,7 +521,12 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                       {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                      {cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span> | {cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span>
+                      {!item.isNiqab && item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
+                        <>
+                          {cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span> |{' '}
+                        </>
+                      )}
+                      {cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span>
                     </p>
                     {item.niqabItems && item.niqabItems.length > 0 && (
                       <div className="mt-1 text-[11px] text-[#b8965a]">

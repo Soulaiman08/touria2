@@ -35,7 +35,7 @@ export interface CartItem {
 
   mainImage: string
 
-  size: string
+  size?: string
 
   colorCode: string
   colorNameAr: string

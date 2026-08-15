@@ -839,7 +839,7 @@ export default async function HomePage({ params }: HomePageProps) {
           <blockquote
             className="text-xl sm:text-2xl font-bold leading-relaxed max-w-2xl mx-auto"
             style={{
-              color: '#000000',
+              color: 'var(--text-primary)',
               fontFamily: isRTL
                 ? 'var(--font-arabic)'
                 : 'var(--font-display)',

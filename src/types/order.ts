@@ -23,6 +23,7 @@ export interface OrderItem {
   createdAt: Date
 }
 
+
 export interface ProductSnapshot {
   productId: string
   variantId?: string | null
@@ -30,7 +31,8 @@ export interface ProductSnapshot {
   nameFr: string
   nameEn: string
   mainImage: string
-  selectedSize: string
+  isNiqab?: boolean
+  selectedSize?: string
   selectedColor: { code: string; nameAr: string; nameFr: string; nameEn: string }
   sku: string
   quantity: number

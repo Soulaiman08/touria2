@@ -73,7 +73,9 @@ export const orderService = {
           snapshot: {
             productId: product.id, variantId: variant?.id ?? null, nameAr: product.nameAr, nameFr: product.nameFr, nameEn: product.nameEn,
             mainImage: variant?.images[0] ?? product.mainImage, sku: product.sku,
-            selectedSize: variant?.size ?? '', selectedColor: { code: variant?.colorCode ?? '', nameAr: variant?.colorNameAr ?? '', nameFr: variant?.colorNameFr ?? '', nameEn: variant?.colorNameEn ?? '' },
+            isNiqab: product.isNiqab,
+            selectedSize: product.isNiqab ? '' : (variant?.size ?? ''),
+            selectedColor: { code: variant?.colorCode ?? '', nameAr: variant?.colorNameAr ?? '', nameFr: variant?.colorNameFr ?? '', nameEn: variant?.colorNameEn ?? '' },
             quantity: requestedItem.quantity, unitPrice, totalPrice, niqabs,
           },
         })

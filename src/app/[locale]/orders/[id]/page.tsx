@@ -153,6 +153,17 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
           <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
             {order.items.map((item) => {
               const snap = item.productSnapshot
+              const rawSize = snap.selectedSize || ''
+              const isNiqabItem = Boolean(
+                snap.isNiqab ||
+                (snap.nameAr && /نقاب/i.test(snap.nameAr)) ||
+                (snap.nameFr && /niqab/i.test(snap.nameFr))
+              )
+              const hasRealSize =
+                !isNiqabItem &&
+                rawSize &&
+                !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(rawSize.toLowerCase().trim())
+
               return (
                 <div key={item.id} className="py-3.5 flex justify-between items-center text-xs">
                   <div>
@@ -160,7 +171,8 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
                       {locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
                     </p>
                     <p className="mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                      {cartT('size')}: {snap.selectedSize} | {cartT('quantity')}: {item.quantity}
+                      {hasRealSize && <>{cartT('size')}: {rawSize} | </>}
+                      {cartT('quantity')}: {item.quantity}
                     </p>
                   </div>
                   <span className="font-bold" style={{ color: 'var(--foreground)' }}>

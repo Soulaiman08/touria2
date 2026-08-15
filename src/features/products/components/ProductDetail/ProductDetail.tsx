@@ -294,7 +294,7 @@ export function ProductDetail({
     setSelectedSize,
   ] = useState<string>(
     product.isNiqab
-      ? 'Standard'
+      ? ''
       : sizes[0] || '',
   )
 
@@ -716,11 +716,18 @@ export function ProductDetail({
         niqabSelections.forEach((selection) => {
           const variant = product.variants?.find((entry) => entry.id === selection.variantId)
           cartStore.addItem({
-            productId: product.id, variantId: selection.variantId, slug: product.slug,
-            nameAr: product.nameAr, nameFr: product.nameFr, nameEn: product.nameEn,
-            mainImage: variant?.images[0] || product.mainImage, size: variant?.size || 'Standard',
-            colorCode: selection.colorCode, colorNameAr: selection.colorNameAr,
-            colorNameFr: selection.colorNameFr, colorNameEn: selection.colorNameEn,
+            productId: product.id,
+            variantId: selection.variantId,
+            slug: product.slug,
+            nameAr: product.nameAr,
+            nameFr: product.nameFr,
+            nameEn: product.nameEn,
+            mainImage: variant?.images[0] || product.mainImage,
+            size: '',
+            colorCode: selection.colorCode,
+            colorNameAr: selection.colorNameAr,
+            colorNameFr: selection.colorNameFr,
+            colorNameEn: selection.colorNameEn,
             quantity: selection.quantity,
             unitPrice: basePriceVal + Number(variant?.priceModifier || 0),
             isNiqab: true,
@@ -776,8 +783,8 @@ export function ProductDetail({
 
         size:
           product.isNiqab
-            ? 'Standard'
-            : selectedSize,
+            ? ''
+            : (sizes.length > 0 ? selectedSize : ''),
 
         colorCode,
 

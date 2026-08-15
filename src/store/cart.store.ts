@@ -33,7 +33,7 @@ export const useCartStore =
             (cartItem) =>
               cartItem.productId === item.productId &&
               cartItem.variantId === item.variantId &&
-              cartItem.size === item.size &&
+              (cartItem.size || '') === (item.size || '') &&
               cartItem.colorCode === item.colorCode &&
               JSON.stringify(cartItem.niqabItems ?? []) ===
                 JSON.stringify(item.niqabItems ?? []),

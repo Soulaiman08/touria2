@@ -153,8 +153,12 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                             {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
                           </h4>
                           <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1 text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                            <span>{t('size')}: {item.size}</span>
-                            <span>•</span>
+                            {!item.isNiqab && item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
+                              <>
+                                <span>{t('size')}: {item.size}</span>
+                                <span>•</span>
+                              </>
+                            )}
                             <span className="flex items-center gap-1">
                               <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: item.colorCode }} />
                               {locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn}
