@@ -498,26 +498,30 @@ h6 {
 
 /* Section vertical breathing room */
 .section-gap {
-  padding-block: 2.25rem;
+  padding-block: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .section-gap {
+    padding-block: 2.75rem;
+  }
 }
 
 @media (min-width: 768px) {
   .section-gap {
-    padding-block: 4rem;
+    padding-block: 3.5rem;
   }
 }
 
-/* 64px tablet */
 @media (min-width: 1024px) {
   .section-gap {
-    padding-block: 5rem;
+    padding-block: 4.5rem;
   }
 }
 
-/* 80px desktop */
 @media (min-width: 1280px) {
   .section-gap {
-    padding-block: 6rem;
+    padding-block: 5.5rem;
   }
 }
 
@@ -1666,9 +1670,9 @@ h6 {
    ============================================================ */
 
 /* The container grid alignment */
-.home-hero > .container-brand,
-.home-section > .container-brand,
-.home-section-banners > .container-brand {
+.home-hero>.container-brand,
+.home-section>.container-brand,
+.home-section-banners>.container-brand {
   width: 100%;
   max-width: 1280px;
   margin-inline: auto;
@@ -1688,11 +1692,13 @@ h6 {
 
 /* On mobile, preserve the normal page breathing room */
 @media (max-width: 639px) {
-  .home-hero > .container-brand,
-  .home-section > .container-brand,
-  .home-section-banners > .container-brand {
+
+  .home-hero>.container-brand,
+  .home-section>.container-brand,
+  .home-section-banners>.container-brand {
     padding-inline: 1rem !important;
   }
+
   .admin-sidebar {
     position: fixed !important;
     inset: 0 auto 0 0 !important;
@@ -1785,6 +1791,30 @@ h6 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Hero section styling & transparency */
+.home-hero {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+:root .home-hero-shell,
+.dark .home-hero-shell {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.home-hero>.pattern-moroccan {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.home-hero>.absolute.inset-0.pointer-events-none:not(.pattern-moroccan) {
+  background-color: transparent !important;
 }
 
 /* ═══════════════════════════════════════════════
@@ -2010,126 +2040,56 @@ body {
       transparent 66%);
 }
 
-.dark .glass {
-  background: rgba(20, 10, 3, 0.82);
-  border-color: rgba(184, 150, 90, 0.15);
-}
-
-/* Keep the same alignment on small screens while preserving the existing
-   mobile spacing. */
-@media (max-width: 639px) {
-
-  .home-hero>.container-brand,
-  .home-section>.container-brand,
-  .home-section-banners>.container-brand {
-    width: 100%;
-  }
-}
-
-
-/* =========================================================
-   FINAL HERO WIDTH ALIGNMENT
-   ========================================================= */
-
-/* The Hero must use the same outer width as the content sections below. */
-.home-hero>.container-brand {
-  width: 100% !important;
-  max-width: 1280px !important;
-  margin-inline: auto !important;
-  padding-inline: 0 !important;
-}
-
-.home-hero-shell {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin-inline: 0 !important;
-}
-
-/* Keep the sections below on the same 1280px outer grid. */
-.home-section>.container-brand,
-.home-section-banners>.container-brand {
-  width: 100% !important;
-  max-width: 1280px !important;
-  margin-inline: auto !important;
-}
-
-/* On mobile, preserve the normal page breathing room. */
-@media (max-width: 639px) {
-  .home-hero>.container-brand {
-    padding-inline: 1rem !important;
-  }
-
-  .home-section>.container-brand,
-  .home-section-banners>.container-brand {
-    padding-inline: 1rem !important;
-  }
-}
-
-
-/* =========================================================
-   HERO — LET THE MOROCCAN PATTERN SHOW THROUGH
-   =========================================================
-   IMPORTANT:
-   The Hero pattern is rendered inside .home-hero by the
-   .pattern-moroccan layer. The opaque .home-hero-shell was
-   covering it, especially because :root/.dark selectors
-   had higher specificity.
-*/
-.home-hero {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
 /* Match the existing light/dark selectors with higher specificity. */
 :root .home-hero-shell,
 .dark .home-hero-shell {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
 
-/* Keep the pattern layer visible behind all Hero content. */
-.home-hero>.pattern-moroccan {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
+  /* Keep the pattern layer visible behind all Hero content. */
+  .home-hero>.pattern-moroccan {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
 
-/* The decorative radial glow should not become an opaque surface. */
-.home-hero>.absolute.inset-0.pointer-events-none:not(.pattern-moroccan) {
-  background-color: transparent !important;
-}
+  /* The decorative radial glow should not become an opaque surface. */
+  .home-hero>.absolute.inset-0.pointer-events-none:not(.pattern-moroccan) {
+    background-color: transparent !important;
+  }
 
-/* إخفاء شريط التمرير مع إبقاء التمرير يعمل */
-.scrollbar-hidden {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+  /* إخفاء شريط التمرير مع إبقاء التمرير يعمل */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 
-.scrollbar-hidden::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
 
-/* ── Select Option Theme Support (Light / Dark Mode) ── */
-select option {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
+  /* ── Select Option Theme Support (Light / Dark Mode) ── */
+  select option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
 
-.dark select option {
-  background-color: #1f1008 !important;
-  color: #ffffff !important;
-}
+  .dark select option {
+    background-color: #1f1008 !important;
+    color: #ffffff !important;
+  }
 
-/* Homepage contact links use the same compact layout on every screen size. */
+  /* Homepage contact links use the same compact layout on every screen size. */
   .home-contact-section.section-gap {
     padding-block: 1rem;
   }
 
-  .home-contact-section > .container-brand {
+  .home-contact-section>.container-brand {
     padding-block: 1.25rem;
   }
 
@@ -2156,7 +2116,7 @@ select option {
     overflow: hidden;
   }
 
-  .home-contact-card > :not([hidden]) ~ :not([hidden]) {
+  .home-contact-card> :not([hidden])~ :not([hidden]) {
     margin-top: 0;
   }
 
@@ -2190,8 +2150,8 @@ select option {
     display: none;
   }
 
-@media (min-width: 1024px) {
-  .home-contact-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  @media (min-width: 1024px) {
+    .home-contact-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    }
   }
-}

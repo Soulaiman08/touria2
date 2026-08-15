@@ -571,19 +571,12 @@ export function Header({ locale }: HeaderProps) {
                     color: 'var(--text-muted)',
                   }}
                 >
-                  {tCommon('search')}
+                  {locale === 'ar'
+                    ? 'ابحث عن منتج...'
+                    : locale === 'fr'
+                      ? 'Rechercher un produit...'
+                      : 'Search for a product...'}
                 </span>
-
-                <kbd
-                  className="rounded-md border px-1.5 py-0.5 text-[10px] font-semibold opacity-60 transition-opacity group-hover:opacity-100"
-                  style={{
-                    borderColor: 'var(--border)',
-                    background: 'var(--card-bg)',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  ⌘K
-                </kbd>
               </button>
             </div>
 
@@ -1254,7 +1247,13 @@ export function Header({ locale }: HeaderProps) {
               type="text"
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              placeholder={tCommon('search')}
+              placeholder={
+                locale === 'ar'
+                  ? 'ابحث عن منتج...'
+                  : locale === 'fr'
+                    ? 'Rechercher un produit...'
+                    : 'Search for a product...'
+              }
               className="flex-1 bg-transparent text-sm sm:text-base outline-none min-w-0 font-medium"
               style={{
                 color: 'var(--text-primary)',

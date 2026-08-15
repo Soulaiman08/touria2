@@ -376,20 +376,19 @@ export function ProductCard({
           )}
 
         {/* Price + CTA */}
-        <div className="flex items-end justify-between gap-2 pt-2 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2.5 sm:pt-3 mt-auto border-t border-[var(--border)]/40 min-w-0">
           {/* Prices */}
-          <div className="flex items-baseline gap-1.5 min-w-0 whitespace-nowrap">
+          <div className="flex items-baseline gap-1.5 min-w-0">
             {product.salePrice ? (
-              <>
+              <div className="flex items-baseline gap-1.5">
                 <span
-                  className="price-sale text-base font-bold whitespace-nowrap"
+                  className="price-sale text-sm sm:text-base font-bold whitespace-nowrap"
                   style={{ color: 'var(--accent)' }}
                 >
                   {formatPrice(product.salePrice, locale)}
                 </span>
-
                 <span
-                  className="price-original text-xs whitespace-nowrap"
+                  className="price-original text-[11px] sm:text-xs whitespace-nowrap"
                   style={{
                     color: 'var(--text-muted)',
                     textDecoration: 'line-through',
@@ -397,9 +396,9 @@ export function ProductCard({
                 >
                   {formatPrice(product.basePrice, locale)}
                 </span>
-              </>
+              </div>
             ) : (
-              <span className="price-current text-base font-bold whitespace-nowrap">
+              <span className="price-current text-sm sm:text-base font-bold whitespace-nowrap">
                 {formatPrice(product.basePrice, locale)}
               </span>
             )}
@@ -409,21 +408,26 @@ export function ProductCard({
           <Link
             href={`/${locale}/products/${product.slug}`}
             className="
-             flex-shrink-0
-             inline-flex
-             items-center
-             justify-center
-             whitespace-nowrap
-             rounded-full
-             font-semibold
-             transition-all
+              w-full
+              sm:w-auto
+              inline-flex
+              items-center
+              justify-center
+              whitespace-nowrap
+              rounded-lg
+              sm:rounded-full
+              font-semibold
+              transition-all
+              hover:opacity-90
+              active:scale-95
+              text-center
             "
             style={{
               background: 'var(--accent)',
               color: '#fff',
               fontSize: '11px',
-              padding: '7px 11px',
-              minHeight: '32px',
+              padding: '6px 12px',
+              minHeight: '28px',
             }}
             aria-label={`${viewLabel}: ${name}`}
           >
