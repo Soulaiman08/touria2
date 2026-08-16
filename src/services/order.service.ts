@@ -23,20 +23,23 @@ async function resolveShippingCost(
   regionValue: string,
   tx: Prisma.TransactionClient
 ): Promise<number> {
+  const normalizedCity = (cityValue || '').trim().toLowerCase()
+  const normalizedRegion = (regionValue || '').trim().toLowerCase()
+
   // Validate city exists in our dataset
-  const cityInfo = getCityByValue(cityValue)
+  const cityInfo = getCityByValue(normalizedCity)
   if (!cityInfo) {
     throw new Error('Invalid city selected')
   }
 
   // Validate region matches the city
-  if (regionValue && cityInfo.regionId !== regionValue) {
+  if (normalizedRegion && cityInfo.regionId.toLowerCase() !== normalizedRegion) {
     throw new Error('Selected city does not belong to the selected region')
   }
 
   // Look up city-specific price, then default, then hardcoded fallback
   const [cityRow, defaultRow] = await Promise.all([
-    tx.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityValue}` } }),
+    tx.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityInfo.value}` } }),
     tx.siteSetting.findUnique({ where: { key: DEFAULT_SHIPPING_KEY } }),
   ])
 

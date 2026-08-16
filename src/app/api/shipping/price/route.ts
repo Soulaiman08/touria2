@@ -13,21 +13,23 @@ const DEFAULT_KEY = 'shipping:default'
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const cityValue = searchParams.get('city')
+    const rawCity = searchParams.get('city')
 
-    if (!cityValue) {
+    if (!rawCity) {
       return NextResponse.json({ error: 'city param required' }, { status: 400 })
     }
 
+    const normalizedCity = rawCity.trim().toLowerCase()
+
     // Validate city is a known city
-    const cityInfo = getCityByValue(cityValue)
+    const cityInfo = getCityByValue(normalizedCity)
     if (!cityInfo) {
       return NextResponse.json({ error: 'Unknown city' }, { status: 400 })
     }
 
     // Look up city-specific price first, then default, then hardcoded fallback
     const [cityRow, defaultRow] = await Promise.all([
-      prisma.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityValue}` } }),
+      prisma.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityInfo.value}` } }),
       prisma.siteSetting.findUnique({ where: { key: DEFAULT_KEY } }),
     ])
 
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
     const price = cityRow ? (Number(cityRow.value) || defaultPrice) : defaultPrice
 
     return NextResponse.json(
-      { city: cityValue, price, defaultPrice },
+      { city: cityInfo.value, price, defaultPrice },
       {
         headers: {
           // Short cache: allow CDN/browser to cache for 60s, re-validate in background

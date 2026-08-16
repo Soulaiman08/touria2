@@ -91,8 +91,17 @@ function ShippingTab() {
         const data = await res.json() as { defaultPrice: number; cities: CityShippingRow[] }
         setDefaultPrice(data.defaultPrice)
         setDefaultPriceInput(String(data.defaultPrice))
-        // Only show cities that have a custom price
-        setConfiguredCities(data.cities.filter((c) => c.price !== null))
+        // Only show cities that have a custom price, deduplicating by cityValue
+        const seen = new Set<string>()
+        const customList: CityShippingRow[] = []
+        for (const c of data.cities) {
+          const normKey = c.cityValue.toLowerCase()
+          if (c.price !== null && !seen.has(normKey)) {
+            seen.add(normKey)
+            customList.push(c)
+          }
+        }
+        setConfiguredCities(customList)
       }
     } catch {
       error('Failed to load shipping configuration')
@@ -115,7 +124,7 @@ function ShippingTab() {
     const val = e.target.value
     setSelectedCity(val)
     // Pre-fill with existing configured price if any, else default
-    const existing = configuredCities.find((c) => c.cityValue === val)
+    const existing = configuredCities.find((c) => c.cityValue.toLowerCase() === val.toLowerCase())
     setCityPriceInput(String(existing?.price ?? defaultPrice))
   }
 
@@ -360,8 +369,8 @@ function ShippingTab() {
               </table>
             </div>
 
-            {/* Mobile cards */}
-            <div className="sm:hidden" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Mobile cards (hidden on sm screens and up) */}
+            <div className="flex flex-col gap-2.5 sm:!hidden">
               {configuredCities.map((row) => (
                 <div key={row.cityValue} style={{ background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.6)', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                   <div>

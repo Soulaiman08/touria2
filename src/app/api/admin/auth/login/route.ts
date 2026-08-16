@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { hashPassword, verifyPassword, signAdminToken, COOKIE_NAME } from '@/lib/auth'
+import { verifyPassword, signAdminToken, COOKIE_NAME, AuthConfigurationError } from '@/lib/auth'
 
 const attempts = new Map<string, { count: number; resetAt: number }>()
+const SAFE_LOGIN_ERROR = 'Unable to sign in. Please try again.'
+const ADMIN_ROLES = new Set(['ADMIN', 'SUPER_ADMIN', 'ADMINISTRATOR', 'MANAGER', 'STAFF', 'STAFF MEMBER'])
 
 export async function POST(request: Request) {
   try {
@@ -22,34 +24,47 @@ export async function POST(request: Request) {
     }
     if (!attempt || attempt.resetAt <= now) attempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
     else attempt.count += 1
-    let admin = null
-
-    // Attempt DB lookup with 2s timeout
+    let admin
     try {
-      const dbPromise = prisma.adminUser.findUnique({
+      admin = await prisma.adminUser.findUnique({
         where: { email: cleanEmail },
       })
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
-      admin = await Promise.race([dbPromise, timeoutPromise])
     } catch {
-      console.warn('⚠️ DB lookup failed or timed out')
+      console.error('[ADMIN_AUTH] Database connection failed')
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 503 })
     }
 
-    if (admin) {
-      const isValid = verifyPassword(password, admin.passwordHash)
-      if (!isValid) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    if (!admin) {
+      console.warn('[ADMIN_AUTH] Admin user not found')
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 401 })
+    }
+
+    if (!verifyPassword(password, admin.passwordHash)) {
+      console.warn('[ADMIN_AUTH] Password verification failed')
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 401 })
+    }
+
+    if (!ADMIN_ROLES.has(admin.role.trim().toUpperCase())) {
+      console.warn('[ADMIN_AUTH] Role validation failed')
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 401 })
+    }
+
+    let token: string
+    try {
+      token = signAdminToken({
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
+      })
+    } catch (error) {
+      if (error instanceof AuthConfigurationError) {
+        console.error('[ADMIN_AUTH] JWT secret missing')
+      } else {
+        console.error('[ADMIN_AUTH] JWT creation failed')
       }
-    } else {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 500 })
     }
-
-    const token = signAdminToken({
-      id: admin.id,
-      email: admin.email,
-      name: admin.name,
-      role: admin.role,
-    })
 
     const response = NextResponse.json({
       success: true,
@@ -72,8 +87,8 @@ export async function POST(request: Request) {
     response.headers.set('Cache-Control', 'no-store')
 
     return response
-  } catch (error) {
-    console.error('Login error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch {
+    console.error('[ADMIN_AUTH] Unexpected login failure')
+    return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 500 })
   }
 }

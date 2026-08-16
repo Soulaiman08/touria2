@@ -8,7 +8,7 @@ export const COOKIE_NAME = 'admin_token'
 function getJwtSecret(): string {
   const secret = process.env.ADMIN_JWT_SECRET
   if (!secret || secret.length < 32) {
-    throw new Error('ADMIN_JWT_SECRET is not configured with sufficient entropy')
+    throw new AuthConfigurationError('ADMIN_JWT_SECRET is not configured with sufficient entropy')
   }
   return secret
 }
@@ -25,6 +25,13 @@ export class AuthDatabaseUnavailableError extends Error {
   constructor() {
     super('Authentication database lookup unavailable')
     this.name = 'AuthDatabaseUnavailableError'
+  }
+}
+
+export class AuthConfigurationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AuthConfigurationError'
   }
 }
 
