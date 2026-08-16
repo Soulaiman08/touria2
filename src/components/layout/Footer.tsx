@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
@@ -14,11 +15,11 @@ interface FooterProps {
 export function Footer({ locale }: FooterProps) {
   const isRTL = locale === 'ar'
   const year = new Date().getFullYear()
+  const pathname = usePathname()
   const { settings } = useSiteSettings()
   const [logoError, setLogoError] = useState(false)
 
   const t = useTranslations('footer')
-  const tNav = useTranslations('nav')
 
   // ── Contact & Social from database / settings ──────────────────────
   const phone = settings?.contactPhone?.trim() || siteConfig.contact.phone
@@ -39,13 +40,26 @@ export function Footer({ locale }: FooterProps) {
         )}`
     : ''
 
-  const instagramUrl = settings?.instagram?.trim() || siteConfig.social.instagram
-  const facebookUrl = settings?.facebook?.trim() || siteConfig.social.facebook
-  const tiktokUrl = settings?.tiktok?.trim() || siteConfig.social.tiktok
-  const youtubeUrl = settings?.youtube?.trim() || 'https://youtube.com/@thuraya.almaghribi'
+  const instagramUrl = settings?.instagram?.trim() || siteConfig.social.instagram || ''
+  const facebookUrl = settings?.facebook?.trim() || siteConfig.social.facebook || ''
+  const tiktokUrl = settings?.tiktok?.trim() || siteConfig.social.tiktok || ''
+  const youtubeUrl = settings?.youtube?.trim() || siteConfig.social.youtube || ''
 
   const storeLogo = settings?.logo?.trim() || '/images/brand/logo-full.png'
   const storeName = settings?.storeName?.trim() || (isRTL ? siteConfig.name : siteConfig.nameEn)
+
+  // ── Smooth Scroll Handler for Contact Us ───────────────────────────
+  const handleContactClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const isHomePage = pathname === `/${locale}` || pathname === `/${locale}/` || pathname === '/'
+    if (isHomePage) {
+      e.preventDefault()
+      const contactSection = document.getElementById('contact')
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth' })
+        window.history.replaceState(null, '', `#contact`)
+      }
+    }
+  }
 
   // ── Column 2: Quick Links ──────────────────────────────────────────
   const quickLinks = [
@@ -54,7 +68,7 @@ export function Footer({ locale }: FooterProps) {
     { href: `/${locale}/products?category=niqabs`, label: isRTL ? 'النقاب' : locale === 'fr' ? 'Niqab' : 'Niqabs' },
     { href: `/${locale}/products?sort=sale`, label: isRTL ? 'العروض' : locale === 'fr' ? 'Offres' : 'Offers' },
     { href: `/${locale}/about`, label: isRTL ? 'من نحن' : locale === 'fr' ? 'À propos' : 'About Us' },
-    { href: `/${locale}#contact`, label: isRTL ? 'اتصل بنا' : locale === 'fr' ? 'Contact' : 'Contact Us' },
+    { href: `/${locale}#contact`, label: isRTL ? 'اتصل بنا' : locale === 'fr' ? 'Contact' : 'Contact Us', isContact: true },
   ]
 
   // ── Column 3: Information & Policies ───────────────────────────────
@@ -63,7 +77,6 @@ export function Footer({ locale }: FooterProps) {
     { href: `/${locale}/faq`, label: isRTL ? 'الأسئلة الشائعة' : locale === 'fr' ? 'FAQ' : 'FAQ' },
     { href: `/${locale}/orders`, label: isRTL ? 'تتبع الطلبات' : locale === 'fr' ? 'Suivi des commandes' : 'Track Orders' },
     { href: `/${locale}/faq#shipping`, label: isRTL ? 'الشحن والتوصيل' : locale === 'fr' ? 'Livraison' : 'Shipping & Delivery' },
-    { href: `/${locale}/faq#returns`, label: isRTL ? 'الاسترجاع والاستبدال' : locale === 'fr' ? 'Retours & Échanges' : 'Returns & Exchange' },
   ]
 
   return (
@@ -85,115 +98,59 @@ export function Footer({ locale }: FooterProps) {
         }}
       />
 
-      <div className="container-brand py-12 sm:py-16 lg:py-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12">
+      <div className="container-brand py-8 sm:py-12 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10">
 
           {/* ── Column 1: Brand (lg:col-span-4) ────────────────────────── */}
           <div className="sm:col-span-2 lg:col-span-4 flex flex-col items-start text-start">
             <Link
               href={`/${locale}`}
-              className="inline-flex items-center gap-2 mb-4 group focus:outline-none"
+              className="inline-flex items-center gap-2 mb-3 group focus:outline-none"
               aria-label={storeName}
             >
               {!logoError ? (
                 <Image
                   src={storeLogo}
                   alt={storeName}
-                  width={150}
-                  height={52}
-                  className="h-11 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                  width={140}
+                  height={48}
+                  className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
                   onError={() => setLogoError(true)}
                   priority={false}
                 />
               ) : (
                 <div
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[var(--footer-border)]"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--footer-border)]"
                   style={{ background: 'rgba(255,255,255,0.05)' }}
                 >
-                  <span className="text-lg font-extrabold tracking-wider" style={{ color: 'var(--footer-accent)' }}>
+                  <span className="text-base font-extrabold tracking-wider" style={{ color: 'var(--footer-accent)' }}>
                     {storeName}
                   </span>
                 </div>
               )}
             </Link>
 
-            <h2 className="text-base font-bold mb-2 tracking-wide" style={{ color: 'var(--footer-heading)' }}>
+            <h2 className="text-sm sm:text-base font-bold mb-1.5 tracking-wide" style={{ color: 'var(--footer-heading)' }}>
               {storeName}
             </h2>
 
             <p
-              className="text-sm leading-relaxed max-w-sm"
+              className="text-xs sm:text-sm leading-relaxed max-w-sm"
               style={{ color: 'var(--footer-muted)', textAlign: 'start' }}
             >
               {t('description')}
             </p>
 
-            {/* Social Media Icons */}
-            <div className="flex flex-wrap gap-2.5 mt-6">
-              {instagramUrl && (
-                <a
-                  href={instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 hover:scale-110"
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.05)',
-                    color: 'var(--footer-accent)',
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                  </svg>
-                </a>
-              )}
-
-              {tiktokUrl && (
-                <a
-                  href={tiktokUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="TikTok"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 hover:scale-110"
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.05)',
-                    color: 'var(--footer-accent)',
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.38a8.16 8.16 0 004.77 1.52V7.47a4.85 4.85 0 01-1-.78z" />
-                  </svg>
-                </a>
-              )}
-
-              {facebookUrl && (
-                <a
-                  href={facebookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Facebook"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 hover:scale-110"
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.05)',
-                    color: 'var(--footer-accent)',
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                </a>
-              )}
-
+            {/* Unified Social Media Icons */}
+            <div className="flex flex-wrap gap-2 mt-4 sm:mt-5">
+              {/* WhatsApp */}
               {whatsappUrl && (
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 hover:scale-110"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-all duration-300 hover:scale-110 hover:shadow-md"
                   style={{
                     borderColor: 'rgba(37,211,102,0.3)',
                     background: 'rgba(37,211,102,0.12)',
@@ -206,17 +163,78 @@ export function Footer({ locale }: FooterProps) {
                 </a>
               )}
 
+              {/* Instagram */}
+              {instagramUrl && (
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-all duration-300 hover:scale-110 hover:shadow-md"
+                  style={{
+                    borderColor: 'rgba(225,48,108,0.3)',
+                    background: 'rgba(225,48,108,0.12)',
+                    color: '#E1306C',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                  </svg>
+                </a>
+              )}
+
+              {/* TikTok */}
+              {tiktokUrl && (
+                <a
+                  href={tiktokUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-all duration-300 hover:scale-110 hover:shadow-md"
+                  style={{
+                    borderColor: 'rgba(255,255,255,0.25)',
+                    background: 'rgba(255,255,255,0.1)',
+                    color: '#ffffff',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.38a8.16 8.16 0 004.77 1.52V7.47a4.85 4.85 0 01-1-.78z" />
+                  </svg>
+                </a>
+              )}
+
+              {/* Facebook */}
+              {facebookUrl && (
+                <a
+                  href={facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-all duration-300 hover:scale-110 hover:shadow-md"
+                  style={{
+                    borderColor: 'rgba(24,119,242,0.3)',
+                    background: 'rgba(24,119,242,0.12)',
+                    color: '#1877F2',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                </a>
+              )}
+
+              {/* YouTube */}
               {youtubeUrl && (
                 <a
                   href={youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 hover:scale-110"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-all duration-300 hover:scale-110 hover:shadow-md"
                   style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.05)',
-                    color: 'var(--footer-accent)',
+                    borderColor: 'rgba(255,0,0,0.3)',
+                    background: 'rgba(255,0,0,0.12)',
+                    color: '#FF0000',
                   }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -227,62 +245,66 @@ export function Footer({ locale }: FooterProps) {
             </div>
           </div>
 
-          {/* ── Column 2: Quick Links (lg:col-span-2 or 3) ─────────────── */}
-          <div className="lg:col-span-2">
-            <h3
-              className="text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-4"
-              style={{ color: 'var(--footer-heading)', letterSpacing: '0.08em' }}
-            >
-              {isRTL ? 'روابط سريعة' : locale === 'fr' ? 'Liens rapides' : 'Quick Links'}
-            </h3>
-            <ul className="space-y-2.5">
-              {quickLinks.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="text-sm transition-colors duration-150 hover:text-[var(--footer-accent)] inline-block"
-                    style={{ color: 'var(--footer-text)' }}
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* ── Compact Links Grid for Mobile (2 Columns) / Desktop ── */}
+          <div className="grid grid-cols-2 gap-6 sm:contents lg:contents">
+            {/* ── Column 2: Quick Links ── */}
+            <div className="lg:col-span-2">
+              <h3
+                className="text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-2.5 sm:mb-4"
+                style={{ color: 'var(--footer-heading)', letterSpacing: '0.08em' }}
+              >
+                {isRTL ? 'روابط سريعة' : locale === 'fr' ? 'Liens rapides' : 'Quick Links'}
+              </h3>
+              <ul className="space-y-2 text-xs sm:text-sm">
+                {quickLinks.map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      onClick={l.isContact ? handleContactClick : undefined}
+                      className="transition-colors duration-150 hover:text-[var(--footer-accent)] inline-block py-0.5"
+                      style={{ color: 'var(--footer-text)' }}
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* ── Column 3: Information & Policies (lg:col-span-3) ───────── */}
-          <div className="lg:col-span-3">
-            <h3
-              className="text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-4"
-              style={{ color: 'var(--footer-heading)', letterSpacing: '0.08em' }}
-            >
-              {isRTL ? 'المعلومات والسياسات' : locale === 'fr' ? 'Informations' : 'Information'}
-            </h3>
-            <ul className="space-y-2.5">
-              {infoLinks.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="text-sm transition-colors duration-150 hover:text-[var(--footer-accent)] inline-block"
-                    style={{ color: 'var(--footer-text)' }}
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {/* ── Column 3: Information & Policies ── */}
+            <div className="lg:col-span-3">
+              <h3
+                className="text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-2.5 sm:mb-4"
+                style={{ color: 'var(--footer-heading)', letterSpacing: '0.08em' }}
+              >
+                {isRTL ? 'المعلومات والسياسات' : locale === 'fr' ? 'Informations' : 'Information'}
+              </h3>
+              <ul className="space-y-2 text-xs sm:text-sm">
+                {infoLinks.map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="transition-colors duration-150 hover:text-[var(--footer-accent)] inline-block py-0.5"
+                      style={{ color: 'var(--footer-text)' }}
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* ── Column 4: Contact & WhatsApp (lg:col-span-3) ───────────── */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 mt-2 sm:mt-0">
             <h3
-              className="text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-4"
+              className="text-xs sm:text-sm font-extrabold uppercase tracking-wider mb-2.5 sm:mb-4"
               style={{ color: 'var(--footer-heading)', letterSpacing: '0.08em' }}
             >
               {isRTL ? 'تواصل معنا' : locale === 'fr' ? 'Contact' : 'Contact'}
             </h3>
 
-            <ul className="space-y-3.5 text-sm">
+            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
               {/* Phone */}
               {phone && (
                 <li>
@@ -373,7 +395,7 @@ export function Footer({ locale }: FooterProps) {
 
         {/* ── Bottom Bar ────────────────────────────────────────────── */}
         <div
-          className="mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs"
+          className="mt-8 sm:mt-12 pt-5 sm:pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs"
           style={{
             borderTop: '1px solid var(--footer-border)',
             color: 'var(--footer-muted)',

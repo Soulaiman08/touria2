@@ -15,15 +15,13 @@ import {
   LogOut,
   Menu,
   X,
-  Sun,
-  Moon,
   ExternalLink,
-  Bell,
-  Search,
   Sparkles,
 } from 'lucide-react'
-import { useAdminTheme } from '../providers/ThemeContext'
 import { useToast } from '../providers/ToastContext'
+import { AdminNotifications } from '../ui/AdminNotifications'
+import { AdminGlobalSearch } from '../ui/AdminGlobalSearch'
+import { VisitorCounter } from '../ui/VisitorCounter'
 
 interface NavItem {
   name: string
@@ -46,7 +44,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { theme, toggleTheme } = useAdminTheme()
   const { success, error } = useToast()
 
   const handleLogout = async () => {
@@ -172,13 +169,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           height: 64,
           background: 'rgba(24,24,27,0.9)',
           borderBottom: '1px solid rgba(63,63,70,0.8)',
-          padding: '0 32px',
+          padding: '0 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: 16,
           backdropFilter: 'blur(12px)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Left: Mobile Toggle & Global Search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
             <button
               onClick={() => setMobileOpen(true)}
               style={{ padding: 8, borderRadius: 12, background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', display: 'none' }}
@@ -186,23 +185,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             >
               <Menu style={{ width: 24, height: 24 }} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(63,63,70,0.5)', border: '1px solid rgba(63,63,70,0.5)', borderRadius: 12, padding: '6px 14px', fontSize: 12, color: '#71717a' }}>
-              <Search style={{ width: 14, height: 14, color: '#52525b' }} />
-              <span>Press / to search dashboard</span>
-            </div>
+            <AdminGlobalSearch />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={toggleTheme} style={{ padding: 10, borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgb(24,24,27)', color: '#a1a1aa', cursor: 'pointer' }}>
-              {theme === 'dark' ? <Sun style={{ width: 18, height: 18 }} /> : <Moon style={{ width: 18, height: 18 }} />}
-            </button>
-            <button style={{ position: 'relative', padding: 10, borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgb(24,24,27)', color: '#a1a1aa', cursor: 'pointer' }}>
-              <Bell style={{ width: 18, height: 18 }} />
-              <span style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, background: '#f59e0b', borderRadius: '50%' }} />
-            </button>
-            <Link href="/admin/profile" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 12px 6px 8px', borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgba(24,24,27,0.6)', textDecoration: 'none' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,158,11,0.3)', fontSize: 12 }}>AD</div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#e4e4e7' }}>Admin</span>
+          {/* Right: Visitor Counter, Notifications, Admin Profile */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+            <VisitorCounter />
+            <AdminNotifications />
+            <Link href="/admin/profile" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px 6px 8px', borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgba(24,24,27,0.6)', textDecoration: 'none' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11 }}>AD</div>
+              <span className="hidden sm:inline" style={{ fontSize: 12, fontWeight: 600, color: '#e4e4e7' }}>Admin</span>
             </Link>
           </div>
         </header>

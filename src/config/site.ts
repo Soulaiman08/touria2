@@ -26,6 +26,7 @@ export const siteConfig = {
     instagram: 'https://instagram.com/thuraya.almaghribi',
     facebook: 'https://facebook.com/thuraya.almaghribi',
     tiktok: 'https://tiktok.com/@thuraya.almaghribi',
+    youtube: 'https://youtube.com/@thuraya.almaghribi',
   },
   colors: {
     primary: '#C4622D',

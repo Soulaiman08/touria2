@@ -10,6 +10,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer } from '@/features/cart/components/CartDrawer'
 import { WhatsAppButton } from '@/components/shared/WhatsAppButton'
+import { VisitorTracker } from '@/components/shared/VisitorTracker'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -90,6 +91,7 @@ export default async function LocaleLayout({
             <Footer locale={locale} />
             <CartDrawer locale={locale} />
             <WhatsAppButton />
+            <VisitorTracker />
           </div>
         </CartProvider>
       </ThemeProvider>

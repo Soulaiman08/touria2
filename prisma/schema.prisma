@@ -209,3 +209,20 @@ enum OrderStatus {
 
   @@map("order_status")
 }
+
+model AdminNotification {
+  id          String    @id @default(cuid())
+  type        String    // 'ORDER' | 'CUSTOMER' | 'LOW_STOCK' | 'OUT_OF_STOCK'
+  title       String
+  description String?
+  targetUrl   String    @map("target_url")
+  referenceId String?   @map("reference_id")
+  isRead      Boolean   @default(false) @map("is_read")
+  readAt      DateTime? @map("read_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("admin_notifications")
+}
+

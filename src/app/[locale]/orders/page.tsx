@@ -1,7 +1,8 @@
 'use client'
 
+import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Package,
   ShoppingBag,
@@ -9,10 +10,14 @@ import {
   CheckCircle2,
   Truck,
   XCircle,
-  ChevronLeft,
-  ChevronRight,
   RefreshCw,
+  Search,
+  ArrowRight,
+  ArrowLeft,
+  Calendar,
+  Layers,
 } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 
 interface OrdersPageProps {
   params: Promise<{
@@ -46,126 +51,113 @@ type StatusConfig = {
   icon: typeof Clock
   color: string
   background: string
+  border: string
 }
 
-function getStatusConfig(
-  status: string,
-  locale: string
-): StatusConfig {
-  const normalizedStatus = status.toLowerCase()
+function getStatusConfig(status: string, locale: string): StatusConfig {
+  const s = (status || '').toLowerCase()
 
   const labels = {
     ar: {
       pending: 'قيد الانتظار',
-      processing: 'قيد المعالجة',
+      confirmed: 'تم التأكيد',
+      processing: 'قيد التجهيز',
       shipped: 'تم الشحن',
       delivered: 'تم التوصيل',
       cancelled: 'ملغى',
+      returned: 'مُرجَع',
       unknown: 'غير معروف',
     },
     fr: {
       pending: 'En attente',
-      processing: 'En traitement',
+      confirmed: 'Confirmée',
+      processing: 'En préparation',
       shipped: 'Expédiée',
       delivered: 'Livrée',
       cancelled: 'Annulée',
+      returned: 'Retournée',
       unknown: 'Inconnu',
     },
     en: {
       pending: 'Pending',
+      confirmed: 'Confirmed',
       processing: 'Processing',
       shipped: 'Shipped',
       delivered: 'Delivered',
       cancelled: 'Cancelled',
+      returned: 'Returned',
       unknown: 'Unknown',
     },
   }
 
-  const currentLabels =
-    labels[locale as keyof typeof labels] || labels.en
+  const currentLabels = labels[locale as keyof typeof labels] || labels.en
 
-  if (
-    normalizedStatus === 'delivered' ||
-    normalizedStatus === 'completed'
-  ) {
+  if (s === 'delivered' || s === 'completed') {
     return {
       label: currentLabels.delivered,
       icon: CheckCircle2,
-      color: '#22c55e',
-      background: 'rgba(34, 197, 94, 0.12)',
+      color: '#16a34a',
+      background: 'rgba(22, 163, 74, 0.12)',
+      border: 'rgba(22, 163, 74, 0.3)',
     }
   }
 
-  if (
-    normalizedStatus === 'shipped' ||
-    normalizedStatus === 'shipping'
-  ) {
+  if (s === 'shipped' || s === 'shipping') {
     return {
       label: currentLabels.shipped,
       icon: Truck,
-      color: '#3b82f6',
-      background: 'rgba(59, 130, 246, 0.12)',
+      color: '#2563eb',
+      background: 'rgba(37, 99, 235, 0.12)',
+      border: 'rgba(37, 99, 235, 0.3)',
     }
   }
 
-  if (
-    normalizedStatus === 'processing' ||
-    normalizedStatus === 'confirmed'
-  ) {
+  if (s === 'processing' || s === 'confirmed') {
     return {
-      label: currentLabels.processing,
+      label: s === 'confirmed' ? currentLabels.confirmed : currentLabels.processing,
       icon: RefreshCw,
-      color: '#f59e0b',
-      background: 'rgba(245, 158, 11, 0.12)',
+      color: '#d97706',
+      background: 'rgba(217, 119, 6, 0.12)',
+      border: 'rgba(217, 119, 6, 0.3)',
     }
   }
 
-  if (
-    normalizedStatus === 'cancelled' ||
-    normalizedStatus === 'canceled'
-  ) {
+  if (s === 'cancelled' || s === 'canceled') {
     return {
       label: currentLabels.cancelled,
       icon: XCircle,
-      color: '#ef4444',
-      background: 'rgba(239, 68, 68, 0.12)',
+      color: '#dc2626',
+      background: 'rgba(220, 38, 38, 0.12)',
+      border: 'rgba(220, 38, 38, 0.3)',
     }
   }
 
-  if (
-    normalizedStatus === 'pending' ||
-    normalizedStatus === 'new'
-  ) {
+  if (s === 'pending' || s === 'new') {
     return {
       label: currentLabels.pending,
       icon: Clock,
-      color: '#a78bfa',
-      background: 'rgba(167, 139, 250, 0.12)',
+      color: '#9333ea',
+      background: 'rgba(147, 51, 234, 0.12)',
+      border: 'rgba(147, 51, 234, 0.3)',
     }
   }
 
   return {
     label: currentLabels.unknown,
     icon: Clock,
-    color: '#a1a1aa',
-    background: 'rgba(161, 161, 170, 0.12)',
+    color: '#71717a',
+    background: 'rgba(113, 113, 122, 0.12)',
+    border: 'rgba(113, 113, 122, 0.3)',
   }
 }
 
-function formatDate(
-  dateString: string,
-  locale: string
-) {
+function formatDate(dateString: string, locale: string) {
   try {
     return new Intl.DateTimeFormat(
-      locale === 'ar'
-        ? 'ar-MA'
-        : locale === 'fr'
-          ? 'fr-FR'
-          : 'en-US',
+      locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US',
       {
         year: 'numeric',
-        month: 'long',
+        month: 'short',
         day: 'numeric',
       }
     ).format(new Date(dateString))
@@ -174,573 +166,456 @@ function formatDate(
   }
 }
 
-function formatPrice(value: number) {
-  return `${Number(value || 0).toFixed(2)} د.م.`
-}
+export default function OrdersPage({ params }: OrdersPageProps) {
+  const { locale } = use(params)
+  const router = useRouter()
+  const isRTL = locale === 'ar'
 
-export default function OrdersPage({
-  params,
-}: OrdersPageProps) {
-  const [locale, setLocale] = useState('ar')
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [searchOrderNumber, setSearchOrderNumber] = useState('')
 
   useEffect(() => {
     let mounted = true
-
-    async function initialize() {
+    async function loadOrders() {
       try {
-        const resolvedParams = await params
-
-        if (!mounted) return
-
-        const currentLocale = resolvedParams.locale || 'ar'
-
-        setLocale(currentLocale)
-
-        try {
-          const response = await fetch(
-            '/api/orders',
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              cache: 'no-store',
-            }
-          )
-
-          if (!response.ok) {
-            throw new Error(
-              `Orders request failed: ${response.status}`
-            )
+        const res = await fetch('/api/orders', { method: 'GET', cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          if (mounted) {
+            const list = Array.isArray(data.orders) ? data.orders : Array.isArray(data.items) ? data.items : []
+            setOrders(list)
           }
-
-          const data = await response.json()
-
-          if (!mounted) return
-
-          const receivedOrders = Array.isArray(
-            data.orders
-          )
-            ? data.orders
-            : Array.isArray(data.items)
-              ? data.items
-              : []
-
-          setOrders(receivedOrders)
-          setError('')
-        } catch (requestError) {
-          console.error(
-            'Error loading orders:',
-            requestError
-          )
-
-          if (!mounted) return
-
-          /*
-           * إذا كانت API الطلبات غير موجودة حالياً،
-           * نعرض الصفحة بشكل طبيعي بدون كسر الموقع.
-           */
-          setOrders([])
-          setError('')
         }
-      } catch (parameterError) {
-        console.error(
-          'Error resolving locale:',
-          parameterError
-        )
-
-        if (mounted) {
-          setLocale('ar')
-          setOrders([])
-        }
+      } catch (err) {
+        console.error('Error fetching orders:', err)
       } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+        if (mounted) setLoading(false)
       }
     }
-
-    initialize()
-
+    loadOrders()
     return () => {
       mounted = false
     }
-  }, [params])
+  }, [])
 
-  const isRTL = locale === 'ar'
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = searchOrderNumber.trim()
+    if (trimmed) {
+      router.push(`/${locale}/orders/${encodeURIComponent(trimmed)}`)
+    }
+  }
 
   const text = {
     ar: {
-      title: 'طلباتي',
-      subtitle:
-        'تابعي حالة طلباتك ومشترياتك السابقة بسهولة.',
+      title: 'طلباتي ومتابعة الشحنات',
+      subtitle: 'تابعي حالة طلباتكِ ومشترياتكِ السابقة بكل سهولة وشفافية.',
       loading: 'جاري تحميل الطلبات...',
-      emptyTitle: 'لا توجد طلبات حتى الآن',
-      emptyDescription:
-        'عندما تقومين بإجراء أول طلب، ستظهر تفاصيله هنا.',
-      shopNow: 'تسوقي الآن',
-      order: 'الطلب',
-      date: 'التاريخ',
-      total: 'الإجمالي',
-      details: 'عرض التفاصيل',
+      trackDirect: 'تتبع طلب مباشر',
+      trackPlaceholder: 'أدخلي رقم الطلب (مثال: ORD-12345)...',
+      trackBtn: 'تتبع الآن',
+      emptyTitle: 'لا توجد طلبات مسجلة حالياً',
+      emptyDescription: 'عندما تقومين بإتمام طلبكِ الأول، ستظهر تفاصيل الشحن والمتابعة هنا مباشرة.',
+      shopNow: 'تصفحي المجموعة وابدأي التسوق',
+      orderNum: 'رقم الطلب',
+      date: 'تاريخ الطلب',
+      total: 'المبلغ الإجمالي',
+      details: 'تتبع وتفاصيل الطلب',
       items: 'منتجات',
-      item: 'منتج',
-      retry: 'إعادة المحاولة',
-      loginTitle: 'سجلي الدخول لمشاهدة طلباتك',
-      loginDescription:
-        'سجلي الدخول إلى حسابك للوصول إلى جميع طلباتك السابقة ومتابعة حالتها.',
-      login: 'تسجيل الدخول',
-      back: 'العودة للمتجر',
+      back: 'العودة للرئيسية',
     },
-
     fr: {
-      title: 'Mes commandes',
-      subtitle:
-        'Suivez facilement vos commandes et vos achats précédents.',
+      title: 'Mes Commandes',
+      subtitle: 'Suivez facilement le statut de vos commandes et vos achats précédents.',
       loading: 'Chargement des commandes...',
-      emptyTitle: 'Aucune commande pour le moment',
-      emptyDescription:
-        'Lorsque vous passerez votre première commande, elle apparaîtra ici.',
-      shopNow: 'Acheter maintenant',
-      order: 'Commande',
+      trackDirect: 'Suivi direct d\'une commande',
+      trackPlaceholder: 'Entrez le numéro de commande (ex: ORD-12345)...',
+      trackBtn: 'Suivre',
+      emptyTitle: 'Aucune commande enregistrée pour le moment',
+      emptyDescription: 'Lorsque vous passerez votre première commande, ses détails de livraison apparaîtront ici.',
+      shopNow: 'Découvrir la collection',
+      orderNum: 'N° de commande',
       date: 'Date',
       total: 'Total',
-      details: 'Voir les détails',
-      items: 'produits',
-      item: 'produit',
-      retry: 'Réessayer',
-      loginTitle:
-        'Connectez-vous pour voir vos commandes',
-      loginDescription:
-        'Connectez-vous à votre compte pour accéder à vos commandes et suivre leur statut.',
-      login: 'Se connecter',
-      back: 'Retour à la boutique',
+      details: 'Détails & Suivi',
+      items: 'articles',
+      back: 'Retour à l\'accueil',
     },
-
     en: {
       title: 'My Orders',
-      subtitle:
-        'Easily track your orders and previous purchases.',
+      subtitle: 'Easily track the status of your orders and previous purchases.',
       loading: 'Loading orders...',
-      emptyTitle: 'No orders yet',
-      emptyDescription:
-        'When you place your first order, it will appear here.',
-      shopNow: 'Shop Now',
-      order: 'Order',
+      trackDirect: 'Direct Order Tracking',
+      trackPlaceholder: 'Enter order number (e.g. ORD-12345)...',
+      trackBtn: 'Track Order',
+      emptyTitle: 'No orders found yet',
+      emptyDescription: 'When you place your first order, its tracking and delivery details will appear right here.',
+      shopNow: 'Explore & Start Shopping',
+      orderNum: 'Order #',
       date: 'Date',
       total: 'Total',
-      details: 'View Details',
-      items: 'products',
-      item: 'product',
-      retry: 'Try Again',
-      loginTitle:
-        'Sign in to view your orders',
-      loginDescription:
-        'Sign in to your account to access your previous orders and track their status.',
-      login: 'Sign In',
-      back: 'Back to Store',
+      details: 'View & Track Order',
+      items: 'items',
+      back: 'Back to Home',
     },
   }
 
-  const currentText =
-    text[locale as keyof typeof text] || text.en
+  const t = text[locale as keyof typeof text] || text.en
 
   if (loading) {
     return (
-      <main
-        className="min-h-[70vh]"
-        dir={isRTL ? 'rtl' : 'ltr'}
-        style={{
-          background: 'var(--bg)',
-          color: 'var(--text-primary)',
-        }}
-      >
-        <div className="container-brand page-shell px-4">
-          <div className="flex min-h-[400px] flex-col items-center justify-center">
-            <div
-              className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--accent)]"
-              aria-label={currentText.loading}
-            />
-
-            <p
-              className="mt-4 text-sm"
-              style={{
-                color: 'var(--text-muted)',
-              }}
-            >
-              {currentText.loading}
-            </p>
-          </div>
-        </div>
-      </main>
+      <div className="container-brand page-shell py-24 text-center space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent)] mx-auto" />
+        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t.loading}</p>
+      </div>
     )
   }
 
   return (
-    <main
-      className="min-h-screen"
+    <div
+      className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{
-        background: 'var(--bg)',
-        color: 'var(--text-primary)',
-      }}
+      style={{ maxWidth: 840, paddingLeft: 'max(16px, 4vw)', paddingRight: 'max(16px, 4vw)' }}
     >
-      <div className="container-brand page-shell px-4">
-        {/* Page Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div
-              className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl"
-              style={{
-                background: 'var(--accent-light)',
-                color: 'var(--accent)',
-              }}
-            >
-              <Package className="h-5 w-5" />
-            </div>
+      {/* ── Back Navigation ───────────────────────────────────────── */}
+      <Link
+        href={`/${locale}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--muted-foreground)',
+          textDecoration: 'none',
+          marginBottom: 20,
+        }}
+      >
+        <ArrowLeft style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+        {t.back}
+      </Link>
 
-            <h1
-              className="text-2xl font-black tracking-tight sm:text-4xl"
-              style={{
-                color: 'var(--text-primary)',
-              }}
-            >
-              {currentText.title}
-            </h1>
-
-            <p
-              className="mt-2 max-w-xl text-sm leading-6"
-              style={{
-                color: 'var(--text-muted)',
-              }}
-            >
-              {currentText.subtitle}
-            </p>
+      {/* ── Page Header Card ──────────────────────────────────────── */}
+      <div
+        style={{
+          borderRadius: 24,
+          border: '1px solid var(--border)',
+          background: 'var(--card)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
+          overflow: 'hidden',
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(184,150,90,0.04) 100%)',
+            padding: '32px 24px 28px',
+            textAlign: 'center',
+            borderBottom: '1px solid var(--border)',
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--accent-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 14px',
+              border: '1px solid var(--accent-ring)',
+            }}
+          >
+            <Package style={{ width: 28, height: 28, color: 'var(--accent)' }} />
           </div>
 
-          {orders.length > 0 && (
-            <Link
-              href={`/${locale}/products`}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                background: 'var(--accent)',
-                color: '#fff',
-                boxShadow:
-                  '0 8px 24px rgba(0,0,0,0.12)',
-              }}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              {currentText.shopNow}
-            </Link>
-          )}
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
+            style={{
+              background: 'var(--accent-light)',
+              color: 'var(--accent)',
+              border: '1px solid var(--accent-ring)',
+            }}
+          >
+            <span>✦</span>
+            <span>{isRTL ? 'سجل المشتريات والتتبع' : 'Order History & Tracking'}</span>
+            <span>✦</span>
+          </div>
+
+          <h1
+            style={{
+              fontSize: 'clamp(1.4rem, 3vw, 1.85rem)',
+              fontWeight: 900,
+              color: 'var(--foreground)',
+              margin: '0 0 6px',
+              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
+            }}
+          >
+            {t.title}
+          </h1>
+
+          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 480, marginInline: 'auto' }}>
+            {t.subtitle}
+          </p>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div
-            className="mb-6 rounded-2xl border p-4"
-            style={{
-              borderColor:
-                'rgba(239,68,68,0.25)',
-              background:
-                'rgba(239,68,68,0.06)',
-              color: '#ef4444',
-            }}
-          >
-            <p className="text-sm font-semibold">
-              {error}
-            </p>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {orders.length === 0 ? (
-          <section
-            className="relative isolate flex min-h-[300px] items-center justify-center overflow-hidden rounded-3xl border px-5 py-8 text-center sm:min-h-[420px] sm:px-10 sm:py-16"
-            style={{
-              background: 'var(--card-bg)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <div
-              aria-hidden="true"
-              className="absolute -right-20 -top-24 h-64 w-64 rounded-full opacity-40 blur-3xl"
-              style={{ background: 'var(--accent-light)' }}
-            />
-            <div
-              aria-hidden="true"
-              className="absolute -bottom-24 -left-20 h-56 w-56 rounded-full opacity-30 blur-3xl"
-              style={{ background: 'var(--accent-light)' }}
-            />
-
-            <div className="relative z-10 mx-auto flex max-w-md flex-col items-center">
-              <div
-                className="flex h-20 w-20 items-center justify-center rounded-[1.6rem] border shadow-sm"
+        {/* ── Quick Lookup Box ──────────────────────────────────────── */}
+        <div style={{ padding: '18px 22px', background: 'var(--bg-subtle)' }}>
+          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-center gap-2.5">
+            <div className="relative flex-1 w-full">
+              <Search
                 style={{
-                  background: 'var(--accent-light)',
-                  borderColor: 'rgba(196, 98, 45, 0.2)',
-                  color: 'var(--accent)',
+                  position: 'absolute',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  [isRTL ? 'right' : 'left']: 14,
+                  width: 16,
+                  height: 16,
+                  color: 'var(--muted-foreground)',
                 }}
-              >
-                <Package className="h-9 w-9" strokeWidth={1.75} />
-              </div>
-
-              <h2
-                className="mt-7 text-2xl font-black tracking-tight sm:text-[1.7rem]"
+              />
+              <input
+                type="text"
+                value={searchOrderNumber}
+                onChange={(e) => setSearchOrderNumber(e.target.value)}
+                placeholder={t.trackPlaceholder}
                 style={{
-                  color: 'var(--text-primary)',
+                  width: '100%',
+                  padding: '11px 16px',
+                  paddingLeft: isRTL ? 16 : 40,
+                  paddingRight: isRTL ? 40 : 16,
+                  borderRadius: 12,
+                  border: '1px solid var(--border)',
+                  background: 'var(--card)',
+                  color: 'var(--foreground)',
+                  fontSize: 13,
+                  outline: 'none',
                 }}
-              >
-                {currentText.emptyTitle}
-              </h2>
-
-              <p
-                className="mt-3 max-w-sm text-sm leading-7 sm:text-[0.95rem]"
-                style={{
-                  color: 'var(--text-muted)',
-                }}
-              >
-                {currentText.emptyDescription}
-              </p>
-
-              <Link
-                href={`/${locale}/products`}
-                className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5"
-                style={{
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  boxShadow: '0 10px 24px rgba(196, 98, 45, 0.22)',
-                }}
-              >
-                <ShoppingBag className="h-4 w-4" />
-                {currentText.shopNow}
-              </Link>
+              />
             </div>
-          </section>
-        ) : (
-          <div className="flex flex-col gap-5">
-            {orders.map((order) => {
-              const status =
-                getStatusConfig(
-                  order.status,
-                  locale
-                )
-
-              const StatusIcon = status.icon
-
-              const orderNumber =
-                order.orderNumber ||
-                order.id
-
-              const itemsCount =
-                order.items?.reduce(
-                  (sum, item) =>
-                    sum +
-                    Number(item.quantity || 0),
-                  0
-                ) || 0
-
-              return (
-                <article
-                  key={order.id}
-                  className="overflow-hidden rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
-                  style={{
-                    background:
-                      'var(--card-bg)',
-                    borderColor:
-                      'var(--border)',
-                  }}
-                >
-                  {/* Order Top */}
-                  <div
-                    className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
-                    style={{
-                      borderColor:
-                        'var(--border)',
-                    }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl"
-                        style={{
-                          background:
-                            'var(--accent-light)',
-                          color:
-                            'var(--accent)',
-                        }}
-                      >
-                        <Package className="h-5 w-5" />
-                      </div>
-
-                      <div>
-                        <p
-                          className="text-xs font-medium"
-                          style={{
-                            color:
-                              'var(--text-muted)',
-                          }}
-                        >
-                          {currentText.order}
-                        </p>
-
-                        <p
-                          className="mt-0.5 text-sm font-black"
-                          style={{
-                            color:
-                              'var(--text-primary)',
-                          }}
-                        >
-                          #{orderNumber}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold"
-                      style={{
-                        background:
-                          status.background,
-                        color: status.color,
-                      }}
-                    >
-                      <StatusIcon className="h-3.5 w-3.5" />
-
-                      <span>
-                        {status.label}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Order Info */}
-                  <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:gap-4 sm:p-5">
-                    <div>
-                      <p
-                        className="text-xs"
-                        style={{
-                          color:
-                            'var(--text-muted)',
-                        }}
-                      >
-                        {currentText.date}
-                      </p>
-
-                      <p
-                        className="mt-1 text-sm font-semibold"
-                        style={{
-                          color:
-                            'var(--text-primary)',
-                        }}
-                      >
-                        {formatDate(
-                          order.createdAt,
-                          locale
-                        )}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p
-                        className="text-xs"
-                        style={{
-                          color:
-                            'var(--text-muted)',
-                        }}
-                      >
-                        {currentText.items}
-                      </p>
-
-                      <p
-                        className="mt-1 text-sm font-semibold"
-                        style={{
-                          color:
-                            'var(--text-primary)',
-                        }}
-                      >
-                        {itemsCount}{' '}
-                        {itemsCount === 1
-                          ? currentText.item
-                          : currentText.items}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p
-                        className="text-xs"
-                        style={{
-                          color:
-                            'var(--text-muted)',
-                        }}
-                      >
-                        {currentText.total}
-                      </p>
-
-                      <p
-                        className="mt-1 text-sm font-black"
-                        style={{
-                          color:
-                            'var(--accent)',
-                        }}
-                      >
-                        {formatPrice(
-                          order.total
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Order Footer */}
-                  <div
-                    className="flex justify-end border-t px-4 py-3 sm:px-5 sm:py-4"
-                    style={{
-                      borderColor:
-                        'var(--border)',
-                    }}
-                  >
-                    <Link
-                      href={`/${locale}/orders/${order.id}`}
-                      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
-                      style={{
-                        color:
-                          'var(--text-secondary)',
-                      }}
-                    >
-                      {currentText.details}
-
-                      {isRTL ? (
-                        <ChevronLeft className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Link>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Back to Store */}
-        <div className="mt-8 text-center">
-          <Link
-            href={`/${locale}`}
-            className="inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:text-[var(--accent)]"
-            style={{
-              color: 'var(--text-muted)',
-            }}
-          >
-            {isRTL ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-
-            {currentText.back}
-          </Link>
+            <button
+              type="submit"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '11px 20px',
+                borderRadius: 12,
+                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 800,
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
+                whiteSpace: 'nowrap',
+                width: '100%',
+              }}
+              className="sm:w-auto"
+            >
+              <span>{t.trackBtn}</span>
+              <ArrowRight style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+            </button>
+          </form>
         </div>
       </div>
-    </main>
+
+      {/* ── Content: Order List or Empty State ─────────────────────── */}
+      {orders.length === 0 ? (
+        /* ── Empty State ── */
+        <div
+          style={{
+            borderRadius: 24,
+            border: '1px solid var(--border)',
+            background: 'var(--card)',
+            padding: '48px 24px sm:p-14',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+          }}
+          className="p-8 sm:p-14"
+        >
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 22,
+              background: 'var(--accent-light)',
+              border: '1.5px solid var(--accent-ring)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--accent)',
+              marginBottom: 20,
+            }}
+          >
+            <Package style={{ width: 34, height: 34 }} />
+          </div>
+
+          <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
+            {t.emptyTitle}
+          </h2>
+
+          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 24px', lineHeight: 1.6 }}>
+            {t.emptyDescription}
+          </p>
+
+          <Link
+            href={`/${locale}/products`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '13px 26px',
+              borderRadius: 14,
+              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 800,
+              textDecoration: 'none',
+              boxShadow: '0 6px 20px rgba(196,98,45,0.25)',
+              transition: 'transform 0.2s',
+            }}
+          >
+            <ShoppingBag style={{ width: 16, height: 16 }} />
+            <span>{t.shopNow}</span>
+          </Link>
+        </div>
+      ) : (
+        /* ── Orders Cards Grid ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {orders.map((order) => {
+            const statusConfig = getStatusConfig(order.status, locale)
+            const StatusIcon = statusConfig.icon
+            const orderNum = order.orderNumber || order.id
+            const itemsCount = order.items?.reduce((sum, it) => sum + (it.quantity || 1), 0) || order.items?.length || 1
+
+            return (
+              <div
+                key={order.id}
+                style={{
+                  borderRadius: 20,
+                  border: '1px solid var(--border)',
+                  background: 'var(--card)',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+              >
+                {/* Top Info Bar */}
+                <div
+                  style={{
+                    padding: '14px 20px',
+                    borderBottom: '1px solid var(--border)',
+                    background: 'var(--bg-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>
+                      {t.orderNum}
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: '#C4622D', fontFamily: 'monospace' }}>
+                      #{orderNum}
+                    </span>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: statusConfig.color,
+                      background: statusConfig.background,
+                      border: `1px solid ${statusConfig.border}`,
+                    }}
+                  >
+                    <StatusIcon style={{ width: 12, height: 12 }} />
+                    <span>{statusConfig.label}</span>
+                  </div>
+                </div>
+
+                {/* Details Body */}
+                <div style={{ padding: '18px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
+                  <div>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Calendar style={{ width: 12, height: 12 }} />
+                      {t.date}
+                    </span>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)', margin: '4px 0 0' }}>
+                      {formatDate(order.createdAt, locale)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Layers style={{ width: 12, height: 12 }} />
+                      {t.items}
+                    </span>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)', margin: '4px 0 0' }}>
+                      {itemsCount} {t.items}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
+                      {t.total}
+                    </span>
+                    <p style={{ fontSize: 16, fontWeight: 900, color: '#C4622D', margin: '2px 0 0' }}>
+                      {formatPrice(order.total, locale)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bottom Action */}
+                <div
+                  style={{
+                    padding: '12px 20px',
+                    borderTop: '1px solid var(--border)',
+                    background: 'rgba(196,98,45,0.02)',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                  }}
+                >
+                  <Link
+                    href={`/${locale}/orders/${order.id}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 16px',
+                      borderRadius: 10,
+                      background: 'var(--accent-light)',
+                      border: '1px solid var(--accent-ring)',
+                      color: 'var(--accent)',
+                      fontSize: 12,
+                      fontWeight: 800,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <span>{t.details}</span>
+                    <ArrowRight style={{ width: 13, height: 13, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                  </Link>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }

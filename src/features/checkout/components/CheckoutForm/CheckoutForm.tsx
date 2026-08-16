@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCartStore } from '@/store/cart.store'
 import { checkoutSchema, type CheckoutFormValues } from '@/lib/validations/checkout'
-import { MOROCCAN_CITIES, getShippingCost, getCitiesByRegion } from '@/config/moroccan-cities'
+import { MOROCCAN_CITIES, DEFAULT_SHIPPING_PRICE, getCitiesByRegion } from '@/config/moroccan-cities'
 import { MOROCCAN_REGIONS } from '@/config/moroccan-regions'
 import { formatPrice } from '@/lib/utils'
 import { ShieldCheck, MapPin, User, ChevronDown, ShoppingBag, Loader2, Truck } from 'lucide-react'
@@ -20,6 +20,8 @@ interface CheckoutFormProps {
 export function CheckoutForm({ locale }: CheckoutFormProps) {
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
+  const [shippingPrice, setShippingPrice] = useState<number | null>(null)
+  const [shippingLoading, setShippingLoading] = useState(false)
 
   const t = useTranslations('checkout')
   const cartT = useTranslations('cart')
@@ -60,7 +62,8 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
     ) ?? 0
     return sum + item.unitPrice * item.quantity + niqabTotal
   }, 0)
-  const shippingCost = selectedCity ? getShippingCost(selectedCity) : 0
+  // Use live fetched price; 0 when no city selected yet so total shows correctly
+  const shippingCost = selectedCity ? (shippingPrice ?? DEFAULT_SHIPPING_PRICE) : 0
   const total = subtotal + shippingCost
 
   // Cities available for the currently selected region
@@ -69,16 +72,36 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const regionId = e.target.value
     setSelectedRegion(regionId)
-    // Reset city when region changes
+    // Reset city and shipping when region changes
     setSelectedCity('')
+    setShippingPrice(null)
     setValue('region', regionId, { shouldValidate: true })
     setValue('city', '', { shouldValidate: false })
   }
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value
     setSelectedCity(val)
     setValue('city', val, { shouldValidate: true })
+    if (!val) {
+      setShippingPrice(null)
+      return
+    }
+    // Fetch live shipping price from server
+    setShippingLoading(true)
+    try {
+      const res = await fetch(`/api/shipping/price?city=${encodeURIComponent(val)}`)
+      if (res.ok) {
+        const data = await res.json() as { price: number }
+        setShippingPrice(data.price)
+      } else {
+        setShippingPrice(DEFAULT_SHIPPING_PRICE)
+      }
+    } catch {
+      setShippingPrice(DEFAULT_SHIPPING_PRICE)
+    } finally {
+      setShippingLoading(false)
+    }
   }
 
   const onSubmit = async (data: CheckoutFormValues) => {
@@ -568,7 +591,13 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 {cartT('shipping')}
               </span>
               <span className="font-bold text-end" style={{ color: 'var(--foreground)' }}>
-                {selectedCity ? formatPrice(shippingCost, locale) : t('address.cityPlaceholder')}
+                {shippingLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin inline" />
+                ) : selectedCity ? (
+                  formatPrice(shippingCost, locale)
+                ) : (
+                  t('address.cityPlaceholder')
+                )}
               </span>
             </div>
 

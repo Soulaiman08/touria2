@@ -18,6 +18,7 @@ type SiteSettings = {
   instagram?: string
   facebook?: string
   tiktok?: string
+  youtube?: string
   contactEmail?: string
 }
 
@@ -27,6 +28,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   instagram: siteConfig.social.instagram,
   facebook: siteConfig.social.facebook,
   tiktok: siteConfig.social.tiktok,
+  youtube: siteConfig.social.youtube || '',
   contactEmail: '',
 }
 
@@ -856,7 +858,12 @@ export default async function HomePage({ params }: HomePageProps) {
       </section>
 
       {/* CONTACT SECTION */}
-      <section className="home-section section-gap home-contact-section" aria-label={labels.contactTitle}>
+      <section
+        id="contact"
+        className="home-section section-gap home-contact-section scroll-mt-24"
+        style={{ scrollMarginTop: '6rem' }}
+        aria-label={labels.contactTitle}
+      >
         <div className="container-brand">
           <div className="section-heading mb-6 sm:mb-10 md:mb-12 home-contact-heading" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="section-eyebrow mb-1 sm:mb-2 text-[11px] sm:text-xs">
@@ -1091,42 +1098,44 @@ export default async function HomePage({ params }: HomePageProps) {
             </a>
 
             {/* YouTube */}
-            <a
-              href="https://youtube.com/@thuraya.almaghribi"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-            >
-              <div
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
-                style={{
-                  background: 'rgba(255,0,0,0.08)',
-                  color: '#FF0000',
-                }}
+            {settings.youtube && (
+              <a
+                href={settings.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
+                <div
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
+                  style={{
+                    background: 'rgba(255,0,0,0.08)',
+                    color: '#FF0000',
+                  }}
                 >
-                  <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              </div>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-6 h-6 sm:w-8 sm:h-8"
+                  >
+                    <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  </svg>
+                </div>
 
-              <p
-                className="font-bold text-sm sm:text-base home-contact-label"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                YouTube
-              </p>
+                <p
+                  className="font-bold text-sm sm:text-base home-contact-label"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  YouTube
+                </p>
 
-              <p
-                className="text-xs sm:text-sm home-contact-detail"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                @thuraya.almaghribi
-              </p>
-            </a>
+                <p
+                  className="text-xs sm:text-sm home-contact-detail"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  {settings.youtube.replace(/^https?:\/\/(www\.)?youtube\.com\/?/i, '@') || '@thuraya.almaghribi'}
+                </p>
+              </a>
+            )}
           </div>
         </div>
       </section>

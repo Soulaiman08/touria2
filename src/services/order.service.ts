@@ -1,12 +1,48 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { generateOrderNumber } from '@/lib/utils'
-import { getShippingCost } from '@/config/moroccan-cities'
+import { DEFAULT_SHIPPING_PRICE, getCityByValue, MOROCCAN_CITIES } from '@/config/moroccan-cities'
 import type { CreateOrderRequest, CreateOrderResponse, Order, ProductSnapshot } from '@/types/order'
 
 const LOCAL_ORDERS_STORE = new Map<string, Order>()
 
 const asNumber = (value: Prisma.Decimal | number) => Number(value)
+
+const CITY_KEY_PREFIX = 'shipping:city:'
+const DEFAULT_SHIPPING_KEY = 'shipping:default'
+
+/**
+ * Server-side shipping price lookup.
+ * Reads from DB (SiteSetting), falls back to DEFAULT_SHIPPING_PRICE.
+ * Also validates that the city is a known Moroccan city.
+ *
+ * @throws Error if city is unknown or region doesn't match
+ */
+async function resolveShippingCost(
+  cityValue: string,
+  regionValue: string,
+  tx: Prisma.TransactionClient
+): Promise<number> {
+  // Validate city exists in our dataset
+  const cityInfo = getCityByValue(cityValue)
+  if (!cityInfo) {
+    throw new Error('Invalid city selected')
+  }
+
+  // Validate region matches the city
+  if (regionValue && cityInfo.regionId !== regionValue) {
+    throw new Error('Selected city does not belong to the selected region')
+  }
+
+  // Look up city-specific price, then default, then hardcoded fallback
+  const [cityRow, defaultRow] = await Promise.all([
+    tx.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityValue}` } }),
+    tx.siteSetting.findUnique({ where: { key: DEFAULT_SHIPPING_KEY } }),
+  ])
+
+  const defaultPrice = defaultRow ? (Number(defaultRow.value) || DEFAULT_SHIPPING_PRICE) : DEFAULT_SHIPPING_PRICE
+  return cityRow ? (Number(cityRow.value) || defaultPrice) : defaultPrice
+}
 
 export const orderService = {
   async createOrder(req: CreateOrderRequest): Promise<CreateOrderResponse> {
@@ -82,7 +118,14 @@ export const orderService = {
       }
 
       const subtotal = snapshots.reduce((sum, item) => sum + item.totalPrice + item.snapshot.niqabs.reduce((addOnSum, niqab) => addOnSum + niqab.totalPrice, 0), 0)
-      const shippingCost = getShippingCost(req.formData.city)
+
+      // ── Server-side shipping price resolution (DB-backed, tamper-proof) ──
+      const shippingCost = await resolveShippingCost(
+        req.formData.city,
+        req.formData.region || '',
+        tx,
+      )
+
       const createdOrder = await tx.order.create({ data: {
         orderNumber, customerName: req.formData.customerName, customerPhone: req.formData.customerPhone,
         customerPhone2: req.formData.customerPhone2 || null, customerEmail: req.formData.customerEmail || null,
@@ -95,6 +138,61 @@ export const orderService = {
         unitPrice: item.unitPrice, totalPrice: item.totalPrice, productSnapshot: item.snapshot as unknown as Prisma.InputJsonValue,
       } })))
       await tx.orderStatusHistory.create({ data: { orderId: createdOrder.id, status: 'PENDING', note: 'Order placed by guest' } })
+
+      // Create Admin Notification for the new order
+      try {
+        await tx.adminNotification.create({
+          data: {
+            type: 'ORDER',
+            title: `طلب جديد #${createdOrder.orderNumber}`,
+            description: `${createdOrder.customerName} — ${Number(createdOrder.total)} د.م.`,
+            targetUrl: `/admin/orders/${createdOrder.id}`,
+            referenceId: `order-${createdOrder.id}`,
+            isRead: false,
+          },
+        })
+      } catch (err) {
+        console.error('Failed to create order notification:', err)
+      }
+
+      // Check stock alerts for updated variants
+      try {
+        const variantIds = snapshots.map((s) => s.variantId).filter(Boolean) as string[]
+        if (variantIds.length > 0) {
+          const updatedVariants = await tx.productVariant.findMany({
+            where: { id: { in: variantIds } },
+            include: { product: true },
+          })
+          for (const v of updatedVariants) {
+            if (v.stockQuantity === 0) {
+              await tx.adminNotification.create({
+                data: {
+                  type: 'OUT_OF_STOCK',
+                  title: `المنتج نفد من المخزون`,
+                  description: `${v.product.nameAr || v.product.nameFr} (${v.size} - ${v.colorNameAr})`,
+                  targetUrl: `/admin/products`,
+                  referenceId: `stock-out-${v.id}`,
+                  isRead: false,
+                },
+              })
+            } else if (v.stockQuantity > 0 && v.stockQuantity <= 3) {
+              await tx.adminNotification.create({
+                data: {
+                  type: 'LOW_STOCK',
+                  title: `المخزون منخفض`,
+                  description: `${v.product.nameAr || v.product.nameFr} (${v.size} - ${v.colorNameAr}) — بقي ${v.stockQuantity} فقط`,
+                  targetUrl: `/admin/products`,
+                  referenceId: `stock-low-${v.id}-${v.stockQuantity}`,
+                  isRead: false,
+                },
+              })
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to create stock alert notifications:', err)
+      }
+
       return createdOrder
     })
     return { success: true, order: { id: order.id, orderNumber: order.orderNumber } }
@@ -108,3 +206,6 @@ export const orderService = {
     } catch { return LOCAL_ORDERS_STORE.get(id) || null }
   },
 }
+
+// Re-export for any legacy usage
+export { MOROCCAN_CITIES }
