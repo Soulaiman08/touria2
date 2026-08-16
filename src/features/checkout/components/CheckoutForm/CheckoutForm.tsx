@@ -152,20 +152,94 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
   if (cartStore.items.length === 0) {
     return (
-      <div className="text-center py-10 my-4 sm:py-20 sm:my-8 max-w-md mx-auto p-5 sm:p-10 rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-xs">
-        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center mx-auto mb-4 sm:mb-6">
-          <ShoppingBag className="w-10 h-10" />
-        </div>
-        <h2 className="font-bold text-xl sm:text-2xl mb-3 text-[var(--foreground)]">
-          {cartT('empty')}
-        </h2>
-        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6">{cartT('emptyDesc')}</p>
-        <button
-          onClick={() => router.push(`/${locale}/products`)}
-          className="btn btn-primary btn-round px-5 py-2.5 text-sm"
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '48px 16px 64px',
+          minHeight: '360px',
+        }}
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
+        {/* Empty Cart Card */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '440px',
+            background: 'var(--card)',
+            border: '1px solid var(--border)',
+            borderRadius: '24px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+            padding: '40px 32px 36px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
         >
-          {cartT('startShopping')}
-        </button>
+          {/* Icon */}
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 20,
+              background: 'rgba(196,98,45,0.10)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 24,
+              flexShrink: 0,
+            }}
+          >
+            <ShoppingBag
+              style={{ width: 32, height: 32, color: '#C4622D' }}
+              aria-hidden="true"
+            />
+          </div>
+
+          {/* Title */}
+          <h2
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 800,
+              color: 'var(--foreground)',
+              marginBottom: 10,
+              lineHeight: 1.35,
+            }}
+          >
+            {cartT('empty')}
+          </h2>
+
+          {/* Description */}
+          <p
+            style={{
+              fontSize: '0.875rem',
+              color: 'var(--text-muted)',
+              lineHeight: 1.7,
+              marginBottom: 28,
+              maxWidth: 320,
+            }}
+          >
+            {cartT('emptyDesc')}
+          </p>
+
+          {/* CTA */}
+          <button
+            onClick={() => router.push(`/${locale}/products`)}
+            className="btn btn-primary btn-round"
+            style={{
+              paddingInline: '28px',
+              paddingBlock: '12px',
+              fontSize: '0.875rem',
+              fontWeight: 700,
+              minWidth: 180,
+            }}
+          >
+            {cartT('startShopping')}
+          </button>
+        </div>
       </div>
     )
   }
@@ -342,11 +416,13 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                   <select
                     value={selectedRegion}
                     onChange={handleRegionChange}
-                    className="w-full h-12 px-4.5 pe-11 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer"
+                    className="w-full h-12 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer"
                     style={{
                       background: 'var(--input)',
                       color: 'var(--foreground)',
                       borderColor: errors.region ? '#ef4444' : 'var(--border)',
+                      paddingInlineStart: '16px',
+                      paddingInlineEnd: '40px',
                     }}
                   >
                     <option value="">{t('address.regionPlaceholder')}</option>
@@ -356,7 +432,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-4 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
+                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
                 </div>
                 {errors.region && (
                   <p className="text-xs text-red-500 font-medium mt-2">{errors.region.message}</p>
@@ -376,11 +452,13 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                     value={selectedCity}
                     onChange={handleCityChange}
                     disabled={!selectedRegion}
-                    className="w-full h-12 px-4.5 pe-11 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-12 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background: 'var(--input)',
                       color: 'var(--foreground)',
                       borderColor: errors.city ? '#ef4444' : 'var(--border)',
+                      paddingInlineStart: '16px',
+                      paddingInlineEnd: '40px',
                     }}
                   >
                     <option value="">{t('address.cityPlaceholder')}</option>
@@ -390,7 +468,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-4 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
+                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
                 </div>
                 {errors.city && (
                   <p className="text-xs text-red-500 font-medium mt-2">{errors.city.message}</p>

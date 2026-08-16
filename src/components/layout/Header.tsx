@@ -906,40 +906,81 @@ export function Header({ locale }: HeaderProps) {
               paddingRight: 12,
             }}
           >
+            {/* Label row */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                borderRadius: 12,
-
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border)',
-
-                color: 'var(--text-secondary)',
-                fontSize: 13,
-                fontWeight: 600,
+                gap: 8,
+                marginBottom: 10,
+                color: 'var(--text-muted)',
+                fontSize: 12,
+                fontWeight: 700,
               }}
             >
               <Globe
                 style={{
-                  width: 15,
-                  height: 15,
+                  width: 14,
+                  height: 14,
                   flexShrink: 0,
-                  color: 'var(--text-muted)',
                 }}
               />
-
-              <span style={{ flex: 1 }}>
+              <span>
                 {locale === 'ar'
                   ? 'اللغة'
                   : locale === 'fr'
                     ? 'Langue'
                     : 'Language'}
               </span>
+            </div>
 
-              <LanguageSwitcher locale={locale} />
+            {/* Inline language buttons — never uses a popup dropdown */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 8,
+              }}
+            >
+              {[
+                { code: 'ar', label: 'العربية' },
+                { code: 'fr', label: 'Français' },
+                { code: 'en', label: 'English' },
+              ].map((lang) => {
+                const isActive = locale === lang.code
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      const segments = window.location.pathname.split('/')
+                      segments[1] = lang.code
+                      window.location.href = segments.join('/')
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 6px',
+                      borderRadius: 10,
+                      border: `1px solid ${isActive ? '#C4622D' : 'var(--border)'}`,
+                      background: isActive ? 'rgba(196,98,45,0.10)' : 'var(--bg-subtle)',
+                      color: isActive ? '#C4622D' : 'var(--text-secondary)',
+                      fontSize: 12,
+                      fontWeight: isActive ? 700 : 600,
+                      cursor: 'pointer',
+                      minHeight: 40,
+                      transition: 'all 0.15s',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {lang.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 

@@ -17,43 +17,129 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       className="container-brand page-shell page-stack"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* ── Header Top Nav ────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-        <nav className="flex items-center gap-2.5 text-xs text-[var(--text-muted)]">
-          <Link href={`/${locale}`} className="hover:text-[#C4622D] transition-colors font-medium">
+      {/* ── Breadcrumb + Back Button Row ───────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          paddingBlock: '4px',
+        }}
+      >
+        {/* Breadcrumb */}
+        <nav
+          aria-label="breadcrumb"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+          }}
+        >
+          <Link
+            href={`/${locale}`}
+            style={{
+              color: 'var(--text-muted)',
+              fontWeight: 500,
+              textDecoration: 'none',
+              transition: 'color 0.15s',
+            }}
+            className="hover:text-[#C4622D]"
+          >
             {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
           </Link>
-          <ChevronRight className={`w-3.5 h-3.5 opacity-60 ${isRTL ? 'rotate-180' : ''}`} />
-          <span className="font-semibold text-[#C4622D]">{t('title')}</span>
+          <ChevronRight
+            aria-hidden="true"
+            style={{
+              width: 13,
+              height: 13,
+              opacity: 0.5,
+              transform: isRTL ? 'rotate(180deg)' : 'none',
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ fontWeight: 600, color: '#C4622D' }}>{t('title')}</span>
         </nav>
 
+        {/* Back button */}
         <Link
           href={`/${locale}/products`}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[#C4622D] transition-colors px-3 py-2 sm:px-4.5 sm:py-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[#C4622D]/40 shadow-xs"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            textDecoration: 'none',
+            paddingInline: '14px',
+            paddingBlock: '8px',
+            borderRadius: '12px',
+            border: '1px solid var(--border)',
+            background: 'var(--card)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            transition: 'all 0.15s',
+            whiteSpace: 'nowrap',
+          }}
+          className="hover:text-[#C4622D] hover:border-[#C4622D]/40"
         >
-          <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-          {locale === 'ar' ? 'العودة للتسوق' : locale === 'fr' ? 'Continuer vos achats' : 'Continue shopping'}
+          <ArrowLeft
+            aria-hidden="true"
+            style={{
+              width: 13,
+              height: 13,
+              flexShrink: 0,
+              transform: isRTL ? 'rotate(180deg)' : 'none',
+            }}
+          />
+          {locale === 'ar'
+            ? 'العودة للتسوق'
+            : locale === 'fr'
+              ? 'Continuer vos achats'
+              : 'Continue shopping'}
         </Link>
       </div>
 
-      {/* ── Page Title Header ─────────────────────────────────────── */}
-      <div className="space-y-2.5 sm:space-y-3.5 text-start pb-5 sm:pb-8 border-b border-[var(--border)]">
-        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-[var(--foreground)]">
+      {/* ── Page Title ─────────────────────────────────────── */}
+      <div
+        style={{
+          paddingBottom: '28px',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: 'clamp(1.5rem, 3vw, 2.25rem)',
+            fontWeight: 800,
+            color: 'var(--foreground)',
+            letterSpacing: '-0.02em',
+            marginBottom: '8px',
+            lineHeight: 1.2,
+          }}
+        >
           {t('title')}
         </h1>
-        <p className="text-sm md:text-base text-[var(--text-muted)] max-w-2xl leading-relaxed">
+        <p
+          style={{
+            fontSize: '0.9rem',
+            color: 'var(--text-muted)',
+            lineHeight: 1.65,
+            maxWidth: '520px',
+          }}
+        >
           {locale === 'ar'
             ? 'يرجى ملء المعلومات أدناه لتأكيد طلبك وتوصيله إليكِ.'
             : locale === 'fr'
-            ? 'Veuillez remplir les informations ci-dessous pour confirmer votre commande.'
-            : 'Please fill in the information below to confirm and deliver your order.'}
+              ? 'Veuillez remplir les informations ci-dessous pour confirmer votre commande.'
+              : 'Please fill in the information below to confirm and deliver your order.'}
         </p>
       </div>
 
-      {/* ── Checkout Form Container ──────────────────────────────── */}
-      <div>
-        <CheckoutForm locale={locale} />
-      </div>
+      {/* ── Checkout Form (or Empty Cart state) ──────────── */}
+      <CheckoutForm locale={locale} />
     </div>
   )
 }
