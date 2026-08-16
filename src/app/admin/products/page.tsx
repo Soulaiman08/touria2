@@ -299,6 +299,7 @@ function ProductContent() {
 
       const res = await fetch(url, {
         method: 'GET',
+        credentials: 'same-origin',
         cache: 'no-store',
         headers: {
           Accept: 'application/json',

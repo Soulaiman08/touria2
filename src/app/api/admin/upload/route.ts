@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import { requireAdmin } from '@/lib/auth'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,6 +10,8 @@ cloudinary.config({
 })
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const formData = await request.formData()
 
@@ -21,6 +24,11 @@ export async function POST(request: Request) {
         { error: 'No file uploaded' },
         { status: 400 }
       )
+    }
+
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
+    if (!allowedTypes.has(file.type) || file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Only JPEG, PNG, or WebP images up to 5 MB are allowed' }, { status: 400 })
     }
 
     const bytes = await file.arrayBuffer()

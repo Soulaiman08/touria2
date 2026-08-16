@@ -1,8 +1,17 @@
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
-const JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'thuraya_admin_secret_key_2026_super_secure'
 export const COOKIE_NAME = 'admin_token'
+
+function getJwtSecret(): string {
+  const secret = process.env.ADMIN_JWT_SECRET
+  if (!secret || secret.length < 32) {
+    throw new Error('ADMIN_JWT_SECRET is not configured with sufficient entropy')
+  }
+  return secret
+}
 
 export interface AdminJwtPayload {
   id: string
@@ -10,6 +19,13 @@ export interface AdminJwtPayload {
   name: string
   role: string
   exp: number
+}
+
+export class AuthDatabaseUnavailableError extends Error {
+  constructor() {
+    super('Authentication database lookup unavailable')
+    this.name = 'AuthDatabaseUnavailableError'
+  }
 }
 
 function base64UrlEncode(str: string): string {
@@ -58,7 +74,7 @@ export function signAdminToken(payload: { id: string; email: string; name: strin
   const data = `${encodedHeader}.${encodedPayload}`
 
   const signature = crypto
-    .createHmac('sha256', JWT_SECRET)
+    .createHmac('sha256', getJwtSecret())
     .update(data)
     .digest('base64')
     .replace(/=/g, '')
@@ -77,22 +93,81 @@ export function verifyAdminToken(token: string): AdminJwtPayload | null {
     const data = `${encodedHeader}.${encodedPayload}`
 
     const expectedSignature = crypto
-      .createHmac('sha256', JWT_SECRET)
+      .createHmac('sha256', getJwtSecret())
       .update(data)
       .digest('base64')
       .replace(/=/g, '')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
 
-    if (signature !== expectedSignature) return null
+    const provided = Buffer.from(signature)
+    const expected = Buffer.from(expectedSignature)
+    if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) return null
 
     const payload: AdminJwtPayload = JSON.parse(base64UrlDecode(encodedPayload))
     const now = Math.floor(Date.now() / 1000)
-    if (payload.exp && payload.exp < now) return null
+    if (!payload.id || !payload.email || !payload.role || !Number.isFinite(payload.exp) || payload.exp < now) return null
 
     return payload
   } catch {
     return null
+  }
+}
+
+export async function getCurrentAdmin() {
+  const payload = await getAdminFromCookie()
+  if (!payload) return null
+
+  let admin
+  try {
+    admin = await prisma.adminUser.findUnique({
+      where: { id: payload.id },
+      select: { id: true, email: true, name: true, role: true, avatar: true },
+    })
+  } catch {
+    throw new AuthDatabaseUnavailableError()
+  }
+  if (!admin || admin.email.toLowerCase() !== payload.email.toLowerCase()) return null
+  return admin
+}
+
+export async function requireAdmin(allowedRoles?: string[]) {
+  try {
+    const admin = await getCurrentAdmin()
+    if (!admin) {
+      return { ok: false as const, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+    }
+    if (allowedRoles && !allowedRoles.includes(admin.role.toUpperCase())) {
+      return { ok: false as const, response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+    }
+    return { ok: true as const, admin }
+  } catch (error) {
+    if (error instanceof AuthDatabaseUnavailableError) {
+      return { ok: false as const, response: NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 }) }
+    }
+    return { ok: false as const, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  }
+}
+
+export function signOrderAccessToken(orderId: string, expiresInSeconds = 86400 * 30): string {
+  const payload = `${orderId}.${Math.floor(Date.now() / 1000) + expiresInSeconds}`
+  const encoded = base64UrlEncode(payload)
+  const signature = crypto.createHmac('sha256', getJwtSecret()).update(encoded).digest('base64url')
+  return `${encoded}.${signature}`
+}
+
+export function verifyOrderAccessToken(token: string, orderId: string): boolean {
+  try {
+    const [encoded, signature] = token.split('.')
+    if (!encoded || !signature) return false
+    const expected = crypto.createHmac('sha256', getJwtSecret()).update(encoded).digest('base64url')
+    const providedBytes = Buffer.from(signature)
+    const expectedBytes = Buffer.from(expected)
+    if (providedBytes.length !== expectedBytes.length || !crypto.timingSafeEqual(providedBytes, expectedBytes)) return false
+    const [tokenOrderId, expiry] = base64UrlDecode(encoded).split('.')
+    return tokenOrderId === orderId && Number(expiry) >= Math.floor(Date.now() / 1000)
+  } catch {
+    return false
   }
 }
 

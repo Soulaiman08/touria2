@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/utils'
+import { requireAdmin } from '@/lib/auth'
 
 const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
   const timeout = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
@@ -72,6 +73,8 @@ const BACKUP_PRODUCTS = [
 ]
 
 export async function GET(request: Request) {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
@@ -192,6 +195,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
+  if (!auth.ok) return auth.response
   try {
     const body = await request.json()
     const {

@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 export async function GET(request: Request) {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
   try {
     const { searchParams } = new URL(request.url)
-    const q = (searchParams.get('q') || '').trim()
+    const q = (searchParams.get('q') || '').trim().slice(0, 100)
 
     if (!q || q.length < 1) {
       return NextResponse.json({

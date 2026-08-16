@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { MOROCCAN_CITIES, DEFAULT_SHIPPING_PRICE, getCityByValue } from '@/config/moroccan-cities'
 import { MOROCCAN_REGIONS } from '@/config/moroccan-regions'
+import { requireAdmin } from '@/lib/auth'
 
 const CITY_KEY_PREFIX = 'shipping:city:'
 const DEFAULT_KEY = 'shipping:default'
@@ -12,6 +13,8 @@ function cityKey(cityValue: string) {
 }
 
 export async function GET() {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
   try {
     const rows = await prisma.siteSetting.findMany({
       where: { key: { startsWith: 'shipping:' } },
@@ -55,6 +58,8 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const body = await request.json() as {
       type: 'default' | 'city'
@@ -101,12 +106,15 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const { searchParams } = new URL(request.url)
     const cityValue = searchParams.get('city')
     if (!cityValue) {
       return NextResponse.json({ error: 'city param required' }, { status: 400 })
     }
+    if (!getCityByValue(cityValue)) return NextResponse.json({ error: 'Unknown city' }, { status: 400 })
     const key = cityKey(cityValue)
     await prisma.siteSetting.deleteMany({ where: { key } })
     return NextResponse.json({ success: true })

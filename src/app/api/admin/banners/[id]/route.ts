@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const { id } = await params
     const body = await request.json() as Record<string, unknown>
@@ -34,6 +37,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const { id } = await params
     await prisma.banner.delete({ where: { id } })

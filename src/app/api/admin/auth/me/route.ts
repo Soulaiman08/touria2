@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { getAdminFromCookie, hashPassword, verifyPassword, signAdminToken, COOKIE_NAME } from '@/lib/auth'
+import { getCurrentAdmin, getAdminFromCookie, hashPassword, verifyPassword, signAdminToken, COOKIE_NAME } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
-  const currentAdmin = await getAdminFromCookie()
+  const currentAdmin = await getCurrentAdmin()
   if (!currentAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -59,7 +59,7 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const currentAdmin = await getAdminFromCookie()
+  const currentAdmin = await getCurrentAdmin()
   if (!currentAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -79,7 +79,7 @@ export async function PUT(request: Request) {
     }
 
     if (!admin) {
-      admin = await prisma.adminUser.findFirst()
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const updateData: Record<string, unknown> = {}
@@ -116,10 +116,7 @@ export async function PUT(request: Request) {
       updateData.passwordHash = hashPassword(newPassword)
     }
 
-    let updatedAdmin
-
-    if (admin) {
-      updatedAdmin = await prisma.adminUser.update({
+    const updatedAdmin = await prisma.adminUser.update({
         where: { id: admin.id },
         data: updateData,
         select: {
@@ -130,29 +127,6 @@ export async function PUT(request: Request) {
           avatar: true,
         },
       })
-    } else {
-      const newEmail = email ? email.toLowerCase().trim() : currentAdmin.email
-      const newName = name || currentAdmin.name
-      const newHash = newPassword ? hashPassword(newPassword) : hashPassword('admin123')
-
-      updatedAdmin = await prisma.adminUser.upsert({
-        where: { email: newEmail },
-        update: updateData,
-        create: {
-          email: newEmail,
-          name: newName,
-          passwordHash: newHash,
-          role: currentAdmin.role || 'SUPER_ADMIN',
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          avatar: true,
-        },
-      })
-    }
 
     // Refresh auth cookie token with updated user details
     const token = signAdminToken({

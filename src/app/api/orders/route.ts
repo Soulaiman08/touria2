@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
+import { signOrderAccessToken } from '@/lib/auth'
 
 export async function GET() {
   /*
@@ -27,7 +28,17 @@ export async function POST(request: Request) {
     }
 
     const result = await orderService.createOrder(body)
-    return NextResponse.json(result)
+    const response = NextResponse.json(result)
+    if (result.success && result.order?.id) {
+      response.cookies.set(`order_access_${result.order.id}`, signOrderAccessToken(result.order.id), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30,
+        path: '/',
+      })
+    }
+    return response
   } catch (error) {
     console.error('Error placing order:', error)
     const msg = error instanceof Error ? error.message : 'Failed to place order'

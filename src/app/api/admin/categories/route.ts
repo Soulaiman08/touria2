@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 import { slugify } from '@/lib/utils'
 
 const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
@@ -36,6 +37,8 @@ const BACKUP_CATEGORIES = [
 ]
 
 export async function GET() {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
   try {
     const categories = await withTimeout(
       prisma.category.findMany({
@@ -75,6 +78,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const body = await request.json()
     const { name, nameAr, nameFr, nameEn, slug, image, sortOrder = 0, isActive = true } = body

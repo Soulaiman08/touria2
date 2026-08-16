@@ -5,6 +5,12 @@
 
 export const COOKIE_NAME = 'admin_token'
 
+function getJwtSecret(): string {
+  const secret = process.env.ADMIN_JWT_SECRET
+  if (!secret || secret.length < 32) throw new Error('ADMIN_JWT_SECRET is not configured')
+  return secret
+}
+
 export interface AdminJwtPayload {
   id: string
   email: string
@@ -35,7 +41,7 @@ async function getHmacKey(secret: string): Promise<CryptoKey> {
 
 export async function verifyAdminTokenEdge(token: string): Promise<AdminJwtPayload | null> {
   try {
-    const secret = process.env.ADMIN_JWT_SECRET || 'thuraya_admin_secret_key_2026_super_secure'
+    const secret = getJwtSecret()
     const parts = token.split('.')
     if (parts.length !== 3) return null
 
@@ -55,7 +61,7 @@ export async function verifyAdminTokenEdge(token: string): Promise<AdminJwtPaylo
 
     const payload: AdminJwtPayload = JSON.parse(base64UrlDecode(encodedPayload))
     const now = Math.floor(Date.now() / 1000)
-    if (payload.exp && payload.exp < now) return null
+    if (!payload.id || !payload.email || !payload.role || !Number.isFinite(payload.exp) || payload.exp < now) return null
 
     return payload
   } catch {

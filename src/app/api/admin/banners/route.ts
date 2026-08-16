@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/auth'
 
 const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
   const timeout = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
@@ -31,6 +32,8 @@ const BACKUP_BANNERS = [
 ]
 
 export async function GET() {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
   try {
     const banners = await withTimeout(
       prisma.banner.findMany({
@@ -50,6 +53,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  if (!auth.ok) return auth.response
   try {
     const body = await request.json()
     const { title, subtitle, buttonText, buttonUrl, imageUrl, sortOrder = 0, isActive = true } = body

@@ -4,10 +4,19 @@ import { prisma } from '@/lib/prisma'
 
 const VISITOR_COOKIE = 'th_visitor_session'
 const SETTING_KEY = 'stats:visitors:count'
+const requests = new Map<string, { count: number; resetAt: number }>()
 
 export async function POST(request: NextRequest) {
   try {
     const referer = request.headers.get('referer') || ''
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const now = Date.now()
+    const currentRate = requests.get(ip)
+    if (currentRate && currentRate.resetAt > now && currentRate.count >= 30) {
+      return NextResponse.json({ tracked: false, reason: 'rate_limited' }, { status: 429, headers: { 'Retry-After': '60' } })
+    }
+    if (!currentRate || currentRate.resetAt <= now) requests.set(ip, { count: 1, resetAt: now + 60_000 })
+    else currentRate.count += 1
     // Strictly exclude admin visits
     if (referer.includes('/admin') || request.nextUrl.pathname.includes('/admin')) {
       return NextResponse.json({ tracked: false, reason: 'admin_excluded' })

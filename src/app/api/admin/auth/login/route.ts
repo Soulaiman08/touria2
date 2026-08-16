@@ -2,16 +2,26 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, verifyPassword, signAdminToken, COOKIE_NAME } from '@/lib/auth'
 
+const attempts = new Map<string, { count: number; resetAt: number }>()
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { email, password } = body
 
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 200) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
     const cleanEmail = email.toLowerCase().trim()
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const now = Date.now()
+    const attempt = attempts.get(ip)
+    if (attempt && attempt.resetAt > now && attempt.count >= 10) {
+      return NextResponse.json({ error: 'Too many login attempts' }, { status: 429, headers: { 'Retry-After': '900' } })
+    }
+    if (!attempt || attempt.resetAt <= now) attempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
+    else attempt.count += 1
     let admin = null
 
     // Attempt DB lookup with 2s timeout
@@ -31,39 +41,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
       }
     } else {
-      // Admin not found by email in DB.
-      // Check total count of admin users in database.
-      let adminCount = 0
-      try {
-        adminCount = await prisma.adminUser.count()
-      } catch {
-        adminCount = 0
-      }
-
-      // Default seed credentials ONLY allowed if NO admin user exists in DB at all.
-      if (adminCount === 0 && cleanEmail === 'admin@thuraya.com' && password === 'admin123') {
-        const passwordHash = hashPassword('admin123')
-        try {
-          admin = await prisma.adminUser.create({
-            data: {
-              email: 'admin@thuraya.com',
-              passwordHash,
-              name: 'Thuraya Admin',
-              role: 'SUPER_ADMIN',
-            },
-          })
-        } catch {
-          admin = {
-            id: 'admin_seed',
-            email: 'admin@thuraya.com',
-            name: 'Thuraya Admin',
-            role: 'SUPER_ADMIN',
-            passwordHash,
-          }
-        }
-      } else {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
-      }
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
     const token = signAdminToken({
@@ -91,6 +69,7 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     })
+    response.headers.set('Cache-Control', 'no-store')
 
     return response
   } catch (error) {
