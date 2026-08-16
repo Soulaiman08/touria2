@@ -6,6 +6,11 @@ const attempts = new Map<string, { count: number; resetAt: number }>()
 const SAFE_LOGIN_ERROR = 'Unable to sign in. Please try again.'
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPER_ADMIN', 'ADMINISTRATOR', 'MANAGER', 'STAFF', 'STAFF MEMBER'])
 
+function hasJwtSecretConfigured(): boolean {
+  const secret = process.env.ADMIN_JWT_SECRET
+  return typeof secret === 'string' && secret.length >= 32
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -13,6 +18,11 @@ export async function POST(request: Request) {
 
     if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 200) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
+    }
+
+    if (!hasJwtSecretConfigured()) {
+      console.error('[ADMIN_AUTH] ADMIN_JWT_SECRET is not configured. Set it in Vercel environment variables (Production).')
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 503 })
     }
 
     const cleanEmail = email.toLowerCase().trim()
@@ -29,8 +39,8 @@ export async function POST(request: Request) {
       admin = await prisma.adminUser.findUnique({
         where: { email: cleanEmail },
       })
-    } catch {
-      console.error('[ADMIN_AUTH] Database connection failed')
+    } catch (e) {
+      console.error('[ADMIN_AUTH] Database connection failed:', e instanceof Error ? e.message : 'unknown')
       return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 503 })
     }
 
@@ -59,11 +69,11 @@ export async function POST(request: Request) {
       })
     } catch (error) {
       if (error instanceof AuthConfigurationError) {
-        console.error('[ADMIN_AUTH] JWT secret missing')
+        console.error('[ADMIN_AUTH] JWT signing failed - ADMIN_JWT_SECRET is not configured or insufficient. Set it in Vercel environment variables (Production).')
       } else {
-        console.error('[ADMIN_AUTH] JWT creation failed')
+        console.error('[ADMIN_AUTH] JWT creation failed:', error instanceof Error ? error.message : 'unknown')
       }
-      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 500 })
+      return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 503 })
     }
 
     const response = NextResponse.json({

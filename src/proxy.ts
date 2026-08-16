@@ -24,7 +24,12 @@ export default async function proxy(request: NextRequest) {
     if (pathname === '/api/admin/auth/login') return NextResponse.next()
     const token = request.cookies.get(COOKIE_NAME)?.value
     const payload = token ? await verifyAdminTokenEdge(token) : null
-    if (!payload || !isKnownAdminRole(payload.role)) return unauthorizedResponse()
+    if (!payload || !isKnownAdminRole(payload.role)) {
+      if (token && !payload) {
+        console.error('[PROXY] Admin token verification failed for', pathname, '- check ADMIN_JWT_SECRET is configured in Vercel')
+      }
+      return unauthorizedResponse()
+    }
     return NextResponse.next()
   }
 
@@ -39,6 +44,9 @@ export default async function proxy(request: NextRequest) {
     const token = request.cookies.get(COOKIE_NAME)?.value
     const payload = token ? await verifyAdminTokenEdge(token) : null
     if (!payload || !isKnownAdminRole(payload.role)) {
+      if (token && !payload) {
+        console.error('[PROXY] Admin token verification failed for', pathname, '- check ADMIN_JWT_SECRET is configured in Vercel')
+      }
       const response = NextResponse.redirect(new URL('/admin/login', request.url))
       response.cookies.delete(COOKIE_NAME)
       return response

@@ -7,7 +7,8 @@ export const COOKIE_NAME = 'admin_token'
 
 function getJwtSecret(): string {
   const secret = process.env.ADMIN_JWT_SECRET
-  if (!secret || secret.length < 32) throw new Error('ADMIN_JWT_SECRET is not configured')
+  if (!secret) throw new Error('ADMIN_JWT_SECRET is not set')
+  if (secret.length < 32) throw new Error('ADMIN_JWT_SECRET must be at least 32 characters')
   return secret
 }
 

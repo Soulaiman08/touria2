@@ -7,8 +7,11 @@ export const COOKIE_NAME = 'admin_token'
 
 function getJwtSecret(): string {
   const secret = process.env.ADMIN_JWT_SECRET
-  if (!secret || secret.length < 32) {
-    throw new AuthConfigurationError('ADMIN_JWT_SECRET is not configured with sufficient entropy')
+  if (!secret) {
+    throw new AuthConfigurationError('ADMIN_JWT_SECRET is not set. Configure it in your environment variables.')
+  }
+  if (secret.length < 32) {
+    throw new AuthConfigurationError('ADMIN_JWT_SECRET must be at least 32 characters.')
   }
   return secret
 }
