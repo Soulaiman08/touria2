@@ -23,9 +23,9 @@ export default async function proxy(request: NextRequest) {
 
   if (pathname.startsWith('/uploads')) return NextResponse.next()
 
-  // Legacy /admin redirect → new control panel path
+  // Legacy /admin paths → 404 (do not reveal control-panel-ss7)
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    return NextResponse.redirect(new URL(pathname.replace('/admin', ADMIN_PANEL) || ADMIN_PANEL, request.url))
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 })
   }
 
   if (pathname.startsWith('/api/admin')) {
