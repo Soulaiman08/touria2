@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Unable to sign in. Please try again later.')
       }
 
-      router.push('/admin')
+      router.push('/control-panel-ss7')
       router.refresh()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unable to sign in. Please try again later.'

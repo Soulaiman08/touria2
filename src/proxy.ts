@@ -6,6 +6,9 @@ import { verifyAdminTokenEdge, COOKIE_NAME } from './lib/auth-edge'
 
 const handleIntl = createMiddleware(routing)
 
+const ADMIN_PANEL = '/control-panel-ss7'
+const ADMIN_LOGIN = '/control-panel-ss7/login'
+
 const isKnownAdminRole = (role: string) =>
   ['ADMIN', 'SUPER_ADMIN', 'ADMINISTRATOR', 'MANAGER', 'STAFF', 'STAFF MEMBER'].includes(role.trim().toUpperCase())
 
@@ -20,6 +23,11 @@ export default async function proxy(request: NextRequest) {
 
   if (pathname.startsWith('/uploads')) return NextResponse.next()
 
+  // Legacy /admin redirect → new control panel path
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return NextResponse.redirect(new URL(pathname.replace('/admin', ADMIN_PANEL) || ADMIN_PANEL, request.url))
+  }
+
   if (pathname.startsWith('/api/admin')) {
     if (pathname === '/api/admin/auth/login') return NextResponse.next()
     const token = request.cookies.get(COOKIE_NAME)?.value
@@ -33,11 +41,11 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (pathname.startsWith('/admin')) {
-    if (pathname === '/admin/login') {
+  if (pathname.startsWith(ADMIN_PANEL)) {
+    if (pathname === ADMIN_LOGIN) {
       const token = request.cookies.get(COOKIE_NAME)?.value
       const payload = token ? await verifyAdminTokenEdge(token) : null
-      if (payload && isKnownAdminRole(payload.role)) return NextResponse.redirect(new URL('/admin', request.url))
+      if (payload && isKnownAdminRole(payload.role)) return NextResponse.redirect(new URL(ADMIN_PANEL, request.url))
       return NextResponse.next()
     }
 
@@ -47,7 +55,7 @@ export default async function proxy(request: NextRequest) {
       if (token && !payload) {
         console.error('[PROXY] Admin token verification failed for', pathname, '- check ADMIN_JWT_SECRET is configured in Vercel')
       }
-      const response = NextResponse.redirect(new URL('/admin/login', request.url))
+      const response = NextResponse.redirect(new URL(ADMIN_LOGIN, request.url))
       response.cookies.delete(COOKIE_NAME)
       return response
     }

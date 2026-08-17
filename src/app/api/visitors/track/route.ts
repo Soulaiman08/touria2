@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!currentRate || currentRate.resetAt <= now) requests.set(ip, { count: 1, resetAt: now + 60_000 })
     else currentRate.count += 1
     // Strictly exclude admin visits
-    if (referer.includes('/admin') || request.nextUrl.pathname.includes('/admin')) {
+    if (referer.includes('/control-panel-ss7') || request.nextUrl.pathname.includes('/control-panel-ss7')) {
       return NextResponse.json({ tracked: false, reason: 'admin_excluded' })
     }
 

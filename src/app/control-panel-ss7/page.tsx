@@ -317,7 +317,7 @@ function DashboardContent() {
               </span>
               <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>المنتجات الأكثر طلباً</span>
             </div>
-            <Link href="/admin/products" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#fbbf24', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+            <Link href="/control-panel-ss7/products" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#fbbf24', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
               الكل <ArrowUpRight style={{ width: 14, height: 14 }} />
             </Link>
           </div>
@@ -355,7 +355,7 @@ function DashboardContent() {
             </span>
             <span style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>آخر الطلبات المسجلة في المتجر</span>
           </div>
-          <Link href="/admin/orders" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', fontSize: 12, fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+          <Link href="/control-panel-ss7/orders" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)', fontSize: 12, fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
             إدارة الطلبات <ArrowUpRight style={{ width: 14, height: 14 }} />
           </Link>
         </div>
@@ -393,7 +393,7 @@ function DashboardContent() {
                       <td style={{ padding: '16px 18px', fontWeight: 700, color: '#e4e4e7' }}>{formatPrice(ord.total, 'fr')}</td>
                       <td style={{ padding: '16px 18px', fontSize: 12, color: '#71717a' }}>{new Date(ord.createdAt).toLocaleDateString()}</td>
                       <td style={{ padding: '16px 18px', textAlign: 'right' }}>
-                        <Link href={`/admin/orders/${ord.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 10, background: 'rgba(63,63,70,0.7)', color: '#d4d4d8', fontSize: 12, fontWeight: 700, textDecoration: 'none' }} className="hover:bg-amber-500 hover:text-zinc-950 transition-all">
+                        <Link href={`/control-panel-ss7/orders/${ord.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 10, background: 'rgba(63,63,70,0.7)', color: '#d4d4d8', fontSize: 12, fontWeight: 700, textDecoration: 'none' }} className="hover:bg-amber-500 hover:text-zinc-950 transition-all">
                           <Eye style={{ width: 13, height: 13 }} />
                           تفاصيل
                         </Link>

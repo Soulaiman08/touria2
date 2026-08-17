@@ -195,7 +195,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
       <div style={{ padding: '80px 0', textAlign: 'center', color: '#a1a1aa' }}>
         <p style={{ fontSize: 16, fontWeight: 700, color: '#f4f4f5' }}>Order not found.</p>
         <Link
-          href="/admin/orders"
+          href="/control-panel-ss7/orders"
           style={{ color: '#fbbf24', fontWeight: 700, fontSize: 13, marginTop: 12, display: 'inline-block' }}
         >
           Return to orders list
@@ -220,7 +220,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <Link
-            href="/admin/orders"
+            href="/control-panel-ss7/orders"
             style={{
               padding: 10,
               borderRadius: 12,

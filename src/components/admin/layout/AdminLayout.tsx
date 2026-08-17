@@ -30,14 +30,14 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { name: 'Dashboard',      href: '/admin',            icon: LayoutDashboard },
-  { name: 'Products',       href: '/admin/products',   icon: Package         },
-  { name: 'Categories',     href: '/admin/categories', icon: FolderTree      },
-  { name: 'Orders',         href: '/admin/orders',     icon: ShoppingBag     },
-  { name: 'Customers',      href: '/admin/customers',  icon: Users           },
-  { name: 'Banners',        href: '/admin/banners',    icon: ImageIcon       },
-  { name: 'Store Settings', href: '/admin/settings',   icon: Settings        },
-  { name: 'Profile',        href: '/admin/profile',    icon: User            },
+  { name: 'Dashboard',      href: '/control-panel-ss7',            icon: LayoutDashboard },
+  { name: 'Products',       href: '/control-panel-ss7/products',   icon: Package         },
+  { name: 'Categories',     href: '/control-panel-ss7/categories', icon: FolderTree      },
+  { name: 'Orders',         href: '/control-panel-ss7/orders',     icon: ShoppingBag     },
+  { name: 'Customers',      href: '/control-panel-ss7/customers',  icon: Users           },
+  { name: 'Banners',        href: '/control-panel-ss7/banners',    icon: ImageIcon       },
+  { name: 'Store Settings', href: '/control-panel-ss7/settings',   icon: Settings        },
+  { name: 'Profile',        href: '/control-panel-ss7/profile',    icon: User            },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -51,7 +51,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/admin/auth/logout', { method: 'POST' })
       if (res.ok) {
         success('Logged out successfully')
-        router.push('/admin/login')
+        router.push('/control-panel-ss7/login')
       }
     } catch {
       error('Failed to log out')
@@ -62,7 +62,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     <>
       {/* Brand */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid rgba(63,63,70,0.8)' }}>
-        <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+        <Link href="/control-panel-ss7" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
           <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#fbbf24,#f59e0b,#d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Sparkles style={{ width: 16, height: 16, color: '#09090b' }} />
           </div>
@@ -80,7 +80,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
+          const isActive = pathname === item.href || (item.href !== '/control-panel-ss7' && pathname.startsWith(item.href))
           return (
             <Link
               key={item.href}
@@ -192,7 +192,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <VisitorCounter />
             <AdminNotifications />
-            <Link href="/admin/profile" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px 6px 8px', borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgba(24,24,27,0.6)', textDecoration: 'none' }}>
+            <Link href="/control-panel-ss7/profile" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px 6px 8px', borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgba(24,24,27,0.6)', textDecoration: 'none' }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11 }}>AD</div>
               <span className="hidden sm:inline" style={{ fontSize: 12, fontWeight: 600, color: '#e4e4e7' }}>Admin</span>
             </Link>

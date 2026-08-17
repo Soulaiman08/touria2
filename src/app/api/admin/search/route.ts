@@ -123,7 +123,7 @@ export async function GET(request: Request) {
           price: Number(p.salePrice ?? p.basePrice),
           stock: totalStock,
           image: p.mainImage,
-          href: `/admin/products`,
+          href: `/control-panel-ss7/products`,
         }
       }),
       orders: orders.map((o) => ({
@@ -134,7 +134,7 @@ export async function GET(request: Request) {
         total: Number(o.total),
         status: o.status,
         createdAt: o.createdAt,
-        href: `/admin/orders/${o.id}`,
+        href: `/control-panel-ss7/orders/${o.id}`,
       })),
       customers: customers.map((c) => ({
         id: c.id,
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
         phone: c.phone,
         email: c.email,
         city: c.city,
-        href: `/admin/customers`,
+        href: `/control-panel-ss7/customers`,
       })),
       categories: categories.map((cat) => ({
         id: cat.id,
@@ -151,7 +151,7 @@ export async function GET(request: Request) {
         nameAr: cat.nameAr,
         nameFr: cat.nameFr,
         nameEn: cat.nameEn,
-        href: `/admin/categories`,
+        href: `/control-panel-ss7/categories`,
       })),
     })
   } catch (error) {

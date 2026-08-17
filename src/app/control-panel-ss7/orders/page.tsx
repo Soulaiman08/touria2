@@ -286,7 +286,7 @@ function OrdersContent() {
                     </td>
                     <td style={{ padding: '16px 18px', textAlign: 'right' }}>
                       <Link
-                        href={`/admin/orders/${ord.id}`}
+                        href={`/control-panel-ss7/orders/${ord.id}`}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
