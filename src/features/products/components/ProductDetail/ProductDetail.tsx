@@ -404,6 +404,12 @@ export function ProductDetail({
     : basePriceVal + niqabTotal
 
   // ==========================================
+  // JELLABA TOTAL PRICE (quantity × unit price)
+  // ==========================================
+
+  const jellabasTotal = quantity * basePriceVal
+
+  // ==========================================
   // USED NIQAB COLORS
   // ==========================================
 
@@ -973,60 +979,129 @@ export function ProductDetail({
         </div>
 
         {/* ======================================
-            PRICE
+            PRICE + QUANTITY
         ====================================== */}
 
-        <div className="product-price-row flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          {product.salePrice ? (
-            <>
-              <span className="text-xl font-bold text-[#C4622D] sm:text-2xl">
+        <div className="product-price-row">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {product.salePrice ? (
+              <>
+                <span className="text-xl font-bold text-[#C4622D] sm:text-2xl">
+                  {formatPrice(
+                    finalPrice,
+                    locale,
+                  )}
+                </span>
+
+                <span
+                  className="text-sm line-through"
+                  style={{
+                    color:
+                      'var(--muted-foreground)',
+                  }}
+                >
+                  {formatPrice(
+                    Number(
+                      product.basePrice,
+                    ) +
+                    niqabTotal,
+                    locale,
+                  )}
+                </span>
+              </>
+            ) : (
+              <span
+                className="text-xl font-bold sm:text-2xl"
+                style={{
+                  color:
+                    'var(--foreground)',
+                }}
+              >
                 {formatPrice(
                   finalPrice,
                   locale,
                 )}
               </span>
-
+            )}
+            {product.isNiqab && (
               <span
-                className="text-sm line-through"
-                style={{
-                  color:
-                    'var(--muted-foreground)',
-                }}
+                className="whitespace-nowrap text-xs font-semibold sm:text-sm"
+                style={{ color: 'var(--muted-foreground)' }}
               >
-                {formatPrice(
-                  Number(
-                    product.basePrice,
-                  ) +
-                  niqabTotal,
-                  locale,
-                )}
+                {locale === 'ar'
+                  ? 'لنقاب الواحد'
+                  : locale === 'fr'
+                    ? 'pour un niqab'
+                    : 'for one niqab'}
               </span>
-            </>
-          ) : (
-            <span
-              className="text-xl font-bold sm:text-2xl"
+            )}
+            </div>
+
+            {!product.isNiqab && hasStock && (
+              <div
+                className="flex items-center h-9 border rounded-lg overflow-hidden shadow-xs"
+                style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity(
+                      Math.max(
+                        1,
+                        quantity - 1,
+                      ),
+                    )
+                  }
+                  className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-sm"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="h-3 w-3" />
+                </button>
+
+                <span
+                  className="px-2 h-full flex items-center justify-center text-sm font-extrabold border-x min-w-[2rem]"
+                  style={{ borderColor: 'var(--border)' }}
+                >
+                  {quantity}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity(
+                      quantity + 1,
+                    )
+                  }
+                  className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-sm"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {!product.isNiqab && quantity > 1 && (
+            <div
+              className="flex items-center justify-between p-4 sm:p-4.5 rounded-xl border shadow-xs"
               style={{
-                color:
-                  'var(--foreground)',
+                background: 'rgba(196,98,45,0.06)',
+                borderColor: 'rgba(245,158,11,0.2)',
+                marginTop: '0.75rem',
               }}
             >
-              {formatPrice(
-                finalPrice,
-                locale,
-              )}
-            </span>
-          )}
-          {product.isNiqab && (
-            <span
-              className="whitespace-nowrap text-xs font-semibold sm:text-sm"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              {locale === 'ar'
-                ? 'لنقاب الواحد'
-                : locale === 'fr'
-                  ? 'pour un niqab'
-                  : 'for one niqab'}
-            </span>
+              <span className="text-xs sm:text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                {locale === 'ar'
+                  ? 'مجموع تمن الجلابات'
+                  : locale === 'fr'
+                    ? 'Total djellabas'
+                    : 'Jellabas total'}
+              </span>
+              <span className="text-sm sm:text-base font-extrabold text-[#C4622D]">
+                {formatPrice(jellabasTotal, locale)}
+              </span>
+            </div>
           )}
         </div>
 
@@ -1428,69 +1503,10 @@ export function ProductDetail({
         </div>
 
         {/* ======================================
-            PRODUCT QUANTITY + CART
+            ADD TO CART
         ====================================== */}
 
-        <div className="product-actions flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
-          {!product.isNiqab && hasStock && (
-            <div
-              className="flex h-12 items-center justify-between overflow-hidden rounded-xl border sm:justify-start"
-              style={{
-                borderColor:
-                  'var(--border)',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  setQuantity(
-                    Math.max(
-                      product.isNiqab ? 5 : 1,
-                      quantity -
-                      1,
-                    ),
-                  )
-                }
-                className="flex h-full items-center justify-center px-4 font-bold transition-colors hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]"
-                style={{
-                  color:
-                    'var(--muted-foreground)',
-                }}
-              >
-                -
-              </button>
-
-              <span
-                className="flex items-center justify-center px-4 text-sm font-semibold"
-                style={{
-                  color:
-                    'var(--foreground)',
-                }}
-              >
-                {
-                  quantity
-                }
-              </span>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setQuantity(
-                    quantity +
-                    1,
-                  )
-                }
-                className="flex h-full items-center justify-center px-4 font-bold transition-colors hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]"
-                style={{
-                  color:
-                    'var(--muted-foreground)',
-                }}
-              >
-                +
-              </button>
-            </div>
-          )}
-
+        <div className="product-actions">
           <button
             type="button"
             onClick={
@@ -1500,7 +1516,7 @@ export function ProductDetail({
               (!product.isNiqab && !hasStock) ||
               (product.isNiqab && selectedNiqabQuantity < 5)
             }
-            className="btn btn-primary btn-round flex h-10 w-full items-center justify-center gap-2 text-sm sm:h-12 sm:flex-1"
+            className="btn btn-primary btn-round flex h-12 w-full items-center justify-center gap-2 text-sm"
           >
             <ShoppingBag className="h-4 w-4" />
 
