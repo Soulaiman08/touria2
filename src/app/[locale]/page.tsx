@@ -306,7 +306,7 @@ export default async function HomePage({ params }: HomePageProps) {
           HERO SECTION — HARMONIOUS MOROCCAN LUXURY STOREFRONT
       ========================================================= */}
       <section
-        className="home-hero relative overflow-hidden py-6 sm:py-8 md:py-12 lg:py-14"
+        className="home-hero relative overflow-hidden py-6 sm:py-8 md:py-12 lg:py-14 hero-section"
         style={{
           background: 'transparent',
           display: 'flex',
@@ -327,7 +327,7 @@ export default async function HomePage({ params }: HomePageProps) {
         />
 
         <div className="container-brand relative z-10 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-x-6 sm:gap-x-8 lg:gap-x-10 xl:gap-x-12 gap-y-6 sm:gap-y-8 lg:gap-y-0">
+          <div className="hero-grid grid grid-cols-1 lg:grid-cols-12 items-center gap-x-6 sm:gap-x-8 lg:gap-x-10 xl:gap-x-12 gap-y-6 sm:gap-y-8 lg:gap-y-0" dir={isRTL ? 'rtl' : 'ltr'}>
             
             {/* ===================================================
                 HERO CONTENT (Col 7)
@@ -338,7 +338,7 @@ export default async function HomePage({ params }: HomePageProps) {
             >
               {/* Overline Badge */}
               <div
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide mb-2.5 sm:mb-3.5 shadow-2xs"
+                className="hero-badge inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide mb-2.5 sm:mb-3.5 shadow-2xs"
                 style={{
                   background: 'var(--accent-light)',
                   color: 'var(--accent)',
@@ -366,7 +366,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
               {/* Moroccan Separator */}
               <div
-                className="flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3 my-2.5 sm:my-3.5 md:my-4"
+                className="hero-separator flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3 my-2.5 sm:my-3.5 md:my-4"
                 aria-hidden="true"
               >
                 <span
@@ -391,13 +391,13 @@ export default async function HomePage({ params }: HomePageProps) {
 
               {/* Description with comfortable line-height */}
               <p
-                className="text-xs sm:text-sm md:text-base max-w-lg leading-6 sm:leading-7 md:leading-relaxed text-[var(--text-muted)] font-normal"
+                className="hero-description text-xs sm:text-sm md:text-base max-w-lg leading-6 sm:leading-7 md:leading-relaxed text-[var(--text-muted)] font-normal"
               >
                 {labels.heroSub}
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3 mt-4 sm:mt-6 w-full sm:w-auto">
+              <div className="hero-actions flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3 mt-4 sm:mt-6 w-full sm:w-auto">
                 <Link
                   href={`/${locale}/products`}
                   className="btn btn-primary btn-round w-full sm:w-auto shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 group"
@@ -462,7 +462,7 @@ export default async function HomePage({ params }: HomePageProps) {
               dir="ltr"
             >
               <div
-                className="relative flex items-center justify-center p-1.5 sm:p-2"
+                className="hero-showcase relative flex items-center justify-center p-1.5 sm:p-2"
                 style={{
                   width: 'clamp(200px, 30vw, 340px)',
                   aspectRatio: '1 / 1',
@@ -498,7 +498,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
                 {/* Showcase Container */}
                 <div
-                  className="relative rounded-full overflow-hidden shadow-xl transition-transform duration-500 hover:scale-[1.02]"
+                  className="hero-logo-mark relative rounded-full overflow-hidden shadow-xl transition-transform duration-500 hover:scale-[1.02]"
                   style={{
                     width: 'clamp(170px, 25vw, 290px)',
                     height: 'clamp(170px, 25vw, 290px)',
@@ -528,7 +528,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 col-span-12 ensures same vertical level always
             =================================================== */}
             <div
-              className="lg:col-span-12 flex items-center justify-center gap-3 sm:gap-4 md:gap-6 flex-nowrap overflow-x-auto scrollbar-hidden mt-4 sm:mt-5 lg:mt-6 pt-3 sm:pt-3.5 w-full"
+              className="hero-trust lg:col-span-12 flex items-center justify-center gap-3 sm:gap-4 md:gap-6 flex-nowrap overflow-x-auto scrollbar-hidden mt-4 sm:mt-5 lg:mt-6 pt-3 sm:pt-3.5 w-full"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {[

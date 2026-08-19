@@ -305,6 +305,16 @@ body,
   background-size: 80px 80px;
 }
 
+/* ── Moroccan SVG pattern (Dark Mode override) ── */
+.dark body,
+.dark .storefront-shell,
+.dark .pattern-moroccan {
+  background-color: var(--bg-base);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none'%3E%3Cpath d='M40 0L80 40 40 80 0 40z' fill='%23d4ae78' fill-opacity='0.035'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' stroke='%23d4ae78' stroke-opacity='0.065' stroke-width='1.2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 80px 80px;
+}
+
 body {
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -313,16 +323,6 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   position: relative;
-}
-
-/* ── Moroccan pattern dark mode override ── */
-.dark body,
-.dark .storefront-shell,
-.dark .pattern-moroccan {
-  background-color: var(--bg-base);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none'%3E%3Cpath d='M40 0L80 40 40 80 0 40z' fill='%23d4ae78' fill-opacity='0.035'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' stroke='%23d4ae78' stroke-opacity='0.065' stroke-width='1.2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 80px 80px;
 }
 
 /* ── Footer resets body pattern — isolated dark luxury background ── */
@@ -719,37 +719,154 @@ h6 {
     min-height: 2.5rem;
   }
 
-  .home-hero>.container-brand {
-    padding-block: .75rem;
+  /* ── Mobile Side-by-Side Hero ── */
+  .hero-section {
+    padding-top: 0.75rem;
+    padding-bottom: 0.375rem;
   }
 
-  .home-hero-shell {
-    border-radius: 1.25rem;
+  .hero-section > .container-brand {
+    padding-inline: 0.75rem;
+    padding-block: 0;
   }
 
-  .home-hero-content {
-    padding: 1.75rem 1.25rem 1.25rem;
+  .hero-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.625rem !important;
+    align-items: center;
   }
 
-  .home-hero-content h1 {
-    max-width: 11ch;
+  /* Content column: on LTR it's first (natural), on RTL it's second */
+  .hero-grid > :first-child {
+    order: var(--hero-text-order, 1);
+    text-align: start;
+    align-items: flex-start;
   }
 
-  .home-hero-visual {
-    min-height: 270px;
-    padding: .25rem 1.25rem 1.5rem;
-    border-top: 0;
-    background: radial-gradient(circle at center, rgba(245, 158, 11, .12), transparent 66%);
+  /* Visual column: on LTR it's second (natural), on RTL it's first */
+  .hero-grid > :nth-child(2) {
+    order: var(--hero-visual-order, 2);
   }
 
-  .home-hero-visual>div {
-    transform: scale(.96);
+  /* RTL: swap — visual first (left), text second (right) */
+  [dir="rtl"] .hero-grid > :first-child { --hero-text-order: 2; }
+  [dir="rtl"] .hero-grid > :nth-child(2) { --hero-visual-order: 1; }
+
+  /* Trust strip: always last (order 0 < 1/2, so explicitly push it after) */
+  .hero-grid > :nth-child(3) {
+    order: 3;
   }
 
-  .home-hero-visual .hero-logo-mark {
-    width: 210px !important;
-    height: 210px !important;
+  /* Badge */
+  .hero-badge {
+    margin-bottom: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    font-size: 0.5rem;
+    gap: 0.25rem;
   }
+
+  .hero-badge .text-amber-500 { display: none; }
+
+  /* Title */
+  .hero-grid h1 {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+    max-width: none !important;
+    margin-bottom: 0;
+  }
+
+  .hero-grid h1 .block { margin-top: 0.125rem; }
+
+  /* Separator */
+  .hero-separator {
+    margin: 0.25rem 0 !important;
+    gap: 0.375rem !important;
+  }
+
+  .hero-separator span:first-child,
+  .hero-separator span:last-child {
+    width: 1rem;
+  }
+
+  .hero-separator span:nth-child(2) {
+    font-size: 0.5rem;
+  }
+
+  /* Description */
+  .hero-description {
+    font-size: 0.625rem !important;
+    line-height: 1.3 !important;
+    max-width: none !important;
+    margin-bottom: 0;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Buttons */
+  .hero-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.375rem !important;
+    margin-top: 0.5rem !important;
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    min-height: 1.75rem !important;
+    padding: 0.375rem 0.625rem !important;
+    font-size: 0.625rem !important;
+    min-width: 0 !important;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-actions .btn svg { display: none; }
+
+  /* Visual showcase — compact circle */
+  .hero-showcase {
+    width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    padding: 0 !important;
+  }
+
+  .hero-showcase > .absolute { display: none; }
+
+  .hero-logo-mark {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1;
+    border-width: 2px !important;
+  }
+
+  /* Remove outer wrapper min constraint */
+  .hero-grid > :nth-child(2) > div {
+    width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  /* Trust strip */
+  .hero-trust {
+    grid-column: 1 / -1;
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+    gap: 0.375rem;
+  }
+
+  .hero-trust .flex-shrink-0 { gap: 0.25rem; }
+
+  .hero-trust span.text-\[11px\] {
+    font-size: 0.5rem;
+  }
+
+  .hero-trust .text-amber-600 { font-size: 0.5rem; }
+
+  .hero-trust .text-\[var\(--border\)\]\/60 { display: none; }
+
+  /* ── End Mobile Side-by-Side Hero ── */
 
   .home-section>.container-brand {
     border-radius: 1.125rem;
@@ -764,6 +881,33 @@ h6 {
 
   .home-section .product-card-info {
     padding: .75rem;
+  }
+}
+
+/* Very small screens (320-359px): extra-tight hero */
+@media (max-width: 359px) {
+  .hero-section {
+    padding-top: 0.5rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .hero-grid {
+    gap: 0.375rem !important;
+  }
+
+  .hero-grid h1 {
+    font-size: 0.8125rem !important;
+  }
+
+  .hero-description {
+    font-size: 0.5625rem !important;
+    -webkit-line-clamp: 2;
+  }
+
+  .hero-actions .btn {
+    min-height: 1.5rem !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.5625rem !important;
   }
 }
 
@@ -1844,6 +1988,15 @@ h6 {
   visibility: visible !important;
 }
 
+/* The hero must stay transparent so the single storefront-shell pattern flows
+   through it seamlessly. Painting the .pattern-moroccan overlay pattern again
+   (with a different origin below the sticky header) produces a phase break /
+   moiré — the "broken" decorated background at the ends of the hero lists. */
+.hero-section>.pattern-moroccan {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
 .home-hero>.absolute.inset-0.pointer-events-none:not(.pattern-moroccan) {
   background-color: transparent !important;
 }
@@ -2010,9 +2163,10 @@ body {
   margin-inline: auto;
 }
 
-/* Keep the Hero itself visually open and remove the separator below it. */
+/* Keep the Hero itself visually open and remove the separator below it.
+   It must stay transparent so the single shell pattern flows through it. */
 .home-hero {
-  background: var(--bg-base) !important;
+  background: transparent !important;
   border: 0 !important;
   border-bottom: 0 !important;
 }
