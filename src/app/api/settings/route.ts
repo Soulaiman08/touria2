@@ -31,7 +31,10 @@ export async function GET() {
     })
 
     return NextResponse.json({ settings })
-  } catch {
-    return NextResponse.json({ settings: DEFAULT_PUBLIC_SETTINGS })
+  } catch (error) {
+    // Do not hide DB failures behind defaults: the consumer (Header) falls
+    // back to its own defaults and logs the failure.
+    const msg = error instanceof Error ? error.message : 'Failed to load settings'
+    return NextResponse.json({ error: msg }, { status: 503 })
   }
 }

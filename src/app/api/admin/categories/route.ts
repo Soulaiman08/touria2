@@ -4,55 +4,16 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { slugify } from '@/lib/utils'
 
-const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
-  const timeout = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
-  return Promise.race([promise.catch(() => fallback), timeout])
-}
-
-const BACKUP_CATEGORIES = [
-  {
-    id: 'cat_djellaba',
-    slug: 'djellaba',
-    name: 'جلابة مغربية – Djellaba',
-    nameAr: 'جلابة مغربية',
-    nameFr: 'Djellaba Marocaine',
-    nameEn: 'Moroccan Djellaba',
-    image: '/images/brand/logo-full.png',
-    sortOrder: 1,
-    isActive: true,
-    productsCount: 8,
-  },
-  {
-    id: 'cat_niqab',
-    slug: 'niqab',
-    name: 'نقاب مغربي – Niqab',
-    nameAr: 'نقاب مغربي',
-    nameFr: 'Niqab Marocain',
-    nameEn: 'Moroccan Niqab',
-    image: '/images/brand/logo-icon.png',
-    sortOrder: 2,
-    isActive: true,
-    productsCount: 4,
-  },
-]
-
 export async function GET() {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
   try {
-    const categories = await withTimeout(
-      prisma.category.findMany({
-        include: {
-          _count: { select: { products: true } },
-        },
-        orderBy: { sortOrder: 'asc' },
-      }),
-      null
-    )
-
-    if (!categories || !Array.isArray(categories)) {
-      return NextResponse.json({ items: BACKUP_CATEGORIES })
-    }
+    const categories = await prisma.category.findMany({
+      include: {
+        _count: { select: { products: true } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    })
 
     const items = categories.map((c) => ({
       id: c.id,
@@ -71,9 +32,10 @@ export async function GET() {
       createdAt: c.createdAt,
     }))
 
-    return NextResponse.json({ items: items.length > 0 ? items : BACKUP_CATEGORIES })
-  } catch {
-    return NextResponse.json({ items: BACKUP_CATEGORIES })
+    return NextResponse.json({ items })
+  } catch (error) {
+    console.error('Failed to load admin categories:', error)
+    return NextResponse.json({ error: 'Unable to load categories' }, { status: 500 })
   }
 }
 
@@ -89,22 +51,17 @@ export async function POST(request: Request) {
     const finalNameEn = nameEn || name || 'New Category'
     const finalSlug = slug ? slugify(slug) : slugify(finalNameFr) || `cat-${Date.now()}`
 
-    let category = null
-    try {
-      category = await prisma.category.create({
-        data: {
-          slug: finalSlug,
-          nameAr: finalNameAr,
-          nameFr: finalNameFr,
-          nameEn: finalNameEn,
-          image: image || null,
-          sortOrder: parseInt(sortOrder || 0, 10),
-          isActive: Boolean(isActive),
-        },
-      })
-    } catch {
-      category = { id: `cat_${Date.now()}`, name: finalNameFr, slug: finalSlug }
-    }
+    const category = await prisma.category.create({
+      data: {
+        slug: finalSlug,
+        nameAr: finalNameAr,
+        nameFr: finalNameFr,
+        nameEn: finalNameEn,
+        image: image || null,
+        sortOrder: parseInt(sortOrder || 0, 10),
+        isActive: Boolean(isActive),
+      },
+    })
 
     // Revalidate storefront so navigation/category pages update immediately
     revalidatePath('/[locale]/products', 'page')
@@ -114,6 +71,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, category })
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to create category'
+    console.error('Failed to create category:', error)
     return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

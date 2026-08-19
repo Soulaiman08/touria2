@@ -56,6 +56,7 @@ function OrdersContent() {
       params.set('limit', '10')
 
       const res = await fetch(`/api/admin/orders?${params.toString()}`)
+      if (!res.ok) throw new Error(`Failed to load orders: ${res.status}`)
       const data = await res.json()
 
       if (data.items) {

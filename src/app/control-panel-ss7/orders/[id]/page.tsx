@@ -127,6 +127,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
     setLoading(true)
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`)
+      if (!res.ok) throw new Error(`Failed to load order: ${res.status}`)
       const data = await res.json()
       if (data.order) {
         setOrder(data.order)

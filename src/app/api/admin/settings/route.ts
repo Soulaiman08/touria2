@@ -2,11 +2,6 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 
-const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
-  const timeout = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
-  return Promise.race([promise.catch(() => fallback), timeout])
-}
-
 const DEFAULT_SETTINGS = {
   storeName: 'Thuraya Al-Maghribi | الثريا المغربي',
   logo: '/images/brand/logo-full.png',
@@ -28,23 +23,36 @@ const DEFAULT_SETTINGS = {
   seoKeywords: 'جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي, قفطان',
 }
 
+// The general settings tab saves the shipping price under "shippingCost",
+// while checkout reads it from "shipping:default" (see order.service
+// resolveShippingCost). Keep both keys in sync so edited values are
+// actually used by the checkout.
+const SHIPPING_DEFAULT_KEY = 'shipping:default'
+
 export async function GET() {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
   try {
-    const settingsList = await withTimeout(prisma.siteSetting.findMany(), null)
-    if (settingsList === null) {
-      return NextResponse.json({ settings: DEFAULT_SETTINGS })
-    }
+    const settingsList = await prisma.siteSetting.findMany()
 
     const settingsMap: Record<string, string> = { ...DEFAULT_SETTINGS }
     settingsList.forEach((s) => {
       settingsMap[s.key] = s.value
     })
 
+    // If no explicit shippingCost row exists but a shipping:default price
+    // does, surface it in the general tab so both tabs agree.
+    if (
+      settingsMap['shippingCost'] === DEFAULT_SETTINGS.shippingCost &&
+      settingsMap[SHIPPING_DEFAULT_KEY] !== undefined
+    ) {
+      settingsMap['shippingCost'] = settingsMap[SHIPPING_DEFAULT_KEY]
+    }
+
     return NextResponse.json({ settings: settingsMap })
-  } catch {
-    return NextResponse.json({ settings: DEFAULT_SETTINGS })
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Failed to load settings'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
@@ -53,16 +61,27 @@ export async function PUT(request: Request) {
   if (!auth.ok) return auth.response
 
   try {
-    const body = await request.json();
+    const body = await request.json() as Record<string, unknown>;
 
-    for (const [key, value] of Object.entries(body)) {
-      if (typeof value === 'string' || typeof value === 'number') {
-        await prisma.siteSetting.upsert({
-          where: { key },
-          update: { value: String(value) },
-          create: { key, value: String(value) },
-        });
-      }
+    const entries = Object.entries(body)
+      .filter(([, value]) => typeof value === 'string' || typeof value === 'number')
+
+    for (const [key, value] of entries) {
+      await prisma.siteSetting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) },
+      });
+    }
+
+    // Keep checkout shipping price in sync when edited from the general tab.
+    const shippingCost = body['shippingCost']
+    if (typeof shippingCost === 'string' || typeof shippingCost === 'number') {
+      await prisma.siteSetting.upsert({
+        where: { key: SHIPPING_DEFAULT_KEY },
+        update: { value: String(shippingCost) },
+        create: { key: SHIPPING_DEFAULT_KEY, value: String(shippingCost) },
+      });
     }
 
     return NextResponse.json({ success: true, settings: body });

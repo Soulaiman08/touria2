@@ -104,7 +104,10 @@ export async function PUT(
       data: updateData,
     })
 
-    // Refresh variants if stock/colors/sizes were provided
+    // Refresh variants if stock/colors/sizes were provided.
+    // Upserts by (productId, size, colorCode) so existing variant IDs stay
+    // stable (order items reference them); old combos are deactivated
+    // instead of deleted to preserve order-item foreign keys.
     if (stock !== undefined || colors || sizes) {
       const variantColors = Array.isArray(colors) && colors.length > 0
         ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
@@ -112,26 +115,64 @@ export async function PUT(
       const variantSizes = Array.isArray(sizes) && sizes.length > 0
         ? sizes as string[]
         : ['Standard']
-      const newStock = stock !== undefined ? parseInt(stock as string, 10) : 10
-      const stockPerVariant = Math.max(1, Math.floor(newStock / (variantColors.length * variantSizes.length)))
 
-      await prisma.productVariant.deleteMany({ where: { productId: id } })
+      // When a total stock is provided, distribute it exactly across the
+      // variant grid (valid "0" stays 0). When absent, existing per-variant
+      // stock is preserved instead of being overwritten.
+      let parsedStock: number | null = null
+      if (stock !== undefined && stock !== null && String(stock).trim() !== '') {
+        const parsed = Number(String(stock).trim())
+        if (Number.isFinite(parsed)) parsedStock = Math.max(0, Math.floor(parsed))
+      }
+      const totalSlots = variantColors.length * variantSizes.length
+      const baseStock = parsedStock === null ? 0 : Math.floor(parsedStock / totalSlots)
+      const remainder = parsedStock === null ? 0 : parsedStock % totalSlots
 
+      const desiredKeys = new Set<string>()
+      let slotIndex = 0
       for (const color of variantColors) {
         for (const size of variantSizes) {
-          await prisma.productVariant.create({
-            data: {
+          desiredKeys.add(`${size}:${color.code || '#000000'}`)
+          const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+          const updateData: Record<string, unknown> = {
+            colorNameAr: color.nameAr || 'لون',
+            colorNameFr: color.nameFr || 'Couleur',
+            colorNameEn: color.nameEn || 'Color',
+            isActive: true,
+          }
+          if (parsedStock !== null) updateData.stockQuantity = slotStock
+          await prisma.productVariant.upsert({
+            where: {
+              productId_size_colorCode: {
+                productId: id,
+                size,
+                colorCode: color.code || '#000000',
+              },
+            },
+            update: updateData,
+            create: {
               productId: id,
               size,
               colorCode: color.code || '#000000',
               colorNameAr: color.nameAr || 'لون',
               colorNameFr: color.nameFr || 'Couleur',
               colorNameEn: color.nameEn || 'Color',
-              stockQuantity: stockPerVariant,
+              stockQuantity: slotStock,
               priceModifier: 0,
               images: [],
               isActive: true,
             },
+          })
+          slotIndex += 1
+        }
+      }
+
+      const allVariants = await prisma.productVariant.findMany({ where: { productId: id } })
+      for (const variant of allVariants) {
+        if (!desiredKeys.has(`${variant.size}:${variant.colorCode}`)) {
+          await prisma.productVariant.update({
+            where: { id: variant.id },
+            data: { isActive: false },
           })
         }
       }
@@ -161,6 +202,24 @@ export async function DELETE(
     const { id } = await params
 
     const product = await prisma.product.findUnique({ where: { id }, select: { slug: true } })
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
+
+    // Products referenced by past orders cannot be hard-deleted without
+    // breaking order items (FK with no cascade). Soft-delete them instead:
+    // they disappear from the storefront while order history stays intact.
+    const linkedOrderItems = await prisma.orderItem.count({ where: { productId: id } })
+    if (linkedOrderItems > 0) {
+      await prisma.product.update({ where: { id }, data: { isActive: false } })
+
+      revalidatePath('/[locale]/products', 'layout')
+      revalidatePath(`/[locale]/products/${product.slug}`, 'page')
+      revalidatePath('/[locale]', 'page')
+      revalidatePath('/api/products')
+
+      return NextResponse.json({ success: true, softDeleted: true })
+    }
 
     await prisma.productVariant.deleteMany({ where: { productId: id } })
     await prisma.product.delete({ where: { id } })

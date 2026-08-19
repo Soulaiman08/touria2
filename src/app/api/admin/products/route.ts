@@ -4,74 +4,6 @@ import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/utils'
 import { requireAdmin } from '@/lib/auth'
 
-const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 1500): Promise<T> => {
-  const timeout = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
-  return Promise.race([promise.catch(() => fallback), timeout])
-}
-
-const BACKUP_PRODUCTS = [
-  {
-    id: 'prod_1',
-    sku: 'DJL-001-TERRA',
-    slug: 'djellaba-classique-terracotta',
-    name: 'Djellaba Classique – Terracotta',
-    nameAr: 'جلابة كلاسيكية – تيراكوتا',
-    nameFr: 'Djellaba Classique – Terracotta',
-    nameEn: 'Classic Djellaba – Terracotta',
-    descriptionFr: 'Djellaba marocaine classique confectionnée dans les meilleures étoffes...',
-    basePrice: 599,
-    salePrice: null,
-    stock: 25,
-    categoryId: 'cat_djellaba',
-    mainImage: '/images/brand/logo-full.png',
-    images: ['/images/brand/logo-full.png'],
-    colors: [{ code: '#C4622D', nameAr: 'تيراكوتا', nameFr: 'Terracotta', nameEn: 'Terracotta' }],
-    sizes: ['S', 'M', 'L', 'XL'],
-    isFeatured: true,
-    isActive: true,
-  },
-  {
-    id: 'prod_2',
-    sku: 'DJL-002-CREME',
-    slug: 'djellaba-royale-creme',
-    name: 'Djellaba Royale – Crème',
-    nameAr: 'جلابة رويال – كريمي',
-    nameFr: 'Djellaba Royale – Crème',
-    nameEn: 'Royal Djellaba – Cream',
-    descriptionFr: 'Djellaba de luxe au design royal ornée de broderies artisanales authentiques.',
-    basePrice: 850,
-    salePrice: 750,
-    stock: 18,
-    categoryId: 'cat_djellaba',
-    mainImage: '/images/brand/logo-full.png',
-    images: ['/images/brand/logo-full.png'],
-    colors: [{ code: '#F2E4CE', nameAr: 'كريمي', nameFr: 'Crème', nameEn: 'Cream' }],
-    sizes: ['M', 'L', 'XL'],
-    isFeatured: true,
-    isActive: true,
-  },
-  {
-    id: 'prod_3',
-    sku: 'NQB-001-TERRA',
-    slug: 'niqab-classique-terracotta',
-    name: 'Niqab Classique – Terracotta',
-    nameAr: 'نقاب كلاسيكي – تيراكوتا',
-    nameFr: 'Niqab Classique – Terracotta',
-    nameEn: 'Classic Niqab – Terracotta',
-    descriptionFr: 'Niqab marocain élégant assorti à la djellaba terracotta classique.',
-    basePrice: 150,
-    salePrice: null,
-    stock: 45,
-    categoryId: 'cat_niqab',
-    mainImage: '/images/brand/logo-icon.png',
-    images: ['/images/brand/logo-icon.png'],
-    colors: [{ code: '#C4622D', nameAr: 'تيراكوتا', nameFr: 'Terracotta', nameEn: 'Terracotta' }],
-    sizes: ['Standard'],
-    isFeatured: false,
-    isActive: true,
-  },
-]
-
 export async function GET(request: Request) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
@@ -79,8 +11,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
     const categoryId = searchParams.get('category') || ''
-    const page = parseInt(searchParams.get('page') || '1', 10)
-    const limit = parseInt(searchParams.get('limit') || '10', 10)
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10) || 10))
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {}
@@ -96,7 +28,7 @@ export async function GET(request: Request) {
       where.categoryId = categoryId
     }
 
-    const dbProducts = await withTimeout(
+    const [dbProducts, total] = await Promise.all([
       prisma.product.findMany({
         where,
         include: {
@@ -107,26 +39,8 @@ export async function GET(request: Request) {
         skip,
         take: limit,
       }),
-      null
-    )
-
-    if (dbProducts === null) {
-      // Offline DB backup items
-      let filtered = [...BACKUP_PRODUCTS]
-      if (search) {
-        const s = search.toLowerCase()
-        filtered = filtered.filter((p) => p.name.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s))
-      }
-      return NextResponse.json({
-        items: filtered,
-        total: filtered.length,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-      })
-    }
-
-    const total = await withTimeout(prisma.product.count({ where }), dbProducts.length)
+      prisma.product.count({ where }),
+    ])
 
     const items = dbProducts.map((p) => {
       const colorsMap = new Map()
@@ -160,7 +74,7 @@ export async function GET(request: Request) {
         basePrice: Number(p.basePrice),
         salePrice: p.salePrice ? Number(p.salePrice) : null,
         price: p.salePrice ? Number(p.salePrice) : Number(p.basePrice),
-        stock: totalStock || 15,
+        stock: totalStock,
         categoryId: p.categoryId,
         category: p.category,
         mainImage: p.mainImage,
@@ -183,14 +97,9 @@ export async function GET(request: Request) {
       limit,
       totalPages: Math.ceil(total / limit),
     })
-  } catch {
-    return NextResponse.json({
-      items: BACKUP_PRODUCTS,
-      total: BACKUP_PRODUCTS.length,
-      page: 1,
-      limit: 10,
-      totalPages: 1,
-    })
+  } catch (error) {
+    console.error('Failed to load admin products:', error)
+    return NextResponse.json({ error: 'Unable to load products' }, { status: 500 })
   }
 }
 
@@ -223,6 +132,15 @@ export async function POST(request: Request) {
       canAddNiqab = true,
     } = body
 
+    if (!categoryId) {
+      return NextResponse.json({ error: 'A category is required' }, { status: 400 })
+    }
+
+    const categoryExists = await prisma.category.findUnique({ where: { id: categoryId } })
+    if (!categoryExists) {
+      return NextResponse.json({ error: 'Selected category does not exist' }, { status: 400 })
+    }
+
     const finalNameAr = nameAr || name || 'منتج جديد'
     const finalNameFr = nameFr || name || 'Nouveau Produit'
     const finalNameEn = nameEn || name || 'New Product'
@@ -237,31 +155,66 @@ export async function POST(request: Request) {
     const productImages = images.length > 0 ? images : [mainImage || '/images/brand/logo-full.png']
     const primaryImage = mainImage || productImages[0]
 
-    let product = null
-    try {
-      product = await prisma.product.create({
-        data: {
-          slug: generatedSlug,
-          sku: generatedSku,
-          nameAr: finalNameAr,
-          nameFr: finalNameFr,
-          nameEn: finalNameEn,
-          descriptionAr: finalDescAr,
-          descriptionFr: finalDescFr,
-          descriptionEn: finalDescEn,
-          basePrice: parseFloat(basePrice || 0),
-          salePrice: salePrice ? parseFloat(salePrice) : null,
-          categoryId: categoryId || 'cat_djellaba',
-          mainImage: primaryImage,
-          images: productImages,
-          isFeatured: Boolean(isFeatured),
-          isActive: Boolean(isActive),
-          isNiqab: Boolean(isNiqab),
-          canAddNiqab: Boolean(canAddNiqab),
-        },
-      })
-    } catch {
-      product = { id: `prod_${Date.now()}`, nameFr: finalNameFr, sku: generatedSku }
+    const product = await prisma.product.create({
+      data: {
+        slug: generatedSlug,
+        sku: generatedSku,
+        nameAr: finalNameAr,
+        nameFr: finalNameFr,
+        nameEn: finalNameEn,
+        descriptionAr: finalDescAr,
+        descriptionFr: finalDescFr,
+        descriptionEn: finalDescEn,
+        basePrice: parseFloat(basePrice || 0),
+        salePrice: salePrice ? parseFloat(salePrice) : null,
+        categoryId,
+        mainImage: primaryImage,
+        images: productImages,
+        isFeatured: Boolean(isFeatured),
+        isActive: Boolean(isActive),
+        isNiqab: Boolean(isNiqab),
+        canAddNiqab: Boolean(canAddNiqab),
+      },
+    })
+
+    if ((colors.length > 0 || sizes.length > 0) && product.id) {
+      const variantColors = colors.length > 0
+        ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
+        : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
+      const variantSizes = sizes.length > 0 ? sizes as string[] : ['Standard']
+
+      // Distribute the total stock across the variant grid exactly, keeping
+      // valid "0" as 0 (no || default, no Math.max(1, ...) inflation).
+      const parsedStock = (() => {
+        if (stock === undefined || stock === null || String(stock).trim() === '') return 10
+        const parsed = Number(String(stock).trim())
+        return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 10
+      })()
+      const totalSlots = variantColors.length * variantSizes.length
+      const baseStock = Math.floor(parsedStock / totalSlots)
+      const remainder = parsedStock % totalSlots
+
+      let slotIndex = 0
+      for (const color of variantColors) {
+        for (const size of variantSizes) {
+          const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+          await prisma.productVariant.create({
+            data: {
+              productId: product.id,
+              size,
+              colorCode: color.code || '#000000',
+              colorNameAr: color.nameAr || 'لون',
+              colorNameFr: color.nameFr || 'Couleur',
+              colorNameEn: color.nameEn || 'Color',
+              stockQuantity: slotStock,
+              priceModifier: 0,
+              images: [],
+              isActive: true,
+            },
+          })
+          slotIndex += 1
+        }
+      }
     }
 
     // Revalidate storefront pages so product appears immediately
@@ -272,6 +225,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, product })
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Failed to create product'
+    console.error('Failed to create product:', error)
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

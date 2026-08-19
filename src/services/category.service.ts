@@ -11,29 +11,6 @@ export interface StoreCategory {
   isActive: boolean
 }
 
-const BACKUP_CATEGORIES: StoreCategory[] = [
-  {
-    id: 'cat_djellaba',
-    slug: 'djellaba',
-    nameAr: 'الجلابات',
-    nameFr: 'Djellabas',
-    nameEn: 'Djellabas',
-    image: '/images/brand/logo-full.png',
-    sortOrder: 1,
-    isActive: true,
-  },
-  {
-    id: 'cat_niqab',
-    slug: 'niqab',
-    nameAr: 'النقابات',
-    nameFr: 'Niquab',
-    nameEn: 'Niqabs',
-    image: '/images/brand/logo-icon.png',
-    sortOrder: 2,
-    isActive: true,
-  },
-]
-
 export const categoryService = {
   async getCategories(): Promise<StoreCategory[]> {
     try {
@@ -41,10 +18,6 @@ export const categoryService = {
         where: { isActive: true },
         orderBy: { sortOrder: 'asc' },
       })
-
-      if (!dbCategories || dbCategories.length === 0) {
-        return BACKUP_CATEGORIES
-      }
 
       return dbCategories.map((c) => ({
         id: c.id,
@@ -57,8 +30,8 @@ export const categoryService = {
         isActive: c.isActive,
       }))
     } catch (error) {
-      console.warn('⚠️ Category query failed, returning backup categories:', error)
-      return BACKUP_CATEGORIES
+      console.warn('⚠️ Category query failed, returning empty list:', error)
+      return []
     }
   },
 
@@ -87,11 +60,9 @@ export const categoryService = {
         sortOrder: cat.sortOrder,
         isActive: cat.isActive,
       }
-    } catch {
-      const found = BACKUP_CATEGORIES.find(
-        (c) => c.slug === slug || c.slug === slug.replace(/s$/, '')
-      )
-      return found || null
+    } catch (error) {
+      console.warn('⚠️ Category query failed for slug:', error)
+      return null
     }
   },
 }

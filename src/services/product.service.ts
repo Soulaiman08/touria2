@@ -1,196 +1,10 @@
-import { prisma } from '@/lib/prisma'
+﻿import { prisma } from '@/lib/prisma'
 import type {
   ProductCard,
   Product,
   ProductFilters,
   PaginatedProducts,
 } from '@/types/product'
-
-// ======================================================
-// STATIC BACKUP DATA
-// ======================================================
-
-const BACKUP_PRODUCTS: Product[] = [
-  {
-    id: 'prod_1',
-    slug: 'djellaba-classique-terracotta',
-    sku: 'DJL-001-TERRA',
-
-    nameAr: 'جلابة كلاسيكية – تيراكوتا',
-    nameFr: 'Djellaba Classique – Terracotta',
-    nameEn: 'Classic Djellaba – Terracotta',
-
-    descriptionAr:
-      'جلابة مغربية كلاسيكية مصنوعة من أجود أنواع القماش، تجمع بين الأناقة التقليدية والراحة العصرية. مثالية للمناسبات والارتداء اليومي.',
-    descriptionFr:
-      'Djellaba marocaine classique confectionnée dans les meilleures étoffes, alliant élégance traditionnelle et confort moderne. Parfaite pour les occasions et le quotidien.',
-    descriptionEn:
-      'Classic Moroccan djellaba crafted from the finest fabrics, blending traditional elegance with modern comfort. Perfect for occasions and daily wear.',
-
-    basePrice: 599,
-    salePrice: null,
-
-    categoryId: 'cat_djellaba',
-
-    isActive: true,
-    isFeatured: true,
-    isNiqab: false,
-    canAddNiqab: true,
-
-    mainImage: '/images/brand/logo-full.png',
-    images: ['/images/brand/logo-full.png'],
-
-    tags: ['classique', 'terracotta', 'featured'],
-
-    sortOrder: 1,
-
-    createdAt: new Date(),
-    updatedAt: new Date(),
-
-    variants: [
-      {
-        id: 'var_1',
-        productId: 'prod_1',
-        size: 'M',
-        colorCode: '#C4622D',
-        colorNameAr: 'تيراكوتا',
-        colorNameFr: 'Terracotta',
-        colorNameEn: 'Terracotta',
-        stockQuantity: 15,
-        priceModifier: 0,
-        images: [],
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: 'var_2',
-        productId: 'prod_1',
-        size: 'L',
-        colorCode: '#C4622D',
-        colorNameAr: 'تيراكوتا',
-        colorNameFr: 'Terracotta',
-        colorNameEn: 'Terracotta',
-        stockQuantity: 10,
-        priceModifier: 0,
-        images: [],
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ],
-  },
-
-  {
-    id: 'prod_2',
-    slug: 'djellaba-royale-creme',
-    sku: 'DJL-002-CREME',
-
-    nameAr: 'جلابة رويال – كريمي',
-    nameFr: 'Djellaba Royale – Crème',
-    nameEn: 'Royal Djellaba – Cream',
-
-    descriptionAr:
-      'جلابة فاخرة بتصميم ملكي مزينة بتطريز يدوي أصيل. رمز للأناقة المغربية في أبهى صورها.',
-    descriptionFr:
-      "Djellaba de luxe au design royal ornée de broderies artisanales authentiques. Symbole de l'élégance marocaine dans sa plus belle expression.",
-    descriptionEn:
-      'Luxurious djellaba with royal design adorned with authentic handmade embroidery. A symbol of Moroccan elegance at its finest.',
-
-    basePrice: 850,
-    salePrice: 750,
-
-    categoryId: 'cat_djellaba',
-
-    isActive: true,
-    isFeatured: true,
-    isNiqab: false,
-    canAddNiqab: true,
-
-    mainImage: '/images/brand/logo-full.png',
-    images: ['/images/brand/logo-full.png'],
-
-    tags: ['royale', 'creme', 'featured'],
-
-    sortOrder: 2,
-
-    createdAt: new Date(),
-    updatedAt: new Date(),
-
-    variants: [
-      {
-        id: 'var_3',
-        productId: 'prod_2',
-        size: 'L',
-        colorCode: '#F2E4CE',
-        colorNameAr: 'كريمي',
-        colorNameFr: 'Crème',
-        colorNameEn: 'Cream',
-        stockQuantity: 20,
-        priceModifier: 0,
-        images: [],
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ],
-  },
-
-  {
-    id: 'prod_3',
-    slug: 'niqab-classique-terracotta',
-    sku: 'NQB-001-TERRA',
-
-    nameAr: 'نقاب كلاسيكي – تيراكوتا',
-    nameFr: 'Niqab Classique – Terracotta',
-    nameEn: 'Classic Niqab – Terracotta',
-
-    descriptionAr:
-      'نقاب مغربي أنيق يتناسق مع جلابة تيراكوتا الكلاسيكية.',
-    descriptionFr:
-      'Niqab marocain élégant assorti à la djellaba terracotta classique.',
-    descriptionEn:
-      'Elegant Moroccan niqab matching the classic terracotta djellaba.',
-
-    basePrice: 150,
-    salePrice: null,
-
-    categoryId: 'cat_niqab',
-
-    isActive: true,
-    isFeatured: false,
-    isNiqab: true,
-    canAddNiqab: false,
-
-    mainImage: '/images/brand/logo-icon.png',
-    images: ['/images/brand/logo-icon.png'],
-
-    tags: ['niqab', 'terracotta'],
-
-    sortOrder: 3,
-
-    createdAt: new Date(),
-    updatedAt: new Date(),
-
-    variants: [
-      {
-        id: 'var_4',
-        productId: 'prod_3',
-        size: 'Standard',
-        colorCode: '#C4622D',
-        colorNameAr: 'تيراكوتا',
-        colorNameFr: 'Terracotta',
-        colorNameEn: 'Terracotta',
-        stockQuantity: 50,
-        priceModifier: 0,
-        images: [],
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ],
-  },
-]
 
 // ======================================================
 // NIQAB PRODUCT TYPE
@@ -268,7 +82,7 @@ async function getNiqabProduct(): Promise<NiqabProductData | null> {
     }
   } catch (error) {
     console.warn(
-      '⚠️ Failed to load niqab product:',
+      'âš ï¸ Failed to load niqab product:',
       error,
     )
 
@@ -517,70 +331,9 @@ export const productService = {
       }
     } catch (error) {
       console.warn(
-        '⚠️ Database query failed, returning backup products:',
+        'âš ï¸ Database query failed, returning empty product list:',
         error,
       )
-
-      let filtered =
-        [...BACKUP_PRODUCTS]
-
-      if (
-        filters.isNiqab !== undefined
-      ) {
-        filtered =
-          filtered.filter(
-            (p) =>
-              p.isNiqab ===
-              filters.isNiqab,
-          )
-      }
-
-      if (
-        filters.isFeatured !==
-        undefined
-      ) {
-        filtered =
-          filtered.filter(
-            (p) =>
-              p.isFeatured ===
-              filters.isFeatured,
-          )
-      }
-
-      if (filters.category) {
-        filtered =
-          filtered.filter(
-            (p) =>
-              p.slug.includes(
-                filters.category!,
-              ) ||
-              p.categoryId.includes(
-                filters.category!,
-              ),
-          )
-      }
-
-      if (filters.search) {
-        const search =
-          filters.search.toLowerCase()
-
-        filtered =
-          filtered.filter(
-            (p) =>
-              p.nameAr.includes(
-                search,
-              ) ||
-              p.nameFr
-                .toLowerCase()
-                .includes(search) ||
-              p.nameEn
-                .toLowerCase()
-                .includes(search),
-          )
-      }
-
-      const total =
-        filtered.length
 
       const page =
         filters.page ?? 1
@@ -588,25 +341,12 @@ export const productService = {
       const limit =
         filters.limit ?? 12
 
-      const items =
-        filtered
-          .slice(
-            (page - 1) * limit,
-            page * limit,
-          )
-          .map((p) =>
-            this.mapToCard(p),
-          )
-
       return {
-        items,
-        total,
+        items: [],
+        total: 0,
         page,
         limit,
-        totalPages:
-          Math.ceil(
-            total / limit,
-          ),
+        totalPages: 0,
       }
     }
   },
@@ -647,12 +387,7 @@ export const productService = {
       // -----------------------------------------------
 
       if (!dbProduct) {
-        return (
-          BACKUP_PRODUCTS.find(
-            (product) =>
-              product.slug === slug,
-          ) || null
-        )
+        return null
       }
 
       // -----------------------------------------------
@@ -706,17 +441,11 @@ export const productService = {
 
     } catch (error) {
       console.warn(
-        `⚠️ GetProductBySlug database query failed for [${slug}], fallback to backup data:`,
+        `âš ï¸ GetProductBySlug database query failed for [${slug}]:`,
         error,
       )
 
-      const found =
-        BACKUP_PRODUCTS.find(
-          (p) =>
-            p.slug === slug,
-        )
-
-      return found || null
+      return null
     }
   },
 

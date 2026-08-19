@@ -9,13 +9,17 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const token = (await cookies()).get(`order_access_${id}`)?.value
-    if (!token || !verifyOrderAccessToken(token, id)) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-    }
     const order = await orderService.getOrderById(id)
 
     if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // The access cookie is keyed by the real order id; lookups by order
+    // number are resolved above, so verify against the stored order id.
+    const cookieStore = await cookies()
+    const token = cookieStore.get(`order_access_${order.id}`)?.value
+    if (!token || !verifyOrderAccessToken(token, order.id)) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 

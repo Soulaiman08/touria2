@@ -10,6 +10,14 @@ const DEFAULT_KEY = 'shipping:default'
  * Returns the shipping price for a given city.
  * Used by CheckoutForm to get live price after city selection.
  */
+
+// Parses a stored price without turning valid "0" into a fallback value.
+const parsePrice = (value: string | null | undefined): number | null => {
+  if (value === null || value === undefined || value.trim() === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -27,14 +35,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unknown city' }, { status: 400 })
     }
 
-    // Look up city-specific price first, then default, then hardcoded fallback
+    // Look up city-specific price first, then default, then config default
     const [cityRow, defaultRow] = await Promise.all([
       prisma.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityInfo.value}` } }),
       prisma.siteSetting.findUnique({ where: { key: DEFAULT_KEY } }),
     ])
 
-    const defaultPrice = defaultRow ? (Number(defaultRow.value) || DEFAULT_SHIPPING_PRICE) : DEFAULT_SHIPPING_PRICE
-    const price = cityRow ? (Number(cityRow.value) || defaultPrice) : defaultPrice
+    const parsedDefault = defaultRow ? parsePrice(defaultRow.value) : null
+    const defaultPrice = parsedDefault !== null ? parsedDefault : DEFAULT_SHIPPING_PRICE
+    const parsedCity = cityRow ? parsePrice(cityRow.value) : null
+    const price = parsedCity !== null ? parsedCity : defaultPrice
 
     return NextResponse.json(
       { city: cityInfo.value, price, defaultPrice },
@@ -46,9 +56,9 @@ export async function GET(request: Request) {
       }
     )
   } catch (error) {
-    // On any DB failure, return the hardcoded default so checkout still works
+    // DB failure: surface a real error instead of a fake price.
     const msg = error instanceof Error ? error.message : 'Failed to fetch shipping price'
     console.error('[/api/shipping/price]', msg)
-    return NextResponse.json({ city: '', price: DEFAULT_SHIPPING_PRICE, defaultPrice: DEFAULT_SHIPPING_PRICE })
+    return NextResponse.json({ error: 'Shipping price unavailable' }, { status: 503 })
   }
 }

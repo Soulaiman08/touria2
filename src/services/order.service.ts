@@ -37,14 +37,23 @@ async function resolveShippingCost(
     throw new Error('Selected city does not belong to the selected region')
   }
 
-  // Look up city-specific price, then default, then hardcoded fallback
+  // Look up city-specific price, then default, then config default.
+  // Parsed without || so a valid stored "0" (free shipping) stays 0.
   const [cityRow, defaultRow] = await Promise.all([
     tx.siteSetting.findUnique({ where: { key: `${CITY_KEY_PREFIX}${cityInfo.value}` } }),
     tx.siteSetting.findUnique({ where: { key: DEFAULT_SHIPPING_KEY } }),
   ])
 
-  const defaultPrice = defaultRow ? (Number(defaultRow.value) || DEFAULT_SHIPPING_PRICE) : DEFAULT_SHIPPING_PRICE
-  return cityRow ? (Number(cityRow.value) || defaultPrice) : defaultPrice
+  const parsePrice = (value: string | null | undefined): number | null => {
+    if (value === null || value === undefined || value.trim() === '') return null
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  const parsedDefault = defaultRow ? parsePrice(defaultRow.value) : null
+  const defaultPrice = parsedDefault !== null ? parsedDefault : DEFAULT_SHIPPING_PRICE
+  const parsedCity = cityRow ? parsePrice(cityRow.value) : null
+  return parsedCity !== null ? parsedCity : defaultPrice
 }
 
 export const orderService = {
@@ -203,7 +212,12 @@ export const orderService = {
 
   async getOrderById(id: string): Promise<Order | null> {
     try {
-      const dbOrder = await prisma.order.findUnique({ where: { id }, include: { items: true } })
+      const dbOrder = await prisma.order.findFirst({
+        where: {
+          OR: [{ id }, { orderNumber: id }],
+        },
+        include: { items: true },
+      })
       if (!dbOrder) return LOCAL_ORDERS_STORE.get(id) || null
       return { ...dbOrder, subtotal: Number(dbOrder.subtotal), shippingCost: Number(dbOrder.shippingCost), discountAmount: Number(dbOrder.discountAmount), total: Number(dbOrder.total), items: dbOrder.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice), totalPrice: Number(item.totalPrice), productSnapshot: item.productSnapshot as unknown as ProductSnapshot })) } as unknown as Order
     } catch { return LOCAL_ORDERS_STORE.get(id) || null }

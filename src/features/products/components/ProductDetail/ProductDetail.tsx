@@ -56,6 +56,16 @@ interface NiqabSelection {
   quantity: number
 }
 
+interface JellabaSelection {
+  id: string
+  colorCode: string
+  colorNameAr: string
+  colorNameFr: string
+  colorNameEn: string
+  size: string
+  quantity: number
+}
+
 // ==========================================
 // CONSTANTS
 // ==========================================
@@ -115,12 +125,12 @@ function NiqabColorDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-12 px-5 sm:px-6 flex items-center justify-between gap-4 rounded-xl border text-sm sm:text-base font-bold transition-all outline-none focus:outline-none"
+        className="w-full h-9 sm:h-12 px-2 sm:px-3 flex items-center justify-between gap-2 rounded-xl border text-xs sm:text-sm font-bold transition-all outline-none focus:outline-none"
         style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
       >
-        <span className="flex items-center gap-4 min-w-0 truncate">
+          <span className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
           <span
-            className="w-5 h-5 rounded-full border-2 flex-shrink-0 shadow-sm"
+            className="w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full border-2 flex-shrink-0"
             style={{ background: selectedColor.code, borderColor: 'var(--border)' }}
           />
           <span className="truncate">{selectedLabel}</span>
@@ -134,8 +144,8 @@ function NiqabColorDropdown({
       {/* Floating Options Menu */}
       {isOpen && (
         <div
-          className="absolute z-50 top-[calc(100%+6px)] start-0 end-0 w-full max-h-64 overflow-y-auto rounded-2xl border shadow-2xl animate-in fade-in zoom-in-95 duration-150"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)', padding: '10px' }}
+          className="absolute z-50 top-[calc(100%+4px)] start-0 sm:end-0 sm:w-full overflow-y-auto border"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)', borderRadius: '0.75rem', width: 'clamp(200px, 60vw, 100%)' }}
         >
           {availableColors.map((color) => {
             const label = getDisplayColorName(color)
@@ -149,15 +159,14 @@ function NiqabColorDropdown({
                   onSelectColor(selectionId, color.code)
                   setIsOpen(false)
                 }}
-                className={`w-full flex items-center justify-between gap-4 rounded-xl text-sm font-bold transition-all mb-1 last:mb-0 ${isSelected
+                className={`w-full flex items-center justify-between gap-2 sm:gap-3 text-xs sm:text-sm font-bold transition-all px-3 py-1.5 ${isSelected
                   ? 'bg-[#C4622D]/10 text-[#C4622D]'
                   : 'text-foreground hover:bg-[rgba(196,98,45,0.08)] hover:text-[#C4622D]'
                   }`}
-                style={{ padding: '12px 20px' }}
               >
-                <span className="flex items-center gap-3 min-w-0 truncate">
+                <span className="flex items-center gap-2 min-w-0">
                   <span
-                    className="w-5 h-5 rounded-full border-2 flex-shrink-0 shadow-sm"
+                    className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex-shrink-0"
                     style={{ background: color.code, borderColor: 'var(--border)' }}
                   />
                   <span className="truncate">{label}</span>
@@ -207,26 +216,28 @@ export function ProductDetail({
   // ==========================================
 
   const colors = Array.from(
-    new Map(
-      product.variants?.map(
-        (variant) => [
-          variant.colorCode,
-          {
-            code:
-              variant.colorCode,
-
-            nameAr:
-              variant.colorNameAr,
-
-            nameFr:
-              variant.colorNameFr,
-
-            nameEn:
-              variant.colorNameEn,
-          },
-        ],
-      ) || [],
-    ).values(),
+    (() => {
+      const map = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
+      for (const variant of product.variants || []) {
+        const existing = map.get(variant.colorCode)
+        const realAr = variant.colorNameAr && variant.colorNameAr !== 'لون' ? variant.colorNameAr : ''
+        const realFr = variant.colorNameFr && variant.colorNameFr.toLowerCase() !== 'couleur' ? variant.colorNameFr : ''
+        const realEn = variant.colorNameEn && variant.colorNameEn.toLowerCase() !== 'color' ? variant.colorNameEn : ''
+          if (existing) {
+          if (!existing.nameAr && realAr) existing.nameAr = realAr
+          if (!existing.nameFr && realFr) existing.nameFr = realFr
+          if (!existing.nameEn && realEn) existing.nameEn = realEn
+        } else {
+          map.set(variant.colorCode, {
+            code: variant.colorCode,
+            nameAr: realAr || '',
+            nameFr: realFr || '',
+            nameEn: realEn || '',
+          })
+        }
+      }
+      return map.values()
+    })(),
   )
 
   // ==========================================
@@ -290,36 +301,7 @@ export function ProductDetail({
   // STATES
   // ==========================================
 
-  const [
-    selectedSize,
-    setSelectedSize,
-  ] = useState<string>(
-    product.isNiqab
-      ? ''
-      : sizes[0] || '',
-  )
-
-  const [
-    selectedColor,
-    setSelectedColor,
-  ] = useState<
-    (typeof colors)[number] | null
-  >(
-    colors[0] ||
-    null,
-  )
-
-  const [
-    quantity,
-    setQuantity,
-  ] = useState(
-    product.isNiqab ? 5 : 1,
-  )
-
-  const [
-    includeNiqab,
-    setIncludeNiqab,
-  ] = useState(false)
+  const [includeNiqab, setIncludeNiqab] = useState(false)
 
   const [
     niqabSelections,
@@ -336,35 +318,40 @@ export function ProductDetail({
     quantity: 5,
   }] : [])
 
-  const [
-    activeImage,
-    setActiveImage,
-  ] = useState(
-    product.mainImage,
-  )
+  const [selectedJellabas, setSelectedJellabas] = useState<JellabaSelection[]>(() => {
+    if (product.isNiqab || colors.length === 0) return []
+    return [{
+      id: crypto.randomUUID(),
+      colorCode: colors[0].code,
+      colorNameAr: colors[0].nameAr,
+      colorNameFr: colors[0].nameFr,
+      colorNameEn: colors[0].nameEn,
+      size: sizes[0] || '',
+      quantity: 1,
+    }]
+  })
+
+  const [activeImage, setActiveImage] = useState(product.mainImage)
 
   // ==========================================
   // CURRENT PRODUCT VARIANT
   // ==========================================
 
-  const currentVariant =
-    product.variants?.find(
-      (variant) =>
-        (
-          product.isNiqab ||
-          variant.size === selectedSize
-        ) &&
-        (
-          !selectedColor ||
-          variant.colorCode === selectedColor.code
-        ),
-    )
+  const currentVariant = product.variants?.find(variant => {
+    if (product.isNiqab) return true
+    if (selectedJellabas.length > 0) {
+      const first = selectedJellabas[0]
+      return variant.colorCode === first.colorCode && variant.size === first.size
+    }
+    return false
+  })
 
-  const hasStock =
-    currentVariant
-      ? currentVariant.stockQuantity >
-      0
-      : true
+  const hasStock = product.isNiqab
+    ? (currentVariant ? currentVariant.stockQuantity > 0 : true)
+    : selectedJellabas.every(sel => {
+        const v = product.variants?.find(variant => variant.colorCode === sel.colorCode && variant.size === sel.size)
+        return v ? v.stockQuantity > 0 : true
+      })
 
   // ==========================================
   // PRODUCT PRICE
@@ -396,18 +383,27 @@ export function ProductDetail({
     NIQAB_PRICE
 
   // ==========================================
+  // JELLABA TOTAL PRICE (quantity × unit price)
+  // ==========================================
+
+  const jellabasTotal = selectedJellabas.reduce((sum, item) => {
+    const variant = product.variants?.find(v => v.colorCode === item.colorCode && v.size === item.size)
+    return sum + item.quantity * (basePriceVal + Number(variant?.priceModifier || 0))
+  }, 0)
+
+  const selectedJellabaQuantity = selectedJellabas.reduce((sum, item) => sum + item.quantity, 0)
+
+  const usedJellabaColors = new Set(selectedJellabas.map(item => item.colorCode))
+
+  const availableJellabaColors = colors.filter(color => !usedJellabaColors.has(color.code))
+
+  // ==========================================
   // FINAL PRICE
   // ==========================================
 
   const finalPrice = product.isNiqab
     ? basePriceVal
-    : basePriceVal + niqabTotal
-
-  // ==========================================
-  // JELLABA TOTAL PRICE (quantity × unit price)
-  // ==========================================
-
-  const jellabasTotal = quantity * basePriceVal
+    : jellabasTotal + niqabTotal
 
   // ==========================================
   // USED NIQAB COLORS
@@ -449,9 +445,9 @@ export function ProductDetail({
 
     if (
       name &&
-      name !== 'لون' &&
-      name.toLowerCase() !== 'color' &&
-      name.toLowerCase() !== 'couleur'
+      name.trim() !== 'لون' &&
+      name.toLowerCase().trim() !== 'color' &&
+      name.toLowerCase().trim() !== 'couleur'
     ) {
       return name
     }
@@ -470,8 +466,69 @@ export function ProductDetail({
     if (code === '#c4622d') {
       return locale === 'ar' ? 'تيراكوتا' : locale === 'fr' ? 'Terracotta' : 'Terracotta'
     }
+    if (code === '#f2e4ce') {
+      return locale === 'ar' ? 'كريمي' : locale === 'fr' ? 'Crème' : 'Cream'
+    }
+    if (code === '#1b2b4b') {
+      return locale === 'ar' ? 'أزرق داكن' : locale === 'fr' ? 'Marine' : 'Navy'
+    }
+    if (code === '#2d5a27') {
+      return locale === 'ar' ? 'أخضر زيتوني' : locale === 'fr' ? 'Vert Olive' : 'Olive Green'
+    }
+    if (code === '#8b1a1a') {
+      return locale === 'ar' ? 'أحمر غامق' : locale === 'fr' ? 'Rouge Foncé' : 'Dark Red'
+    }
+    const oliveCodes = ['#808000', '#556b2f', '#6b8e23', '#8fbc8f', '#9acd32', '#ada528', '#a8a463', '#baa649']
+    if (oliveCodes.includes(code)) {
+      return locale === 'ar' ? 'زيتي' : locale === 'fr' ? 'Olive' : 'Olive'
+    }
+    const seaBlueCodes = ['#20b2aa', '#008080', '#5f9ea0', '#00b4cc', '#00ced1', '#40e0d0', '#48d1cc', '#66cdaa']
+    if (seaBlueCodes.includes(code)) {
+      return locale === 'ar' ? 'أزرق بحر' : locale === 'fr' ? 'Bleu mer' : 'Sea Blue'
+    }
+    const greenCodes = ['#008000', '#228b22', '#32cd32', '#28a745', '#198754', '#3cb371', '#2e8b57', '#006400', '#00ff00', '#7cfc00', '#00fa9a']
+    if (greenCodes.includes(code)) {
+      return locale === 'ar' ? 'أخضر' : locale === 'fr' ? 'Vert' : 'Green'
+    }
+    const redCodes = ['#ff0000', '#dc3545', '#e63946', '#ff6b6b', '#c0392b', '#e74c3c', '#8b0000', '#ff4500', '#ff5252', '#b22222', '#cd5c5c', '#f44336']
+    if (redCodes.includes(code)) {
+      return locale === 'ar' ? 'أحمر' : locale === 'fr' ? 'Rouge' : 'Red'
+    }
+    const blueCodes = ['#0000ff', '#007bff', '#1e90ff', '#4169e6', '#4682b4', '#0000cd', '#0066cc', '#0d6efd', '#0a58ca', '#00008b', '#191970']
+    if (blueCodes.includes(code)) {
+      return locale === 'ar' ? 'أزرق' : locale === 'fr' ? 'Bleu' : 'Blue'
+    }
+    const beigeCodes = ['#f5f5dc', '#e8dcc8', '#fff8dc', '#f5f0e1', '#e6dcc8', '#fdf6ec', '#f8f0e3', '#d2b48c', '#deb887', '#f4a440', '#d2691e']
+    if (beigeCodes.includes(code)) {
+      return locale === 'ar' ? 'بيج' : locale === 'fr' ? 'Beige' : 'Beige'
+    }
+    const creamCodes = ['#fffdd0', '#ffffe0', '#fffacd', '#fffff0', '#feffcc', '#ffffe3']
+    if (creamCodes.includes(code)) {
+      return locale === 'ar' ? 'أصفر فاتح' : locale === 'fr' ? 'Crème' : 'Cream'
+    }
+    const purpleCodes = ['#800080', '#9370db', '#9932cc', '#ba55d3', '#dda0dd', '#ee82ee', '#8a2be2']
+    if (purpleCodes.includes(code)) {
+      return locale === 'ar' ? 'أرجواني' : locale === 'fr' ? 'Violet' : 'Purple'
+    }
+    const grayCodes = ['#808080', '#a9a9a9', '#708090', '#778899', '#c0c0c0', '#b0b0b0', '#d3d3d3', '#dcdcdc', '#2f4f4f', '#696969']
+    if (grayCodes.includes(code)) {
+      return locale === 'ar' ? 'رمادي' : locale === 'fr' ? 'Gris' : 'Gray'
+    }
+    const navyCodes = ['#000080', '#00008b', '#003366', '#003399', '#000084']
+    if (navyCodes.includes(code)) {
+      return locale === 'ar' ? 'أزرق داكن' : locale === 'fr' ? 'Bleu marine' : 'Navy'
+    }
+    const brownCodes = ['#a52a2a', '#8b4513', '#5c4033', '#964b00', '#654321', '#6b4226', '#cd853f', '#d2691e', '#a0522d']
+    if (brownCodes.includes(code)) {
+      return locale === 'ar' ? 'بني' : locale === 'fr' ? 'Marron' : 'Brown'
+    }
 
-    return name || color.code
+    const en = color.nameEn && color.nameEn.toLowerCase().trim() !== 'color' ? color.nameEn : null
+    const fr = color.nameFr && color.nameFr.toLowerCase().trim() !== 'couleur' ? color.nameFr : null
+    const ar = color.nameAr && color.nameAr.trim() !== 'لون' ? color.nameAr : null
+    return locale === 'ar' ? (ar || en || fr || color.code)
+      : locale === 'fr' ? (fr || en || ar || color.code)
+      : (en || fr || ar || color.code)
   }
 
   // ==========================================
@@ -713,6 +770,79 @@ export function ProductDetail({
     }
 
   // ==========================================
+  // ADD JELLABA COLOR
+  // ==========================================
+
+  const handleAddJellabaColor = () => {
+    const nextColor = availableJellabaColors[0]
+    if (!nextColor) return
+    setSelectedJellabas(current => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        colorCode: nextColor.code,
+        colorNameAr: nextColor.nameAr,
+        colorNameFr: nextColor.nameFr,
+        colorNameEn: nextColor.nameEn,
+        size: sizes[0] || '',
+        quantity: 1,
+      },
+    ])
+  }
+
+  // ==========================================
+  // UPDATE JELLABA QUANTITY
+  // ==========================================
+
+  const updateJellabaQuantity = (id: string, amount: number) => {
+    setSelectedJellabas(current =>
+      current.map(item =>
+        item.id === id
+          ? { ...item, quantity: Math.max(1, item.quantity + amount) }
+          : item
+      )
+    )
+  }
+
+  // ==========================================
+  // REMOVE JELLABA COLOR
+  // ==========================================
+
+  const removeJellabaColor = (id: string) => {
+    setSelectedJellabas(current => current.filter(item => item.id !== id))
+  }
+
+  // ==========================================
+  // CHANGE JELLABA COLOR
+  // ==========================================
+
+  const changeJellabaColor = (id: string, colorCode: string) => {
+    const color = colors.find(c => c.code === colorCode)
+    if (!color) return
+    const alreadyUsed = selectedJellabas.some(item => item.id !== id && item.colorCode === colorCode)
+    if (alreadyUsed) return
+    setSelectedJellabas(current =>
+      current.map(item =>
+        item.id === id
+          ? { ...item, colorCode: color.code, colorNameAr: color.nameAr, colorNameFr: color.nameFr, colorNameEn: color.nameEn }
+          : item
+      )
+    )
+  }
+
+  // ==========================================
+  // CHANGE JELLABA SIZE
+  // ==========================================
+
+  const changeJellabaSize = (id: string, size: string) => {
+    setSelectedJellabas(current =>
+      current.map(item =>
+        item.id === id ? { ...item, size } : item
+      )
+    )
+  }
+
+  // ==========================================
   // ADD TO CART
   // ==========================================
 
@@ -742,131 +872,48 @@ export function ProductDetail({
         })
         return
       }
-      if (
-        !product.isNiqab &&
-        sizes.length > 0 &&
-        !selectedSize
-      ) {
-        return
-      }
 
-      const colorNameAr =
-        selectedColor?.nameAr ||
-        ''
+      if (selectedJellabas.length === 0) return
 
-      const colorNameFr =
-        selectedColor?.nameFr ||
-        ''
+      selectedJellabas.forEach((selection) => {
+        const variant = product.variants?.find(
+          v => v.colorCode === selection.colorCode && v.size === selection.size
+        )
 
-      const colorNameEn =
-        selectedColor?.nameEn ||
-        ''
-
-      const colorCode =
-        selectedColor?.code ||
-        ''
-
-      cartStore.addItem({
-        productId:
-          product.id,
-
-        variantId:
-          currentVariant?.id,
-
-        slug:
-          product.slug,
-
-        nameAr:
-          product.nameAr,
-
-        nameFr:
-          product.nameFr,
-
-        nameEn:
-          product.nameEn,
-
-        mainImage:
-          product.mainImage,
-
-        size:
-          product.isNiqab
-            ? ''
-            : (sizes.length > 0 ? selectedSize : ''),
-
-        colorCode,
-
-        colorNameAr,
-
-        colorNameFr,
-
-        colorNameEn,
-
-        quantity,
-
-        unitPrice:
-          basePriceVal +
-          Number(
-            currentVariant
-              ?.priceModifier ||
-            0,
-          ),
-
-        isNiqab:
-          product.isNiqab,
-
-        niqabItems:
-          includeNiqab &&
-            niqabSelections.length > 0
-            ? niqabSelections.map(
-              (item) => ({
-                productId:
-                  product.niqabProduct
-                    ?.id ||
-                  'niqab',
-
-                variantId:
-                  item.variantId,
-
-                nameAr:
-                  product.niqabProduct
-                    ?.nameAr ||
-                  'نقاب',
-
-                nameFr:
-                  product.niqabProduct
-                    ?.nameFr ||
-                  'Niqab',
-
-                nameEn:
-                  product.niqabProduct
-                    ?.nameEn ||
-                  'Niqab',
-
-                mainImage:
-                  product.niqabProduct
-                    ?.mainImage ||
-                  '/images/brand/logo-icon.png',
-
-                colorCode:
-                  item.colorCode,
-
-                colorNameAr:
-                  item.colorNameAr,
-
-                colorNameFr:
-                  item.colorNameFr,
-
-                colorNameEn:
-                  item.colorNameEn,
-
-                quantity:
-                  item.quantity,
-
-                unitPrice:
-                  NIQAB_PRICE,
-              }),
-            )
-            : undefined,
+        cartStore.addItem({
+          productId: product.id,
+          variantId: variant?.id,
+          slug: product.slug,
+          nameAr: product.nameAr,
+          nameFr: product.nameFr,
+          nameEn: product.nameEn,
+          mainImage: product.mainImage,
+          size: selection.size,
+          colorCode: selection.colorCode,
+          colorNameAr: selection.colorNameAr,
+          colorNameFr: selection.colorNameFr,
+          colorNameEn: selection.colorNameEn,
+          quantity: selection.quantity,
+          unitPrice: basePriceVal + Number(variant?.priceModifier || 0),
+          isNiqab: false,
+          niqabItems:
+            includeNiqab && niqabSelections.length > 0
+              ? niqabSelections.map((item) => ({
+                  productId: product.niqabProduct?.id || 'niqab',
+                  variantId: item.variantId,
+                  nameAr: product.niqabProduct?.nameAr || 'نقاب',
+                  nameFr: product.niqabProduct?.nameFr || 'Niqab',
+                  nameEn: product.niqabProduct?.nameEn || 'Niqab',
+                  mainImage: product.niqabProduct?.mainImage || '/images/brand/logo-icon.png',
+                  colorCode: item.colorCode,
+                  colorNameAr: item.colorNameAr,
+                  colorNameFr: item.colorNameFr,
+                  colorNameEn: item.colorNameEn,
+                  quantity: item.quantity,
+                  unitPrice: NIQAB_PRICE,
+                }))
+              : undefined,
+        })
       })
     }
 
@@ -922,7 +969,7 @@ export function ProductDetail({
           PRODUCT INFO
       ======================================== */}
 
-      <div className="product-purchase-panel space-y-6">
+      <div className="product-purchase-panel space-y-5">
         {/* ======================================
             HEADER
         ====================================== */}
@@ -1037,72 +1084,7 @@ export function ProductDetail({
               </span>
             )}
             </div>
-
-            {!product.isNiqab && hasStock && (
-              <div
-                className="flex items-center h-9 border rounded-lg overflow-hidden shadow-xs"
-                style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setQuantity(
-                      Math.max(
-                        1,
-                        quantity - 1,
-                      ),
-                    )
-                  }
-                  className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-sm"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="h-3 w-3" />
-                </button>
-
-                <span
-                  className="px-2 h-full flex items-center justify-center text-sm font-extrabold border-x min-w-[2rem]"
-                  style={{ borderColor: 'var(--border)' }}
-                >
-                  {quantity}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setQuantity(
-                      quantity + 1,
-                    )
-                  }
-                  className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-sm"
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
-            )}
           </div>
-
-          {!product.isNiqab && quantity > 1 && (
-            <div
-              className="flex items-center justify-between p-4 sm:p-4.5 rounded-xl border shadow-xs"
-              style={{
-                background: 'rgba(196,98,45,0.06)',
-                borderColor: 'rgba(245,158,11,0.2)',
-                marginTop: '0.75rem',
-              }}
-            >
-              <span className="text-xs sm:text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                {locale === 'ar'
-                  ? 'مجموع تمن الجلابات'
-                  : locale === 'fr'
-                    ? 'Total djellabas'
-                    : 'Jellabas total'}
-              </span>
-              <span className="text-sm sm:text-base font-extrabold text-[#C4622D]">
-                {formatPrice(jellabasTotal, locale)}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* ======================================
@@ -1122,168 +1104,108 @@ export function ProductDetail({
         </p>
 
         {/* ======================================
-            PRODUCT COLOR
+            JELLABA SELECTIONS (multi-row like niqab)
         ====================================== */}
 
-        {!product.isNiqab && colors.length >
-          0 && (
-            <div className="product-option-group space-y-3">
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
+        {!product.isNiqab && colors.length > 0 && (
+          <div className="product-addon p-3.5 sm:p-4 rounded-2xl border-2 border-dashed transition-all hover:border-[#C4622D]/50" style={{ borderColor: 'var(--border)' }}>
+            <div className="space-y-0.5">
+              <span className="font-extrabold text-sm sm:text-base block" style={{ color: 'var(--foreground)' }}>
+                {locale === 'ar' ? 'اختاري الألوان والمقاسات' : locale === 'fr' ? 'Choisissez les couleurs et tailles' : 'Choose colors and sizes'}
+              </span>
+              <span className="text-xs font-medium block leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+                {locale === 'ar' ? 'أضيفي جلابات بألوان ومقاسات مختلفة' : locale === 'fr' ? 'Ajoutez des djellabas en différentes couleurs et tailles' : 'Add djellabas in different colors and sizes'}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-col gap-3 sm:gap-4">
+              {selectedJellabas.map((selection) => {
+                const rowAvailableColors = colors.filter(
+                  color => !selectedJellabas.some(other => other.id !== selection.id && other.colorCode === color.code)
+                )
+
+                return (
+                  <div key={selection.id} className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <NiqabColorDropdown
+                        selectionId={selection.id}
+                        currentColorCode={selection.colorCode}
+                        availableColors={rowAvailableColors}
+                        getDisplayColorName={getDisplayColorName}
+                        onSelectColor={changeJellabaColor}
+                      />
+                    </div>
+
+                    <select
+                      value={selection.size}
+                      onChange={e => changeJellabaSize(selection.id, e.target.value)}
+                      className="h-9 flex-shrink-0 w-16 sm:w-20 rounded-lg border px-2 text-xs font-bold bg-transparent"
+                      style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--foreground)' }}
+                    >
+                      {sizes.map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                      <div
+                        className="flex items-center h-8 sm:h-9 border rounded-lg overflow-hidden shadow-xs"
+                        style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+                      >
+                        <button type="button" onClick={() => updateJellabaQuantity(selection.id, -1)} className="w-6 sm:w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-xs sm:text-sm" aria-label="Decrease quantity">
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="px-1.5 sm:px-2 h-full flex items-center justify-center text-xs sm:text-sm font-extrabold border-x min-w-[1.25rem] sm:min-w-[2rem]" style={{ borderColor: 'var(--border)' }}>
+                          {selection.quantity}
+                        </span>
+                        <button type="button" onClick={() => updateJellabaQuantity(selection.id, 1)} className="w-6 sm:w-8 h-full flex items-center justify-center transition-colors hover:bg-[#C4622D]/10 hover:text-[#C4622D] font-bold text-xs sm:text-sm" aria-label="Increase quantity">
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+
+                      {selectedJellabas.length > 1 && (
+                        <button type="button" onClick={() => removeJellabaColor(selection.id)} className="w-7 sm:w-9 h-7 sm:h-9 flex items-center justify-center rounded-lg border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-colors" style={{ borderColor: 'rgba(239,68,68,0.25)', background: 'var(--card)' }} aria-label="Remove color">
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* ==================================
+                  ADD ANOTHER COLOR
+              ================================== */}
+
+              {availableJellabaColors.length > 0 && (
+                <button type="button" onClick={handleAddJellabaColor} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-dashed px-4 py-3.5 text-xs sm:text-sm font-bold text-[#C4622D] bg-[#C4622D]/[0.04] hover:bg-[#C4622D]/10 transition-colors text-center shadow-xs" style={{ borderColor: '#C4622D' }}>
+                  <Plus className="h-4 w-4" />
+                  {locale === 'ar' ? 'إضافة جلابة' : locale === 'fr' ? 'Ajouter une djellaba' : 'Add a djellaba'}
+                </button>
+              )}
+
+              {/* JELLABA TOTAL */}
+              <div
+                className="flex items-center justify-between p-3 sm:p-4 rounded-2xl border shadow-xs"
                 style={{
-                  color:
-                    'var(--foreground)',
+                  background: 'rgba(196,98,45,0.06)',
+                  borderColor: 'rgba(196,98,45,0.2)',
                 }}
               >
-                {
-                  t(
-                    'colors.select',
-                  )
-                }
-              </label>
-
-              <div className="flex flex-wrap gap-2">
-                {colors.map(
-                  (color) => {
-                    const colorLabel =
-                      locale ===
-                        'ar'
-                        ? color.nameAr
-                        : locale ===
-                          'fr'
-                          ? color.nameFr
-                          : color.nameEn
-
-                    const isSelected =
-                      selectedColor?.code ===
-                      color.code
-
-                    return (
-                      <button
-                        key={
-                          color.code
-                        }
-                        type="button"
-                        onClick={() =>
-                          setSelectedColor(
-                            color,
-                          )
-                        }
-                        className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all ${isSelected
-                          ? 'border-[#C4622D] bg-[rgba(196,98,45,0.05)] text-[#C4622D]'
-                          : 'hover:border-[#C4622D]/60'
-                          }`}
-                        style={{
-                          borderColor:
-                            isSelected
-                              ? '#C4622D'
-                              : 'var(--border)',
-
-                          color:
-                            isSelected
-                              ? '#C4622D'
-                              : 'var(--muted-foreground)',
-                        }}
-                      >
-                        <span
-                          className="inline-block h-3.5 w-3.5 rounded-full"
-                          style={{
-                            background:
-                              color.code,
-                          }}
-                        />
-
-                        {
-                          colorLabel
-                        }
-                      </button>
-                    )
-                  },
-                )}
+                <span className="text-xs sm:text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                  {locale === 'ar'
+                    ? `مجموع تمن الجلابات: ${selectedJellabaQuantity}`
+                    : locale === 'fr'
+                      ? `Total djellabas : ${selectedJellabaQuantity}`
+                      : `Total djellabas: ${selectedJellabaQuantity}`}
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-[#C4622D]">
+                  {formatPrice(jellabasTotal, locale)}
+                </span>
               </div>
             </div>
-          )}
-
-        {/* ======================================
-            SIZE
-        ====================================== */}
-
-        {!product.isNiqab &&
-          sizes.length > 0 && (
-            <div className="product-option-group space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <label
-                  className="block font-bold uppercase tracking-wider"
-                  style={{
-                    color:
-                      'var(--foreground)',
-                  }}
-                >
-                  {
-                    t(
-                      'sizes.select',
-                    )
-                  }
-                </label>
-
-                <button
-                  type="button"
-                  className="flex items-center gap-1 font-semibold text-[#b8965a] hover:underline"
-                >
-                  <Info className="h-3.5 w-3.5" />
-
-                  {
-                    t(
-                      'sizes.guide',
-                    )
-                  }
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                {sizes.map(
-                  (size) => {
-                    const isSelected =
-                      selectedSize ===
-                      size
-
-                    return (
-                      <button
-                        key={
-                          size
-                        }
-                        type="button"
-                        onClick={() =>
-                          setSelectedSize(
-                            size,
-                          )
-                        }
-                        className={`flex h-11 w-11 items-center justify-center rounded-xl border text-xs font-bold transition-all ${isSelected
-                          ? 'border-[#C4622D] bg-[rgba(196,98,45,0.05)] text-[#C4622D]'
-                          : 'hover:border-[#C4622D]/60'
-                          }`}
-                        style={{
-                          borderColor:
-                            isSelected
-                              ? '#C4622D'
-                              : 'var(--border)',
-
-                          color:
-                            isSelected
-                              ? '#C4622D'
-                              : 'var(--muted-foreground)',
-                        }}
-                      >
-                        {
-                          size
-                        }
-                      </button>
-                    )
-                  },
-                )}
-              </div>
-            </div>
-          )}
+          </div>
+        )}
 
         {/* ======================================
             NIQAB ADD-ON
@@ -1291,11 +1213,11 @@ export function ProductDetail({
 
         {((product.canAddNiqab && !product.isNiqab) || product.isNiqab) && niqabColors.length > 0 && (
           <div
-            className={`product-addon p-4 sm:p-5 rounded-2xl border-2 transition-all ${includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.025)] shadow-sm' : 'border-dashed hover:border-[#C4622D]/50'
+            className={`product-addon p-3.5 sm:p-4 rounded-2xl border-2 transition-all ${includeNiqab ? 'border-[#C4622D] bg-[rgba(196,98,45,0.025)] shadow-sm' : 'border-dashed hover:border-[#C4622D]/50'
               }`}
             style={{ borderColor: includeNiqab ? '#C4622D' : 'var(--border)' }}
           >
-            <label className="flex items-start gap-3.5 cursor-pointer select-none">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
               {!product.isNiqab && <>
               <input
                 type="checkbox"
@@ -1308,7 +1230,7 @@ export function ProductDetail({
                 className="mt-1 accent-[#C4622D] w-4.5 h-4.5 rounded cursor-pointer flex-shrink-0"
               />
               </>}
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <span className="font-extrabold text-sm sm:text-base block" style={{ color: 'var(--foreground)' }}>
                   {product.isNiqab
                     ? locale === 'ar' ? 'اختاري الألوان والكميات' : locale === 'fr' ? 'Choisissez les couleurs et les quantités' : 'Choose colors and quantities'
@@ -1333,7 +1255,7 @@ export function ProductDetail({
             ================================== */}
 
             {(product.isNiqab || includeNiqab) && niqabSelections.length > 0 && (
-              <div className="mt-5 flex flex-col gap-5 sm:gap-6">
+            <div className="mt-3 flex flex-col gap-3 sm:gap-4">
                 {niqabSelections.map((selection, index) => {
                   const currentLabel = getDisplayColorName({
                     code: selection.colorCode,
@@ -1433,7 +1355,7 @@ export function ProductDetail({
 
                 {/* NIQAB SUMMARY */}
                 <div
-                  className="flex items-center justify-between p-4.5 sm:p-5 rounded-2xl border shadow-xs"
+                  className="flex items-center justify-between p-3 sm:p-4 rounded-2xl border shadow-xs"
                   style={{
                     background: 'rgba(196,98,45,0.06)',
                     borderColor: 'rgba(196,98,45,0.2)',
@@ -1513,7 +1435,7 @@ export function ProductDetail({
               handleAddToCart
             }
             disabled={
-              (!product.isNiqab && !hasStock) ||
+              (!product.isNiqab && (selectedJellabas.length === 0 || !hasStock)) ||
               (product.isNiqab && selectedNiqabQuantity < 5)
             }
             className="btn btn-primary btn-round flex h-12 w-full items-center justify-center gap-2 text-sm"
