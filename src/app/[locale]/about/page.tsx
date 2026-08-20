@@ -60,16 +60,21 @@ export default async function AboutPage({ params }: AboutPageProps) {
       <div>
         <Link
           href={`/${locale}`}
-          className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-3.5 py-1 text-xs font-bold transition-all hover:bg-[var(--bg-subtle)] hover:scale-[1.02]"
           style={{
-            borderColor: 'var(--border)',
-            background: 'var(--card)',
-            color: 'var(--muted-foreground)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 20px',
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#C4622D',
             textDecoration: 'none',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+            border: '1px solid #C4622D',
+            borderRadius: 12,
+            transition: 'background 0.2s',
           }}
         >
-          <ArrowLeft style={{ width: 13, height: 13, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+          <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
           <span>{isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
         </Link>
       </div>

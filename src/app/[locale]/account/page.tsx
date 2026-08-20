@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Camera, Loader2, LogOut, Package, Save, UserRound } from 'lucide-react'
+import { ArrowLeft, Camera, Loader2, LogOut, Save, UserRound, Mail, Phone, User } from 'lucide-react'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 
 interface AccountPageProps {
@@ -53,8 +53,6 @@ export default function AccountPage({ params }: AccountPageProps) {
       saveFailed: ['تعذر حفظ التغييرات', 'Échec de l\'enregistrement', 'Failed to save changes'],
       uploadAvatar: ['تغيير الصورة', 'Changer la photo', 'Change photo'],
       uploadFailed: ['تعذر رفع الصورة', 'Échec du téléchargement', 'Failed to upload image'],
-      myOrders: ['طلباتي', 'Mes commandes', 'My orders'],
-      viewOrders: ['عرض الطلبات', 'Voir les commandes', 'View orders'],
       logout: ['تسجيل الخروج', 'Se déconnecter', 'Log out'],
       back: ['العودة للرئيسية', 'Retour à l\'accueil', 'Back to home'],
       memberSince: ['عضو منذ', 'Membre depuis', 'Member since'],
@@ -129,198 +127,324 @@ export default function AccountPage({ params }: AccountPageProps) {
     router.refresh()
   }
 
-  const inputClass = "h-12 w-full rounded-xl border bg-transparent px-4.5 text-sm font-medium outline-none transition-all focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
-
   if (loading) {
     return (
-      <div className="container-brand py-20 text-center space-y-4">
-        <div className="animate-spin mx-auto h-10 w-10 rounded-full border-b-2 border-[#C4622D]" />
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('loading')}</p>
+      <div className="container-brand py-20 text-center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div className="animate-spin" style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: '#C4622D' }} />
+        <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>{t('loading')}</p>
       </div>
     )
   }
 
   return (
-    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 640 }}>
+    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 520, padding: '0 16px', paddingTop: 24 }}>
+      {/* Back link */}
       <Link
         href={`/${locale}`}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 6,
+          gap: 8,
+          padding: '10px 20px',
           fontSize: 13,
-          fontWeight: 600,
-          color: 'var(--muted-foreground)',
+          fontWeight: 700,
+          color: '#C4622D',
           textDecoration: 'none',
-          marginBottom: 20,
+          marginBottom: 24,
+          border: '1px solid #C4622D',
+          borderRadius: 12,
+          transition: 'background 0.2s',
         }}
       >
-        <ArrowLeft style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
         {t('back')}
       </Link>
 
-      <h1 className="mb-6 text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{t('title')}</h1>
-
       {!user ? (
-        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
+        /* ── Not logged in ── */
+        <div style={{ padding: 24, borderRadius: 16, border: '1px solid var(--border)', background: 'var(--bg-subtle)', textAlign: 'center' }}>
           <div
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ background: '#C4622D', color: '#fff' }}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: '#C4622D',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
           >
-            <UserRound style={{ width: 28, height: 28 }} />
+            <UserRound style={{ width: 24, height: 24 }} />
           </div>
-          <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{t('signInTitle')}</h2>
-          <p className="mx-auto mt-1 max-w-sm text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('signInDesc')}</p>
-          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--foreground)', marginBottom: 8 }}>{t('signInTitle')}</h2>
+          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', maxWidth: 320, margin: '0 auto', lineHeight: 1.6 }}>{t('signInDesc')}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 24 }}>
             <button
               type="button"
               onClick={openLoginModal}
-              className="btn btn-primary flex h-11 w-full items-center justify-center rounded-xl px-6 font-bold sm:w-auto"
+              style={{
+                height: 48,
+                width: '100%',
+                maxWidth: 280,
+                borderRadius: 12,
+                background: '#C4622D',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               {t('signIn')}
             </button>
             <Link
               href={`/${locale}/signup`}
-              className="flex h-11 w-full items-center justify-center rounded-xl border px-6 font-bold transition-colors hover:border-[#C4622D] sm:w-auto"
-              style={{ borderColor: 'var(--border)', color: '#C4622D' }}
+              style={{
+                height: 48,
+                width: '100%',
+                maxWidth: 280,
+                borderRadius: 12,
+                border: '1px solid var(--border)',
+                background: 'transparent',
+                color: '#C4622D',
+                fontSize: 14,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+              }}
             >
               {t('createAccount')}
             </Link>
           </div>
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="rounded-2xl border p-6" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
-            <div className="mb-6 flex items-center gap-4">
-              <div className="relative">
+        /* ── Logged in ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 40 }}>
+          {/* ── Profile Card ── */}
+          <div style={{ padding: 24, borderRadius: 16, border: '1px solid var(--border)', background: 'var(--bg-subtle)' }}>
+
+            {/* Avatar + Name */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
                 {user.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
                     alt={user.name}
-                    width={72}
-                    height={72}
-                    className="rounded-full object-cover"
-                    style={{ width: 72, height: 72 }}
+                    width={64}
+                    height={64}
+                    style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }}
                   />
                 ) : (
-                  <div
-                    className="flex h-[72px] w-[72px] items-center justify-center rounded-full"
-                    style={{ background: '#C4622D', color: '#fff' }}
-                  >
-                    <UserRound style={{ width: 30, height: 30 }} />
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#C4622D', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <UserRound style={{ width: 28, height: 28 }} />
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="absolute -bottom-1 -end-1 flex h-8 w-8 items-center justify-center rounded-full border-2 text-white disabled:opacity-60"
-                  style={{ background: '#C4622D', borderColor: 'var(--bg-subtle)' }}
+                  style={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: '#C4622D',
+                    color: '#fff',
+                    border: '2px solid var(--bg-subtle)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: uploading ? 0.6 : 1,
+                  }}
                   aria-label={t('uploadAvatar')}
                 >
-                  {uploading ? <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} /> : <Camera style={{ width: 14, height: 14 }} />}
+                  {uploading ? <Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} /> : <Camera style={{ width: 12, height: 12 }} />}
                 </button>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleAvatar}
-                />
+                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatar} />
               </div>
               <div>
-                <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{user.name}</h2>
-                <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--foreground)', marginBottom: 4 }}>{user.name}</h2>
+                <p style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
                   {t('memberSince')} {new Date(user.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
                 </p>
               </div>
             </div>
 
+            {/* Message */}
             {msg && (
-              <p
-                className={`mb-4 rounded-xl border px-4 py-3 text-xs font-semibold ${msg.type === 'error' ? 'border-red-500/20 bg-red-500/10 text-red-500' : 'border-green-500/20 bg-green-500/10 text-green-600'}`}
+              <div
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  marginBottom: 16,
+                  border: `1px solid ${msg.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}`,
+                  background: msg.type === 'error' ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
+                  color: msg.type === 'error' ? '#ef4444' : '#16a34a',
+                }}
               >
                 {msg.text}
-              </p>
+              </div>
             )}
 
-            <form onSubmit={handleSave} className="space-y-4">
+            {/* Form */}
+            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Name */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 8 }}>
                   {t('name')}
                 </label>
-                <input
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={100}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={inputClass}
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <User style={{ position: 'absolute', top: '50%', left: isRTL ? undefined : 14, right: isRTL ? 14 : undefined, transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--muted-foreground)', opacity: 0.5 }} />
+                  <input
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    style={{
+                      height: 48,
+                      width: '100%',
+                      borderRadius: 12,
+                      border: '1px solid var(--border)',
+                      background: 'transparent',
+                      padding: isRTL ? '0 44px 0 16px' : '0 16px 0 44px',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: 'var(--foreground)',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      textAlign: isRTL ? 'right' : 'left',
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* Email (disabled) */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 8 }}>
                   {t('email')}
                 </label>
-                <input
-                  type="email"
-                  disabled
-                  value={user.email}
-                  className={inputClass + ' opacity-60'}
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <Mail style={{ position: 'absolute', top: '50%', left: isRTL ? undefined : 14, right: isRTL ? 14 : undefined, transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--muted-foreground)', opacity: 0.5 }} />
+                  <input
+                    type="email"
+                    disabled
+                    value={user.email}
+                    style={{
+                      height: 48,
+                      width: '100%',
+                      borderRadius: 12,
+                      border: '1px solid var(--border)',
+                      background: 'transparent',
+                      padding: isRTL ? '0 44px 0 16px' : '0 16px 0 44px',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: 'var(--foreground)',
+                      outline: 'none',
+                      opacity: 0.6,
+                      cursor: 'not-allowed',
+                      boxSizing: 'border-box',
+                      textAlign: isRTL ? 'right' : 'left',
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* Phone */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 8 }}>
                   {t('phone')}
                 </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t('phonePlaceholder')}
-                  className={inputClass}
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <Phone style={{ position: 'absolute', top: '50%', left: 14, transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--muted-foreground)', opacity: 0.5 }} />
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder={t('phonePlaceholder')}
+                    dir="ltr"
+                    style={{
+                      height: 48,
+                      width: '100%',
+                      borderRadius: 12,
+                      border: '1px solid var(--border)',
+                      background: 'transparent',
+                      padding: '0 16px 0 44px',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: 'var(--foreground)',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      textAlign: 'left',
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* Save button */}
               <button
                 type="submit"
                 disabled={saving}
-                className="btn btn-primary flex h-12 w-full items-center justify-center gap-2 rounded-xl font-bold shadow-lg shadow-[#C4622D]/20 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 sm:w-auto sm:px-8"
+                style={{
+                  height: 48,
+                  width: '100%',
+                  borderRadius: 12,
+                  background: '#C4622D',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  opacity: saving ? 0.7 : 1,
+                  marginTop: 4,
+                  boxShadow: '0 4px 14px rgba(196,98,45,0.25)',
+                }}
               >
-                {saving ? <Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> : <Save style={{ width: 18, height: 18 }} />}
+                {saving ? <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> : <Save style={{ width: 18, height: 18 }} />}
                 {t('save')}
               </button>
             </form>
           </div>
 
-          <div className="rounded-2xl border p-6" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: '#C4622D', color: '#fff' }}>
-                  <Package style={{ width: 20, height: 20 }} />
-                </div>
-                <div>
-                  <h3 className="font-bold" style={{ color: 'var(--foreground)' }}>{t('myOrders')}</h3>
-                </div>
-              </div>
-              <Link
-                href={`/${locale}/account/orders`}
-                className="flex h-10 items-center justify-center rounded-xl px-4 text-sm font-bold transition-colors hover:bg-[#C4622D]/10"
-                style={{ color: '#C4622D' }}
-              >
-                {t('viewOrders')}
-              </Link>
-            </div>
-          </div>
-
+          {/* ── Logout button ── */}
           <button
             type="button"
             onClick={handleLogout}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border font-bold transition-colors hover:border-red-500/40 hover:text-red-500"
-            style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+            style={{
+              height: 48,
+              width: '100%',
+              borderRadius: 12,
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--muted-foreground)',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transition: 'border-color 0.2s, color 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted-foreground)' }}
           >
             <LogOut style={{ width: 18, height: 18 }} />
             {t('logout')}

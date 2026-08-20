@@ -284,15 +284,19 @@ export default function OrdersPage({ params }: OrdersPageProps) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 6,
+          gap: 8,
+          padding: '10px 20px',
           fontSize: 13,
-          fontWeight: 600,
-          color: 'var(--muted-foreground)',
+          fontWeight: 700,
+          color: '#C4622D',
           textDecoration: 'none',
           marginBottom: 20,
+          border: '1px solid #C4622D',
+          borderRadius: 12,
+          transition: 'background 0.2s',
         }}
       >
-        <ArrowLeft style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
         {t.back}
       </Link>
 
