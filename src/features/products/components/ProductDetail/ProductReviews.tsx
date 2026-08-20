@@ -10,6 +10,10 @@ import {
   UserRound,
   CheckCircle2,
   LogIn,
+  Sparkles,
+  Edit3,
+  X,
+  Send,
 } from 'lucide-react'
 
 interface ProductReviewsProps {
@@ -27,17 +31,17 @@ interface ReviewItem {
 }
 
 const RATING_LABELS: Record<number, [string, string, string]> = {
-  1: ['سيئ جداً', 'Très mauvais', 'Very poor'],
-  2: ['سيئ', 'Mauvais', 'Poor'],
-  3: ['مقبول', 'Moyen', 'Average'],
-  4: ['جيد', 'Bien', 'Good'],
-  5: ['ممتاز', 'Excellent', 'Excellent'],
+  1: ['سيئ جداً', 'Très décevant', 'Very poor'],
+  2: ['أقل من المتوقع', 'Passable', 'Below expectations'],
+  3: ['جيد ومقبول', 'Correct', 'Average'],
+  4: ['جيد جداً', 'Très bien', 'Very good'],
+  5: ['ممتاز وفاخر', 'Excellent & Parfait', 'Excellent & Luxurious'],
 }
 
 function StarRow({
   value,
   onChange,
-  size = 18,
+  size = 16,
   hoverValue,
   onHover,
   onLeave,
@@ -52,7 +56,7 @@ function StarRow({
   const displayValue = hoverValue && hoverValue > 0 ? hoverValue : value
 
   return (
-    <div className="flex items-center gap-1.5" dir="ltr" onMouseLeave={onLeave}>
+    <div className="flex items-center gap-1" dir="ltr" onMouseLeave={onLeave}>
       {[1, 2, 3, 4, 5].map((n) => {
         const isFilled = n <= displayValue
         return (
@@ -62,8 +66,8 @@ function StarRow({
             disabled={!onChange}
             onClick={() => onChange?.(n)}
             onMouseEnter={() => onHover?.(n)}
-            className={`transition-transform duration-150 ${
-              onChange ? 'cursor-pointer hover:scale-125' : 'cursor-default'
+            className={`p-0.5 transition-transform duration-150 ${
+              onChange ? 'cursor-pointer hover:scale-120' : 'cursor-default'
             }`}
             aria-label={`${n} star${n > 1 ? 's' : ''}`}
           >
@@ -72,7 +76,7 @@ function StarRow({
               className={`transition-colors duration-150 ${
                 isFilled
                   ? 'fill-amber-400 text-amber-400'
-                  : 'text-stone-300 dark:text-stone-600'
+                  : 'text-stone-300 dark:text-stone-700 fill-transparent'
               }`}
             />
           </button>
@@ -98,40 +102,52 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   const [showForm, setShowForm] = useState(false)
 
   const isRTL = locale === 'ar'
+  const isFR = locale === 'fr'
 
   const t = (key: string): string => {
     const map: Record<string, [string, string, string]> = {
-      badge: ['تقييمات وآراء العملاء', 'Avis des clients', 'Customer Reviews'],
-      title: ['تجارب زبنائنا الكرام', 'Expériences de nos clients', 'Customer Experiences'],
-      noReviews: ['لا توجد تقييمات بعد — كن أول من يشارك تجربته مع هذا المنتج.', 'Aucun avis pour le moment — Soyez le premier à évaluer ce produit.', 'No reviews yet — Be the first to review this product.'],
-      summaryReviews: ['بناءً على {count} تقييم موثق', 'basé sur {count} avis vérifiés', 'based on {count} verified reviews'],
-      signInPrompt: ['سجّل الدخول بحسابك لتتمكن من إضافة تقييمك', 'Connectez-vous pour laisser votre avis', 'Sign in to your account to leave a review'],
-      signInBtn: ['تسجيل الدخول', 'Se connecter', 'Sign in'],
-      addReviewBtn: ['إضافة تقييم جديد', 'Ajouter un avis', 'Write a review'],
-      cancelBtn: ['إلغاء', 'Annuler', 'Cancel'],
-      yourRating: ['تقييمك للمنتج', 'Votre note', 'Your rating'],
-      yourComment: ['رأيك وتجربتك بالتفصيل', 'Votre commentaire', 'Your comment'],
-      commentPlaceholder: ['شاركينا رأيك حول جودة القماش، الخياطة والمقاس...', 'Partagez votre expérience avec ce produit...', 'Share your experience with quality, fabric, and fit...'],
-      submit: ['نشر التقييم', 'Publier l\'avis', 'Submit Review'],
-      thanksTitle: ['شكراً جزيلاً لتقييمك!', 'Merci pour votre avis !', 'Thank you for your review!'],
-      thanksDesc: ['تقييمك يساعدنا ويفيد الزبناء الآخرين.', 'Votre avis aide les autres clients.', 'Your review helps other customers make great choices.'],
-      update: ['تعديل التقييم', 'Modifier', 'Edit'],
+      sectionTitle: ['آراء وتقييمات الزبناء', 'Avis et retours clients', 'Customer Reviews'],
+      noReviewsTitle: ['لا توجد تقييمات بعد', 'Aucun avis pour le moment', 'No reviews yet'],
+      noReviewsDesc: [
+        'كوني أول من يشارك تجربته مع هذه القطعة الفاخرة.',
+        'Soyez la première à donner votre avis sur cette création.',
+        'Be the first to share your experience with this piece.',
+      ],
+      basedOnCount: [
+        'بناءً على {count} تقييم موثق',
+        'Basé sur {count} avis vérifiés',
+        'Based on {count} verified reviews',
+      ],
+      verifiedBadge: ['زبناء موثقون 100%', 'Avis 100% vérifiés', '100% Verified Customers'],
+      writeReview: ['أضيفي تقييمكِ', 'Donner votre avis', 'Write a Review'],
+      editReview: ['تعديل تقييمي', 'Modifier mon avis', 'Edit My Review'],
+      signInToReview: ['سجلي الدخول للتقييم', 'Se connecter pour évaluer', 'Sign in to Review'],
+      ratingLabel: ['اختاري تقييمك للمنتج:', 'Votre appréciation :', 'Your Rating:'],
+      commentLabel: ['رأيك الصادق في الجودة، الخياطة والتطريز:', 'Votre commentaire :', 'Your Review:'],
+      commentPlaceholder: [
+        'شاركينا رأيك حول جودة القماش، المقاس، الخياطة، وسرعة التوصيل...',
+        'Partagez vos impressions sur la coupe, le tissu, les finitions...',
+        'Share your thoughts on the fabric quality, stitching, fit, and delivery...',
+      ],
+      publishReview: ['نشر التقييم', 'Publier l\'avis', 'Submit Review'],
+      cancel: ['إلغاء', 'Annuler', 'Cancel'],
+      reviewSubmitted: ['تم تسجيل تقييمك بنجاح!', 'Votre avis a été enregistré avec succès !', 'Your review has been submitted successfully!'],
       verifiedBuyer: ['مشتري موثق', 'Acheteur vérifié', 'Verified Buyer'],
-      loading: ['جاري التحميل...', 'Chargement...', 'Loading...'],
-      failed: ['تعذر إرسال التقييم', 'Échec de l\'envoi', 'Failed to submit review'],
+      loading: ['جاري تحميل التقييمات...', 'Chargement des avis...', 'Loading reviews...'],
+      failed: ['تعذر إرسال التقييم، يرجى المحاولة ثانية', 'Échec de l\'envoi de l\'avis', 'Failed to submit review'],
     }
     const entry = map[key]
     if (!entry) return key
-    return locale === 'ar' ? entry[0] : locale === 'fr' ? entry[1] : entry[2]
+    return isRTL ? entry[0] : isFR ? entry[1] : entry[2]
   }
 
   const loadReviews = () => {
     fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('failed'))))
       .then((data) => {
-        setReviews(data.reviews)
+        setReviews(data.reviews || [])
         setAverage(data.averageRating)
-        setCount(data.count)
+        setCount(data.count || 0)
       })
       .catch(() => setReviews([]))
       .finally(() => setLoading(false))
@@ -157,8 +173,12 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           }
         }
       })
-      .catch(() => { if (isMounted) setAuthState('guest') })
-    return () => { isMounted = false }
+      .catch(() => {
+        if (isMounted) setAuthState('guest')
+      })
+    return () => {
+      isMounted = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reviews.length])
 
@@ -188,250 +208,247 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   if (loading) {
     return (
       <div
-        className="mt-12 rounded-3xl border p-8 text-center"
+        className="mt-8 rounded-2xl border p-6 text-center"
         style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        <Loader2 className="animate-spin mx-auto" style={{ width: 24, height: 24, color: '#C4622D' }} />
-        <p className="mt-3 text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>{t('loading')}</p>
+        <Loader2 className="animate-spin mx-auto w-5 h-5 text-[#C4622D]" />
+        <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+          {t('loading')}
+        </p>
       </div>
     )
   }
 
   const activeRatingDisplay = hoverRating > 0 ? hoverRating : rating
+  const avgScore = average !== null ? average.toFixed(1) : count > 0 ? '5.0' : null
 
   return (
-    <section className="mt-12" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* ── Main Hero Card (Identical to FAQ Page Hero Card) ───────── */}
+    <section className="mt-10" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* ── Main Container Card ────────────────────────────────────── */}
       <div
         style={{
-          borderRadius: 24,
+          borderRadius: 'clamp(16px, 2vw, 22px)',
           border: '1px solid var(--border)',
           background: 'var(--card)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
+          boxShadow: '0 4px 20px rgba(61,31,10,0.03)',
           overflow: 'hidden',
-          marginBottom: reviews.length > 0 ? 20 : 0,
         }}
       >
-        {/* Top Header Section with Gradient & Centered Icon */}
+        {/* ── Header & Action Bar ──────────────────────────────────── */}
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(184,150,90,0.04) 100%)',
-            padding: '32px 24px 28px',
-            textAlign: 'center',
+            padding: 'clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 24px)',
             borderBottom: '1px solid var(--border)',
+            background: 'linear-gradient(135deg, rgba(196,98,45,0.04) 0%, rgba(184,150,90,0.02) 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
           }}
         >
-          {/* Circular Star Icon */}
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: 'var(--accent-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 14px',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <Star style={{ width: 28, height: 28, color: 'var(--accent)', fill: 'var(--accent)' }} />
-          </div>
+          {/* Title & Score Summary */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'var(--accent-light)',
+                border: '1px solid var(--accent-ring)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--accent)',
+                flexShrink: 0,
+              }}
+            >
+              <Star className="w-4 h-4 fill-[var(--accent)] text-[var(--accent)]" />
+            </div>
 
-          {/* Badge Pill */}
-          <div
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2.5"
-            style={{
-              background: 'var(--accent-light)',
-              color: 'var(--accent)',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <span>✦</span>
-            <span>{t('badge')}</span>
-            <span>✦</span>
-          </div>
-
-          {/* Title */}
-          <h2
-            style={{
-              fontSize: 'clamp(1.4rem, 3vw, 1.85rem)',
-              fontWeight: 900,
-              color: 'var(--foreground)',
-              margin: '0 0 8px',
-              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-            }}
-          >
-            {t('title')}
-          </h2>
-
-          {/* Subtitle / Description / Rating Summary */}
-          {count === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 500, marginInline: 'auto' }}>
-              {t('noReviews')}
-            </p>
-          ) : (
-            <div className="flex flex-col items-center justify-center gap-1.5 mt-2">
+            <div>
               <div className="flex items-center gap-2">
-                <StarRow value={Math.round(average ?? 5)} size={18} />
-                <span className="text-base font-black" style={{ color: 'var(--foreground)' }}>
-                  {average !== null ? average.toFixed(1) : '5.0'}
-                </span>
+                <h2
+                  style={{
+                    fontSize: 'clamp(14px, 1.6vw, 17px)',
+                    fontWeight: 800,
+                    color: 'var(--foreground)',
+                    margin: 0,
+                    fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
+                  }}
+                >
+                  {t('sectionTitle')}
+                </h2>
+
+                {count > 0 && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold"
+                    style={{
+                      background: 'var(--accent-light)',
+                      color: 'var(--accent)',
+                      border: '1px solid var(--accent-ring)',
+                    }}
+                  >
+                    ★ {avgScore}
+                  </span>
+                )}
               </div>
-              <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>
-                {t('summaryReviews').replace('{count}', count.toString())}
+
+              <p
+                style={{
+                  fontSize: 11.5,
+                  color: 'var(--muted-foreground)',
+                  margin: '2px 0 0',
+                }}
+              >
+                {count > 0
+                  ? t('basedOnCount').replace('{count}', count.toString())
+                  : t('noReviewsTitle')}
               </p>
+            </div>
+          </div>
+
+          {/* Action Trigger Button in Header (Only when reviews exist) */}
+          {count > 0 && (
+            <div>
+              {authState === 'guest' ? (
+                <Link
+                  href={`/${locale}/login`}
+                  className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
+                  style={{
+                    textDecoration: 'none',
+                    minHeight: '2.75rem',
+                  }}
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{t('signInToReview')}</span>
+                </Link>
+              ) : submitted && !showForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowForm(true)}
+                  className="btn btn-outline btn-round inline-flex items-center justify-center gap-2 px-5 sm:px-6 text-xs sm:text-sm font-bold transition-all hover:scale-[1.02] cursor-pointer"
+                  style={{ minHeight: '2.75rem' }}
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>{t('editReview')}</span>
+                </button>
+              ) : !showForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowForm(true)}
+                  className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer"
+                  style={{ minHeight: '2.75rem' }}
+                >
+                  <MessageSquarePlus className="w-4 h-4" />
+                  <span>{t('writeReview')}</span>
+                </button>
+              ) : null}
             </div>
           )}
         </div>
 
-        {/* ── Sub-area: Action Bar or Form (Same as FAQ Category Filter Bar) ── */}
-        {authState === 'loading' ? null : authState === 'guest' ? (
+        {/* ── Optional Success Banner if just submitted ────────────── */}
+        {submitted && !showForm && (
           <div
             style={{
-              padding: '16px 20px',
+              padding: '10px 18px',
+              background: 'rgba(34,197,94,0.08)',
+              borderBottom: '1px solid rgba(34,197,94,0.2)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              gap: 12,
-              background: 'var(--bg-subtle)',
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground)' }}>
-              {t('signInPrompt')}
-            </span>
-            <Link
-              href={`/${locale}/login`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 18px',
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 800,
-                background: '#C4622D',
-                color: '#fff',
-                textDecoration: 'none',
-                boxShadow: '0 4px 12px rgba(196,98,45,0.25)',
-                transition: 'all 0.2s',
-              }}
-            >
-              <LogIn style={{ width: 14, height: 14 }} />
-              <span>{t('signInBtn')}</span>
-            </Link>
-          </div>
-        ) : submitted && !showForm ? (
-          <div
-            style={{
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              gap: 12,
-              background: 'var(--bg-subtle)',
+              justifyContent: 'space-between',
+              gap: 8,
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#16a34a',
             }}
           >
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              <span className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400">
-                {t('thanksTitle')}
-              </span>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{t('reviewSubmitted')}</span>
             </div>
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className="text-xs font-bold underline cursor-pointer"
-              style={{ color: '#C4622D' }}
+              className="text-xs font-bold underline cursor-pointer text-[#C4622D]"
             >
-              {t('update')}
+              {t('editReview')}
             </button>
           </div>
-        ) : !showForm && count > 0 ? (
-          <div
-            style={{
-              padding: '14px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--bg-subtle)',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setShowForm(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 18px',
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 800,
-                background: '#C4622D',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(196,98,45,0.25)',
-              }}
-            >
-              <MessageSquarePlus style={{ width: 14, height: 14 }} />
-              <span>{t('addReviewBtn')}</span>
-            </button>
-          </div>
-        ) : (
-          /* Inline Form Area */
+        )}
+
+        {/* ── Simplified Inline Review Form ────────────────────────── */}
+        {showForm && (
           <form
             onSubmit={handleSubmit}
             style={{
-              padding: '20px 24px',
+              padding: 'clamp(14px, 2.5vw, 22px)',
               background: 'var(--bg-subtle)',
-              borderTop: '1px solid var(--border)',
+              borderBottom: '1px solid var(--border)',
             }}
-            className="space-y-4"
+            className="space-y-3.5"
           >
-            <div>
-              <label className="mb-2 block text-xs font-bold" style={{ color: 'var(--foreground)' }}>
-                {t('yourRating')}
-              </label>
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+                {t('ratingLabel')}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="p-1 rounded-full text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors"
+                title={t('cancel')}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Stars Row + Dynamic Rating Badge */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div
+                className="px-2.5 py-1 rounded-xl border flex items-center gap-2"
+                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+              >
                 <StarRow
                   value={rating}
                   hoverValue={hoverRating}
                   onChange={setRating}
                   onHover={setHoverRating}
                   onLeave={() => setHoverRating(0)}
-                  size={24}
+                  size={20}
                 />
-                {activeRatingDisplay > 0 && (
-                  <span
-                    className="rounded-full px-3 py-0.5 text-xs font-bold"
-                    style={{
-                      background: 'var(--accent-light)',
-                      color: '#C4622D',
-                      border: '1px solid var(--accent-ring)',
-                    }}
-                  >
-                    {RATING_LABELS[activeRatingDisplay][locale === 'ar' ? 0 : locale === 'fr' ? 1 : 2]}
-                  </span>
-                )}
               </div>
+
+              {activeRatingDisplay > 0 && (
+                <span
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold"
+                  style={{
+                    background: 'var(--accent-light)',
+                    color: 'var(--accent)',
+                    border: '1px solid var(--accent-ring)',
+                  }}
+                >
+                  ✦ {RATING_LABELS[activeRatingDisplay][isRTL ? 0 : isFR ? 1 : 2]}
+                </span>
+              )}
             </div>
 
+            {/* Comment Textarea */}
             <div>
-              <label className="mb-1.5 block text-xs font-bold" style={{ color: 'var(--foreground)' }}>
-                {t('yourComment')}
+              <label
+                className="mb-1.5 block text-xs font-bold"
+                style={{ color: 'var(--foreground)' }}
+              >
+                {t('commentLabel')}
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 maxLength={500}
-                rows={3}
+                rows={2}
                 placeholder={t('commentPlaceholder')}
-                className="w-full rounded-xl border p-3 text-sm outline-none transition-all focus:border-[#C4622D]"
+                className="w-full rounded-xl border p-3 text-xs sm:text-sm outline-none transition-all focus:border-[var(--accent)] resize-none"
                 style={{
                   borderColor: 'var(--border)',
                   background: 'var(--card)',
@@ -442,136 +459,221 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
             {errorMsg && <p className="text-xs font-bold text-red-500">{errorMsg}</p>}
 
-            <div className="flex items-center gap-2">
+            {/* Form Action Buttons */}
+            <div className="flex items-center gap-2 pt-1">
               <button
                 type="submit"
                 disabled={submitting}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '9px 20px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  background: '#C4622D',
-                  color: '#fff',
+                  background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
                   border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(196,98,45,0.25)',
                 }}
               >
                 {submitting ? (
-                  <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} />
+                  <Loader2 className="animate-spin w-3.5 h-3.5" />
                 ) : (
-                  <MessageSquarePlus style={{ width: 14, height: 14 }} />
+                  <Send className="w-3.5 h-3.5" />
                 )}
-                <span>{t('submit')}</span>
+                <span>{t('publishReview')}</span>
               </button>
 
-              {count > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    padding: '9px 16px',
-                    borderRadius: 999,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    background: 'transparent',
-                    color: 'var(--muted-foreground)',
-                    border: '1px solid var(--border)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('cancelBtn')}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer"
+                style={{
+                  background: 'transparent',
+                  color: 'var(--muted-foreground)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {t('cancel')}
+              </button>
             </div>
           </form>
         )}
-      </div>
 
-      {/* ── Reviews Cards List (Matching FAQ Accordion Cards Style) ─── */}
-      {reviews.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {reviews.map((review) => (
+        {/* ── Zero-Reviews Empty State ─────────────────────────────── */}
+        {count === 0 && !showForm && (
+          <div
+            style={{
+              padding: 'clamp(24px, 3.5vw, 36px) clamp(16px, 2.5vw, 24px)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
             <div
-              key={review.id}
               style={{
-                borderRadius: 16,
-                border: '1px solid var(--border)',
-                background: 'var(--card)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                padding: '16px 20px',
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: 'var(--bg-subtle)',
+                border: '1px dashed var(--border)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--gold)',
               }}
             >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  {review.customer.avatarUrl ? (
-                    <Image
-                      src={review.customer.avatarUrl}
-                      alt={review.customer.name}
-                      width={36}
-                      height={36}
-                      className="rounded-full object-cover border"
-                      style={{ borderColor: 'var(--border)', width: 36, height: 36 }}
-                    />
-                  ) : (
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-white font-bold text-xs"
-                      style={{ background: 'linear-gradient(135deg, #C4622D 0%, #a34e23 100%)' }}
-                    >
-                      {review.customer.name ? review.customer.name.charAt(0).toUpperCase() : <UserRound className="w-4 h-4" />}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+              <Sparkles className="w-5 h-5" />
+            </div>
+
+            <div>
+              <h3
+                style={{
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: 'var(--foreground)',
+                  margin: '0 0 4px',
+                }}
+              >
+                {t('noReviewsTitle')}
+              </h3>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: 'var(--muted-foreground)',
+                  margin: 0,
+                  maxWidth: 420,
+                }}
+              >
+                {t('noReviewsDesc')}
+              </p>
+            </div>
+
+            {authState === 'guest' ? (
+              <Link
+                href={`/${locale}/login`}
+                className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-7 sm:px-9 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 mt-2"
+                style={{
+                  textDecoration: 'none',
+                  minHeight: '2.75rem',
+                }}
+              >
+                <LogIn className="w-4 h-4" />
+                <span>{t('signInToReview')}</span>
+              </Link>
+            ) : authState === 'user' ? (
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-7 sm:px-9 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer mt-2"
+                style={{ minHeight: '2.75rem' }}
+              >
+                <MessageSquarePlus className="w-4 h-4" />
+                <span>{t('writeReview')}</span>
+              </button>
+            ) : null}
+          </div>
+        )}
+
+        {/* ── Reviews Cards List ───────────────────────────────────── */}
+        {reviews.length > 0 && (
+          <div
+            style={{
+              padding: 'clamp(12px, 2vw, 18px)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                style={{
+                  borderRadius: 14,
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg-subtle)',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                  transition: 'border-color 0.2s ease',
+                }}
+              >
+                {/* Header: User details & Stars */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    {review.customer.avatarUrl ? (
+                      <Image
+                        src={review.customer.avatarUrl}
+                        alt={review.customer.name}
+                        width={30}
+                        height={30}
+                        className="rounded-full object-cover border"
+                        style={{ borderColor: 'var(--border)', width: 30, height: 30 }}
+                      />
+                    ) : (
+                      <div
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-white font-bold text-[11px]"
+                        style={{
+                          background: 'linear-gradient(135deg, #C4622D 0%, #a34e23 100%)',
+                        }}
+                      >
+                        {review.customer.name ? (
+                          review.customer.name.charAt(0).toUpperCase()
+                        ) : (
+                          <UserRound className="w-3.5 h-3.5" />
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
                         {review.customer.name}
                       </span>
+
                       <span
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-                        style={{ background: 'rgba(34,197,94,0.12)', color: '#16a34a' }}
+                        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9.5px] font-bold"
+                        style={{
+                          background: 'rgba(34,197,94,0.12)',
+                          color: '#16a34a',
+                        }}
                       >
-                        <CheckCircle2 className="w-3 h-3" />
+                        <CheckCircle2 className="w-2.5 h-2.5" />
                         <span>{t('verifiedBuyer')}</span>
                       </span>
+
+                      <span
+                        className="text-[10.5px] font-medium"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        •{' '}
+                        {new Date(review.createdAt).toLocaleDateString(
+                          isRTL ? 'ar-MA' : isFR ? 'fr-FR' : 'en-US',
+                          { year: 'numeric', month: 'short', day: 'numeric' }
+                        )}
+                      </span>
                     </div>
-                    <span className="text-[11px] font-medium block mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                      {new Date(review.createdAt).toLocaleDateString(
-                        locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US',
-                        { year: 'numeric', month: 'short', day: 'numeric' }
-                      )}
-                    </span>
+                  </div>
+
+                  <div className="flex items-center">
+                    <StarRow value={review.rating} size={13} />
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: 8,
-                    background: 'var(--bg-subtle)',
-                  }}
-                >
-                  <StarRow value={review.rating} size={14} />
-                </div>
+                {/* Comment */}
+                {review.comment && (
+                  <p
+                    style={{
+                      fontSize: 12.5,
+                      lineHeight: 1.6,
+                      color: 'var(--foreground)',
+                      margin: 0,
+                    }}
+                  >
+                    {review.comment}
+                  </p>
+                )}
               </div>
-
-              {review.comment && (
-                <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--foreground)', margin: 0 }}>
-                  {review.comment}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   )
 }
