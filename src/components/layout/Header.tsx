@@ -511,48 +511,6 @@ export function Header({ locale }: HeaderProps) {
             <div className="flex-1" />
 
             {/* =================================================
-                DESKTOP SEARCH TRIGGER
-            ================================================= */}
-
-            <div className="relative hidden lg:flex">
-              <button
-                type="button"
-                onClick={() => setSearchOpen(true)}
-                className="group flex h-10 w-[220px] xl:w-[260px] items-center gap-2.5 rounded-xl border transition-all duration-200 hover:border-[var(--accent)] hover:shadow-sm"
-                style={{
-                  background: 'var(--bg-subtle)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--text-muted)',
-                  paddingInline: '12px',
-                }}
-                dir={isRTL ? 'rtl' : 'ltr'}
-                aria-label={t('search')}
-              >
-                <div
-                  className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md transition-colors group-hover:text-[var(--accent)]"
-                  style={{
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  <Search className="h-4 w-4" />
-                </div>
-
-                <span
-                  className="flex-1 truncate text-start text-xs font-medium"
-                  style={{
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  {locale === 'ar'
-                    ? 'ابحث عن منتج...'
-                    : locale === 'fr'
-                      ? 'Rechercher un produit...'
-                      : 'Search for a product...'}
-                </span>
-              </button>
-            </div>
-
-            {/* =================================================
                 ACTION BUTTONS
             ================================================= */}
 
@@ -562,7 +520,7 @@ export function Header({ locale }: HeaderProps) {
             >
               <button
                 type="button"
-                className="icon-btn touch-target lg:hidden"
+                className="icon-btn touch-target"
                 onClick={() => setSearchOpen(true)}
                 aria-label={t('search')}
               >
