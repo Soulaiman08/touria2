@@ -1,13 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export function WhatsAppButton() {
+  const pathname = usePathname()
   const [visible, setVisible] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { settings } = useSiteSettings()
+
+  const isAuthPage = pathname?.includes('/login') || pathname?.includes('/signup')
 
   const rawWhatsapp = settings?.whatsapp?.trim() || siteConfig.contact.whatsapp || ''
   const cleanWhatsapp = rawWhatsapp.replace(/[^0-9]/g, '')
@@ -23,7 +27,7 @@ export function WhatsAppButton() {
     return () => clearTimeout(t)
   }, [])
 
-  if (!visible || !whatsappUrl) return null
+  if (isAuthPage || !visible || !whatsappUrl) return null
 
   return (
     <a

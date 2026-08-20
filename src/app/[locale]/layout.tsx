@@ -12,6 +12,9 @@ import { CartDrawer } from '@/features/cart/components/CartDrawer'
 import { WhatsAppButton } from '@/components/shared/WhatsAppButton'
 import { VisitorTracker } from '@/components/shared/VisitorTracker'
 
+import { CustomerAuthProvider } from '@/components/providers/CustomerAuthProvider'
+import { CustomerLoginModal } from '@/components/auth/CustomerLoginModal'
+
 interface LocaleLayoutProps {
   children: React.ReactNode
   params: Promise<{ locale: string }>
@@ -73,26 +76,29 @@ export default async function LocaleLayout({
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider>
         <CartProvider>
-          <div className="storefront-shell flex min-h-screen flex-col relative w-full">
-            {/* Skip to content for accessibility */}
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg"
-            >
-              {locale === 'ar' ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
-            </a>
+          <CustomerAuthProvider>
+            <div className="storefront-shell flex min-h-screen flex-col relative w-full">
+              {/* Skip to content for accessibility */}
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg"
+              >
+                {locale === 'ar' ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
+              </a>
 
-            <Header locale={locale} />
+              <Header locale={locale} />
 
-            <main id="main-content" className="flex-1 w-full relative">
-              {children}
-            </main>
+              <main id="main-content" className="flex-1 w-full relative">
+                {children}
+              </main>
 
-            <Footer locale={locale} />
-            <CartDrawer locale={locale} />
-            <WhatsAppButton />
-            <VisitorTracker />
-          </div>
+              <Footer locale={locale} />
+              <CartDrawer locale={locale} />
+              <WhatsAppButton />
+              <VisitorTracker />
+              <CustomerLoginModal locale={locale} />
+            </div>
+          </CustomerAuthProvider>
         </CartProvider>
       </ThemeProvider>
     </NextIntlClientProvider>

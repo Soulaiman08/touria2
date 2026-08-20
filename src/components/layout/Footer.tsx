@@ -79,6 +79,10 @@ export function Footer({ locale }: FooterProps) {
     { href: `/${locale}/faq#shipping`, label: isRTL ? 'الشحن والتوصيل' : locale === 'fr' ? 'Livraison' : 'Shipping & Delivery' },
   ]
 
+  // Hide footer on dedicated auth pages (login, signup)
+  const isAuthPage = pathname?.includes('/login') || pathname?.includes('/signup')
+  if (isAuthPage) return null
+
   return (
     <footer
       dir={isRTL ? 'rtl' : 'ltr'}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Camera, Loader2, LogOut, Package, Save, UserRound } from 'lucide-react'
+import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 
 interface AccountPageProps {
   params: Promise<{ locale: string }>
@@ -23,6 +24,7 @@ export default function AccountPage({ params }: AccountPageProps) {
   const { locale } = use(params)
   const router = useRouter()
   const isRTL = locale === 'ar'
+  const { logout: authLogout, openLoginModal } = useCustomerAuth()
 
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<CustomerUser | null>(null)
@@ -122,7 +124,7 @@ export default function AccountPage({ params }: AccountPageProps) {
   }
 
   const handleLogout = async () => {
-    await fetch('/api/customer/auth/logout', { method: 'POST' })
+    await authLogout()
     router.push(`/${locale}`)
     router.refresh()
   }
@@ -170,12 +172,13 @@ export default function AccountPage({ params }: AccountPageProps) {
           <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{t('signInTitle')}</h2>
           <p className="mx-auto mt-1 max-w-sm text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('signInDesc')}</p>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href={`/${locale}/login`}
+            <button
+              type="button"
+              onClick={openLoginModal}
               className="btn btn-primary flex h-11 w-full items-center justify-center rounded-xl px-6 font-bold sm:w-auto"
             >
               {t('signIn')}
-            </Link>
+            </button>
             <Link
               href={`/${locale}/signup`}
               className="flex h-11 w-full items-center justify-center rounded-xl border px-6 font-bold transition-colors hover:border-[#C4622D] sm:w-auto"

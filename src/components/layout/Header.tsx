@@ -25,6 +25,7 @@ import {
 import { useCartStore } from '@/store/cart.store'
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
+import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 import { siteConfig } from '@/config/site'
 import { cn, formatPrice } from '@/lib/utils'
 import type { ProductCard } from '@/types/product'
@@ -61,6 +62,7 @@ export function Header({ locale }: HeaderProps) {
   const tCommon = useTranslations('common')
   const cartItems = useCartStore((state) => state.items)
   const toggleCart = useCartStore((state) => state.toggleCart)
+  const { customer, openLoginModal } = useCustomerAuth()
   const pathname = usePathname()
 
   const isRTL = locale === 'ar'
@@ -409,6 +411,10 @@ export function Header({ locale }: HeaderProps) {
   // RETURN
   // =========================================================
 
+  // Hide header on dedicated auth pages (login, signup)
+  const isAuthPage = pathname?.includes('/login') || pathname?.includes('/signup')
+  if (isAuthPage) return null
+
   return (
     <>
       {/* =====================================================
@@ -530,16 +536,6 @@ export function Header({ locale }: HeaderProps) {
               <ThemeSwitcher />
 
               <LanguageSwitcher locale={locale} />
-
-              <Link
-                href={`/${locale}/account`}
-                className="icon-btn touch-target"
-                aria-label={
-                  locale === 'ar' ? 'حسابي' : locale === 'fr' ? 'Mon compte' : 'My account'
-                }
-              >
-                <User className="h-[18px] w-[18px]" />
-              </Link>
 
               <button
                 id="cart-toggle-btn"
@@ -861,6 +857,118 @@ export function Header({ locale }: HeaderProps) {
               )
             })}
           </nav>
+
+          {/* =================================================
+              CUSTOMER ACCOUNT / LOGIN
+          ================================================= */}
+
+          <div
+            style={{
+              paddingTop: 14,
+              marginTop: 14,
+              borderTop: '1px solid var(--border)',
+              paddingLeft: 12,
+              paddingRight: 12,
+            }}
+          >
+            {customer ? (
+              <Link
+                href={`/${locale}/account`}
+                onClick={closeMenu}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '10px 12px',
+                  minHeight: 46,
+                  borderRadius: 12,
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  transition: 'all 0.15s',
+                  background: 'rgba(243, 154, 6, 0.08)',
+                  border: '1px solid rgba(243, 154, 6, 0.3)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {customer.avatarUrl ? (
+                  <Image
+                    src={customer.avatarUrl}
+                    alt={customer.name || 'Avatar'}
+                    width={26}
+                    height={26}
+                    className="h-[26px] w-[26px] rounded-full object-cover border border-[#e19a0b]/60 flex-shrink-0"
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #ffc51b 0%, #f39a06 100%)',
+                      color: '#090909',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      flexShrink: 0,
+                      boxShadow: '0 2px 6px rgba(243,154,6,0.25)',
+                    }}
+                  >
+                    {customer.name ? customer.name.charAt(0).toUpperCase() : <User style={{ width: 13, height: 13 }} />}
+                  </div>
+                )}
+
+                <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>
+                  {locale === 'ar' ? 'حسابي' : locale === 'fr' ? 'Mon compte' : 'My account'}
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href={`/${locale}/login`}
+                onClick={closeMenu}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '10px 12px',
+                  minHeight: 46,
+                  borderRadius: 12,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  textAlign: isRTL ? 'right' : 'left',
+                  textDecoration: 'none',
+                }}
+              >
+                <div
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 8,
+                    background: 'var(--accent-light)',
+                    color: 'var(--accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <User style={{ width: 14, height: 14 }} />
+                </div>
+
+                <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>
+                  {locale === 'ar' ? 'تسجيل الدخول' : locale === 'fr' ? 'Se connecter' : 'Sign in'}
+                </span>
+              </Link>
+            )}
+          </div>
 
           {/* =================================================
         LANGUAGE
