@@ -155,8 +155,7 @@ export async function GET(request: Request) {
       })),
     })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Search failed'
-    console.error('[/api/admin/search]', msg)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('[/api/admin/search]', error)
+    return NextResponse.json({ error: 'Search failed' }, { status: 500 })
   }
 }

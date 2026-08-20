@@ -14,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  MessageSquare,
+  Loader2,
 } from 'lucide-react'
 
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
@@ -158,6 +160,20 @@ function ProductContent() {
   const [deleteTarget, setDeleteTarget] =
     useState<ProductItem | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  // Reviews modal state
+  const [reviewsTarget, setReviewsTarget] =
+    useState<ProductItem | null>(null)
+  const [reviewsData, setReviewsData] = useState<Array<{
+    id: string
+    rating: number
+    comment: string
+    createdAt: string
+    customer: { id: string; name: string; email: string | null; avatarUrl: string | null }
+  }>>([])
+  const [reviewsCount, setReviewsCount] = useState(0)
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [reviewsDeleting, setReviewsDeleting] = useState<string | null>(null)
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -905,6 +921,69 @@ function ProductContent() {
         setSubmitting(false)
       }
     }
+
+  /*
+   * =========================================================
+   * Reviews
+   * =========================================================
+   */
+
+  const loadReviews = useCallback(
+    async (productId: string) => {
+      setReviewsLoading(true)
+      try {
+        const res = await fetch(`/api/admin/reviews?productId=${encodeURIComponent(productId)}`, {
+          headers: { Accept: 'application/json' },
+        })
+        if (!res.ok) {
+          throw new Error(`Failed to load reviews (${res.status})`)
+        }
+        const data = await res.json()
+        setReviewsData(data.reviews)
+        setReviewsCount(data.count)
+      } catch (err: unknown) {
+        console.error('Error loading reviews:', err)
+        setReviewsData([])
+        setReviewsCount(0)
+        error(err instanceof Error ? err.message : 'Failed to load reviews')
+      } finally {
+        setReviewsLoading(false)
+      }
+    },
+    [error]
+  )
+
+  const openReviewsModal = (prod: ProductItem) => {
+    setReviewsTarget(prod)
+    setReviewsData([])
+    setReviewsCount(0)
+    loadReviews(prod.id)
+  }
+
+  const handleDeleteReview = async (reviewId: string) => {
+    setReviewsDeleting(reviewId)
+    try {
+      const res = await fetch(`/api/admin/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json' },
+      })
+      if (!res.ok) {
+        let message = `Failed to delete review (${res.status})`
+        try {
+          const data = await res.json()
+          if (data?.error) message = data.error
+        } catch { /* ignore */ }
+        throw new Error(message)
+      }
+      setReviewsData((current) => current.filter((r) => r.id !== reviewId))
+      setReviewsCount((count) => Math.max(0, count - 1))
+      success('Review deleted successfully')
+    } catch (err: unknown) {
+      error(err instanceof Error ? err.message : 'Failed to delete review')
+    } finally {
+      setReviewsDeleting(null)
+    }
+  }
 
   return (
     <div
@@ -1686,6 +1765,39 @@ function ProductContent() {
                             title="Edit Product"
                           >
                             <Edit2
+                              style={{
+                                width:
+                                  15,
+                                height:
+                                  15,
+                              }}
+                            />
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              openReviewsModal(
+                                prod
+                              )
+                            }
+                            style={{
+                              padding:
+                                8,
+                              borderRadius:
+                                10,
+                              background:
+                                'rgba(59,130,246,0.12)',
+                              border:
+                                '1px solid rgba(59,130,246,0.25)',
+                              color:
+                                '#60a5fa',
+                              cursor:
+                                'pointer',
+                            }}
+                            className="hover:bg-blue-500 hover:text-white transition-all"
+                            title="Reviews"
+                          >
+                            <MessageSquare
                               style={{
                                 width:
                                   15,
@@ -2889,6 +3001,196 @@ function ProductContent() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          Reviews Dialog
+          ===================================================== */}
+
+      {reviewsTarget && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 120,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            background: 'rgba(0,0,0,0.72)',
+          }}
+          onClick={() => setReviewsTarget(null)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 560,
+              maxHeight: '80vh',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 16,
+              border: '1px solid rgba(63,63,70,0.8)',
+              background: 'linear-gradient(145deg, rgba(26,28,30,0.99), rgba(13,15,17,0.99))',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.55)',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                borderBottom: '1px solid rgba(63,63,70,0.6)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <MessageSquare style={{ width: 17, height: 17, color: '#60a5fa' }} />
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#f4f4f5' }}>
+                  Reviews — {reviewsTarget.name}
+                </h3>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#fbbf24',
+                    background: 'rgba(251,191,36,0.12)',
+                    border: '1px solid rgba(251,191,36,0.3)',
+                    borderRadius: 999,
+                    padding: '2px 8px',
+                  }}
+                >
+                  {reviewsCount}
+                </span>
+              </div>
+              <button
+                onClick={() => setReviewsTarget(null)}
+                style={{
+                  padding: 7,
+                  borderRadius: 9,
+                  background: 'rgba(63,63,70,0.6)',
+                  border: 'none',
+                  color: '#d4d4d8',
+                  cursor: 'pointer',
+                }}
+                className="hover:bg-zinc-600 transition-all"
+                aria-label="Close"
+              >
+                <X style={{ width: 15, height: 15 }} />
+              </button>
+            </div>
+
+            <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
+              {reviewsLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                  <Loader2 className="animate-spin" style={{ width: 22, height: 22, color: '#fbbf24' }} />
+                </div>
+              ) : reviewsData.length === 0 ? (
+                <p style={{ margin: 0, padding: '24px 0', textAlign: 'center', fontSize: 13, color: '#71717a' }}>
+                  No reviews for this product yet.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {reviewsData.map((review) => (
+                    <div
+                      key={review.id}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        padding: '12px 14px',
+                        borderRadius: 12,
+                        background: 'rgba(9,9,11,0.6)',
+                        border: '1px solid rgba(63,63,70,0.5)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                          {review.customer.avatarUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={review.customer.avatarUrl}
+                              alt={review.customer.name}
+                              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: '#fbbf24',
+                                color: '#090909',
+                                fontSize: 13,
+                                fontWeight: 800,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {review.customer.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f4f4f5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {review.customer.name}
+                            </p>
+                            <p style={{ margin: 0, fontSize: 11, color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {review.customer.email || '—'}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} dir="ltr">
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <Star
+                                key={n}
+                                style={{
+                                  width: 13,
+                                  height: 13,
+                                  fill: n <= review.rating ? '#fbbf24' : 'transparent',
+                                  color: n <= review.rating ? '#fbbf24' : '#52525b',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteReview(review.id)}
+                            disabled={reviewsDeleting === review.id}
+                            style={{
+                              padding: 6,
+                              borderRadius: 8,
+                              background: 'rgba(239,68,68,0.12)',
+                              border: '1px solid rgba(239,68,68,0.25)',
+                              color: '#f87171',
+                              cursor: 'pointer',
+                            }}
+                            className="hover:bg-rose-600 hover:text-white transition-all disabled:opacity-50"
+                            title="Delete Review"
+                          >
+                            {reviewsDeleting === review.id ? (
+                              <Loader2 className="animate-spin" style={{ width: 13, height: 13 }} />
+                            ) : (
+                              <Trash2 style={{ width: 13, height: 13 }} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 13, color: '#d4d4d8', lineHeight: 1.6, wordBreak: 'break-word' }}>
+                        {review.comment}
+                      </p>
+                      <p style={{ margin: 0, fontSize: 11, color: '#71717a' }}>
+                        {new Date(review.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

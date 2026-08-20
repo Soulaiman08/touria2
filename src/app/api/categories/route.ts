@@ -6,6 +6,11 @@ import { categoryService } from '@/services/category.service'
  * Public storefront categories endpoint - reads from Prisma
  */
 export async function GET() {
-  const categories = await categoryService.getCategories()
-  return NextResponse.json({ categories })
+  try {
+    const categories = await categoryService.getCategories()
+    return NextResponse.json({ categories })
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+    return NextResponse.json({ error: 'Failed to load categories' }, { status: 503 })
+  }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
 import { signOrderAccessToken } from '@/lib/auth'
+import { getCurrentCustomer } from '@/lib/customer-auth'
 
 export async function GET() {
   /*
@@ -35,7 +36,12 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await orderService.createOrder(body as Parameters<typeof orderService.createOrder>[0])
+    const customer = await getCurrentCustomer()
+
+    const result = await orderService.createOrder({
+      ...(body as Parameters<typeof orderService.createOrder>[0]),
+      customerId: customer?.id ?? null,
+    })
     const response = NextResponse.json(result)
     if (result.success && result.order?.id) {
       response.cookies.set(`order_access_${result.order.id}`, signOrderAccessToken(result.order.id), {
@@ -49,10 +55,10 @@ export async function POST(request: Request) {
     return response
   } catch (error) {
     console.error('Error placing order:', error)
-    const msg = error instanceof Error ? error.message : 'Failed to place order'
 
     // Validation/business-rule failures are the client's fault; only
-    // unexpected (e.g. DB) failures should surface as 500.
+    // unexpected (e.g. DB) failures should surface as 500. Business-rule
+    // messages are safe to return; system/DB errors must not leak internals.
     const CLIENT_ERRORS = new Set([
       'Your cart is empty',
       'Invalid product quantity',
@@ -67,9 +73,11 @@ export async function POST(request: Request) {
       'Invalid city selected',
       'Selected city does not belong to the selected region',
     ])
+    const msg = error instanceof Error ? error.message : 'Failed to place order'
+    const isClientError = CLIENT_ERRORS.has(msg)
     return NextResponse.json(
-      { success: false, error: msg },
-      { status: CLIENT_ERRORS.has(msg) ? 422 : 500 },
+      { success: false, error: isClientError ? msg : 'Failed to place order' },
+      { status: isClientError ? 422 : 500 },
     )
   }
 }

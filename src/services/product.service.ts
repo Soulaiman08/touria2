@@ -38,8 +38,7 @@ type NiqabProductData = {
 // ======================================================
 
 async function getNiqabProduct(): Promise<NiqabProductData | null> {
-  try {
-    const niqab = await prisma.product.findFirst({
+  const niqab = await prisma.product.findFirst({
       where: {
         OR: [
           { isNiqab: true },
@@ -78,16 +77,8 @@ async function getNiqabProduct(): Promise<NiqabProductData | null> {
         priceModifier: Number(
           variant.priceModifier,
         ),
-      })),
+})),
     }
-  } catch (error) {
-    console.warn(
-      'âš ï¸ Failed to load niqab product:',
-      error,
-    )
-
-    return null
-  }
 }
 
 // ======================================================
@@ -103,9 +94,8 @@ export const productService = {
   async getProducts(
     filters: ProductFilters = {},
   ): Promise<PaginatedProducts> {
-    try {
-      const page = filters.page ?? 1
-      const limit = filters.limit ?? 12
+    const page = filters.page ?? 1
+    const limit = filters.limit ?? 12
       const skip = (page - 1) * limit
 
       const whereClause: Record<string, unknown> = {
@@ -319,7 +309,7 @@ export const productService = {
           }),
         )
 
-      return {
+return {
         items,
         total,
         page,
@@ -329,26 +319,6 @@ export const productService = {
             total / limit,
           ),
       }
-    } catch (error) {
-      console.warn(
-        'âš ï¸ Database query failed, returning empty product list:',
-        error,
-      )
-
-      const page =
-        filters.page ?? 1
-
-      const limit =
-        filters.limit ?? 12
-
-      return {
-        items: [],
-        total: 0,
-        page,
-        limit,
-        totalPages: 0,
-      }
-    }
   },
 
   // ====================================================
@@ -358,7 +328,6 @@ export const productService = {
   async getProductBySlug(
     slug: string,
   ): Promise<Product | null> {
-    try {
 
       // -----------------------------------------------
       // LOAD MAIN PRODUCT
@@ -437,16 +406,7 @@ export const productService = {
 
         niqabProduct:
           niqabProduct || undefined,
-      } as unknown as Product
-
-    } catch (error) {
-      console.warn(
-        `âš ï¸ GetProductBySlug database query failed for [${slug}]:`,
-        error,
-      )
-
-      return null
-    }
+} as unknown as Product
   },
 
   // ====================================================

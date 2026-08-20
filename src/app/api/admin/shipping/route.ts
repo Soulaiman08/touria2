@@ -53,8 +53,8 @@ export async function GET() {
 
     return NextResponse.json({ defaultPrice, cities })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to load shipping config'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to load shipping config:', error)
+    return NextResponse.json({ error: 'Failed to load shipping config' }, { status: 500 })
   }
 }
 
@@ -102,8 +102,8 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to save shipping price'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to save shipping price:', error)
+    return NextResponse.json({ error: 'Failed to save shipping price' }, { status: 500 })
   }
 }
 
@@ -123,7 +123,7 @@ export async function DELETE(request: Request) {
     await prisma.siteSetting.deleteMany({ where: { key } })
     return NextResponse.json({ success: true })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to delete shipping price'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to delete shipping price:', error)
+    return NextResponse.json({ error: 'Failed to delete shipping price' }, { status: 500 })
   }
 }

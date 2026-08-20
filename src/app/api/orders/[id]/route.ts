@@ -25,9 +25,9 @@ export async function GET(
 
     return NextResponse.json(order)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to fetch order status'
+    console.error('Failed to fetch order status:', error)
     return NextResponse.json(
-      { error: msg },
+      { error: 'Failed to fetch order status' },
       { status: 500 },
     )
   }

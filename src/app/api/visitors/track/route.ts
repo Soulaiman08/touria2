@@ -28,17 +28,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ tracked: false, reason: 'already_counted_session' })
     }
 
-    // Increment visitor count in SiteSetting
-    const current = await prisma.siteSetting.findUnique({
-      where: { key: SETTING_KEY },
-    })
-
-    const newCount = (current ? Number(current.value) || 0 : 0) + 1
-
-    await prisma.siteSetting.upsert({
-      where: { key: SETTING_KEY },
-      update: { value: String(newCount) },
-      create: { key: SETTING_KEY, value: String(newCount) },
+    // Increment visitor count in SiteSetting. Done as a single atomic SQL
+    // UPDATE so concurrent requests can never read-then-write and lose counts.
+    const newCount = await prisma.$transaction(async (tx) => {
+      const updated = await tx.$executeRaw`UPDATE "site_settings" SET value = (COALESCE(NULLIF(value, '')::bigint, 0) + 1)::text WHERE key = ${SETTING_KEY}`
+      if (updated === 0) {
+        await tx.siteSetting.create({ data: { key: SETTING_KEY, value: '1' } })
+        return 1
+      }
+      const row = await tx.siteSetting.findUnique({ where: { key: SETTING_KEY } })
+      const parsed = row ? Number(row.value) : 1
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
     })
 
     const response = NextResponse.json({ tracked: true, count: newCount })

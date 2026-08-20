@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       customerMap.set(key, {
         id: customer.id,
         name: customer.name,
-        phone: customer.phone,
+        phone: customer.phone || '',
         email: customer.email || '',
         city: customer.city || '',
         address: customer.address || '',

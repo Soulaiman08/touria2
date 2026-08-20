@@ -46,8 +46,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, banner })
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create banner'
     console.error('Failed to create banner:', error)
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to create banner' }, { status: 500 })
   }
 }

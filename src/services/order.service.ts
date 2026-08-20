@@ -4,8 +4,6 @@ import { generateOrderNumber } from '@/lib/utils'
 import { DEFAULT_SHIPPING_PRICE, getCityByValue, MOROCCAN_CITIES } from '@/config/moroccan-cities'
 import type { CreateOrderRequest, CreateOrderResponse, Order, ProductSnapshot } from '@/types/order'
 
-const LOCAL_ORDERS_STORE = new Map<string, Order>()
-
 const asNumber = (value: Prisma.Decimal | number) => Number(value)
 
 const CITY_KEY_PREFIX = 'shipping:city:'
@@ -139,7 +137,7 @@ export const orderService = {
       )
 
       const createdOrder = await tx.order.create({ data: {
-        orderNumber, customerName: req.formData.customerName, customerPhone: req.formData.customerPhone,
+        orderNumber, customerId: req.customerId || null, customerName: req.formData.customerName, customerPhone: req.formData.customerPhone,
         customerPhone2: req.formData.customerPhone2 || null, customerEmail: req.formData.customerEmail || null,
         region: req.formData.region || '', city: req.formData.city, district: req.formData.district || null,
         address: req.formData.address, postalCode: req.formData.postalCode || null, notes: req.formData.notes || null,
@@ -149,9 +147,16 @@ export const orderService = {
         orderId: createdOrder.id, productId: item.productId, variantId: item.variantId, quantity: item.quantity,
         unitPrice: item.unitPrice, totalPrice: item.totalPrice, productSnapshot: item.snapshot as unknown as Prisma.InputJsonValue,
       } })))
-      await tx.orderStatusHistory.create({ data: { orderId: createdOrder.id, status: 'PENDING', note: 'Order placed by guest' } })
+      await tx.orderStatusHistory.create({ data: { orderId: createdOrder.id, status: 'PENDING', note: req.customerId ? 'Order placed by customer' : 'Order placed by guest' } })
 
       // Create Admin Notification for the new order
+      const notificationExists = async (referenceId: string): Promise<boolean> => {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+        return !!(await tx.adminNotification.findFirst({
+          where: { referenceId, createdAt: { gte: oneDayAgo } },
+          select: { id: true },
+        }))
+      }
       try {
         await tx.adminNotification.create({
           data: {
@@ -177,24 +182,28 @@ export const orderService = {
           })
           for (const v of updatedVariants) {
             if (v.stockQuantity === 0) {
+              const referenceId = `stock-out-${v.id}`
+              if (await notificationExists(referenceId)) continue
               await tx.adminNotification.create({
                 data: {
                   type: 'OUT_OF_STOCK',
                   title: `المنتج نفد من المخزون`,
                   description: `${v.product.nameAr || v.product.nameFr} (${v.size} - ${v.colorNameAr})`,
                   targetUrl: `/control-panel-ss7/products`,
-                  referenceId: `stock-out-${v.id}`,
+                  referenceId,
                   isRead: false,
                 },
               })
             } else if (v.stockQuantity > 0 && v.stockQuantity <= 3) {
+              const referenceId = `stock-low-${v.id}-${v.stockQuantity}`
+              if (await notificationExists(referenceId)) continue
               await tx.adminNotification.create({
                 data: {
                   type: 'LOW_STOCK',
                   title: `المخزون منخفض`,
                   description: `${v.product.nameAr || v.product.nameFr} (${v.size} - ${v.colorNameAr}) — بقي ${v.stockQuantity} فقط`,
                   targetUrl: `/control-panel-ss7/products`,
-                  referenceId: `stock-low-${v.id}-${v.stockQuantity}`,
+                  referenceId,
                   isRead: false,
                 },
               })
@@ -211,16 +220,14 @@ export const orderService = {
   },
 
   async getOrderById(id: string): Promise<Order | null> {
-    try {
-      const dbOrder = await prisma.order.findFirst({
-        where: {
-          OR: [{ id }, { orderNumber: id }],
-        },
-        include: { items: true },
-      })
-      if (!dbOrder) return LOCAL_ORDERS_STORE.get(id) || null
-      return { ...dbOrder, subtotal: Number(dbOrder.subtotal), shippingCost: Number(dbOrder.shippingCost), discountAmount: Number(dbOrder.discountAmount), total: Number(dbOrder.total), items: dbOrder.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice), totalPrice: Number(item.totalPrice), productSnapshot: item.productSnapshot as unknown as ProductSnapshot })) } as unknown as Order
-    } catch { return LOCAL_ORDERS_STORE.get(id) || null }
+    const dbOrder = await prisma.order.findFirst({
+      where: {
+        OR: [{ id }, { orderNumber: id }],
+      },
+      include: { items: true },
+    })
+    if (!dbOrder) return null
+    return { ...dbOrder, subtotal: Number(dbOrder.subtotal), shippingCost: Number(dbOrder.shippingCost), discountAmount: Number(dbOrder.discountAmount), total: Number(dbOrder.total), items: dbOrder.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice), totalPrice: Number(item.totalPrice), productSnapshot: item.productSnapshot as unknown as ProductSnapshot })) } as unknown as Order
   },
 }
 

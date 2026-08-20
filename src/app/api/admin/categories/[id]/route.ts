@@ -35,8 +35,8 @@ export async function PUT(
 
     return NextResponse.json({ success: true, category: updated })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to update category'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to update category:', error)
+    return NextResponse.json({ error: 'Failed to update category' }, { status: 500 })
   }
 }
 
@@ -66,7 +66,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to delete category'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to delete category:', error)
+    return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 })
   }
 }

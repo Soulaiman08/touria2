@@ -19,6 +19,7 @@ import {
   MessageCircle,
   ArrowRight,
   Sparkles,
+  User,
 } from 'lucide-react'
 
 import { useCartStore } from '@/store/cart.store'
@@ -571,6 +572,16 @@ export function Header({ locale }: HeaderProps) {
               <ThemeSwitcher />
 
               <LanguageSwitcher locale={locale} />
+
+              <Link
+                href={`/${locale}/account`}
+                className="icon-btn touch-target"
+                aria-label={
+                  locale === 'ar' ? 'حسابي' : locale === 'fr' ? 'Mon compte' : 'My account'
+                }
+              >
+                <User className="h-[18px] w-[18px]" />
+              </Link>
 
               <button
                 id="cart-toggle-btn"

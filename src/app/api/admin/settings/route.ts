@@ -29,6 +29,26 @@ const DEFAULT_SETTINGS = {
 // actually used by the checkout.
 const SHIPPING_DEFAULT_KEY = 'shipping:default'
 
+// Only keys managed by the general settings tab may be written. Anything
+// else is rejected so no arbitrary/junk SiteSetting rows can be created.
+const ALLOWED_KEYS = new Set([
+  'storeName',
+  'logo',
+  'currency',
+  'shippingCost',
+  'contactEmail',
+  'contactPhone',
+  'address',
+  'instagram',
+  'facebook',
+  'tiktok',
+  'youtube',
+  'whatsapp',
+  'seoTitle',
+  'seoDescription',
+  'seoKeywords',
+])
+
 export async function GET() {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
@@ -51,8 +71,8 @@ export async function GET() {
 
     return NextResponse.json({ settings: settingsMap })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to load settings'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to load settings:', error)
+    return NextResponse.json({ error: 'Failed to load settings' }, { status: 500 })
   }
 }
 
@@ -64,29 +84,33 @@ export async function PUT(request: Request) {
     const body = await request.json() as Record<string, unknown>;
 
     const entries = Object.entries(body)
-      .filter(([, value]) => typeof value === 'string' || typeof value === 'number')
+      .filter(([key, value]) => ALLOWED_KEYS.has(key) && (typeof value === 'string' || typeof value === 'number'))
 
-    for (const [key, value] of entries) {
-      await prisma.siteSetting.upsert({
-        where: { key },
-        update: { value: String(value) },
-        create: { key, value: String(value) },
-      });
-    }
+    // All writes happen in a single transaction so a mid-way failure can
+    // never leave the settings partially saved (no partial-save + error).
+    await prisma.$transaction(async (tx) => {
+      for (const [key, value] of entries) {
+        await tx.siteSetting.upsert({
+          where: { key },
+          update: { value: String(value) },
+          create: { key, value: String(value) },
+        });
+      }
 
-    // Keep checkout shipping price in sync when edited from the general tab.
-    const shippingCost = body['shippingCost']
-    if (typeof shippingCost === 'string' || typeof shippingCost === 'number') {
-      await prisma.siteSetting.upsert({
-        where: { key: SHIPPING_DEFAULT_KEY },
-        update: { value: String(shippingCost) },
-        create: { key: SHIPPING_DEFAULT_KEY, value: String(shippingCost) },
-      });
-    }
+      // Keep checkout shipping price in sync when edited from the general tab.
+      const shippingCost = body['shippingCost']
+      if (typeof shippingCost === 'string' || typeof shippingCost === 'number') {
+        await tx.siteSetting.upsert({
+          where: { key: SHIPPING_DEFAULT_KEY },
+          update: { value: String(shippingCost) },
+          create: { key: SHIPPING_DEFAULT_KEY, value: String(shippingCost) },
+        });
+      }
+    })
 
     return NextResponse.json({ success: true, settings: body });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to update settings';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('Failed to update settings:', error);
+    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
   }
 }

@@ -1,82 +1,36 @@
 import { NextResponse } from 'next/server'
-import { getCurrentAdmin, getAdminFromCookie, hashPassword, verifyPassword, signAdminToken, COOKIE_NAME } from '@/lib/auth'
+import { getCurrentAdmin, hashPassword, verifyPassword, signAdminToken, COOKIE_NAME, AuthDatabaseUnavailableError } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
-  const currentAdmin = await getCurrentAdmin()
-  if (!currentAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
-    let admin = await prisma.adminUser.findUnique({
-      where: { id: currentAdmin.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        avatar: true,
-        createdAt: true,
-      },
-    })
-
-    if (!admin) {
-      admin = await prisma.adminUser.findUnique({
-        where: { email: currentAdmin.email.toLowerCase().trim() },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          avatar: true,
-          createdAt: true,
-        },
-      })
+    const currentAdmin = await getCurrentAdmin()
+    if (!currentAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    if (!admin) {
-      admin = await prisma.adminUser.findFirst({
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          avatar: true,
-          createdAt: true,
-        },
-      })
-    }
-
-    if (!admin) {
-      return NextResponse.json({ user: currentAdmin })
-    }
-
-    return NextResponse.json({ user: admin })
-  } catch {
     return NextResponse.json({ user: currentAdmin })
+  } catch (error) {
+    console.error('Failed to load admin profile:', error)
+    if (error instanceof AuthDatabaseUnavailableError) {
+      return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 })
+    }
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 }
 
 export async function PUT(request: Request) {
-  const currentAdmin = await getCurrentAdmin()
-  if (!currentAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    const currentAdmin = await getCurrentAdmin()
+    if (!currentAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { name, email, currentPassword, newPassword } = body
 
-    let admin = await prisma.adminUser.findUnique({
+    const admin = await prisma.adminUser.findUnique({
       where: { id: currentAdmin.id },
     })
-
-    if (!admin) {
-      admin = await prisma.adminUser.findUnique({
-        where: { email: currentAdmin.email.toLowerCase().trim() },
-      })
-    }
 
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -88,17 +42,13 @@ export async function PUT(request: Request) {
 
     if (email) {
       const cleanEmail = email.toLowerCase().trim()
-      if (admin) {
-        if (cleanEmail !== admin.email) {
-          const existingUser = await prisma.adminUser.findUnique({
-            where: { email: cleanEmail },
-          })
-          if (existingUser && existingUser.id !== admin.id) {
-            return NextResponse.json({ error: 'This email address is already in use by another admin account' }, { status: 400 })
-          }
-          updateData.email = cleanEmail
+      if (cleanEmail !== admin.email) {
+        const existingUser = await prisma.adminUser.findUnique({
+          where: { email: cleanEmail },
+        })
+        if (existingUser && existingUser.id !== admin.id) {
+          return NextResponse.json({ error: 'This email address is already in use by another admin account' }, { status: 400 })
         }
-      } else {
         updateData.email = cleanEmail
       }
     }
@@ -107,7 +57,7 @@ export async function PUT(request: Request) {
       if (!currentPassword) {
         return NextResponse.json({ error: 'Current password is required to set a new password' }, { status: 400 })
       }
-      if (admin && admin.passwordHash) {
+      if (admin.passwordHash) {
         const isValid = verifyPassword(currentPassword, admin.passwordHash)
         if (!isValid) {
           return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 })
@@ -149,10 +99,12 @@ export async function PUT(request: Request) {
     return response
   } catch (error: unknown) {
     console.error('Error updating admin profile:', error)
+    if (error instanceof AuthDatabaseUnavailableError) {
+      return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 })
+    }
     if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
       return NextResponse.json({ error: 'This email address is already in use by another account' }, { status: 400 })
     }
-    const msg = error instanceof Error ? error.message : 'Failed to update profile'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 }

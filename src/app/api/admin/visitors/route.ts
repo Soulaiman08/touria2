@@ -15,7 +15,7 @@ export async function GET() {
     const count = record ? Number(record.value) || 0 : 0
     return NextResponse.json({ count })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to get visitor count'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to get visitor count:', error)
+    return NextResponse.json({ error: 'Failed to get visitor count' }, { status: 500 })
   }
 }

@@ -69,18 +69,23 @@ export async function PATCH(
     if (paymentStatus) updateData.paymentStatus = paymentStatus
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes
 
-    const updatedOrder = await prisma.order.update({ where: { id }, data: updateData })
-    if (statusChanged) {
-      await prisma.orderStatusHistory.create({
-        data: { orderId: id, status, note: note || `Status updated to ${status} by admin` },
-      })
-    }
+    // Order status change + history entry happen atomically so the history
+    // can never be missing/duplicated relative to the order state.
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({ where: { id }, data: updateData })
+      if (statusChanged) {
+        await tx.orderStatusHistory.create({
+          data: { orderId: id, status, note: note || `Status updated to ${status} by admin` },
+        })
+      }
+      return updated
+    })
     return NextResponse.json({
       success: true,
       order: { ...updatedOrder, subtotal: Number(updatedOrder.subtotal), shippingCost: Number(updatedOrder.shippingCost), discountAmount: Number(updatedOrder.discountAmount), total: Number(updatedOrder.total) },
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update order'
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error('Failed to update order:', error)
+    return NextResponse.json({ error: 'Failed to update order' }, { status: 500 })
   }
 }

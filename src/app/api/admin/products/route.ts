@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/utils'
 import { requireAdmin } from '@/lib/auth'
 
+class ValidationError extends Error {}
+
 export async function GET(request: Request) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
@@ -152,70 +154,104 @@ export async function POST(request: Request) {
     const generatedSku = sku || `SKU-${Date.now().toString().slice(-6)}`
     const generatedSlug = slugify(finalNameFr) || `product-${Date.now()}`
 
+    // Validate money fields: must be a finite number >= 0 (valid "0" stays 0).
+    const parseMoney = (value: unknown): number => {
+      if (value === undefined || value === null || String(value).trim() === '') return 0
+      const parsed = Number(value)
+      if (!Number.isFinite(parsed) || parsed < 0) throw new ValidationError('Price must be a valid number')
+      return parsed
+    }
+
+    const parsedBasePrice = parseMoney(basePrice)
+    const parsedSalePrice = (() => {
+      if (salePrice === undefined || salePrice === null || String(salePrice).trim() === '') return null
+      const parsed = Number(salePrice)
+      if (!Number.isFinite(parsed) || parsed < 0) throw new ValidationError('Sale price must be a valid number')
+      return parsed
+    })()
+
+    // Reject duplicate slugs/SKUs with a clear 400 instead of a DB unique error.
+    const [slugTaken, skuTaken] = await Promise.all([
+      prisma.product.findUnique({ where: { slug: generatedSlug }, select: { id: true } }),
+      prisma.product.findUnique({ where: { sku: generatedSku }, select: { id: true } }),
+    ])
+    if (slugTaken) {
+      return NextResponse.json({ error: 'A product with this name already exists (duplicate slug)' }, { status: 400 })
+    }
+    if (skuTaken) {
+      return NextResponse.json({ error: 'This SKU is already in use' }, { status: 400 })
+    }
+
     const productImages = images.length > 0 ? images : [mainImage || '/images/brand/logo-full.png']
     const primaryImage = mainImage || productImages[0]
 
-    const product = await prisma.product.create({
-      data: {
-        slug: generatedSlug,
-        sku: generatedSku,
-        nameAr: finalNameAr,
-        nameFr: finalNameFr,
-        nameEn: finalNameEn,
-        descriptionAr: finalDescAr,
-        descriptionFr: finalDescFr,
-        descriptionEn: finalDescEn,
-        basePrice: parseFloat(basePrice || 0),
-        salePrice: salePrice ? parseFloat(salePrice) : null,
-        categoryId,
-        mainImage: primaryImage,
-        images: productImages,
-        isFeatured: Boolean(isFeatured),
-        isActive: Boolean(isActive),
-        isNiqab: Boolean(isNiqab),
-        canAddNiqab: Boolean(canAddNiqab),
-      },
-    })
+    // Product + variants are created in a single transaction so a failure
+    // mid-way can never leave a product without its variants.
+    const product = await prisma.$transaction(async (tx) => {
+      const created = await tx.product.create({
+        data: {
+          slug: generatedSlug,
+          sku: generatedSku,
+          nameAr: finalNameAr,
+          nameFr: finalNameFr,
+          nameEn: finalNameEn,
+          descriptionAr: finalDescAr,
+          descriptionFr: finalDescFr,
+          descriptionEn: finalDescEn,
+          basePrice: parsedBasePrice,
+          salePrice: parsedSalePrice,
+          categoryId,
+          mainImage: primaryImage,
+          images: productImages,
+          isFeatured: Boolean(isFeatured),
+          isActive: Boolean(isActive),
+          isNiqab: Boolean(isNiqab),
+          canAddNiqab: Boolean(canAddNiqab),
+        },
+      })
 
-    if ((colors.length > 0 || sizes.length > 0) && product.id) {
-      const variantColors = colors.length > 0
-        ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
-        : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
-      const variantSizes = sizes.length > 0 ? sizes as string[] : ['Standard']
+      if ((colors.length > 0 || sizes.length > 0) && created.id) {
+        const variantColors = colors.length > 0
+          ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
+          : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
+        const variantSizes = sizes.length > 0 ? sizes as string[] : ['Standard']
 
-      // Distribute the total stock across the variant grid exactly, keeping
-      // valid "0" as 0 (no || default, no Math.max(1, ...) inflation).
-      const parsedStock = (() => {
-        if (stock === undefined || stock === null || String(stock).trim() === '') return 10
-        const parsed = Number(String(stock).trim())
-        return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 10
-      })()
-      const totalSlots = variantColors.length * variantSizes.length
-      const baseStock = Math.floor(parsedStock / totalSlots)
-      const remainder = parsedStock % totalSlots
+        // Distribute the total stock across the variant grid exactly, keeping
+        // valid "0" as 0 (no || default, no Math.max(1, ...) inflation).
+        const parsedStock = (() => {
+          if (stock === undefined || stock === null || String(stock).trim() === '') return 10
+          const parsed = Number(String(stock).trim())
+          return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 10
+        })()
+        const totalSlots = variantColors.length * variantSizes.length
+        const baseStock = Math.floor(parsedStock / totalSlots)
+        const remainder = parsedStock % totalSlots
 
-      let slotIndex = 0
-      for (const color of variantColors) {
-        for (const size of variantSizes) {
-          const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
-          await prisma.productVariant.create({
-            data: {
-              productId: product.id,
-              size,
-              colorCode: color.code || '#000000',
-              colorNameAr: color.nameAr || 'لون',
-              colorNameFr: color.nameFr || 'Couleur',
-              colorNameEn: color.nameEn || 'Color',
-              stockQuantity: slotStock,
-              priceModifier: 0,
-              images: [],
-              isActive: true,
-            },
-          })
-          slotIndex += 1
+        let slotIndex = 0
+        for (const color of variantColors) {
+          for (const size of variantSizes) {
+            const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+            await tx.productVariant.create({
+              data: {
+                productId: created.id,
+                size,
+                colorCode: color.code || '#000000',
+                colorNameAr: color.nameAr || 'لون',
+                colorNameFr: color.nameFr || 'Couleur',
+                colorNameEn: color.nameEn || 'Color',
+                stockQuantity: slotStock,
+                priceModifier: 0,
+                images: [],
+                isActive: true,
+              },
+            })
+            slotIndex += 1
+          }
         }
       }
-    }
+
+      return created
+    })
 
     // Revalidate storefront pages so product appears immediately
     revalidatePath('/[locale]/products', 'layout')
@@ -224,8 +260,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, product })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to create product'
     console.error('Failed to create product:', error)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
   }
 }

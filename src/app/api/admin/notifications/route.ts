@@ -9,8 +9,8 @@ export async function GET() {
     const data = await notificationService.getNotifications(30)
     return NextResponse.json(data)
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to get notifications'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to get notifications:', error)
+    return NextResponse.json({ error: 'Failed to get notifications' }, { status: 500 })
   }
 }
 
@@ -35,7 +35,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to update notification'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('Failed to update notification:', error)
+    return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 })
   }
 }

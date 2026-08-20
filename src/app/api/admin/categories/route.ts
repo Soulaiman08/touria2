@@ -70,8 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, category })
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create category'
     console.error('Failed to create category:', error)
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 })
   }
 }

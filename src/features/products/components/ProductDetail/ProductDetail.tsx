@@ -28,6 +28,7 @@ import { formatPrice } from '@/lib/utils'
 
 import type { Product } from '@/types/product'
 import { ProductGallery } from './ProductGallery'
+import { ProductReviews } from './ProductReviews'
 
 // ==========================================
 // PROPS
@@ -944,6 +945,7 @@ export function ProductDetail({
   // ==========================================
 
   return (
+    <>
     <div
       className="product-detail-grid grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:gap-8 xl:gap-10"
       dir={
@@ -1451,5 +1453,8 @@ export function ProductDetail({
         </div>
       </div>
     </div>
+
+      <ProductReviews productId={product.id} locale={locale} />
+    </>
   )
 }

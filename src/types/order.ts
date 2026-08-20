@@ -119,6 +119,7 @@ export interface CreateOrderRequest {
     niqabItems?: Array<{ productId: string; variantId?: string; quantity: number }>
   }>
   locale: string
+  customerId?: string | null
 }
 
 export interface CreateOrderResponse {
