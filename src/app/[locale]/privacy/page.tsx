@@ -17,9 +17,37 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import { siteConfig } from '@/config/site'
+import { prisma } from '@/lib/prisma'
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
+}
+
+type SiteSettings = {
+  contactPhone?: string
+  whatsapp?: string
+  contactEmail?: string
+}
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  contactPhone: siteConfig.contact.phoneDisplay,
+  whatsapp: siteConfig.contact.whatsapp,
+  contactEmail: '',
+}
+
+async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    const settingsList = await prisma.siteSetting.findMany()
+    const settings: SiteSettings = { ...DEFAULT_SETTINGS }
+    for (const item of settingsList) {
+      if (item.key in settings) {
+        settings[item.key as keyof SiteSettings] = item.value
+      }
+    }
+    return settings
+  } catch {
+    return DEFAULT_SETTINGS
+  }
 }
 
 export async function generateMetadata({ params }: PrivacyPageProps): Promise<Metadata> {
@@ -50,15 +78,20 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
   const isRTL = locale === 'ar'
   const isFR = locale === 'fr'
 
-  const rawWhatsapp = siteConfig.contact.whatsapp || '+212600000000'
+  const settings = await getSiteSettings()
+  const rawWhatsapp = settings.whatsapp?.trim() || siteConfig.contact.whatsapp || ''
   const cleanWhatsapp = rawWhatsapp.replace(/[^0-9]/g, '')
-  const whatsappUrl = `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-    isRTL
-      ? 'مرحباً، لدي استفسار حول سياسة الخصوصية وحماية البيانات في ثريا المغربي'
-      : isFR
-        ? 'Bonjour, j\'ai une question concernant la politique de confidentialité de Thuraya Al-Maghribi'
-        : 'Hello, I have a question regarding Thuraya Al-Maghribi\'s privacy policy'
-  )}`
+  const whatsappUrl = cleanWhatsapp
+    ? rawWhatsapp.startsWith('http')
+      ? rawWhatsapp
+      : `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+          isRTL
+            ? 'مرحباً، لدي استفسار حول سياسة الخصوصية وحماية البيانات في ثريا المغربي'
+            : isFR
+              ? 'Bonjour, j\'ai une question concernant la politique de confidentialité de Thuraya Al-Maghribi'
+              : 'Hello, I have a question regarding Thuraya Al-Maghribi\'s privacy policy'
+        )}`
+    : ''
 
   // 4 Main Trust Highlights
   const trustHighlights = [
@@ -845,7 +878,9 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
           </a>
 
           <a
-            href={`mailto:${siteConfig.contact.email}`}
+            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.contactEmail?.trim() || siteConfig.contact.email)}`}
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
