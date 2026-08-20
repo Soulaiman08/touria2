@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 interface LanguageSwitcherProps {
   locale: string
+  align?: 'start' | 'end'
 }
 
 const LOCALES = [
@@ -47,7 +48,7 @@ function LanguageFlag({ flag }: { flag: (typeof LOCALES)[number]['flag'] }) {
   )
 }
 
-export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ locale, align = 'end' }: LanguageSwitcherProps) {
   const t = useTranslations('language')
   const router = useRouter()
   const pathname = usePathname()
@@ -107,7 +108,10 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
 
       {isOpen && (
         <div
-          className="absolute end-0 top-full z-50 mt-1.5 w-36 rounded-2xl border p-1 shadow-lg animate-fade-in sm:w-40"
+          className={cn(
+            'absolute top-full z-50 mt-1.5 w-36 rounded-2xl border p-1 shadow-lg animate-fade-in sm:w-40',
+            align === 'end' ? 'end-0' : 'start-0',
+          )}
           style={{
             background: 'var(--card)',
             borderColor: 'var(--border)',

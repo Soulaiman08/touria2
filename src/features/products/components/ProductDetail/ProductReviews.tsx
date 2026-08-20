@@ -93,6 +93,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   const [count, setCount] = useState(0)
 
   const [authState, setAuthState] = useState<'loading' | 'guest' | 'user'>('loading')
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [rating, setRating] = useState(5)
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
@@ -165,6 +166,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       .then((data) => {
         if (isMounted) {
           setAuthState('user')
+          setCurrentUserId(data.user.id)
           const mine = reviews.find((r) => r.customer.id === data.user.id)
           if (mine) {
             setRating(mine.rating)
@@ -324,16 +326,6 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                   <LogIn className="w-4 h-4" />
                   <span>{t('signInToReview')}</span>
                 </Link>
-              ) : submitted && !showForm ? (
-                <button
-                  type="button"
-                  onClick={() => setShowForm(true)}
-                  className="btn btn-outline btn-round inline-flex items-center justify-center gap-2 px-5 sm:px-6 text-xs sm:text-sm font-bold transition-all hover:scale-[1.02] cursor-pointer"
-                  style={{ minHeight: '2.75rem' }}
-                >
-                  <Edit3 className="w-4 h-4" />
-                  <span>{t('editReview')}</span>
-                </button>
               ) : !showForm ? (
                 <button
                   type="button"
@@ -349,36 +341,6 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           )}
         </div>
 
-        {/* ── Optional Success Banner if just submitted ────────────── */}
-        {submitted && !showForm && (
-          <div
-            style={{
-              padding: '10px 18px',
-              background: 'rgba(34,197,94,0.08)',
-              borderBottom: '1px solid rgba(34,197,94,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#16a34a',
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{t('reviewSubmitted')}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowForm(true)}
-              className="text-xs font-bold underline cursor-pointer text-[#C4622D]"
-            >
-              {t('editReview')}
-            </button>
-          </div>
-        )}
-
         {/* ── Simplified Inline Review Form ────────────────────────── */}
         {showForm && (
           <form
@@ -388,27 +350,33 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               background: 'var(--bg-subtle)',
               borderBottom: '1px solid var(--border)',
             }}
-            className="space-y-3.5"
           >
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+            {/* Header: Title + Close */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>
                 {t('ratingLabel')}
               </span>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="p-1 rounded-full text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors"
-                title={t('cancel')}
+                style={{ padding: 4, borderRadius: 999, color: '#a8a29e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Stars Row + Dynamic Rating Badge */}
-            <div className="flex items-center gap-3 flex-wrap">
+            {/* Stars + Rating Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
               <div
-                className="px-2.5 py-1 rounded-xl border flex items-center gap-2"
-                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 12,
+                  border: '1px solid var(--border)',
+                  background: 'var(--card)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
                 <StarRow
                   value={rating}
@@ -422,11 +390,15 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
               {activeRatingDisplay > 0 && (
                 <span
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold"
                   style={{
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    fontSize: 11,
+                    fontWeight: 700,
                     background: 'var(--accent-light)',
                     color: 'var(--accent)',
                     border: '1px solid var(--accent-ring)',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   ✦ {RATING_LABELS[activeRatingDisplay][isRTL ? 0 : isFR ? 1 : 2]}
@@ -435,10 +407,9 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
             </div>
 
             {/* Comment Textarea */}
-            <div>
+            <div style={{ marginBottom: 12 }}>
               <label
-                className="mb-1.5 block text-xs font-bold"
-                style={{ color: 'var(--foreground)' }}
+                style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--foreground)', marginBottom: 6 }}
               >
                 {t('commentLabel')}
               </label>
@@ -446,34 +417,53 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 maxLength={500}
-                rows={2}
+                rows={3}
                 placeholder={t('commentPlaceholder')}
-                className="w-full rounded-xl border p-3 text-xs sm:text-sm outline-none transition-all focus:border-[var(--accent)] resize-none"
                 style={{
-                  borderColor: 'var(--border)',
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: '1px solid var(--border)',
                   background: 'var(--card)',
                   color: 'var(--foreground)',
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  resize: 'none',
+                  outline: 'none',
+                  boxSizing: 'border-box',
                 }}
               />
+              <div style={{ textAlign: 'end', fontSize: 11, color: 'var(--muted-foreground)', marginTop: 4 }}>
+                {comment.length}/500
+              </div>
             </div>
 
-            {errorMsg && <p className="text-xs font-bold text-red-500">{errorMsg}</p>}
+            {errorMsg && <p style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', marginBottom: 10 }}>{errorMsg}</p>}
 
-            {/* Form Action Buttons */}
-            <div className="flex items-center gap-2 pt-1">
+            {/* Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
                 type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
+                disabled={submitting || rating === 0}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 18px',
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#fff',
                   background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
                   border: 'none',
+                  cursor: submitting || rating === 0 ? 'not-allowed' : 'pointer',
+                  opacity: submitting || rating === 0 ? 0.6 : 1,
                 }}
               >
                 {submitting ? (
-                  <Loader2 className="animate-spin w-3.5 h-3.5" />
+                  <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} />
                 ) : (
-                  <Send className="w-3.5 h-3.5" />
+                  <Send style={{ width: 14, height: 14 }} />
                 )}
                 <span>{t('publishReview')}</span>
               </button>
@@ -481,11 +471,15 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer"
                 style={{
-                  background: 'transparent',
+                  padding: '8px 16px',
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 700,
                   color: 'var(--muted-foreground)',
+                  background: 'transparent',
                   border: '1px solid var(--border)',
+                  cursor: 'pointer',
                 }}
               >
                 {t('cancel')}
@@ -668,6 +662,32 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                   >
                     {review.comment}
                   </p>
+                )}
+
+                {/* Edit button for current user's review */}
+                {currentUserId === review.customer.id && (
+                  <div style={{ marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => { setRating(review.rating); setComment(review.comment); setShowForm(true); }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        padding: '5px 12px',
+                        borderRadius: 999,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: '#C4622D',
+                        background: 'rgba(196,98,45,0.08)',
+                        border: '1px solid rgba(196,98,45,0.2)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Edit3 style={{ width: 12, height: 12 }} />
+                      <span>{t('editReview')}</span>
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

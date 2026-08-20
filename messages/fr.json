@@ -295,5 +295,11 @@
     "fr": "Français",
     "en": "English",
     "switch": "Changer la langue"
+  },
+  "auth": {
+    "noAccountPrompt": "Vous n'avez pas de compte ?",
+    "createAccountAction": "Créer un compte",
+    "hasAccountPrompt": "Vous avez déjà un compte ?",
+    "loginAction": "Se connecter"
   }
 }

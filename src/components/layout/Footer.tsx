@@ -102,8 +102,8 @@ export function Footer({ locale }: FooterProps) {
         }}
       />
 
-      <div className="container-brand py-8 sm:py-12 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10">
+      <div className="container-brand py-5 sm:py-8 lg:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
 
           {/* ── Column 1: Brand (lg:col-span-4) ────────────────────────── */}
           <div className="sm:col-span-2 lg:col-span-4 flex flex-col items-start text-start">
@@ -250,7 +250,7 @@ export function Footer({ locale }: FooterProps) {
           </div>
 
           {/* ── Compact Links Grid for Mobile (2 Columns) / Desktop ── */}
-          <div className="grid grid-cols-2 gap-6 sm:contents lg:contents">
+          <div className="grid grid-cols-2 gap-4 sm:contents lg:contents">
             {/* ── Column 2: Quick Links ── */}
             <div className="lg:col-span-2">
               <h3
@@ -259,7 +259,7 @@ export function Footer({ locale }: FooterProps) {
               >
                 {isRTL ? 'روابط سريعة' : locale === 'fr' ? 'Liens rapides' : 'Quick Links'}
               </h3>
-              <ul className="space-y-2 text-xs sm:text-sm">
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                 {quickLinks.map((l) => (
                   <li key={l.href}>
                     <Link
@@ -283,7 +283,7 @@ export function Footer({ locale }: FooterProps) {
               >
                 {isRTL ? 'المعلومات والسياسات' : locale === 'fr' ? 'Informations' : 'Information'}
               </h3>
-              <ul className="space-y-2 text-xs sm:text-sm">
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                 {infoLinks.map((l) => (
                   <li key={l.href}>
                     <Link
@@ -308,7 +308,7 @@ export function Footer({ locale }: FooterProps) {
               {isRTL ? 'تواصل معنا' : locale === 'fr' ? 'Contact' : 'Contact'}
             </h3>
 
-            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
+            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
               {/* Phone */}
               {phone && (
                 <li>
@@ -399,7 +399,7 @@ export function Footer({ locale }: FooterProps) {
 
         {/* ── Bottom Bar ────────────────────────────────────────────── */}
         <div
-          className="mt-8 sm:mt-12 pt-5 sm:pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs"
+          className="mt-5 sm:mt-8 pt-4 sm:pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs"
           style={{
             borderTop: '1px solid var(--footer-border)',
             color: 'var(--footer-muted)',

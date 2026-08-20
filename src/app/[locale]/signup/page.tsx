@@ -19,6 +19,9 @@ import {
   UserPlus,
 } from 'lucide-react'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
+import { SilkBackground } from '@/components/shared/SilkBackground'
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
+import { useTranslations } from 'next-intl'
 
 interface SignupPageProps {
   params: Promise<{ locale: string }>
@@ -28,6 +31,7 @@ export default function CustomerSignupPage({ params }: SignupPageProps) {
   const { locale } = use(params)
   const router = useRouter()
   const isRTL = locale === 'ar'
+  const tAuth = useTranslations('auth')
   const { refreshCustomer, continueAsGuest } = useCustomerAuth()
 
   const [name, setName] = useState('')
@@ -128,27 +132,76 @@ export default function CustomerSignupPage({ params }: SignupPageProps) {
   }
 
   return (
-    <div
-      dir={isRTL ? 'rtl' : 'ltr'}
-      className="dark"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-        backgroundColor: '#140a03',
-        overflowY: 'auto',
-        boxSizing: 'border-box',
-      }}
-    >
-      {/* Background pattern */}
-      <div className="pattern-moroccan pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+    <>
+      <SilkBackground />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.55)_100%)]"
-        aria-hidden="true"
-      />
+        dir={isRTL ? 'rtl' : 'ltr'}
+        className="dark no-scrollbar"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '70px 16px 16px 16px',
+          overflowY: 'auto',
+          boxSizing: 'border-box',
+          zIndex: 1,
+        }}
+      >
+
+      {/* Top Bar */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '14px 16px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          className="auth-lang-switcher"
+          style={{
+            '--border': 'rgba(255,255,255,0.12)',
+            '--text-secondary': 'rgba(255,255,255,0.75)',
+            '--bg-subtle': 'rgba(0,0,0,0.25)',
+            '--card': 'rgba(13,15,17,0.8)',
+            '--foreground': 'rgba(255,255,255,0.85)',
+            '--shadow-elevated': '0 8px 32px rgba(0,0,0,0.45)',
+          } as React.CSSProperties}
+        >
+          <LanguageSwitcher locale={locale} align={isRTL ? 'end' : 'start'} />
+        </div>
+
+        <Link
+          href={`/${locale}/login`}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            height: '40px',
+            padding: '0 16px',
+            borderRadius: '10px',
+            border: '1px solid rgba(255,255,255,0.12)',
+            backgroundColor: 'rgba(0,0,0,0.25)',
+            color: 'rgba(255,255,255,0.85)',
+            fontSize: '13px',
+            fontWeight: 600,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            lineHeight: 1,
+          }}
+        >
+          <LogIn style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+          <span>{tAuth('loginAction')}</span>
+        </Link>
+      </div>
 
       <div
         style={{
@@ -157,6 +210,8 @@ export default function CustomerSignupPage({ params }: SignupPageProps) {
           width: '100%',
           maxWidth: '480px',
           margin: 'auto',
+          borderRadius: '16px',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4)',
         }}
       >
         {/* Signup Card */}
@@ -731,5 +786,6 @@ export default function CustomerSignupPage({ params }: SignupPageProps) {
         </section>
       </div>
     </div>
+    </>
   )
 }

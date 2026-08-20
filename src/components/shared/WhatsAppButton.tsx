@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
@@ -9,6 +9,7 @@ export function WhatsAppButton() {
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const btnRef = useRef<HTMLAnchorElement>(null)
   const { settings } = useSiteSettings()
 
   const isAuthPage = pathname?.includes('/login') || pathname?.includes('/signup')
@@ -21,16 +22,38 @@ export function WhatsAppButton() {
       : `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent('مرحباً، أريد الاستفسار عن منتجاتكم')}`
     : ''
 
-  /* Delay entrance so it doesn't flash immediately */
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 1200)
     return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const footer = document.querySelector('footer')
+      if (!footer || !btnRef.current) return
+      const rect = footer.getBoundingClientRect()
+      const vh = window.innerHeight
+      if (rect.top < vh) {
+        const overlap = vh - rect.top + 16
+        btnRef.current.style.bottom = `${24 + overlap}px`
+      } else {
+        btnRef.current.style.bottom = '1.5rem'
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll, { passive: true })
+    handleScroll()
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
   }, [])
 
   if (isAuthPage || !visible || !whatsappUrl) return null
 
   return (
     <a
+      ref={btnRef}
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"

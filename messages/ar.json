@@ -295,5 +295,11 @@
     "fr": "Français",
     "en": "English",
     "switch": "تغيير اللغة"
+  },
+  "auth": {
+    "noAccountPrompt": "ليس لديك حساب؟",
+    "createAccountAction": "إنشاء حساب",
+    "hasAccountPrompt": "لديك حساب بالفعل؟",
+    "loginAction": "تسجيل الدخول"
   }
 }
