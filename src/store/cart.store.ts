@@ -141,65 +141,17 @@ export const useCartStore =
         // ==========================================
         // TOTAL ITEMS
         // ==========================================
-
-        get totalItems() {
-          return get().items.reduce(
-            (sum, item) =>
-              sum + item.quantity,
-            0,
-          )
-        },
+        //
+        // Note: We do NOT use getters here because
+        // Zustand's Object.assign-based set() evaluates
+        // getters with the OLD state, causing stale values.
+        // Components should compute these directly:
+        //   totalItems = items.reduce(sum + item.quantity, 0)
+        //   subtotal = computeCartSubtotal(items)
 
         // ==========================================
         // SUBTOTAL
         // ==========================================
-
-        get subtotal() {
-          return get().items.reduce(
-            (total, item) => {
-              // ==============================
-              // PRODUCT TOTAL
-              // ==============================
-
-              const productTotal =
-                item.unitPrice *
-                item.quantity
-
-              // ==============================
-              // NIQAB TOTAL
-              // ==============================
-              //
-              // كل نقاب = 20 د.م
-              //
-              // مثال:
-              //
-              // أسود × 2 = 40 د.م
-              // بني × 3 = 60 د.م
-              // بيج × 1 = 20 د.م
-              //
-              // المجموع = 120 د.م
-
-              const niqabTotal =
-                item.niqabItems?.reduce(
-                  (
-                    niqabSum,
-                    niqab,
-                  ) =>
-                    niqabSum +
-                    niqab.unitPrice *
-                    niqab.quantity,
-                  0,
-                ) || 0
-
-              return (
-                total +
-                productTotal +
-                niqabTotal
-              )
-            },
-            0,
-          )
-        },
       }),
 
       {

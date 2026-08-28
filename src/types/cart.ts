@@ -84,13 +84,6 @@ export interface CartState {
   closeCart: () => void
 
   toggleCart: () => void
-
-  // ==========================================
-  // COMPUTED
-  // ==========================================
-
-  totalItems: number
-  subtotal: number
 }
 
 export interface CartSummary {

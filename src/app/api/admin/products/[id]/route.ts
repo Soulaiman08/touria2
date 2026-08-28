@@ -25,7 +25,10 @@ export async function GET(
     const sizesSet = new Set<string>()
     let totalStock = 0
 
-    product.variants.forEach((v) => {
+    // Only aggregate active variants: deactivated (isActive=false) variants
+    // from a previous edit must not inflate stock or resurface as colors/sizes.
+    const activeVariants = product.variants.filter((v) => v.isActive)
+    activeVariants.forEach((v) => {
       totalStock += v.stockQuantity
       sizesSet.add(v.size)
       if (!colorsMap.has(v.colorCode)) {
@@ -126,88 +129,95 @@ export async function PUT(
 
     // Product update + variant refresh happen in a single transaction so a
     // failure can never leave the product and its variants out of sync.
-    const updatedProduct = await prisma.$transaction(async (tx) => {
-      const updated = await tx.product.update({
-        where: { id },
-        data: updateData,
-      })
+    // 45+ sequential variant upserts exceed Prisma's default interactive-transaction
+    // timeout (5s), which closes the transaction and makes later tx.* calls throw
+    // P2028 "Transaction not found". Raise the timeout so the full variant grid can
+    // complete atomically.
+    const updatedProduct = await prisma.$transaction(
+      async (tx) => {
+        const updated = await tx.product.update({
+          where: { id },
+          data: updateData,
+        })
 
-      // Refresh variants if stock/colors/sizes were provided.
-      // Upserts by (productId, size, colorCode) so existing variant IDs stay
-      // stable (order items reference them); old combos are deactivated
-      // instead of deleted to preserve order-item foreign keys.
-      if (stock !== undefined || colors || sizes) {
-        const variantColors = Array.isArray(colors) && colors.length > 0
-          ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
-          : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
-        const variantSizes = Array.isArray(sizes) && sizes.length > 0
-          ? sizes as string[]
-          : ['Standard']
+        // Refresh variants if stock/colors/sizes were provided.
+        // Upserts by (productId, size, colorCode) so existing variant IDs stay
+        // stable (order items reference them); old combos are deactivated
+        // instead of deleted to preserve order-item foreign keys.
+        if (stock !== undefined || colors || sizes) {
+          const variantColors = Array.isArray(colors) && colors.length > 0
+            ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
+            : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
+          const variantSizes = Array.isArray(sizes) && sizes.length > 0
+            ? sizes as string[]
+            : ['Standard']
 
-        // When a total stock is provided, distribute it exactly across the
-        // variant grid (valid "0" stays 0). When absent, existing per-variant
-        // stock is preserved instead of being overwritten.
-        let parsedStock: number | null = null
-        if (stock !== undefined && stock !== null && String(stock).trim() !== '') {
-          const parsed = Number(String(stock).trim())
-          if (Number.isFinite(parsed)) parsedStock = Math.max(0, Math.floor(parsed))
-        }
-        const totalSlots = variantColors.length * variantSizes.length
-        const baseStock = parsedStock === null ? 0 : Math.floor(parsedStock / totalSlots)
-        const remainder = parsedStock === null ? 0 : parsedStock % totalSlots
+          // When a total stock is provided, distribute it exactly across the
+          // variant grid (valid "0" stays 0). When absent, existing per-variant
+          // stock is preserved instead of being overwritten.
+          let parsedStock: number | null = null
+          if (stock !== undefined && stock !== null && String(stock).trim() !== '') {
+            const parsed = Number(String(stock).trim())
+            if (Number.isFinite(parsed)) parsedStock = Math.max(0, Math.floor(parsed))
+          }
+          const totalSlots = variantColors.length * variantSizes.length
+          const baseStock = parsedStock === null ? 0 : Math.floor(parsedStock / totalSlots)
+          const remainder = parsedStock === null ? 0 : parsedStock % totalSlots
 
-        const desiredKeys = new Set<string>()
-        let slotIndex = 0
-        for (const color of variantColors) {
-          for (const size of variantSizes) {
-            desiredKeys.add(`${size}:${color.code || '#000000'}`)
-            const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
-            const variantUpdateData: Record<string, unknown> = {
-              colorNameAr: color.nameAr || 'لون',
-              colorNameFr: color.nameFr || 'Couleur',
-              colorNameEn: color.nameEn || 'Color',
-              isActive: true,
-            }
-            if (parsedStock !== null) variantUpdateData.stockQuantity = slotStock
-            await tx.productVariant.upsert({
-              where: {
-                productId_size_colorCode: {
-                  productId: id,
-                  size,
-                  colorCode: color.code || '#000000',
-                },
-              },
-              update: variantUpdateData,
-              create: {
-                productId: id,
-                size,
-                colorCode: color.code || '#000000',
+          const desiredKeys = new Set<string>()
+          let slotIndex = 0
+          for (const color of variantColors) {
+            for (const size of variantSizes) {
+              desiredKeys.add(`${size}:${color.code || '#000000'}`)
+              const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+              const variantUpdateData: Record<string, unknown> = {
                 colorNameAr: color.nameAr || 'لون',
                 colorNameFr: color.nameFr || 'Couleur',
                 colorNameEn: color.nameEn || 'Color',
-                stockQuantity: slotStock,
-                priceModifier: 0,
-                images: [],
                 isActive: true,
-              },
-            })
-            slotIndex += 1
+              }
+              if (parsedStock !== null) variantUpdateData.stockQuantity = slotStock
+              await tx.productVariant.upsert({
+                where: {
+                  productId_size_colorCode: {
+                    productId: id,
+                    size,
+                    colorCode: color.code || '#000000',
+                  },
+                },
+                update: variantUpdateData,
+                create: {
+                  productId: id,
+                  size,
+                  colorCode: color.code || '#000000',
+                  colorNameAr: color.nameAr || 'لون',
+                  colorNameFr: color.nameFr || 'Couleur',
+                  colorNameEn: color.nameEn || 'Color',
+                  stockQuantity: slotStock,
+                  priceModifier: 0,
+                  images: [],
+                  isActive: true,
+                },
+              })
+              slotIndex += 1
+            }
+          }
+
+          const allVariants = await tx.productVariant.findMany({ where: { productId: id } })
+          for (const variant of allVariants) {
+            if (!desiredKeys.has(`${variant.size}:${variant.colorCode}`)) {
+              await tx.productVariant.update({
+                where: { id: variant.id },
+                data: { isActive: false },
+              })
+            }
           }
         }
 
-        const allVariants = await tx.productVariant.findMany({ where: { productId: id } })
-        for (const variant of allVariants) {
-          if (!desiredKeys.has(`${variant.size}:${variant.colorCode}`)) {
-            await tx.productVariant.update({
-              where: { id: variant.id },
-              data: { isActive: false },
-            })
-          }
-        }
-      }
-
-      return updated
-    })
+        return updated
+      },
+      { timeout: 30000, maxWait: 5000 }
+    )
 
     // Revalidate storefront caches so changes appear immediately
     revalidatePath('/[locale]/products', 'layout')

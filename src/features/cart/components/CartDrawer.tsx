@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { useCartStore } from '@/store/cart.store'
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { aggregateNiqabs, computeCartSubtotal } from '@/lib/cart-math'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface CartDrawerProps {
@@ -20,6 +21,8 @@ export function CartDrawer({ locale }: CartDrawerProps) {
 
   const isRTL = locale === 'ar'
   const drawerRef = useRef<HTMLDivElement>(null)
+
+  const cartSubtotal = computeCartSubtotal(cartStore.items)
 
   // Close on Escape key
   useEffect(() => {
@@ -192,9 +195,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                 </div>
               ) : (
                 cartStore.items.map((item) => {
-                  const niqabSubtotal =
-                    item.niqabItems?.reduce((sum, n) => sum + n.unitPrice * n.quantity, 0) || 0
-                  const itemTotal = item.unitPrice * item.quantity + niqabSubtotal
+                  const itemTotal = item.unitPrice * item.quantity
 
                   return (
                     <div
@@ -286,51 +287,6 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                             {locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn}
                           </span>
                         </div>
-
-                        {/* Niqab Add-ons */}
-                        {item.niqabItems && item.niqabItems.length > 0 && (
-                          <div
-                            style={{
-                              marginTop: 4,
-                              padding: '6px 8px',
-                              borderRadius: 8,
-                              background: 'rgba(184,150,90,0.06)',
-                              border: '1px solid rgba(184,150,90,0.2)',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: 3,
-                            }}
-                          >
-                            <div style={{ fontSize: 10, fontWeight: 700, color: '#b8965a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                              {locale === 'ar' ? 'النقابات:' : locale === 'fr' ? 'Niquab :' : 'Niqabs:'}
-                            </div>
-                            {item.niqabItems.map((n, idx) => {
-                              const colorLabel =
-                                locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
-                              return (
-                                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11 }}>
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--muted-foreground)' }}>
-                                    <span
-                                      style={{
-                                        width: 8,
-                                        height: 8,
-                                        borderRadius: '50%',
-                                        background: n.colorCode,
-                                        border: '1px solid rgba(0,0,0,0.12)',
-                                        flexShrink: 0,
-                                        display: 'inline-block',
-                                      }}
-                                    />
-                                    {colorLabel} × {n.quantity}
-                                  </span>
-                                  <span style={{ fontWeight: 600, color: '#C4622D' }}>
-                                    +{formatPrice(n.unitPrice * n.quantity, locale)}
-                                  </span>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )}
 
                         {/* Bottom row: Qty controls + Price */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
@@ -425,11 +381,88 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                         aria-label="Remove item"
                       >
                         <Trash2 style={{ width: 13, height: 13 }} />
-                      </button>
-                    </div>
-                  )
+                  </button>
+                </div>
+                )
                 })
               )}
+
+              {/* ── Standalone Niqab Add-ons (aggregated, counted once) ── */}
+              {aggregateNiqabs(cartStore.items).map((niqab) => {
+                const niqabName =
+                  locale === 'ar' ? niqab.nameAr : locale === 'fr' ? niqab.nameFr : niqab.nameEn
+                const colorLabel =
+                  locale === 'ar' ? niqab.colorNameAr : locale === 'fr' ? niqab.colorNameFr : niqab.colorNameEn
+                return (
+                  <div
+                    key={`${niqab.productId}-${niqab.variantId ?? ''}`}
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      padding: '12px',
+                      borderRadius: 14,
+                      border: '1px solid rgba(184,150,90,0.3)',
+                      background: 'rgba(184,150,90,0.05)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 10,
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        background: 'var(--bg-subtle)',
+                        position: 'relative',
+                      }}
+                    >
+                      {niqab.mainImage ? (
+                        <Image
+                          src={niqab.mainImage}
+                          alt={niqabName}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div style={{ width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted-foreground)' }}>
+                          <span style={{ width: 20, height: 20, borderRadius: '50%', background: niqab.colorCode, border: '1px solid rgba(0,0,0,0.12)' }} />
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', lineHeight: 1.3, margin: 0 }}>
+                        {niqabName}
+                      </h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--muted-foreground)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: '50%',
+                              background: niqab.colorCode,
+                              border: '1px solid rgba(0,0,0,0.12)',
+                              flexShrink: 0,
+                              display: 'inline-block',
+                            }}
+                          />
+                          {colorLabel}
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#b8965a' }}>
+                          {locale === 'ar' ? 'نقاب' : locale === 'fr' ? 'Niquab' : 'Niqab'}
+                        </span>
+                        <span>× {niqab.quantity}</span>
+                      </div>
+                    </div>
+
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#C4622D', alignSelf: 'flex-start' }}>
+                      {formatPrice(niqab.unitPrice * niqab.quantity, locale)}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
 
             {/* ── Footer ────────────────────────────────────────── */}
@@ -451,7 +484,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted-foreground)' }}>
                     <span>{t('subtotal')}</span>
                     <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
-                      {formatPrice(cartStore.subtotal, locale)}
+                      {formatPrice(cartSubtotal, locale)}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted-foreground)' }}>
@@ -480,7 +513,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                     {t('total')}
                   </span>
                   <span style={{ fontSize: 18, fontWeight: 900, color: '#C4622D' }}>
-                    {formatPrice(cartStore.subtotal, locale)}
+                    {formatPrice(cartSubtotal, locale)}
                   </span>
                 </div>
 

@@ -451,76 +451,104 @@ function ProductContent() {
    * =========================================================
    */
 
-  const openEditModal = (
+  const openEditModal = async (
     product: ProductItem
   ) => {
+    setEditingProduct(product)
+
+    // Fetch the authoritative product detail so colors/sizes/stock always come
+    // from the current active variants in the DB, never from the (possibly
+    // stale) list row. This guarantees Admin reopens match the Storefront.
+    let fresh: any = null
+    try {
+      const res = await fetch(
+        `/api/admin/products/${product.id}`,
+        {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        fresh = data?.product ?? null
+      }
+    } catch (err) {
+      console.error('Error fetching product detail:', err)
+    }
+
+    const resolved =
+      fresh ||
+      product
+
     const category =
       categories.find(
         (cat) =>
           cat.id ===
-          product.categoryId
+          resolved.categoryId
       )
 
     const categoryIsNiqab =
       isNiqabCategory(category)
 
-    setEditingProduct(product)
-
     setFormData({
       nameAr:
-        product.nameAr ||
-        product.name ||
+        resolved.nameAr ||
+        resolved.name ||
         '',
 
       nameFr:
-        product.nameFr ||
-        product.name ||
+        resolved.nameFr ||
+        resolved.name ||
         '',
 
       nameEn:
-        product.nameEn ||
-        product.name ||
+        resolved.nameEn ||
+        resolved.name ||
         '',
 
       descriptionFr:
-        product.descriptionFr ||
-        product.descriptionAr ||
-        product.descriptionEn ||
+        resolved.descriptionFr ||
+        resolved.descriptionAr ||
+        resolved.descriptionEn ||
         '',
 
-      sku: product.sku,
+      sku: resolved.sku,
 
       basePrice:
         String(
-          product.basePrice
+          resolved.basePrice
         ),
 
       salePrice:
-        product.salePrice !==
+        resolved.salePrice !==
           null &&
-          product.salePrice !==
+          resolved.salePrice !==
           undefined
           ? String(
-            product.salePrice
+            resolved.salePrice
           )
           : '',
 
       stock:
-        String(product.stock),
+        String(resolved.stock),
 
       categoryId:
-        product.categoryId,
+        resolved.categoryId,
 
       mainImage:
-        product.mainImage,
+        resolved.mainImage,
 
       images:
-        product.images || [],
+        resolved.images || [],
 
       colors:
-        product.colors
+        resolved.colors
           ?.map(
-            (color) =>
+            (color: { code: string }) =>
               color.code
           )
           .join(', ') || '',
@@ -533,15 +561,15 @@ function ProductContent() {
        */
       sizes: categoryIsNiqab
         ? ''
-        : product.sizes
+        : resolved.sizes
           ?.join(', ') ||
         'S, M, L, XL',
 
       isFeatured:
-        product.isFeatured,
+        resolved.isFeatured,
 
       isActive:
-        product.isActive,
+        resolved.isActive,
     })
 
     setIsModalOpen(true)

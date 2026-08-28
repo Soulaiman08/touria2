@@ -11,6 +11,7 @@ import { checkoutSchema, type CheckoutFormValues } from '@/lib/validations/check
 import { MOROCCAN_CITIES, DEFAULT_SHIPPING_PRICE, getCitiesByRegion } from '@/config/moroccan-cities'
 import { MOROCCAN_REGIONS } from '@/config/moroccan-regions'
 import { formatPrice } from '@/lib/utils'
+import { computeCartSubtotal, aggregateNiqabs } from '@/lib/cart-math'
 import { ShieldCheck, MapPin, User, ChevronDown, ShoppingBag, Loader2, Truck } from 'lucide-react'
 
 interface CheckoutFormProps {
@@ -55,13 +56,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   })
 
   // Calculations – react to the selected city
-  const subtotal = cartStore.items.reduce((sum, item) => {
-    const niqabTotal = item.niqabItems?.reduce(
-      (niqabSum, niqab) => niqabSum + niqab.unitPrice * niqab.quantity,
-      0,
-    ) ?? 0
-    return sum + item.unitPrice * item.quantity + niqabTotal
-  }, 0)
+  const subtotal = computeCartSubtotal(cartStore.items)
   // Use live fetched price; 0 when no city selected yet so total shows correctly
   const shippingCost = selectedCity ? (shippingPrice ?? DEFAULT_SHIPPING_PRICE) : 0
   const total = subtotal + shippingCost
@@ -591,56 +586,90 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
             </h2>
           </div>
 
-          {/* Cart Item List */}
+          {/* Cart Item List — djellabas and niqabs shown as independent items */}
           <div
-            className="divide-y max-h-[380px] overflow-y-auto pe-1"
-            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
+            className="divide-y max-h-[420px] overflow-y-auto pe-1"
+            style={{ borderColor: 'var(--border)', marginBottom: '28px' }}
           >
-            {cartStore.items.map((item) => {
-              const niqabTotal =
-                item.niqabItems?.reduce(
-                  (sum, n) =>
-                    sum + n.unitPrice * n.quantity,
-                  0,
-                ) || 0
-              const lineTotal =
-                item.unitPrice * item.quantity + niqabTotal
+            {/* Djellaba items — without embedded niqabs */}
+            {cartStore.items.filter(i => !i.isNiqab).map((item) => (
+              <div key={item.id} className="flex items-start gap-3 py-3 first:pt-0">
+                <Image
+                  src={item.mainImage}
+                  alt={item.nameAr}
+                  width={56}
+                  height={56}
+                  className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border"
+                  style={{ borderColor: 'var(--border)' }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm truncate leading-snug" style={{ color: 'var(--foreground)' }}>
+                    {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.colorCode ?? 'transparent', border: '1px solid rgba(0,0,0,0.12)' }} />
+                      {item.colorNameAr && (
+                        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.colorNameAr}</span>
+                      )}
+                    </span>
+                    {item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
+                      <span className="opacity-60">·</span>
+                    )}
+                    {item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
+                      <span>{cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span></span>
+                    )}
+                    <span className="opacity-60">·</span>
+                    <span>{cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span></span>
+                  </div>
+                </div>
+                <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap self-center">
+                  {formatPrice(item.unitPrice * item.quantity, locale)}
+                </span>
+              </div>
+            ))}
 
+            {/* Niqab add-ons — aggregated and shown once each */}
+            {aggregateNiqabs(cartStore.items).map((n) => {
+              const niqabName = locale === 'ar' ? n.nameAr : locale === 'fr' ? n.nameFr : n.nameEn
+              const colorLabel = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
               return (
-                <div key={item.id} className="py-4 flex items-center gap-4 text-xs first:pt-0 last:pb-0">
+                <div key={`niqab-${n.productId}-${n.variantId ?? ''}`} className="flex items-start gap-3 py-3 first:pt-0">
                   <Image
-                    src={item.mainImage}
-                    alt={item.nameAr}
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 object-cover rounded-2xl flex-shrink-0 border"
+                    src={n.mainImage}
+                    alt={niqabName}
+                    width={56}
+                    height={56}
+                    className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border"
                     style={{ borderColor: 'var(--border)' }}
                   />
-
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate mb-1" style={{ color: 'var(--foreground)' }}>
-                      {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
+                    <p className="font-bold text-sm truncate leading-snug" style={{ color: 'var(--foreground)' }}>
+                      {niqabName}
                     </p>
-                    <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                      {!item.isNiqab && item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
-                        <>
-                          {cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span> |{' '}
-                        </>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: n.colorCode ?? 'transparent', border: '1px solid rgba(0,0,0,0.12)' }} />
+                        {colorLabel && (
+                          <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{colorLabel}</span>
+                        )}
+                      </span>
+                      {n.quantity > 1 && (
+                        <span className="opacity-60">·</span>
                       )}
-                      {cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span>
-                    </p>
-                    {item.niqabItems && item.niqabItems.length > 0 && (
-                      <div className="mt-1 text-[11px] text-[#b8965a]">
-                        {item.niqabItems.map((n, i) => {
-                          const cName = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
-                          return <div key={i}>+ {cName} × {n.quantity} ({formatPrice(n.unitPrice * n.quantity, locale)})</div>
-                        })}
-                      </div>
-                    )}
+                      {n.quantity > 1 && (
+                        <span>× <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{n.quantity}</span></span>
+                      )}
+                      {n.quantity > 1 && (
+                        <span className="opacity-60">·</span>
+                      )}
+                      {n.quantity > 1 && (
+                        <span className="opacity-75 text-[11px]">{formatPrice(n.unitPrice, locale)}/each</span>
+                      )}
+                    </div>
                   </div>
-
-                  <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap">
-                    {formatPrice(lineTotal, locale)}
+                  <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap self-center">
+                    {formatPrice(n.unitPrice * n.quantity, locale)}
                   </span>
                 </div>
               )

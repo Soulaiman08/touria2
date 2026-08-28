@@ -49,7 +49,12 @@ export async function GET(request: Request) {
       const sizesSet = new Set<string>()
       let totalStock = 0
 
-      p.variants.forEach((v) => {
+      // Only active variants drive the admin list, so Admin matches both the
+      // storefront and the admin detail (GET /api/admin/products/[id]). Variants
+      // removed by a previous edit are still stored (isActive=false, to keep
+      // order-item FKs) but must not resurface as colors/sizes/stock here.
+      const activeVariants = p.variants.filter((v) => v.isActive)
+      activeVariants.forEach((v) => {
         totalStock += v.stockQuantity
         sizesSet.add(v.size)
         if (!colorsMap.has(v.colorCode)) {
@@ -187,71 +192,77 @@ export async function POST(request: Request) {
 
     // Product + variants are created in a single transaction so a failure
     // mid-way can never leave a product without its variants.
-    const product = await prisma.$transaction(async (tx) => {
-      const created = await tx.product.create({
-        data: {
-          slug: generatedSlug,
-          sku: generatedSku,
-          nameAr: finalNameAr,
-          nameFr: finalNameFr,
-          nameEn: finalNameEn,
-          descriptionAr: finalDescAr,
-          descriptionFr: finalDescFr,
-          descriptionEn: finalDescEn,
-          basePrice: parsedBasePrice,
-          salePrice: parsedSalePrice,
-          categoryId,
-          mainImage: primaryImage,
-          images: productImages,
-          isFeatured: Boolean(isFeatured),
-          isActive: Boolean(isActive),
-          isNiqab: Boolean(isNiqab),
-          canAddNiqab: Boolean(canAddNiqab),
-        },
-      })
+    // A djellaba (5 colors x 9 sizes) creates 45 variants sequentially, which
+    // exceeds Prisma's default interactive-transaction timeout (5s) and would
+    // abort the transaction with P2028. Raise the timeout to accommodate it.
+    const product = await prisma.$transaction(
+      async (tx) => {
+        const created = await tx.product.create({
+          data: {
+            slug: generatedSlug,
+            sku: generatedSku,
+            nameAr: finalNameAr,
+            nameFr: finalNameFr,
+            nameEn: finalNameEn,
+            descriptionAr: finalDescAr,
+            descriptionFr: finalDescFr,
+            descriptionEn: finalDescEn,
+            basePrice: parsedBasePrice,
+            salePrice: parsedSalePrice,
+            categoryId,
+            mainImage: primaryImage,
+            images: productImages,
+            isFeatured: Boolean(isFeatured),
+            isActive: Boolean(isActive),
+            isNiqab: Boolean(isNiqab),
+            canAddNiqab: Boolean(canAddNiqab),
+          },
+        })
 
-      if ((colors.length > 0 || sizes.length > 0) && created.id) {
-        const variantColors = colors.length > 0
-          ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
-          : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
-        const variantSizes = sizes.length > 0 ? sizes as string[] : ['Standard']
+        if ((colors.length > 0 || sizes.length > 0) && created.id) {
+          const variantColors = colors.length > 0
+            ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
+            : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
+          const variantSizes = sizes.length > 0 ? sizes as string[] : ['Standard']
 
-        // Distribute the total stock across the variant grid exactly, keeping
-        // valid "0" as 0 (no || default, no Math.max(1, ...) inflation).
-        const parsedStock = (() => {
-          if (stock === undefined || stock === null || String(stock).trim() === '') return 10
-          const parsed = Number(String(stock).trim())
-          return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 10
-        })()
-        const totalSlots = variantColors.length * variantSizes.length
-        const baseStock = Math.floor(parsedStock / totalSlots)
-        const remainder = parsedStock % totalSlots
+          // Distribute the total stock across the variant grid exactly, keeping
+          // valid "0" as 0 (no || default, no Math.max(1, ...) inflation).
+          const parsedStock = (() => {
+            if (stock === undefined || stock === null || String(stock).trim() === '') return 10
+            const parsed = Number(String(stock).trim())
+            return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 10
+          })()
+          const totalSlots = variantColors.length * variantSizes.length
+          const baseStock = Math.floor(parsedStock / totalSlots)
+          const remainder = parsedStock % totalSlots
 
-        let slotIndex = 0
-        for (const color of variantColors) {
-          for (const size of variantSizes) {
-            const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
-            await tx.productVariant.create({
-              data: {
-                productId: created.id,
-                size,
-                colorCode: color.code || '#000000',
-                colorNameAr: color.nameAr || 'لون',
-                colorNameFr: color.nameFr || 'Couleur',
-                colorNameEn: color.nameEn || 'Color',
-                stockQuantity: slotStock,
-                priceModifier: 0,
-                images: [],
-                isActive: true,
-              },
-            })
-            slotIndex += 1
+          let slotIndex = 0
+          for (const color of variantColors) {
+            for (const size of variantSizes) {
+              const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+              await tx.productVariant.create({
+                data: {
+                  productId: created.id,
+                  size,
+                  colorCode: color.code || '#000000',
+                  colorNameAr: color.nameAr || 'لون',
+                  colorNameFr: color.nameFr || 'Couleur',
+                  colorNameEn: color.nameEn || 'Color',
+                  stockQuantity: slotStock,
+                  priceModifier: 0,
+                  images: [],
+                  isActive: true,
+                },
+              })
+              slotIndex += 1
+            }
           }
         }
-      }
 
-      return created
-    })
+        return created
+      },
+      { timeout: 30000, maxWait: 5000 }
+    )
 
     // Revalidate storefront pages so product appears immediately
     revalidatePath('/[locale]/products', 'layout')

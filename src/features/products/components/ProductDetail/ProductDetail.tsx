@@ -1038,7 +1038,7 @@ export function ProductDetail({
               <>
                 <span className="text-xl font-bold text-[#C4622D] sm:text-2xl">
                   {formatPrice(
-                    finalPrice,
+                    basePriceVal,
                     locale,
                   )}
                 </span>
@@ -1053,8 +1053,7 @@ export function ProductDetail({
                   {formatPrice(
                     Number(
                       product.basePrice,
-                    ) +
-                    niqabTotal,
+                    ),
                     locale,
                   )}
                 </span>
@@ -1068,7 +1067,7 @@ export function ProductDetail({
                 }}
               >
                 {formatPrice(
-                  finalPrice,
+                  basePriceVal,
                   locale,
                 )}
               </span>

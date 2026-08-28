@@ -62,6 +62,18 @@ export const orderService = {
     const order = await prisma.$transaction(async (tx) => {
       const snapshots: Array<{ productId: string; variantId: string | null; quantity: number; unitPrice: number; totalPrice: number; snapshot: ProductSnapshot }> = []
 
+      // ============================================================
+      // Niqab add-ons are aggregated into independent OrderItems.
+      //
+      // The customer configures a SHARED niqab selection that the UI
+      // attaches to every djellaba row in the same addition. Counting
+      // it per djellaba caused duplication (2 djellabas -> niqab
+      // counted twice). Each distinct niqab (product + variant)
+      // therefore becomes a single standalone order item whose
+      // quantity equals the customer's chosen niqab quantity.
+      // ============================================================
+      const niqabAccumulator = new Map<string, { productId: string; variantId: string | null; quantity: number }>()
+
       for (const requestedItem of req.items) {
         if (!Number.isInteger(requestedItem.quantity) || requestedItem.quantity < 1) throw new Error('Invalid product quantity')
         const product = await tx.product.findUnique({
@@ -84,35 +96,26 @@ export const orderService = {
         }
 
         const unitPrice = asNumber(product.salePrice ?? product.basePrice) + (variant ? asNumber(variant.priceModifier) : 0)
-        const niqabs: ProductSnapshot['niqabs'] = []
+
+        // Collect niqab add-ons without embedding/pricing them per item.
+        // All djellabas in one addition share the same niqab selection,
+        // so we keep the selection's quantity (max) rather than summing
+        // it across djellabas.
         for (const requestedNiqab of requestedItem.niqabItems ?? []) {
           if (!Number.isInteger(requestedNiqab.quantity) || requestedNiqab.quantity < 1) throw new Error('Invalid niqab quantity')
-          const niqabProduct = await tx.product.findUnique({
-            where: { id: requestedNiqab.productId },
-            include: { variants: { where: { isActive: true } } },
-          })
-          if (!niqabProduct || !niqabProduct.isActive || !niqabProduct.isNiqab) throw new Error('A selected niqab is unavailable')
-          const niqabVariant = requestedNiqab.variantId
-            ? niqabProduct.variants.find((entry) => entry.id === requestedNiqab.variantId)
-            : niqabProduct.variants.length === 0 ? null : undefined
-          if (niqabVariant === undefined) throw new Error('Please select a valid niqab variant')
-          if (niqabVariant) {
-            const result = await tx.productVariant.updateMany({
-              where: { id: niqabVariant.id, stockQuantity: { gte: requestedNiqab.quantity } },
-              data: { stockQuantity: { decrement: requestedNiqab.quantity } },
+          const key = `${requestedNiqab.productId}:${requestedNiqab.variantId ?? ''}`
+          const existing = niqabAccumulator.get(key)
+          if (existing) {
+            existing.quantity = Math.max(existing.quantity, requestedNiqab.quantity)
+          } else {
+            niqabAccumulator.set(key, {
+              productId: requestedNiqab.productId,
+              variantId: requestedNiqab.variantId ?? null,
+              quantity: requestedNiqab.quantity,
             })
-            if (result.count !== 1) throw new Error('The requested niqab quantity is no longer in stock')
           }
-          const niqabUnitPrice = asNumber(niqabProduct.salePrice ?? niqabProduct.basePrice) + (niqabVariant ? asNumber(niqabVariant.priceModifier) : 0)
-          niqabs.push({
-            id: requestedNiqab.variantId ?? requestedNiqab.productId,
-            productId: niqabProduct.id, variantId: niqabVariant?.id ?? null,
-            nameAr: niqabProduct.nameAr, nameFr: niqabProduct.nameFr, nameEn: niqabProduct.nameEn,
-            image: niqabVariant?.images[0] ?? niqabProduct.mainImage,
-            color: { code: niqabVariant?.colorCode ?? '', nameAr: niqabVariant?.colorNameAr ?? '', nameFr: niqabVariant?.colorNameFr ?? '', nameEn: niqabVariant?.colorNameEn ?? '' },
-            quantity: requestedNiqab.quantity, unitPrice: niqabUnitPrice, totalPrice: niqabUnitPrice * requestedNiqab.quantity,
-          })
         }
+
         const totalPrice = unitPrice * requestedItem.quantity
         snapshots.push({
           productId: product.id, variantId: variant?.id ?? null, quantity: requestedItem.quantity, unitPrice, totalPrice,
@@ -122,12 +125,63 @@ export const orderService = {
             isNiqab: product.isNiqab,
             selectedSize: product.isNiqab ? '' : (variant?.size ?? ''),
             selectedColor: { code: variant?.colorCode ?? '', nameAr: variant?.colorNameAr ?? '', nameFr: variant?.colorNameFr ?? '', nameEn: variant?.colorNameEn ?? '' },
-            quantity: requestedItem.quantity, unitPrice, totalPrice, niqabs,
+            quantity: requestedItem.quantity, unitPrice, totalPrice, niqabs: [],
           },
         })
       }
 
-      const subtotal = snapshots.reduce((sum, item) => sum + item.totalPrice + item.snapshot.niqabs.reduce((addOnSum, niqab) => addOnSum + niqab.totalPrice, 0), 0)
+      // ============================================================
+      // Validate & build standalone niqab order items (once each).
+      // ============================================================
+      const niqabSnapshots: Array<{ productId: string; variantId: string | null; quantity: number; unitPrice: number; totalPrice: number; snapshot: ProductSnapshot }> = []
+      for (const entry of niqabAccumulator.values()) {
+        const niqabProduct = await tx.product.findUnique({
+          where: { id: entry.productId },
+          include: { variants: { where: { isActive: true } } },
+        })
+        if (!niqabProduct || !niqabProduct.isActive || !niqabProduct.isNiqab) throw new Error('A selected niqab is unavailable')
+        const niqabVariant = entry.variantId
+          ? niqabProduct.variants.find((v) => v.id === entry.variantId)
+          : niqabProduct.variants.length === 0 ? null : undefined
+        if (niqabVariant === undefined) throw new Error('Please select a valid niqab variant')
+        if (niqabVariant) {
+          const result = await tx.productVariant.updateMany({
+            where: { id: niqabVariant.id, stockQuantity: { gte: entry.quantity } },
+            data: { stockQuantity: { decrement: entry.quantity } },
+          })
+          if (result.count !== 1) throw new Error('The requested niqab quantity is no longer in stock')
+        }
+        const niqabUnitPrice = asNumber(niqabProduct.salePrice ?? niqabProduct.basePrice) + (niqabVariant ? asNumber(niqabVariant.priceModifier) : 0)
+        const niqabTotalPrice = niqabUnitPrice * entry.quantity
+        niqabSnapshots.push({
+          productId: niqabProduct.id,
+          variantId: niqabVariant?.id ?? null,
+          quantity: entry.quantity,
+          unitPrice: niqabUnitPrice,
+          totalPrice: niqabTotalPrice,
+          snapshot: {
+            productId: niqabProduct.id,
+            variantId: niqabVariant?.id ?? null,
+            nameAr: niqabProduct.nameAr, nameFr: niqabProduct.nameFr, nameEn: niqabProduct.nameEn,
+            mainImage: niqabVariant?.images[0] ?? niqabProduct.mainImage,
+            sku: niqabProduct.sku,
+            isNiqab: true,
+            selectedSize: '',
+            selectedColor: {
+              code: niqabVariant?.colorCode ?? '',
+              nameAr: niqabVariant?.colorNameAr ?? '',
+              nameFr: niqabVariant?.colorNameFr ?? '',
+              nameEn: niqabVariant?.colorNameEn ?? '',
+            },
+            quantity: entry.quantity, unitPrice: niqabUnitPrice, totalPrice: niqabTotalPrice,
+            niqabs: [],
+          },
+        })
+      }
+
+      const subtotal =
+        snapshots.reduce((sum, item) => sum + item.totalPrice, 0) +
+        niqabSnapshots.reduce((sum, item) => sum + item.totalPrice, 0)
 
       // ── Server-side shipping price resolution (DB-backed, tamper-proof) ──
       const shippingCost = await resolveShippingCost(
@@ -143,10 +197,12 @@ export const orderService = {
         address: req.formData.address, postalCode: req.formData.postalCode || null, notes: req.formData.notes || null,
         subtotal, shippingCost, total: subtotal + shippingCost, locale: req.locale, paymentStatus: 'PENDING', status: 'PENDING',
       } })
-      await Promise.all(snapshots.map((item) => tx.orderItem.create({ data: {
-        orderId: createdOrder.id, productId: item.productId, variantId: item.variantId, quantity: item.quantity,
-        unitPrice: item.unitPrice, totalPrice: item.totalPrice, productSnapshot: item.snapshot as unknown as Prisma.InputJsonValue,
-      } })))
+      await Promise.all(
+        [...snapshots, ...niqabSnapshots].map((item) => tx.orderItem.create({ data: {
+          orderId: createdOrder.id, productId: item.productId, variantId: item.variantId, quantity: item.quantity,
+          unitPrice: item.unitPrice, totalPrice: item.totalPrice, productSnapshot: item.snapshot as unknown as Prisma.InputJsonValue,
+        } })),
+      )
       await tx.orderStatusHistory.create({ data: { orderId: createdOrder.id, status: 'PENDING', note: req.customerId ? 'Order placed by customer' : 'Order placed by guest' } })
 
       // Create Admin Notification for the new order
@@ -174,7 +230,7 @@ export const orderService = {
 
       // Check stock alerts for updated variants
       try {
-        const variantIds = snapshots.map((s) => s.variantId).filter(Boolean) as string[]
+        const variantIds = [...snapshots, ...niqabSnapshots].map((s) => s.variantId).filter(Boolean) as string[]
         if (variantIds.length > 0) {
           const updatedVariants = await tx.productVariant.findMany({
             where: { id: { in: variantIds } },
