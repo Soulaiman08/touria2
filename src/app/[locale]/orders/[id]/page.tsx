@@ -2,10 +2,11 @@
 
 import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
 import { Truck, Check, Package, ShoppingBag, Clock, ArrowLeft, type LucideIcon } from 'lucide-react'
-import type { Order, OrderStatus } from '@/types/order'
+import type { Order, OrderStatus, ProductSnapshot } from '@/types/order'
 
 interface TrackingPageProps {
   params: Promise<{ locale: string; id: string }>
@@ -222,17 +223,15 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {order.items.map((item, idx) => {
-              const snap = item.productSnapshot
+              const snap = item.productSnapshot as ProductSnapshot
               const rawSize = snap.selectedSize || ''
-              const isNiqabItem = Boolean(
-                snap.isNiqab ||
-                (snap.nameAr && /نقاب/i.test(snap.nameAr)) ||
-                (snap.nameFr && /niqab/i.test(snap.nameFr))
-              )
+              const isNiqabItem = Boolean(snap.isNiqab)
               const hasRealSize =
                 !isNiqabItem &&
                 rawSize &&
                 !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(rawSize.toLowerCase().trim())
+              const colorName = snap.selectedColor?.nameAr || snap.selectedColor?.nameFr || snap.selectedColor?.nameEn || ''
+              const niqabs = Array.isArray(snap.niqabs) ? snap.niqabs : []
 
               return (
                 <div
@@ -257,8 +256,60 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
                           {' · '}
                         </>
                       )}
+                      {colorName && (
+                        <>
+                          <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{colorName}</span>
+                          {' · '}
+                        </>
+                      )}
                       {cartT('quantity')}: <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{item.quantity}</span>
                     </p>
+
+                    {/* ── Niqab Add-ons ── */}
+                    {niqabs.length > 0 && (
+                      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {niqabs.map((niqab, nIdx) => {
+                          const niqabName = locale === 'ar' ? niqab.nameAr : locale === 'fr' ? niqab.nameFr : niqab.nameEn
+                          const niqabColor = niqab.color?.nameAr || niqab.color?.nameFr || niqab.color?.nameEn || ''
+                          return (
+                            <div
+                              key={`${niqab.id}-${nIdx}`}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                fontSize: 11,
+                                color: 'var(--muted-foreground)',
+                                background: 'rgba(196,98,45,0.04)',
+                                padding: '4px 8px',
+                                borderRadius: 8,
+                                border: '1px solid rgba(196,98,45,0.1)',
+                              }}
+                            >
+                              {niqab.image && (
+                                <Image
+                                  src={niqab.image}
+                                  alt={niqabName}
+                                  width={20}
+                                  height={20}
+                                  style={{ borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+                                />
+                              )}
+                              <span style={{ fontWeight: 600, color: '#C4622D' }}>
+                                {locale === 'ar' ? 'نقاب' : 'Niqab'}: {niqabName}
+                              </span>
+                              {niqabColor && (
+                                <>
+                                  <span style={{ color: '#ccc' }}>—</span>
+                                  <span>{niqabColor}</span>
+                                </>
+                              )}
+                              <span>×{niqab.quantity}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                   <span style={{ fontSize: 14, fontWeight: 800, color: '#C4622D', flexShrink: 0 }}>
                     {formatPrice(item.totalPrice, locale)}

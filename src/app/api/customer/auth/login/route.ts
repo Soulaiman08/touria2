@@ -59,6 +59,13 @@ export async function POST(request: Request) {
     },
   })
   response.cookies.set(CUSTOMER_COOKIE_NAME, token, customerCookieOptions())
+  response.cookies.set('thuraya_onboarded', '1', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 31536000,
+    path: '/',
+  })
   response.headers.set('Cache-Control', 'no-store')
   return response
 }

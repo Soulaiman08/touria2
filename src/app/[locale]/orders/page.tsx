@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -16,8 +16,14 @@ import {
   ArrowLeft,
   Calendar,
   Layers,
+  LogIn,
+  UserPlus,
+  MapPin,
+  AlertCircle,
+  SearchX,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 
 interface OrdersPageProps {
   params: Promise<{
@@ -170,25 +176,43 @@ export default function OrdersPage({ params }: OrdersPageProps) {
   const { locale } = use(params)
   const router = useRouter()
   const isRTL = locale === 'ar'
+  const { customer, loading: authLoading } = useCustomerAuth()
 
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [searchOrderNumber, setSearchOrderNumber] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchResult, setSearchResult] = useState<Order | null>(null)
+  const [searchNotFound, setSearchNotFound] = useState(false)
+  const [searchError, setSearchError] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!customer) {
+      setLoading(false)
+      return
+    }
+
     let mounted = true
     async function loadOrders() {
       try {
-        const res = await fetch('/api/orders', { method: 'GET', cache: 'no-store' })
+        const res = await fetch('/api/customer/orders', { method: 'GET', cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
           if (mounted) {
             const list = Array.isArray(data.orders) ? data.orders : Array.isArray(data.items) ? data.items : []
             setOrders(list)
           }
+        } else {
+          if (mounted) setError(true)
         }
-      } catch (err) {
-        console.error('Error fetching orders:', err)
+      } catch {
+        if (mounted) setError(true)
       } finally {
         if (mounted) setLoading(false)
       }
@@ -197,13 +221,78 @@ export default function OrdersPage({ params }: OrdersPageProps) {
     return () => {
       mounted = false
     }
+  }, [customer, authLoading])
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false)
+    setSearchOrderNumber('')
+    setSearchResult(null)
+    setSearchNotFound(false)
+    setSearchError(false)
   }, [])
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!searchOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        closeSearch()
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [searchOpen, closeSearch])
+
+  useEffect(() => {
+    if (searchOpen && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [searchOpen])
+
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = searchOrderNumber.trim()
-    if (trimmed) {
-      router.push(`/${locale}/orders/${encodeURIComponent(trimmed)}`)
+    if (!trimmed) return
+
+    setSearching(true)
+    setSearchResult(null)
+    setSearchNotFound(false)
+    setSearchError(false)
+
+    try {
+      if (isLoggedIn) {
+        const match = orders.find(
+          (o) => o.orderNumber?.toLowerCase() === trimmed.toLowerCase() || o.id.toLowerCase() === trimmed.toLowerCase()
+        )
+        if (match) {
+          router.push(`/${locale}/orders/${match.id}`)
+        } else {
+          setSearchNotFound(true)
+        }
+      } else {
+        const res = await fetch(`/api/orders/${encodeURIComponent(trimmed)}`, { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.order) {
+            router.push(`/${locale}/orders/${trimmed}`)
+          } else {
+            setSearchNotFound(true)
+          }
+        } else if (res.status === 404) {
+          setSearchNotFound(true)
+        } else {
+          setSearchError(true)
+        }
+      }
+    } catch {
+      setSearchError(true)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeSearch()
     }
   }
 
@@ -211,59 +300,109 @@ export default function OrdersPage({ params }: OrdersPageProps) {
     ar: {
       title: 'طلباتي ومتابعة الشحنات',
       subtitle: 'تابعي حالة طلباتكِ ومشترياتكِ السابقة بكل سهولة وشفافية.',
+      badge: 'سجل المشتريات والتتبع',
       loading: 'جاري تحميل الطلبات...',
       trackDirect: 'تتبع طلب مباشر',
       trackPlaceholder: 'أدخلي رقم الطلب (مثال: ORD-12345)...',
       trackBtn: 'تتبع الآن',
-      emptyTitle: 'لا توجد طلبات مسجلة حالياً',
-      emptyDescription: 'عندما تقومين بإتمام طلبكِ الأول، ستظهر تفاصيل الشحن والمتابعة هنا مباشرة.',
-      shopNow: 'تصفحي المجموعة وابدأي التسوق',
       orderNum: 'رقم الطلب',
       date: 'تاريخ الطلب',
       total: 'المبلغ الإجمالي',
-      details: 'تتبع وتفاصيل الطلب',
       items: 'منتجات',
+      details: 'تتبع وتفاصيل الطلب',
       back: 'العودة للرئيسية',
+      guestTitle: 'سجّلي دخولكِ لعرض طلباتك',
+      guestDesc: 'جميع طلباتك في مكان واحد. سجّلي الدخول لمتابعة طلباتكِ وتفاصيلها.',
+      guestLogin: 'تسجيل الدخول',
+      guestSignup: 'إنشاء حساب',
+      noOrdersTitle: 'لا توجد طلبات بعد',
+      noOrdersDesc: 'عندما تقومين بإتمام طلبكِ الأول، ستظهر تفاصيل الشحن والمتابعة هنا مباشرة.',
+      browseProducts: 'تصفحي المنتجات',
+      errorTitle: 'حدث خطأ أثناء تحميل الطلبات',
+      errorDesc: 'يرجى المحاولة مجدداً.',
+      retry: 'حاول مجدداً',
+      trackSectionTitle: 'كيف يمكنني تتبع حالة طلبي؟',
+      trackSectionDesc: 'يمكنكِ تتبع الطلب بكل سهولة من خلال زيارة صفحة تتبع الطلب وإدخال رقم طلبكِ لمعرفة المرحلة الحالية للتجهيز والشحن.',
+      trackSectionBtn: 'تتبع طلبك',
+      welcome: 'مرحباً،',
+      searchNoResults: 'لا توجد نتيجة',
+      searchNoResultsDesc: 'لم نتمكن من العثور على طلب بهذا الرقم. تأكد من رقم الطلب وحاول مرة أخرى.',
+      searchError: 'حدث خطأ أثناء البحث',
+      searchPlaceholder: 'أدخلي رقم الطلب...',
     },
     fr: {
       title: 'Mes Commandes',
       subtitle: 'Suivez facilement le statut de vos commandes et vos achats précédents.',
+      badge: 'Historique et suivi des commandes',
       loading: 'Chargement des commandes...',
       trackDirect: 'Suivi direct d\'une commande',
       trackPlaceholder: 'Entrez le numéro de commande (ex: ORD-12345)...',
       trackBtn: 'Suivre',
-      emptyTitle: 'Aucune commande enregistrée pour le moment',
-      emptyDescription: 'Lorsque vous passerez votre première commande, ses détails de livraison apparaîtront ici.',
-      shopNow: 'Découvrir la collection',
       orderNum: 'N° de commande',
       date: 'Date',
       total: 'Total',
-      details: 'Détails & Suivi',
       items: 'articles',
+      details: 'Détails et suivi',
       back: 'Retour à l\'accueil',
+      guestTitle: 'Connectez-vous pour voir vos commandes',
+      guestDesc: 'Retrouvez toutes vos commandes en un seul endroit. Connectez-vous pour suivre vos commandes et leurs détails.',
+      guestLogin: 'Se connecter',
+      guestSignup: 'Créer un compte',
+      noOrdersTitle: 'Aucune commande pour le moment',
+      noOrdersDesc: 'Lorsque vous passerez votre première commande, ses détails de livraison apparaîtront ici.',
+      browseProducts: 'Découvrir les produits',
+      errorTitle: 'Erreur de chargement des commandes',
+      errorDesc: 'Veuillez réessayer.',
+      retry: 'Réessayer',
+      trackSectionTitle: 'Comment suivre ma commande ?',
+      trackSectionDesc: 'Vous pouvez suivre votre commande facilement en visitant la page de suivi et en entrant votre numéro de commande pour connaître l\'étape actuelle de préparation et de livraison.',
+      trackSectionBtn: 'Suivre votre commande',
+      welcome: 'Bonjour,',
+      searchNoResults: 'Aucun résultat',
+      searchNoResultsDesc: 'Nous n\'avons trouvé aucune commande avec ce numéro. Vérifiez le numéro et réessayez.',
+      searchError: 'Une erreur s\'est produite lors de la recherche',
+      searchPlaceholder: 'Entrez le numéro de commande...',
     },
     en: {
       title: 'My Orders',
       subtitle: 'Easily track the status of your orders and previous purchases.',
+      badge: 'Order History & Tracking',
       loading: 'Loading orders...',
       trackDirect: 'Direct Order Tracking',
       trackPlaceholder: 'Enter order number (e.g. ORD-12345)...',
       trackBtn: 'Track Order',
-      emptyTitle: 'No orders found yet',
-      emptyDescription: 'When you place your first order, its tracking and delivery details will appear right here.',
-      shopNow: 'Explore & Start Shopping',
       orderNum: 'Order #',
       date: 'Date',
       total: 'Total',
-      details: 'View & Track Order',
       items: 'items',
+      details: 'View & Track Order',
       back: 'Back to Home',
+      guestTitle: 'Sign in to view your orders',
+      guestDesc: 'Find all your orders in one place. Sign in to track your orders and view their details.',
+      guestLogin: 'Sign in',
+      guestSignup: 'Create account',
+      noOrdersTitle: 'No orders yet',
+      noOrdersDesc: 'When you place your first order, its tracking and delivery details will appear right here.',
+      browseProducts: 'Browse Products',
+      errorTitle: 'Error loading orders',
+      errorDesc: 'Please try again.',
+      retry: 'Try Again',
+      trackSectionTitle: 'How can I track my order?',
+      trackSectionDesc: 'You can easily track your order by visiting the order tracking page and entering your order number to know the current preparation and shipping stage.',
+      trackSectionBtn: 'Track Your Order',
+      welcome: 'Hello,',
+      searchNoResults: 'No results found',
+      searchNoResultsDesc: 'We couldn\'t find an order with that number. Please check the order number and try again.',
+      searchError: 'An error occurred while searching',
+      searchPlaceholder: 'Enter order number...',
     },
   }
 
   const t = text[locale as keyof typeof text] || text.en
+  const isLoggedIn = !!customer
+  const showContent = !authLoading
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="container-brand page-shell py-24 text-center space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent)] mx-auto" />
@@ -344,7 +483,7 @@ export default function OrdersPage({ params }: OrdersPageProps) {
             }}
           >
             <span>✦</span>
-            <span>{isRTL ? 'سجل المشتريات والتتبع' : 'Order History & Tracking'}</span>
+            <span>{t.badge}</span>
             <span>✦</span>
           </div>
 
@@ -363,86 +502,360 @@ export default function OrdersPage({ params }: OrdersPageProps) {
           <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 480, marginInline: 'auto' }}>
             {t.subtitle}
           </p>
+
+          {/* Welcome message for logged-in users */}
+          {isLoggedIn && customer?.name && (
+            <p style={{ fontSize: 13, color: 'var(--accent)', margin: '8px 0 0', fontWeight: 700 }}>
+              {t.welcome} {customer.name}
+            </p>
+          )}
         </div>
 
         {/* ── Quick Lookup Box ──────────────────────────────────────── */}
-        <div style={{ padding: '18px 22px', background: 'var(--bg-subtle)' }}>
-          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-center gap-2.5">
-            <div className="relative flex-1 w-full">
-              <Search
+        <div id="order-lookup" style={{ padding: '18px 22px', background: 'var(--bg-subtle)' }}>
+          <div ref={searchRef}>
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5" style={{ position: 'relative' }}>
+              <div
                 style={{
-                  position: 'absolute',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  [isRTL ? 'right' : 'left']: 14,
-                  width: 16,
-                  height: 16,
-                  color: 'var(--muted-foreground)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  flex: searchOpen ? 1 : 'none',
+                  position: 'relative',
+                  transition: 'flex 0.3s ease',
                 }}
-              />
-              <input
-                type="text"
-                value={searchOrderNumber}
-                onChange={(e) => setSearchOrderNumber(e.target.value)}
-                placeholder={t.trackPlaceholder}
+              >
+                {searchOpen && (
+                  <div className="relative flex-1 w-full" style={{ flex: 1 }}>
+                    <Search
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        [isRTL ? 'right' : 'left']: 14,
+                        width: 16,
+                        height: 16,
+                        color: 'var(--muted-foreground)',
+                        zIndex: 1,
+                      }}
+                    />
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={searchOrderNumber}
+                      onChange={(e) => { setSearchOrderNumber(e.target.value); setSearchNotFound(false); setSearchError(false) }}
+                      onKeyDown={handleSearchKeyDown}
+                      placeholder={t.searchPlaceholder}
+                      style={{
+                        width: '100%',
+                        padding: '11px 16px',
+                        paddingLeft: isRTL ? 16 : 40,
+                        paddingRight: isRTL ? 40 : 16,
+                        borderRadius: 12,
+                        border: '1px solid var(--border)',
+                        background: 'var(--card)',
+                        color: 'var(--foreground)',
+                        fontSize: 13,
+                        outline: 'none',
+                        animation: 'searchExpand 0.3s ease forwards',
+                      }}
+                    />
+                  </div>
+                )}
+
+                {!searchOpen && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchOpen(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 42,
+                      height: 42,
+                      borderRadius: 12,
+                      border: '1px solid var(--border)',
+                      background: 'var(--card)',
+                      color: 'var(--muted-foreground)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      transition: 'background 0.2s, color 0.2s',
+                    }}
+                    aria-label={t.trackDirect}
+                  >
+                    <Search style={{ width: 18, height: 18 }} />
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={searching || (searchOpen && !searchOrderNumber.trim())}
                 style={{
-                  width: '100%',
-                  padding: '11px 16px',
-                  paddingLeft: isRTL ? 16 : 40,
-                  paddingRight: isRTL ? 40 : 16,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  padding: searchOpen ? '11px 16px' : '11px 20px',
                   borderRadius: 12,
+                  background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+                  color: '#fff',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  border: 'none',
+                  cursor: searching || (searchOpen && !searchOrderNumber.trim()) ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
+                  whiteSpace: 'nowrap',
+                  opacity: searchOpen && !searchOrderNumber.trim() ? 0.5 : 1,
+                  transition: 'padding 0.3s ease, opacity 0.2s',
+                  flexShrink: 0,
+                }}
+              >
+                {searching ? (
+                  <RefreshCw style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <>
+                    <span>{t.trackBtn}</span>
+                    <ArrowRight style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* ── Search Results ──────────────────────────────────────── */}
+            {searchNotFound && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: '20px 24px',
+                  borderRadius: 16,
                   border: '1px solid var(--border)',
                   background: 'var(--card)',
-                  color: 'var(--foreground)',
-                  fontSize: 13,
-                  outline: 'none',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: 'fadeIn 0.25s ease',
                 }}
-              />
-            </div>
-            <button
-              type="submit"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                padding: '11px 20px',
-                borderRadius: 12,
-                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-                color: '#fff',
-                fontSize: 13,
-                fontWeight: 800,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
-                whiteSpace: 'nowrap',
-                width: '100%',
-              }}
-              className="sm:w-auto"
-            >
-              <span>{t.trackBtn}</span>
-              <ArrowRight style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-            </button>
-          </form>
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 14,
+                    background: 'var(--accent-light)',
+                    border: '1px solid var(--accent-ring)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--accent)',
+                    marginBottom: 12,
+                  }}
+                >
+                  <SearchX style={{ width: 24, height: 24 }} />
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--foreground)', margin: '0 0 6px' }}>
+                  {t.searchNoResults}
+                </h3>
+                <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 360, lineHeight: 1.5 }}>
+                  {t.searchNoResultsDesc}
+                </p>
+              </div>
+            )}
+
+            {searchError && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: '16px 20px',
+                  borderRadius: 16,
+                  border: '1px solid rgba(220,38,38,0.2)',
+                  background: 'rgba(220,38,38,0.04)',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  animation: 'fadeIn 0.25s ease',
+                }}
+              >
+                <AlertCircle style={{ width: 18, height: 18, color: '#dc2626', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 600 }}>{t.searchError}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ── Content: Order List or Empty State ─────────────────────── */}
-      {orders.length === 0 ? (
-        /* ── Empty State ── */
+      {/* ── Content ─────────────────────────────────────── */}
+      {showContent && !isLoggedIn ? (
+        /* ── Guest Empty State ── */
         <div
           style={{
             borderRadius: 24,
             border: '1px solid var(--border)',
             background: 'var(--card)',
-            padding: '48px 24px sm:p-14',
+            padding: '48px 24px',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+            marginBottom: 24,
           }}
-          className="p-8 sm:p-14"
+        >
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 22,
+              background: 'var(--accent-light)',
+              border: '1.5px solid var(--accent-ring)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--accent)',
+              marginBottom: 20,
+            }}
+          >
+            <LogIn style={{ width: 34, height: 34 }} />
+          </div>
+
+          <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
+            {t.guestTitle}
+          </h2>
+
+          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 28px', lineHeight: 1.6 }}>
+            {t.guestDesc}
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3" style={{ width: '100%', maxWidth: 340 }}>
+            <Link
+              href={`/${locale}/login`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '13px 26px',
+                borderRadius: 14,
+                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 800,
+                textDecoration: 'none',
+                boxShadow: '0 6px 20px rgba(196,98,45,0.25)',
+                transition: 'transform 0.2s',
+                flex: 1,
+                width: '100%',
+              }}
+            >
+              <LogIn style={{ width: 16, height: 16 }} />
+              <span>{t.guestLogin}</span>
+            </Link>
+
+            <Link
+              href={`/${locale}/signup`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '13px 26px',
+                borderRadius: 14,
+                background: 'transparent',
+                color: '#C4622D',
+                fontSize: 14,
+                fontWeight: 800,
+                textDecoration: 'none',
+                border: '1.5px solid #C4622D',
+                transition: 'background 0.2s',
+                flex: 1,
+                width: '100%',
+              }}
+            >
+              <UserPlus style={{ width: 16, height: 16 }} />
+              <span>{t.guestSignup}</span>
+            </Link>
+          </div>
+        </div>
+      ) : showContent && error ? (
+        /* ── Error State ── */
+        <div
+          style={{
+            borderRadius: 24,
+            border: '1px solid var(--border)',
+            background: 'var(--card)',
+            padding: '48px 24px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+            marginBottom: 24,
+          }}
+        >
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 22,
+              background: 'rgba(220, 38, 38, 0.08)',
+              border: '1.5px solid rgba(220, 38, 38, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#dc2626',
+              marginBottom: 20,
+            }}
+          >
+            <AlertCircle style={{ width: 34, height: 34 }} />
+          </div>
+
+          <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
+            {t.errorTitle}
+          </h2>
+
+          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 24px', lineHeight: 1.6 }}>
+            {t.errorDesc}
+          </p>
+
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '13px 26px',
+              borderRadius: 14,
+              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 800,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 6px 20px rgba(196,98,45,0.25)',
+            }}
+          >
+            <RefreshCw style={{ width: 16, height: 16 }} />
+            <span>{t.retry}</span>
+          </button>
+        </div>
+      ) : showContent && orders.length === 0 ? (
+        /* ── No Orders Empty State ── */
+        <div
+          style={{
+            borderRadius: 24,
+            border: '1px solid var(--border)',
+            background: 'var(--card)',
+            padding: '48px 24px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+            marginBottom: 24,
+          }}
         >
           <div
             style={{
@@ -462,11 +875,11 @@ export default function OrdersPage({ params }: OrdersPageProps) {
           </div>
 
           <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
-            {t.emptyTitle}
+            {t.noOrdersTitle}
           </h2>
 
           <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 24px', lineHeight: 1.6 }}>
-            {t.emptyDescription}
+            {t.noOrdersDesc}
           </p>
 
           <Link
@@ -487,12 +900,12 @@ export default function OrdersPage({ params }: OrdersPageProps) {
             }}
           >
             <ShoppingBag style={{ width: 16, height: 16 }} />
-            <span>{t.shopNow}</span>
+            <span>{t.browseProducts}</span>
           </Link>
         </div>
-      ) : (
+      ) : showContent && orders.length > 0 ? (
         /* ── Orders Cards Grid ── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
           {orders.map((order) => {
             const statusConfig = getStatusConfig(order.status, locale)
             const StatusIcon = statusConfig.icon
@@ -619,7 +1032,83 @@ export default function OrdersPage({ params }: OrdersPageProps) {
             )
           })}
         </div>
-      )}
+      ) : null}
+
+      {/* ── Tracking Section ──────────────────────────────────────── */}
+      <div
+        style={{
+          borderRadius: 24,
+          border: '1px solid var(--border)',
+          background: 'var(--card)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
+          overflow: 'hidden',
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            background: 'linear-gradient(135deg, rgba(196,98,45,0.04) 0%, rgba(184,150,90,0.02) 100%)',
+            padding: '28px 24px',
+            textAlign: 'center',
+            borderBottom: '1px solid var(--border)',
+          }}
+        >
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'var(--accent-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 12px',
+              border: '1px solid var(--accent-ring)',
+            }}
+          >
+            <MapPin style={{ width: 24, height: 24, color: 'var(--accent)' }} />
+          </div>
+
+          <h2
+            style={{
+              fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)',
+              fontWeight: 900,
+              color: 'var(--foreground)',
+              margin: '0 0 8px',
+              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
+            }}
+          >
+            {t.trackSectionTitle}
+          </h2>
+
+          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
+            {t.trackSectionDesc}
+          </p>
+        </div>
+
+        <div style={{ padding: '20px 24px', textAlign: 'center' }}>
+          <Link
+            href="#order-lookup"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '12px 24px',
+              borderRadius: 14,
+              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 800,
+              textDecoration: 'none',
+              boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
+              transition: 'transform 0.2s',
+            }}
+          >
+            <Truck style={{ width: 16, height: 16 }} />
+            <span>{t.trackSectionBtn}</span>
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

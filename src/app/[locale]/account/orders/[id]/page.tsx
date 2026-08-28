@@ -218,9 +218,40 @@ export default function AccountOrderDetailPage({ params }: AccountOrderDetailPag
                       {' · '}{t('quantity')}: {item.quantity}
                     </p>
                     {snap.niqabs && snap.niqabs.length > 0 && (
-                      <p className="mt-1 text-xs" style={{ color: 'var(--muted-foreground)' }}>
-                        {snap.niqabs.map((n) => `${n.nameAr || n.nameFr || n.nameEn} ×${n.quantity}`).join(', ')}
-                      </p>
+                      <div className="mt-1.5 flex flex-col gap-1">
+                        {snap.niqabs.map((n, nIdx) => {
+                          const niqabName = locale === 'ar' ? n.nameAr : locale === 'fr' ? n.nameFr : n.nameEn
+                          const niqabColor = n.color?.nameAr || n.color?.nameFr || n.color?.nameEn || ''
+                          return (
+                            <div
+                              key={`${n.id}-${nIdx}`}
+                              className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs"
+                              style={{ background: 'rgba(196,98,45,0.04)', border: '1px solid rgba(196,98,45,0.1)' }}
+                            >
+                              {n.image && (
+                                <Image
+                                  src={n.image}
+                                  alt={niqabName}
+                                  width={20}
+                                  height={20}
+                                  className="rounded object-cover"
+                                  style={{ width: 20, height: 20, flexShrink: 0 }}
+                                />
+                              )}
+                              <span className="font-semibold" style={{ color: '#C4622D' }}>
+                                {locale === 'ar' ? 'نقاب' : 'Niqab'}: {niqabName}
+                              </span>
+                              {niqabColor && (
+                                <>
+                                  <span style={{ color: '#ccc' }}>—</span>
+                                  <span style={{ color: 'var(--muted-foreground)' }}>{niqabColor}</span>
+                                </>
+                              )}
+                              <span style={{ color: 'var(--muted-foreground)' }}>×{n.quantity}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
                     )}
                   </div>
                   <p className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>

@@ -94,6 +94,8 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   const continueAsGuest = useCallback(() => {
     try {
       localStorage.setItem(GUEST_STORAGE_KEY, 'true')
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
+      document.cookie = `thuraya_onboarded=1; path=/; SameSite=Lax; max-age=31536000${isSecure ? '; Secure' : ''}`
     } catch {
       // ignore localstorage errors in restricted mode
     }
