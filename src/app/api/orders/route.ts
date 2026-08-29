@@ -3,7 +3,7 @@ import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
 import { signOrderAccessToken } from '@/lib/auth'
 import { getCurrentCustomer } from '@/lib/customer-auth'
-import { sendOrderConfirmationEmail } from '@/lib/email'
+import { sendOrderConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email'
 
 export async function GET() {
   /*
@@ -58,17 +58,21 @@ export async function POST(request: Request) {
         path: '/',
       })
 
-      // Dispatch the order confirmation email. sendOrderConfirmationEmail always
-      // sends a copy to the admin (ms3243737@gmail.com by default) and, if the
-      // customer provided an email, also sends a copy to the customer. The single
-      // admin email uses the OrderConfirmationEmail template. Failures are caught
-      // inside the function and never throw, so order creation proceeds regardless.
+      // Dispatch emails — TWO separated flows, exactly ONE admin send per order:
+      // 1. Customer confirmation (OrderConfirmationEmail) → order.customerEmail ONLY
+      //    (skipped internally when the customer provided no email).
+      // 2. Admin notification (OrderNotificationEmail) → ORDER_NOTIFICATION_EMAIL
+      //    (fallback ms3243737@gmail.com) — recipient is a DESTINATION ONLY and
+      //    is never used as customer data. Content always shows the real customer.
+      // Both functions catch their own errors and never throw, so order creation
+      // proceeds regardless. The order object is never modified.
       try {
         console.info(`[API_ORDERS] Fetching full order #${result.order.orderNumber} (ID: ${result.order.id}) for email dispatch...`)
         const fullOrder = await orderService.getOrderById(result.order.id)
         if (fullOrder) {
           await sendOrderConfirmationEmail(fullOrder)
-          console.info(`[API_ORDERS] Confirmation email dispatch complete for order #${fullOrder.orderNumber} (customer email: ${fullOrder.customerEmail?.trim() || 'SKIPPED'})`)
+          await sendOrderNotificationEmail(fullOrder)
+          console.info(`[API_ORDERS] Email dispatch complete for order #${fullOrder.orderNumber} (customer email: ${fullOrder.customerEmail?.trim() || 'not provided'})`)
         } else {
           console.warn('[ORDER_EMAIL] Order created but could not retrieve fullOrder for email dispatch:', result.order.id)
         }
