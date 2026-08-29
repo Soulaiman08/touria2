@@ -18,6 +18,7 @@ import { ToastProvider, useToast } from '@/components/admin/providers/ToastConte
 import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { formatPrice } from '@/lib/utils'
 import { resolveOrderColor } from '@/lib/color-names'
+import { CopyWhatsAppButton } from '@/components/admin/orders/CopyWhatsAppButton'
 
 interface OrderDetail {
   id: string
@@ -29,6 +30,7 @@ interface OrderDetail {
   customerPhone: string
   customerPhone2?: string
   customerEmail?: string
+  region?: string
   city: string
   district?: string
   address: string
@@ -39,6 +41,7 @@ interface OrderDetail {
   shippingCost: number
   discountAmount: number
   total: number
+  locale?: string
   createdAt: string
   items: {
     id: string
@@ -254,30 +257,33 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#d4d4d8' }}>Order Status:</span>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            style={{
-              background: 'rgb(24,24,27)',
-              border: '1px solid rgba(245,158,11,0.5)',
-              borderRadius: 12,
-              padding: '8px 14px',
-              fontSize: 12,
-              fontWeight: 800,
-              color: '#fbbf24',
-              outline: 'none',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-            }}
-          >
-            {statusOptions.map((st) => (
-              <option key={st} value={st} style={{ background: '#18181b', color: '#ffffff' }}>
-                {st}
-              </option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <CopyWhatsAppButton order={order} variant="primary" />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgb(24,24,27)', border: '1px solid rgba(82,82,91,0.8)', borderRadius: 12, padding: '4px 10px' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#d4d4d8' }}>Status:</span>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '4px 8px',
+                fontSize: 12,
+                fontWeight: 800,
+                color: '#fbbf24',
+                outline: 'none',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+              }}
+            >
+              {statusOptions.map((st) => (
+                <option key={st} value={st} style={{ background: '#18181b', color: '#ffffff' }}>
+                  {st}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -848,6 +854,10 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                   </p>
                 </div>
               )}
+
+              <div style={{ paddingTop: 14, borderTop: '1px solid rgba(63,63,70,0.5)', marginTop: 4 }}>
+                <CopyWhatsAppButton order={order} variant="card" />
+              </div>
             </div>
           </div>
 
