@@ -39,11 +39,13 @@ function formatDate(date: Date | string): string {
   }
 }
 
-function getProductName(snapshot: ProductSnapshot): string {
+function getProductName(snapshot?: ProductSnapshot | null): string {
+  if (!snapshot) return 'منتج ثريا'
   return snapshot.nameAr || snapshot.nameFr || snapshot.nameEn || 'منتج ثريا'
 }
 
-function getColorName(snapshot: ProductSnapshot): string {
+function getColorName(snapshot?: ProductSnapshot | null): string {
+  if (!snapshot) return ''
   const color = snapshot.selectedColor
   if (!color) return ''
   return color.nameAr || color.nameFr || color.nameEn || ''
@@ -59,15 +61,17 @@ export function renderOrderNotificationEmail({ order, appUrl }: OrderNotificatio
 
   const formattedDate = formatDate(order.createdAt || new Date())
   const currentYear = new Date().getFullYear().toString()
-  const totalFormatted = formatPrice(Number(order.total))
-  const subtotalFormatted = formatPrice(Number(order.subtotal))
+  const totalFormatted = formatPrice(Number(order.total || 0))
+  const subtotalFormatted = formatPrice(Number(order.subtotal || 0))
+  const shippingCostNum = Number(order.shippingCost || 0)
   const shippingFormatted =
-    Number(order.shippingCost) > 0
-      ? formatPrice(Number(order.shippingCost))
+    shippingCostNum > 0
+      ? formatPrice(shippingCostNum)
       : `<span style="color: #16A34A; font-weight: 700;">مجاني</span>`
+  const discountAmountNum = Number(order.discountAmount || 0)
   const discountFormatted =
-    Number(order.discountAmount) > 0
-      ? `-${formatPrice(Number(order.discountAmount))}`
+    discountAmountNum > 0
+      ? `-${formatPrice(discountAmountNum)}`
       : null
 
   const subject = `🔔 طلب جديد #${order.orderNumber} – ${order.customerName} (${totalFormatted})`
@@ -81,13 +85,13 @@ export function renderOrderNotificationEmail({ order, appUrl }: OrderNotificatio
       const size = escapeHtml(snap?.selectedSize || '')
       const imageUrl = snap?.mainImage || ''
       const isNiqab = snap?.isNiqab ?? false
-      const unitPriceFormatted = formatPrice(Number(item.unitPrice))
-      const totalPriceFormatted = formatPrice(Number(item.totalPrice))
+      const unitPriceFormatted = formatPrice(Number(item.unitPrice || 0))
+      const totalPriceFormatted = formatPrice(Number(item.totalPrice || 0))
 
       const variantDetails: string[] = []
       if (size) variantDetails.push(`المقاس: <strong style="color:#111827;">${size}</strong>`)
       if (colorName) {
-        const colorBullet = snap.selectedColor?.code
+        const colorBullet = snap?.selectedColor?.code
           ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${escapeHtml(snap.selectedColor.code)};border:1px solid #ccc;vertical-align:middle;margin-left:4px;"></span>`
           : ''
         variantDetails.push(`اللون: ${colorBullet}<strong style="color:#111827;">${colorName}</strong>`)
@@ -98,10 +102,10 @@ export function renderOrderNotificationEmail({ order, appUrl }: OrderNotificatio
         : ''
 
       // Attached niqabs array if exists in snapshot
-      const attachedNiqabsHtml = (snap?.niqabs && snap.niqabs.length > 0)
+      const attachedNiqabsHtml = (snap?.niqabs && Array.isArray(snap.niqabs) && snap.niqabs.length > 0)
         ? `<div style="margin-top: 8px; padding: 6px 10px; background-color: #FDF8F3; border-radius: 6px; border: 1px dashed #E5D5C5; font-size: 11.5px; color: #78350F;">
             <div style="font-weight: 700; margin-bottom: 2px;">✦ نقاب مرفق:</div>
-            ${snap.niqabs.map(n => `<div>• ${escapeHtml(n.nameAr || n.nameFr || 'نقاب')} (الكمية: ${n.quantity} × ${formatPrice(Number(n.unitPrice))}) ${n.color?.nameAr ? `— لون: ${escapeHtml(n.color.nameAr)}` : ''}</div>`).join('')}
+            ${snap.niqabs.map(n => `<div>• ${escapeHtml(n?.nameAr || n?.nameFr || 'نقاب')} (الكمية: ${n?.quantity || 1} × ${formatPrice(Number(n?.unitPrice || 0))}) ${n?.color?.nameAr ? `— لون: ${escapeHtml(n.color.nameAr)}` : ''}</div>`).join('')}
           </div>`
         : ''
 

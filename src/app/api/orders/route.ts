@@ -63,7 +63,7 @@ export async function POST(request: Request) {
               await sendOrderConfirmationEmail(fullOrder)
             } catch (emailErr) {
               console.error(
-                '[ORDER_EMAIL] Failed to send customer confirmation email for order:',
+                '[ORDER_EMAIL_CUSTOMER] Failed to send customer confirmation email for order:',
                 result.order.id,
                 emailErr instanceof Error ? emailErr.message : emailErr,
               )
@@ -75,11 +75,13 @@ export async function POST(request: Request) {
             await sendOrderNotificationEmail(fullOrder)
           } catch (adminEmailErr) {
             console.error(
-              '[ORDER_EMAIL] Failed to send admin notification email for order:',
+              '[ORDER_EMAIL_ADMIN] Failed to send admin notification email for order:',
               result.order.id,
               adminEmailErr instanceof Error ? adminEmailErr.message : adminEmailErr,
             )
           }
+        } else {
+          console.warn('[ORDER_EMAIL] Order created but could not retrieve fullOrder for email dispatch:', result.order.id)
         }
       } catch (fetchErr) {
         console.error(
