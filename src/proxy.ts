@@ -20,34 +20,6 @@ function unauthorizedResponse() {
   return response
 }
 
-function base64UrlToUint8Array(base64Url: string): Uint8Array<ArrayBuffer> {
-  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-  while (base64.length % 4) base64 += '='
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-  return bytes
-}
-
-async function verifyCustomerTokenEdge(token: string): Promise<{ id: string; email: string; name: string } | null> {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    const [encodedHeader, encodedPayload, signature] = parts
-    const data = `${encodedHeader}.${encodedPayload}`
-    const secret = process.env.CUSTOMER_JWT_SECRET
-    if (!secret || secret.length < 32) return null
-    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
-    const valid = await crypto.subtle.verify('HMAC', key, base64UrlToUint8Array(signature), new TextEncoder().encode(data))
-    if (!valid) return null
-    const payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(encodedPayload)))
-    if (!payload.id || !payload.email || !Number.isFinite(payload.exp) || payload.exp < Math.floor(Date.now() / 1000)) return null
-    return { id: payload.id, email: payload.email, name: payload.name }
-  } catch {
-    return null
-  }
-}
-
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -103,21 +75,6 @@ export default async function proxy(request: NextRequest) {
       const localeMatch = pathname.match(/^\/(ar|fr|en)/)
       const locale = localeMatch ? localeMatch[1] : 'ar'
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url))
-    }
-  }
-
-  // Logged-in customer on login/signup page → redirect to account
-  const isLoginPage = /^\/(ar|fr|en)\/login\/?$/.test(pathname)
-  const isSignupPage = /^\/(ar|fr|en)\/signup\/?$/.test(pathname)
-  if (isLoginPage || isSignupPage) {
-    const customerToken = request.cookies.get(CUSTOMER_COOKIE)?.value
-    if (customerToken) {
-      const payload = await verifyCustomerTokenEdge(customerToken)
-      if (payload) {
-        const localeMatch = pathname.match(/^\/(ar|fr|en)/)
-        const locale = localeMatch ? localeMatch[1] : 'ar'
-        return NextResponse.redirect(new URL(`/${locale}/account`, request.url))
-      }
     }
   }
 
