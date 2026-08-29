@@ -3,6 +3,7 @@ import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
 import { signOrderAccessToken } from '@/lib/auth'
 import { getCurrentCustomer } from '@/lib/customer-auth'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 export async function GET() {
   /*
@@ -51,6 +52,23 @@ export async function POST(request: Request) {
         maxAge: 60 * 60 * 24 * 30,
         path: '/',
       })
+
+      // Dispatch order confirmation email if customer provided an email address
+      const customerEmail = (body as { formData?: { customerEmail?: string } })?.formData?.customerEmail?.trim()
+      if (customerEmail) {
+        try {
+          const fullOrder = await orderService.getOrderById(result.order.id)
+          if (fullOrder) {
+            await sendOrderConfirmationEmail(fullOrder)
+          }
+        } catch (emailErr) {
+          console.error(
+            '[ORDER_EMAIL] Failed to send order confirmation email for order:',
+            result.order.id,
+            emailErr instanceof Error ? emailErr.message : emailErr,
+          )
+        }
+      }
     }
     return response
   } catch (error) {
