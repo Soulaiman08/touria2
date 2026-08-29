@@ -108,28 +108,30 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<SendEmai
  */
 export async function sendOrderNotificationEmail(order: Order): Promise<SendEmailResult> {
   const isConfigured = Boolean(getOrderNotificationEmail())
-  console.info(`[ORDER_EMAIL_ADMIN] ORDER_NOTIFICATION_EMAIL configured: ${isConfigured}`)
+  console.info(`[ORDER_EMAIL_ADMIN] [Step 1/5] Checking configuration: ORDER_NOTIFICATION_EMAIL configured: ${isConfigured}`)
 
   const recipient = getOrderNotificationEmail()
 
   if (!recipient) {
-    console.warn(`[ORDER_EMAIL_ADMIN] ORDER_NOTIFICATION_EMAIL is not configured in environment variables. Skipping admin notification for order: #${order.orderNumber}`)
+    console.warn(`[ORDER_EMAIL_ADMIN] [ABORT] ORDER_NOTIFICATION_EMAIL is not configured in environment variables. Skipping admin notification for order #${order.orderNumber}`)
     return { success: false, error: 'ORDER_NOTIFICATION_EMAIL is not configured' }
   }
 
   const resend = getResendClient()
   if (!resend) {
-    console.warn(`[ORDER_EMAIL_ADMIN] RESEND_API_KEY is not configured in environment variables. Skipping admin notification for order: #${order.orderNumber}`)
+    console.warn(`[ORDER_EMAIL_ADMIN] [ABORT] RESEND_API_KEY is not configured in environment variables. Skipping admin notification for order #${order.orderNumber}`)
     return { success: false, error: 'RESEND_API_KEY is not configured' }
   }
 
   try {
-    console.info(`[ORDER_EMAIL_ADMIN] Attempting admin email for order: #${order.orderNumber}`)
-
+    console.info(`[ORDER_EMAIL_ADMIN] [Step 2/5] Rendering admin HTML template for order #${order.orderNumber}...`)
     const { subject, html } = renderOrderNotificationEmail({ order })
+    console.info(`[ORDER_EMAIL_ADMIN] [Step 3/5] Admin HTML template rendered successfully (Subject: "${subject}", Length: ${html.length} chars)`)
+
     const from = getEmailFromAddress()
     const replyTo = order.customerEmail?.trim() || process.env.EMAIL_REPLY_TO?.trim() || undefined
 
+    console.info(`[ORDER_EMAIL_ADMIN] [Step 4/5] Calling resend.emails.send() with From: "${from}", To: "${recipient}"...`)
     const response = await resend.emails.send({
       from,
       to: recipient,
@@ -139,16 +141,23 @@ export async function sendOrderNotificationEmail(order: Order): Promise<SendEmai
     })
 
     if (response.error) {
-      console.error(`[ORDER_EMAIL_ADMIN] Resend API result: error for order #${order.orderNumber}:`, response.error.message)
+      console.error(`[ORDER_EMAIL_ADMIN] [Step 5/5] Resend API Error:`, {
+        orderNumber: order.orderNumber,
+        name: response.error.name,
+        message: response.error.message,
+        statusCode: (response.error as { statusCode?: number })?.statusCode,
+      })
       return { success: false, error: response.error.message }
     }
 
-    console.info(`[ORDER_EMAIL_ADMIN] Resend API result: success for order #${order.orderNumber} | Resend email ID: ${response.data?.id}`)
+    console.info(`[ORDER_EMAIL_ADMIN] [Step 5/5] Resend API Success: Email dispatched for order #${order.orderNumber} | Resend Message ID: ${response.data?.id}`)
     return { success: true, id: response.data?.id }
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : 'Unknown admin email dispatch error'
-    console.error(`[ORDER_EMAIL_ADMIN] Resend API result: error (exception) for order #${order.orderNumber}:`, errorMsg)
-    return { success: false, error: errorMsg }
+    const errorDetails = error instanceof Error
+      ? { name: error.name, message: error.message, stack: error.stack }
+      : { message: String(error) }
+    console.error(`[ORDER_EMAIL_ADMIN] [FAIL] Unexpected exception in sendOrderNotificationEmail for order #${order.orderNumber}:`, errorDetails)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
