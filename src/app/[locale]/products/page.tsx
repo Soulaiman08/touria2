@@ -4,7 +4,7 @@ import { SlidersHorizontal } from 'lucide-react'
 
 import { productService } from '@/services/product.service'
 import { categoryService } from '@/services/category.service'
-import { ProductCard } from '@/components/shared/ProductCard'
+import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 
 import type { ProductFilters } from '@/types/product'
 
@@ -437,26 +437,22 @@ export default async function ProductsPage({
             </div>
           ) : (
             /* ======================================
-               PRODUCTS GRID
+               PRODUCTS GRID (Infinite Scroll)
                ====================================== */
 
-            <div
-              className="
-                grid
-                grid-cols-2
-                gap-3
-                sm:gap-6
-                lg:grid-cols-3
-              "
-            >
-              {productsResponse.items.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  locale={locale}
-                />
-              ))}
-            </div>
+            <InfiniteProductGrid
+              initialProducts={productsResponse.items}
+              initialTotal={productsResponse.total}
+              locale={locale}
+              filters={{
+                category,
+                size,
+                colorCode,
+                search,
+                sort,
+              }}
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3"
+            />
           )}
         </div>
       </div>

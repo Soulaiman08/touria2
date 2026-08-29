@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { ShoppingBag, Eye } from 'lucide-react'
 
 import { formatPrice, cn } from '@/lib/utils'
@@ -24,13 +24,79 @@ export function ProductCard({
   isNew,
 }: ProductCardProps) {
   const [imgError, setImgError] = useState(false)
-
   const isRTL = locale === 'ar'
+
+  // ============================================================
+  // AUTO IMAGE ROTATION (3 seconds, unified gallery slide animation)
+  // ============================================================
+  const allImages = useMemo(() => {
+    const list = [product.mainImage, ...(product.images || [])].filter(Boolean)
+    return Array.from(new Set(list))
+  }, [product.mainImage, product.images])
+
+  const n = allImages.length
+  const hasMultipleImages = n > 1
+
+  // Cloned track for seamless continuous loop: [last, ...items, first]
+  const trackImages = useMemo(() => {
+    if (!hasMultipleImages) return allImages
+    return [allImages[n - 1], ...allImages, allImages[0]]
+  }, [allImages, hasMultipleImages, n])
+
+  const totalSlides = trackImages.length
+
+  const [trackIndex, setTrackIndex] = useState(1)
+  const [animating, setAnimating] = useState(false)
+  const [isInView, setIsInView] = useState(false)
+  const cardRef = useRef<HTMLElement | null>(null)
+
+  // Track visibility with IntersectionObserver to conserve resources
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el || !hasMultipleImages) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting)
+      },
+      { threshold: 0.15 }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMultipleImages])
+
+  // Cycle image every 3 seconds using the same slide animation as the gallery
+  useEffect(() => {
+    if (!isInView || !hasMultipleImages) return
+
+    const timer = setInterval(() => {
+      setAnimating(true)
+      setTrackIndex((prev) => {
+        const nextIndex = prev + 1
+        return nextIndex
+      })
+
+      setTimeout(() => {
+        setTrackIndex((curr) => {
+          if (curr >= n + 1) {
+            setAnimating(false)
+            return 1
+          }
+          setAnimating(false)
+          return curr
+        })
+      }, 450)
+    }, 3000)
+
+    return () => clearInterval(timer)
+  }, [isInView, hasMultipleImages, n])
+
+  const displayIndex = hasMultipleImages ? (trackIndex - 1 + n) % n : 0
 
   // ============================================================
   // LOCALIZED DATA
   // ============================================================
-
   const name =
     locale === 'ar'
       ? product.nameAr
@@ -62,14 +128,11 @@ export function ProductCard({
   // ============================================================
   // DISCOUNT
   // ============================================================
-
   const discount =
     product.salePrice && product.basePrice > 0
       ? Math.round(
-        ((product.basePrice - product.salePrice) /
-          product.basePrice) *
-        100,
-      )
+          ((product.basePrice - product.salePrice) / product.basePrice) * 100
+        )
       : 0
 
   const saleLabel =
@@ -80,65 +143,114 @@ export function ProductCard({
   // ============================================================
   // OUT OF STOCK
   // ============================================================
-
   const isOutOfStock =
-    !product.availableSizes ||
-    product.availableSizes.length === 0
+    !product.availableSizes || product.availableSizes.length === 0
 
   // ============================================================
   // URL
   // ============================================================
+  const productUrl = `/${locale}/products/${product.slug}`
 
-  const productUrl =
-    `/${locale}/products/${product.slug}`
+  // Slide track transform calculation
+  const slideWidthPercent = totalSlides > 0 ? 100 / totalSlides : 100
+  const baseTranslate = -trackIndex * slideWidthPercent
+  const trackTransform = hasMultipleImages
+    ? `translateX(${baseTranslate}%)`
+    : 'translateX(0)'
+
+  const trackTransition = animating
+    ? 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    : 'none'
 
   // ============================================================
   // RENDER
   // ============================================================
-
   return (
     <article
-      className={cn(
-        'product-card group',
-        className,
-      )}
+      ref={cardRef}
+      className={cn('product-card group', className)}
       dir={isRTL ? 'rtl' : 'ltr'}
       aria-label={name}
     >
       {/* ======================================================
           IMAGE
       ======================================================= */}
-
       <div className="product-card-img-wrap">
         <Link
           href={productUrl}
           tabIndex={-1}
           aria-hidden
-          className="block"
+          dir="ltr"
+          className="block w-full h-full relative overflow-hidden"
         >
-          <Image
-            src={
-              imgError
-                ? '/images/placeholder-product.jpg'
-                : product.mainImage
-            }
-            alt={name}
-            fill
-            sizes="
-              (max-width: 640px) 50vw,
-              (max-width: 1024px) 50vw,
-              33vw
-            "
-            className="product-card-img"
-            onError={() => setImgError(true)}
-            loading="lazy"
-          />
+          {hasMultipleImages ? (
+            /* Cloned Slide Track for unified Gallery-matching Slide Animation */
+            <div
+              dir="ltr"
+              className="absolute inset-0 flex h-full pointer-events-none"
+              style={{
+                width: `${totalSlides * 100}%`,
+                transform: trackTransform,
+                transition: trackTransition,
+                willChange: 'transform',
+              }}
+            >
+              {trackImages.map((imgSrc, idx) => (
+                <div
+                  key={`card-img-${idx}`}
+                  className="relative h-full flex-shrink-0"
+                  style={{ width: `${slideWidthPercent}%` }}
+                >
+                  <Image
+                    src={imgSrc}
+                    alt={`${name} - ${idx + 1}`}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                    className="product-card-img object-cover"
+                    loading="lazy"
+                    draggable={false}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Image
+              src={
+                imgError
+                  ? '/images/placeholder-product.jpg'
+                  : product.mainImage
+              }
+              alt={name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+              className="product-card-img object-cover"
+              onError={() => setImgError(true)}
+              loading="lazy"
+              draggable={false}
+            />
+          )}
         </Link>
+
+        {/* Micro image rotation indicators */}
+        {hasMultipleImages && (
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10 pointer-events-none">
+            {allImages.map((_, idx) => (
+              <span
+                key={idx}
+                className={cn(
+                  'h-1 rounded-full transition-all duration-300',
+                  idx === displayIndex
+                    ? 'w-3 bg-white/90 shadow-sm'
+                    : 'w-1 bg-white/40'
+                )}
+              />
+            ))}
+          </div>
+        )}
 
         {/* ====================================================
             BADGES
         ===================================================== */}
-
         <div className="product-card-badge flex flex-col gap-1.5">
           {isNew && (
             <span className="badge badge-gold text-[11px]">
@@ -172,7 +284,6 @@ export function ProductCard({
         {/* ====================================================
             HOVER ACTIONS - DESKTOP
         ===================================================== */}
-
         <div className="product-card-actions">
           <Link
             href={productUrl}
@@ -191,24 +302,19 @@ export function ProductCard({
               transition-all
             "
             style={{
-              background:
-                'rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.15)',
               backdropFilter: 'blur(4px)',
-              border:
-                '1px solid rgba(255,255,255,0.25)',
+              border: '1px solid rgba(255,255,255,0.25)',
             }}
           >
             <Eye className="w-3.5 h-3.5" />
-
             {viewLabel}
           </Link>
 
           {onAddToCart && (
             <button
               type="button"
-              onClick={() =>
-                onAddToCart(product)
-              }
+              onClick={() => onAddToCart(product)}
               className="
                 flex
                 items-center
@@ -223,10 +329,8 @@ export function ProductCard({
                 transition-all
               "
               style={{
-                background:
-                  'var(--accent)',
-                border:
-                  '1px solid rgba(255,255,255,0.2)',
+                background: 'var(--accent)',
+                border: '1px solid rgba(255,255,255,0.2)',
               }}
               aria-label={
                 locale === 'ar'
@@ -245,20 +349,8 @@ export function ProductCard({
       {/* ======================================================
           PRODUCT INFORMATION
       ======================================================= */}
-
-      <div
-        className="
-          product-card-info
-          px-3
-          sm:px-4
-          py-3
-          sm:py-4
-        "
-      >
-        {/* ====================================================
-            CATEGORY
-        ===================================================== */}
-
+      <div className="product-card-info px-3 sm:px-4 py-3 sm:py-4">
+        {/* CATEGORY */}
         {categoryName && (
           <p
             className="
@@ -277,10 +369,7 @@ export function ProductCard({
           </p>
         )}
 
-        {/* ====================================================
-            NAME
-        ===================================================== */}
-
+        {/* NAME */}
         <h3
           className="
             font-semibold
@@ -296,84 +385,57 @@ export function ProductCard({
         >
           <Link
             href={productUrl}
-            className="
-              transition-colors
-              hover:text-[var(--accent)]
-            "
+            className="transition-colors hover:text-[var(--accent)]"
           >
             {name}
           </Link>
         </h3>
 
-        {/* ====================================================
-            COLOR SWATCHES
-        ===================================================== */}
+        {/* COLOR SWATCHES */}
+        {product.availableColors && product.availableColors.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap mt-2 min-h-[20px]">
+            {product.availableColors.slice(0, 5).map((c) => (
+              <span
+                key={c.code}
+                className="
+                  w-4
+                  h-4
+                  rounded-full
+                  border
+                  shadow-sm
+                  cursor-pointer
+                  hover:ring-2
+                  hover:ring-[var(--accent)]
+                  transition-all
+                  ring-offset-1
+                "
+                style={{
+                  background: c.code,
+                  borderColor: 'rgba(0,0,0,0.12)',
+                  boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.1)',
+                }}
+                title={
+                  locale === 'ar'
+                    ? c.nameAr
+                    : locale === 'fr'
+                      ? c.nameFr
+                      : c.nameEn
+                }
+              />
+            ))}
 
-        {product.availableColors &&
-          product.availableColors.length > 0 && (
-            <div
-              className="
-                flex
-                items-center
-                gap-1.5
-                flex-wrap
-                mt-2
-                min-h-[20px]
-              "
-            >
-              {product.availableColors
-                .slice(0, 5)
-                .map((c) => (
-                  <span
-                    key={c.code}
-                    className="
-                      w-4
-                      h-4
-                      rounded-full
-                      border
-                      shadow-sm
-                      cursor-pointer
-                      hover:ring-2
-                      hover:ring-[var(--accent)]
-                      transition-all
-                      ring-offset-1
-                    "
-                    style={{
-                      background: c.code,
-                      borderColor:
-                        'rgba(0,0,0,0.12)',
-                      boxShadow:
-                        'inset 0 0 0 0.5px rgba(0,0,0,0.1)',
-                    }}
-                    title={
-                      locale === 'ar'
-                        ? c.nameAr
-                        : locale === 'fr'
-                          ? c.nameFr
-                          : c.nameEn
-                    }
-                  />
-                ))}
-
-              {product.availableColors.length >
-                5 && (
-                  <span
-                    className="
-                    text-[10px]
-                    font-medium
-                  "
-                    style={{
-                      color:
-                        'var(--text-muted)',
-                    }}
-                  >
-                    +
-                    {product.availableColors
-                      .length - 5}
-                  </span>
-                )}
-            </div>
-          )}
+            {product.availableColors.length > 5 && (
+              <span
+                className="text-[10px] font-medium"
+                style={{
+                  color: 'var(--text-muted)',
+                }}
+              >
+                +{product.availableColors.length - 5}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Price + CTA */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2.5 sm:pt-3 mt-auto min-w-0">

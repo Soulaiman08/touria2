@@ -1,4 +1,4 @@
-﻿import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import type {
   ProductCard,
   Product,
@@ -39,46 +39,41 @@ type NiqabProductData = {
 
 async function getNiqabProduct(): Promise<NiqabProductData | null> {
   const niqab = await prisma.product.findFirst({
-      where: {
-        OR: [
-          { isNiqab: true },
-          { slug: { contains: 'niqab', mode: 'insensitive' } },
-          { slug: { contains: 'niquab', mode: 'insensitive' } },
-        ],
-        isActive: true,
-      },
-
-      include: {
-        variants: {
-          where: {
-            isActive: true,
-          },
+    where: {
+      OR: [
+        { isNiqab: true },
+        { slug: { contains: 'niqab', mode: 'insensitive' } },
+        { slug: { contains: 'niquab', mode: 'insensitive' } },
+      ],
+      isActive: true,
+    },
+    include: {
+      variants: {
+        where: {
+          isActive: true,
         },
       },
+    },
+    orderBy: {
+      sortOrder: 'asc',
+    },
+  })
 
-      orderBy: {
-        sortOrder: 'asc',
-      },
-    })
+  if (!niqab || !niqab.variants || niqab.variants.length === 0) {
+    return null
+  }
 
-    if (!niqab || !niqab.variants || niqab.variants.length === 0) {
-      return null
-    }
-
-    return {
-      id: niqab.id,
-      nameAr: niqab.nameAr,
-      nameFr: niqab.nameFr,
-      nameEn: niqab.nameEn,
-      mainImage: niqab.mainImage,
-
-      variants: niqab.variants.map((variant) => ({
-        ...variant,
-        priceModifier: Number(
-          variant.priceModifier,
-        ),
-})),
-    }
+  return {
+    id: niqab.id,
+    nameAr: niqab.nameAr,
+    nameFr: niqab.nameFr,
+    nameEn: niqab.nameEn,
+    mainImage: niqab.mainImage,
+    variants: niqab.variants.map((variant) => ({
+      ...variant,
+      priceModifier: Number(variant.priceModifier),
+    })),
+  }
 }
 
 // ======================================================
@@ -86,7 +81,6 @@ async function getNiqabProduct(): Promise<NiqabProductData | null> {
 // ======================================================
 
 export const productService = {
-
   // ====================================================
   // GET PRODUCTS
   // ====================================================
@@ -96,358 +90,243 @@ export const productService = {
   ): Promise<PaginatedProducts> {
     const page = filters.page ?? 1
     const limit = filters.limit ?? 12
-      const skip = (page - 1) * limit
+    const skip = (page - 1) * limit
 
-      const whereClause: Record<string, unknown> = {
-        isActive: true,
+    const whereClause: Record<string, unknown> = {
+      isActive: true,
+    }
+
+    // -----------------------------------------------
+    // NIQAB FILTER
+    // -----------------------------------------------
+    if (filters.isNiqab !== undefined) {
+      whereClause.isNiqab = filters.isNiqab
+    }
+
+    // -----------------------------------------------
+    // FEATURED
+    // -----------------------------------------------
+    if (filters.isFeatured !== undefined) {
+      whereClause.isFeatured = filters.isFeatured
+    }
+
+    // -----------------------------------------------
+    // CATEGORY
+    // -----------------------------------------------
+    if (filters.category) {
+      whereClause.category = {
+        slug: filters.category,
       }
+    }
 
-      // -----------------------------------------------
-      // NIQAB FILTER
-      // -----------------------------------------------
-
-      if (filters.isNiqab !== undefined) {
-        whereClause.isNiqab =
-          filters.isNiqab
+    // -----------------------------------------------
+    // SIZE
+    // -----------------------------------------------
+    if (filters.size) {
+      whereClause.variants = {
+        some: {
+          size: filters.size,
+          isActive: true,
+        },
       }
+    }
 
-      // -----------------------------------------------
-      // FEATURED
-      // -----------------------------------------------
-
-      if (filters.isFeatured !== undefined) {
-        whereClause.isFeatured =
-          filters.isFeatured
+    // -----------------------------------------------
+    // COLOR
+    // -----------------------------------------------
+    if (filters.colorCode) {
+      whereClause.variants = {
+        some: {
+          colorCode: filters.colorCode,
+          isActive: true,
+        },
       }
+    }
 
-      // -----------------------------------------------
-      // CATEGORY
-      // -----------------------------------------------
-
-      if (filters.category) {
-        whereClause.category = {
-          slug: filters.category,
-        }
+    // -----------------------------------------------
+    // PRICE
+    // -----------------------------------------------
+    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+      const priceFilter: Record<string, number> = {}
+      if (filters.minPrice !== undefined) {
+        priceFilter.gte = filters.minPrice
       }
+      if (filters.maxPrice !== undefined) {
+        priceFilter.lte = filters.maxPrice
+      }
+      whereClause.basePrice = priceFilter
+    }
 
-      // -----------------------------------------------
-      // SIZE
-      // -----------------------------------------------
-
-      if (filters.size) {
-        whereClause.variants = {
-          some: {
-            size: filters.size,
-            isActive: true,
+    // -----------------------------------------------
+    // SEARCH
+    // -----------------------------------------------
+    if (filters.search) {
+      whereClause.OR = [
+        {
+          nameAr: {
+            contains: filters.search,
+            mode: 'insensitive',
           },
-        }
-      }
-
-      // -----------------------------------------------
-      // COLOR
-      // -----------------------------------------------
-
-      if (filters.colorCode) {
-        whereClause.variants = {
-          some: {
-            colorCode: filters.colorCode,
-            isActive: true,
+        },
+        {
+          nameFr: {
+            contains: filters.search,
+            mode: 'insensitive',
           },
-        }
+        },
+        {
+          nameEn: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+      ]
+    }
+
+    // -----------------------------------------------
+    // ORDER
+    // -----------------------------------------------
+    let orderBy: Record<string, string> = {
+      sortOrder: 'asc',
+    }
+
+    if (filters.sort === 'newest') {
+      orderBy = {
+        createdAt: 'desc',
       }
-
-      // -----------------------------------------------
-      // PRICE
-      // -----------------------------------------------
-
-      if (
-        filters.minPrice !== undefined ||
-        filters.maxPrice !== undefined
-      ) {
-        const priceFilter: Record<
-          string,
-          number
-        > = {}
-
-        if (
-          filters.minPrice !== undefined
-        ) {
-          priceFilter.gte =
-            filters.minPrice
-        }
-
-        if (
-          filters.maxPrice !== undefined
-        ) {
-          priceFilter.lte =
-            filters.maxPrice
-        }
-
-        whereClause.basePrice =
-          priceFilter
+    } else if (filters.sort === 'priceAsc') {
+      orderBy = {
+        basePrice: 'asc',
       }
+    } else if (filters.sort === 'priceDesc') {
+      orderBy = {
+        basePrice: 'desc',
+      }
+    } else if (filters.sort === 'featured') {
+      orderBy = {
+        isFeatured: 'desc',
+      }
+    }
 
-      // -----------------------------------------------
-      // SEARCH
-      // -----------------------------------------------
-
-      if (filters.search) {
-        whereClause.OR = [
-          {
-            nameAr: {
-              contains: filters.search,
-              mode: 'insensitive',
+    // -----------------------------------------------
+    // DATABASE
+    // -----------------------------------------------
+    const [dbProducts, total] = await Promise.all([
+      prisma.product.findMany({
+        where: whereClause,
+        include: {
+          category: {
+            select: {
+              id: true,
+              slug: true,
+              nameAr: true,
+              nameFr: true,
+              nameEn: true,
             },
           },
-          {
-            nameFr: {
-              contains: filters.search,
-              mode: 'insensitive',
+          variants: {
+            where: {
+              isActive: true,
             },
           },
-          {
-            nameEn: {
-              contains: filters.search,
-              mode: 'insensitive',
-            },
-          },
-        ]
-      }
+        },
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      prisma.product.count({
+        where: whereClause,
+      }),
+    ])
 
-      // -----------------------------------------------
-      // ORDER
-      // -----------------------------------------------
+    // -----------------------------------------------
+    // MAP
+    // -----------------------------------------------
+    const items = dbProducts.map((p) =>
+      this.mapToCard({
+        ...p,
+        basePrice: Number(p.basePrice),
+        salePrice: p.salePrice !== null ? Number(p.salePrice) : null,
+      }),
+    )
 
-      let orderBy: Record<
-        string,
-        string
-      > = {
-        sortOrder: 'asc',
-      }
-
-      if (filters.sort === 'newest') {
-        orderBy = {
-          createdAt: 'desc',
-        }
-      }
-
-      if (filters.sort === 'priceAsc') {
-        orderBy = {
-          basePrice: 'asc',
-        }
-      }
-
-      if (filters.sort === 'priceDesc') {
-        orderBy = {
-          basePrice: 'desc',
-        }
-      }
-
-      if (filters.sort === 'featured') {
-        orderBy = {
-          isFeatured: 'desc',
-        }
-      }
-
-      // -----------------------------------------------
-      // DATABASE
-      // -----------------------------------------------
-
-      const [
-        dbProducts,
-        total,
-      ] = await Promise.all([
-        prisma.product.findMany({
-          where: whereClause,
-
-          include: {
-            category: {
-              select: {
-                id: true,
-                slug: true,
-                nameAr: true,
-                nameFr: true,
-                nameEn: true,
-              },
-            },
-
-            variants: {
-              where: {
-                isActive: true,
-              },
-            },
-          },
-
-          orderBy,
-
-          skip,
-
-          take: limit,
-        }),
-
-        prisma.product.count({
-          where: whereClause,
-        }),
-      ])
-
-      // -----------------------------------------------
-      // MAP
-      // -----------------------------------------------
-
-      const items =
-        dbProducts.map((p) =>
-          this.mapToCard({
-            ...p,
-
-            basePrice:
-              Number(p.basePrice),
-
-            salePrice:
-              p.salePrice !== null
-                ? Number(p.salePrice)
-                : null,
-          }),
-        )
-
-return {
-        items,
-        total,
-        page,
-        limit,
-        totalPages:
-          Math.ceil(
-            total / limit,
-          ),
-      }
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }
   },
 
   // ====================================================
   // GET PRODUCT BY SLUG
   // ====================================================
-
-  async getProductBySlug(
-    slug: string,
-  ): Promise<Product | null> {
-
-      // -----------------------------------------------
-      // LOAD MAIN PRODUCT
-      // -----------------------------------------------
-
-      const dbProduct =
-        await prisma.product.findUnique({
+  async getProductBySlug(slug: string): Promise<Product | null> {
+    const dbProduct = await prisma.product.findUnique({
+      where: {
+        slug,
+        isActive: true,
+      },
+      include: {
+        category: true,
+        variants: {
           where: {
-            slug,
             isActive: true,
           },
+        },
+      },
+    })
 
-          include: {
-            category: true,
+    if (!dbProduct) {
+      return null
+    }
 
-            variants: {
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        })
+    let niqabProduct: NiqabProductData | null = null
+    if (dbProduct.canAddNiqab && !dbProduct.isNiqab) {
+      niqabProduct = await getNiqabProduct()
+    }
 
-      // -----------------------------------------------
-      // PRODUCT NOT FOUND
-      // -----------------------------------------------
-
-      if (!dbProduct) {
-        return null
-      }
-
-      // -----------------------------------------------
-      // LOAD NIQAB ONLY WHEN ALLOWED
-      // -----------------------------------------------
-
-      let niqabProduct:
-        NiqabProductData | null =
-        null
-
-      if (
-        dbProduct.canAddNiqab &&
-        !dbProduct.isNiqab
-      ) {
-        niqabProduct =
-          await getNiqabProduct()
-      }
-
-      // -----------------------------------------------
-      // RETURN PRODUCT
-      // -----------------------------------------------
-
-      return {
-        ...dbProduct,
-
-        basePrice:
-          Number(dbProduct.basePrice),
-
-        salePrice:
-          dbProduct.salePrice !== null
-            ? Number(
-              dbProduct.salePrice,
-            )
-            : null,
-
-        variants:
-          dbProduct.variants.map(
-            (variant) => ({
-              ...variant,
-
-              priceModifier:
-                Number(
-                  variant.priceModifier,
-                ),
-            }),
-          ),
-
-        niqabProduct:
-          niqabProduct || undefined,
-} as unknown as Product
+    return {
+      ...dbProduct,
+      basePrice: Number(dbProduct.basePrice),
+      salePrice:
+        dbProduct.salePrice !== null ? Number(dbProduct.salePrice) : null,
+      variants: dbProduct.variants.map((variant) => ({
+        ...variant,
+        priceModifier: Number(variant.priceModifier),
+      })),
+      niqabProduct: niqabProduct || undefined,
+    } as unknown as Product
   },
 
   // ====================================================
   // FEATURED PRODUCTS
   // ====================================================
-
-  async getFeaturedProducts(): Promise<
-    ProductCard[]
-  > {
-    const res =
-      await this.getProducts({
-        isFeatured: true,
-        limit: 4,
-      })
-
+  async getFeaturedProducts(): Promise<ProductCard[]> {
+    const res = await this.getProducts({
+      isFeatured: true,
+      limit: 4,
+    })
     return res.items
   },
 
   // ====================================================
   // MAP TO CARD
   // ====================================================
-
   mapToCard(p: {
     id: string
     slug: string
     nameAr: string
     nameFr: string
     nameEn: string
-
     basePrice: number | string
-    salePrice?:
-    | number
-    | string
-    | null
-
+    salePrice?: number | string | null
     mainImage: string
-
+    images?: string[]
     isFeatured: boolean
     isNiqab: boolean
     canAddNiqab: boolean
-
     category?: {
       id: string
       slug: string
@@ -455,7 +334,6 @@ return {
       nameFr: string
       nameEn: string
     } | null
-
     variants?: Array<{
       colorCode: string
       colorNameAr: string
@@ -464,105 +342,58 @@ return {
       size: string
     }>
   }): ProductCard {
-
-    const variants =
-      p.variants ?? []
+    const variants = p.variants ?? []
 
     // -----------------------------------------------
     // REAL PRODUCT COLORS
     // -----------------------------------------------
-
-    const availableColors =
-      Array.from(
-        new Map(
-          variants.map(
-            (v) => [
-              v.colorCode,
-              {
-                code:
-                  v.colorCode,
-
-                nameAr:
-                  v.colorNameAr,
-
-                nameFr:
-                  v.colorNameFr,
-
-                nameEn:
-                  v.colorNameEn,
-              },
-            ],
-          ),
-        ).values(),
-      )
+    const availableColors = Array.from(
+      new Map(
+        variants.map((v) => [
+          v.colorCode,
+          {
+            code: v.colorCode,
+            nameAr: v.colorNameAr,
+            nameFr: v.colorNameFr,
+            nameEn: v.colorNameEn,
+          },
+        ]),
+      ).values(),
+    )
 
     // -----------------------------------------------
     // REAL PRODUCT SIZES
     // -----------------------------------------------
-
-    const availableSizes =
-      Array.from(
-        new Set(
-          variants.map(
-            (v) => v.size,
-          ),
-        ),
-      ) as string[]
+    const availableSizes = Array.from(
+      new Set(variants.map((v) => v.size)),
+    ) as string[]
 
     return {
       id: p.id,
-
       slug: p.slug,
-
       nameAr: p.nameAr,
       nameFr: p.nameFr,
       nameEn: p.nameEn,
-
-      basePrice:
-        Number(p.basePrice),
-
+      basePrice: Number(p.basePrice),
       salePrice:
-        p.salePrice !== null &&
-          p.salePrice !== undefined
-          ? Number(
-            p.salePrice,
-          )
+        p.salePrice !== null && p.salePrice !== undefined
+          ? Number(p.salePrice)
           : null,
-
-      mainImage:
-        p.mainImage,
-
-      isFeatured:
-        p.isFeatured,
-
-      isNiqab:
-        p.isNiqab,
-
-      canAddNiqab:
-        p.canAddNiqab,
-
-      category:
-        p.category
-          ? {
-            id:
-              p.category.id,
-
-            slug:
-              p.category.slug,
-
-            nameAr:
-              p.category.nameAr,
-
-            nameFr:
-              p.category.nameFr,
-
-            nameEn:
-              p.category.nameEn,
+      mainImage: p.mainImage,
+      images: p.images ?? [],
+      isFeatured: p.isFeatured,
+      isNiqab: p.isNiqab,
+      canAddNiqab: p.canAddNiqab,
+      category: p.category
+        ? {
+            id: p.category.id,
+            slug: p.category.slug,
+            nameAr: p.category.nameAr,
+            nameFr: p.category.nameFr,
+            nameEn: p.category.nameEn,
           }
-          : undefined,
-
+        : undefined,
       availableColors,
-
       availableSizes,
     }
   },

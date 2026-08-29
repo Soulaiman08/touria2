@@ -1,8 +1,9 @@
-﻿'use client'
+'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { MobileFullscreenGallery } from './MobileFullscreenGallery'
 
 interface ProductGalleryProps {
   images: string[]
@@ -22,42 +23,74 @@ export function ProductGallery({
   locale,
 }: ProductGalleryProps) {
   const isRTL = locale === 'ar'
+  const [isMobile, setIsMobile] = useState(false)
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // ─── Image list ────────────────────────────────────────────────────────
-  // Only use real product images. Fallback to mainImage if images array is empty.
-  const imageList = React.useMemo(() => {
+  const imageList = useMemo(() => {
     if (images && images.length > 0) return images
     if (mainImage) return [mainImage]
     return []
   }, [images, mainImage])
 
-  const hasMultiple = imageList.length > 1
+  const n = imageList.length
+  const hasMultiple = n > 1
 
-  // ─── Current index derived from activeImage prop ────────────────────────
-  const currentIndex = React.useMemo(() => {
+  // Cloned track for seamless infinite circular loop: [last, ...items, first]
+  const trackImages = useMemo(() => {
+    if (!hasMultiple) return imageList
+    return [imageList[n - 1], ...imageList, imageList[0]]
+  }, [imageList, hasMultiple, n])
+
+  const totalSlides = trackImages.length
+
+  // Current active index in real imageList (0 .. n - 1)
+  const realIndex = useMemo(() => {
     const idx = imageList.indexOf(activeImage)
     return idx >= 0 ? idx : 0
   }, [imageList, activeImage])
 
-  // ─── Transition control ─────────────────────────────────────────────────
-  // Only enable CSS transition when user triggers navigation; external changes (color select) snap instantly.
+  // Track index inside trackImages (1 .. n for real slides, 0 and n+1 for clones)
+  const [trackIndex, setTrackIndex] = useState(realIndex + 1)
   const [animating, setAnimating] = useState(false)
-
-  // ─── Live drag offset (px) ─────────────────────────────────────────────
   const [dragOffset, setDragOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+
+  // Track last image notified to parent to prevent state synchronization collision
+  const lastNotifiedImageRef = useRef(activeImage)
+
+  // Synchronize track index only when activeImage changes externally (e.g. color selection in parent)
+  useEffect(() => {
+    if (activeImage !== lastNotifiedImageRef.current) {
+      lastNotifiedImageRef.current = activeImage
+      setTrackIndex(realIndex + 1)
+    }
+  }, [activeImage, realIndex])
+
+  // Display index for badges & thumbnails (0 .. n - 1)
+  const displayIndex = useMemo(() => {
+    if (!hasMultiple) return 0
+    return (trackIndex - 1 + n) % n
+  }, [trackIndex, n, hasMultiple])
 
   // ─── Refs ───────────────────────────────────────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null)
   const thumbnailsRef = useRef<HTMLDivElement>(null)
   const activeThumbRef = useRef<HTMLButtonElement>(null)
 
-  // Touch
+  // Touch & mouse tracking
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
   const touchIsHorizontal = useRef(false)
-
-  // Mouse drag
   const mouseStartX = useRef<number | null>(null)
   const isMouseDown = useRef(false)
 
@@ -70,38 +103,82 @@ export function ProductGallery({
         inline: 'center',
       })
     }
-  }, [currentIndex])
+  }, [displayIndex])
 
-  // ─── Navigation ────────────────────────────────────────────────────────
-  const goToIndex = useCallback(
-    (newIndex: number) => {
-      if (newIndex === currentIndex || !hasMultiple) return
-      setAnimating(true)
-      setDragOffset(0)
-      onSelectImage(imageList[newIndex])
-      // Reset animating flag after transition completes
-      setTimeout(() => setAnimating(false), 320)
-    },
-    [currentIndex, hasMultiple, imageList, onSelectImage]
-  )
+  // ─── Navigation with Infinite Loop ─────────────────────────────────────
+  const handleNext = useCallback(() => {
+    if (!hasMultiple || animating) return
+    setAnimating(true)
+    setDragOffset(0)
+
+    const nextTrackIndex = trackIndex + 1
+    setTrackIndex(nextTrackIndex)
+
+    setTimeout(() => {
+      if (nextTrackIndex >= n + 1) {
+        // Reached cloned first slide (at end) -> snap instantly without transition to real first slide (index 1)
+        setAnimating(false)
+        setTrackIndex(1)
+        lastNotifiedImageRef.current = imageList[0]
+        onSelectImage(imageList[0])
+      } else {
+        setAnimating(false)
+        const targetIdx = (nextTrackIndex - 1 + n) % n
+        lastNotifiedImageRef.current = imageList[targetIdx]
+        onSelectImage(imageList[targetIdx])
+      }
+    }, 280)
+  }, [hasMultiple, animating, trackIndex, n, onSelectImage, imageList])
 
   const handlePrevious = useCallback(() => {
-    if (!hasMultiple) return
-    const prev = currentIndex === 0 ? imageList.length - 1 : currentIndex - 1
-    goToIndex(prev)
-  }, [currentIndex, imageList.length, hasMultiple, goToIndex])
+    if (!hasMultiple || animating) return
+    setAnimating(true)
+    setDragOffset(0)
 
-  const handleNext = useCallback(() => {
-    if (!hasMultiple) return
-    const next = currentIndex === imageList.length - 1 ? 0 : currentIndex + 1
-    goToIndex(next)
-  }, [currentIndex, imageList.length, hasMultiple, goToIndex])
+    const prevTrackIndex = trackIndex - 1
+    setTrackIndex(prevTrackIndex)
+
+    setTimeout(() => {
+      if (prevTrackIndex <= 0) {
+        // Reached cloned last slide (at start) -> snap instantly without transition to real last slide (index n)
+        setAnimating(false)
+        setTrackIndex(n)
+        lastNotifiedImageRef.current = imageList[n - 1]
+        onSelectImage(imageList[n - 1])
+      } else {
+        setAnimating(false)
+        const targetIdx = (prevTrackIndex - 1 + n) % n
+        lastNotifiedImageRef.current = imageList[targetIdx]
+        onSelectImage(imageList[targetIdx])
+      }
+    }, 280)
+  }, [hasMultiple, animating, trackIndex, n, onSelectImage, imageList])
+
+  const goToThumbnail = useCallback(
+    (idx: number) => {
+      if (!hasMultiple || idx === displayIndex || animating) return
+      setAnimating(true)
+      setDragOffset(0)
+      setTrackIndex(idx + 1)
+      lastNotifiedImageRef.current = imageList[idx]
+      onSelectImage(imageList[idx])
+      setTimeout(() => setAnimating(false), 280)
+    },
+    [hasMultiple, displayIndex, animating, onSelectImage, imageList]
+  )
 
   // ─── Keyboard ────────────────────────────────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!hasMultiple) return
-    if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrevious() }
-    else if (e.key === 'ArrowRight') { e.preventDefault(); handleNext() }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      if (isRTL) handleNext()
+      else handlePrevious()
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      if (isRTL) handlePrevious()
+      else handleNext()
+    }
   }
 
   // ─── Touch handlers ─────────────────────────────────────────────────────
@@ -119,7 +196,6 @@ export function ProductGallery({
     const dy = e.touches[0].clientY - touchStartY.current
 
     if (!touchIsHorizontal.current && Math.abs(dy) > Math.abs(dx)) {
-      // Vertical scroll — release control
       setIsDragging(false)
       setDragOffset(0)
       touchStartX.current = null
@@ -140,18 +216,16 @@ export function ProductGallery({
 
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const containerWidth = containerRef.current?.offsetWidth ?? 300
-    const threshold = containerWidth * 0.18 // 18% of container width
+    const threshold = containerWidth * 0.15
 
     setIsDragging(false)
     touchStartX.current = null
     touchStartY.current = null
 
     if (Math.abs(dx) >= threshold) {
-      // Physical left swipe → next; physical right swipe → previous (same for RTL/LTR — physically intuitive)
       if (dx < 0) handleNext()
       else handlePrevious()
     } else {
-      // Not enough — snap back
       setAnimating(true)
       setDragOffset(0)
       setTimeout(() => setAnimating(false), 200)
@@ -202,14 +276,10 @@ export function ProductGallery({
   }
 
   // ─── Slide track transform ───────────────────────────────────────────────
-  // Track is n * 100% wide; each slide is (100/n)% of track = 100% of container.
-  // To show slide i: translateX(-i * (100/n)%) + dragOffset in px.
-  // Drag offset direction: positive = moving right = showing previous.
-  const n = imageList.length
-  const slideWidthPercent = n > 0 ? 100 / n : 100
-  const baseTranslate = -currentIndex * slideWidthPercent
+  const slideWidthPercent = totalSlides > 0 ? 100 / totalSlides : 100
+  const baseTranslate = -trackIndex * slideWidthPercent
   const trackTransform =
-    n > 1
+    hasMultiple
       ? `translateX(calc(${baseTranslate}% + ${dragOffset}px))`
       : 'translateX(0)'
 
@@ -240,7 +310,8 @@ export function ProductGallery({
       {/* ── Main viewer ──────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
-        className="product-main-image relative aspect-[4/5] w-full overflow-hidden rounded-2xl"
+        dir="ltr"
+        className="product-main-image relative aspect-[4/5] w-full overflow-hidden rounded-2xl cursor-pointer"
         style={{
           border: '1px solid var(--border)',
           background: 'var(--card)',
@@ -251,25 +322,31 @@ export function ProductGallery({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onClick={() => {
+          if (isMobile) {
+            setIsFullscreenOpen(true)
+          }
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       >
         {hasMultiple ? (
-          /* Slide track — all images inline */
+          /* Cloned Slide Track for Seamless Infinite Loop */
           <div
+            dir="ltr"
             className="absolute inset-0 flex h-full"
             style={{
-              width: `${n * 100}%`,
+              width: `${totalSlides * 100}%`,
               transform: trackTransform,
               transition: trackTransition,
               willChange: 'transform',
             }}
           >
-            {imageList.map((img, idx) => (
+            {trackImages.map((img, idx) => (
               <div
-                key={`slide-${idx}`}
+                key={`track-img-${idx}`}
                 className="relative h-full flex-shrink-0"
                 style={{ width: `${slideWidthPercent}%` }}
               >
@@ -279,14 +356,14 @@ export function ProductGallery({
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
-                  priority={idx === 0}
+                  priority={idx === 1}
                   draggable={false}
                 />
               </div>
             ))}
           </div>
         ) : (
-          /* Single image — plain, no slider chrome */
+          /* Single image */
           <div className="relative h-full w-full">
             <Image
               src={imageList[0]}
@@ -303,72 +380,89 @@ export function ProductGallery({
         {/* Nav arrows + counter — only when multiple images */}
         {hasMultiple && (
           <>
-            {/* ← Previous */}
+            {/* Left Button */}
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); handlePrevious() }}
-              aria-label={prevLabel}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                if (isRTL) handleNext()
+                else handlePrevious()
+              }}
+              aria-label={isRTL ? nextLabel : prevLabel}
               className="
-                absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 z-10
-                flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center
+                absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 z-30
+                flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center
                 rounded-full
-                border border-white/30 dark:border-white/20
-                bg-white/90 dark:bg-black/75
-                text-[#3a1a00] dark:text-white
-                shadow-[0_2px_8px_rgba(0,0,0,0.35)]
-                backdrop-blur-sm
+                border border-white/40 dark:border-white/20
+                bg-white/95 dark:bg-black/80
+                text-[#1A1410] dark:text-white
+                shadow-[0_4px_14px_rgba(0,0,0,0.3)]
+                backdrop-blur-md
                 transition-all duration-200
-                hover:bg-white dark:hover:bg-black/90
-                hover:border-[#C4622D]/60
+                hover:bg-white dark:hover:bg-black
+                hover:border-[#C4622D]
                 hover:text-[#C4622D] dark:hover:text-[#D4AE78]
                 hover:scale-110
                 active:scale-90
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C4622D]
+                cursor-pointer
               "
             >
-              <ChevronLeft className="h-4 w-4 sm:h-[17px] sm:w-[17px]" strokeWidth={2.5} />
+              <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
             </button>
 
-            {/* → Next */}
+            {/* Right Button */}
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); handleNext() }}
-              aria-label={nextLabel}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                if (isRTL) handlePrevious()
+                else handleNext()
+              }}
+              aria-label={isRTL ? prevLabel : nextLabel}
               className="
-                absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 z-10
-                flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center
+                absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 z-30
+                flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center
                 rounded-full
-                border border-white/30 dark:border-white/20
-                bg-white/90 dark:bg-black/75
-                text-[#3a1a00] dark:text-white
-                shadow-[0_2px_8px_rgba(0,0,0,0.35)]
-                backdrop-blur-sm
+                border border-white/40 dark:border-white/20
+                bg-white/95 dark:bg-black/80
+                text-[#1A1410] dark:text-white
+                shadow-[0_4px_14px_rgba(0,0,0,0.3)]
+                backdrop-blur-md
                 transition-all duration-200
-                hover:bg-white dark:hover:bg-black/90
-                hover:border-[#C4622D]/60
+                hover:bg-white dark:hover:bg-black
+                hover:border-[#C4622D]
                 hover:text-[#C4622D] dark:hover:text-[#D4AE78]
                 hover:scale-110
                 active:scale-90
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C4622D]
+                cursor-pointer
               "
             >
-              <ChevronRight className="h-4 w-4 sm:h-[17px] sm:w-[17px]" strokeWidth={2.5} />
+              <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
             </button>
 
             {/* Counter badge */}
             <div
+              dir="ltr"
               className="
-                absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 z-10
-                rounded-full px-1.5 py-[3px]
-                text-[10px] font-semibold leading-none tabular-nums tracking-wide
-                bg-black/65 dark:bg-black/80
+                absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 z-20
+                rounded-full px-2.5 py-1
+                text-[11px] font-semibold leading-none tabular-nums tracking-wide
+                bg-black/75 dark:bg-black/85
                 text-white
                 border border-white/20
-                shadow-[0_1px_6px_rgba(0,0,0,0.4)]
+                shadow-[0_2px_8px_rgba(0,0,0,0.4)]
               "
               style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             >
-              {currentIndex + 1}&thinsp;/&thinsp;{imageList.length}
+              {displayIndex + 1}&thinsp;/&thinsp;{n}
             </div>
           </>
         )}
@@ -383,13 +477,13 @@ export function ProductGallery({
         >
           <div className="inline-flex gap-2 sm:gap-2.5 flex-nowrap">
             {imageList.map((img, idx) => {
-              const isSelected = idx === currentIndex
+              const isSelected = idx === displayIndex
               return (
                 <button
                   key={`thumb-${idx}`}
                   ref={isSelected ? activeThumbRef : null}
                   type="button"
-                  onClick={() => goToIndex(idx)}
+                  onClick={() => goToThumbnail(idx)}
                   aria-label={`${productName} ${idx + 1}`}
                   aria-current={isSelected ? 'true' : undefined}
                   className="relative flex-shrink-0 overflow-hidden rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C4622D]"
@@ -415,6 +509,18 @@ export function ProductGallery({
             })}
           </div>
         </div>
+      )}
+
+      {/* ── Mobile Fullscreen Gallery (Mobile Only + Product Detail Page Only) ── */}
+      {isMobile && (
+        <MobileFullscreenGallery
+          images={imageList}
+          initialIndex={displayIndex}
+          isOpen={isFullscreenOpen}
+          onClose={() => setIsFullscreenOpen(false)}
+          productName={productName}
+          locale={locale}
+        />
       )}
     </div>
   )

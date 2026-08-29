@@ -110,6 +110,7 @@ export interface ProductCard {
   salePrice?: number | null
 
   mainImage: string
+  images?: string[]
 
   isFeatured: boolean
   isNiqab: boolean

@@ -5,6 +5,7 @@ import { bannerService } from '@/services/banner.service'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
 import { ProductCard } from '@/components/shared/ProductCard'
+import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,9 +56,9 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   const isRTL = locale === 'ar'
 
-  const [featured, newest, banners, settings] = await Promise.all([
+  const [featured, newestResponse, banners, settings] = await Promise.all([
     productService.getFeaturedProducts(),
-    productService.getProducts({ sort: 'newest', limit: 4 }).then(r => r.items),
+    productService.getProducts({ sort: 'newest', limit: 8 }),
     bannerService.getActiveBanners(),
     getSiteSettings(),
   ])
@@ -790,26 +791,17 @@ export default async function HomePage({ params }: HomePageProps) {
             </Link>
           </div>
 
-          {newest.length === 0 ? (
+          {newestResponse.items.length === 0 ? (
             <EmptyState message={labels.empty} />
           ) : (
-            <div
-              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6"
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              {newest.map((p, i) => (
-                <div
-                  key={p.id}
-                  className="animate-fade-in-up"
-                  style={{
-                    animationDelay: `${i * 60}ms`,
-                    animationFillMode: 'both',
-                  }}
-                >
-                  <ProductCard product={p} locale={locale} isNew />
-                </div>
-              ))}
-            </div>
+            <InfiniteProductGrid
+              initialProducts={newestResponse.items}
+              initialTotal={newestResponse.total}
+              locale={locale}
+              filters={{ sort: 'newest' }}
+              isNew
+              gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6"
+            />
           )}
         </div>
       </section>
