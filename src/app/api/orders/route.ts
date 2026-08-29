@@ -17,10 +17,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  console.info('[API_ORDERS] Handling incoming POST /api/orders request')
   let body: unknown
   try {
     body = await request.json()
   } catch {
+    console.error('[API_ORDERS] Failed to parse request JSON body')
     return NextResponse.json(
       { success: false, error: 'Invalid request body' },
       { status: 400 },
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
     // Validate checkout form values
     const validationResult = checkoutSchema.safeParse((body as { formData?: unknown }).formData)
     if (!validationResult.success) {
+      console.warn('[API_ORDERS] Form validation failed for submitted fields')
       return NextResponse.json(
         { success: false, error: 'Invalid form data fields submitted' },
         { status: 400 },
@@ -43,6 +46,8 @@ export async function POST(request: Request) {
       ...(body as Parameters<typeof orderService.createOrder>[0]),
       customerId: customer?.id ?? null,
     })
+    console.info('[API_ORDERS] Order created in DB:', { success: result.success, orderId: result.order?.id, orderNumber: result.order?.orderNumber })
+
     const response = NextResponse.json(result)
     if (result.success && result.order?.id) {
       response.cookies.set(`order_access_${result.order.id}`, signOrderAccessToken(result.order.id), {
@@ -55,11 +60,13 @@ export async function POST(request: Request) {
 
       // Dispatch emails (customer confirmation + admin notification)
       try {
+        console.info(`[API_ORDERS] Fetching full order #${result.order.orderNumber} (ID: ${result.order.id}) for email dispatch...`)
         const fullOrder = await orderService.getOrderById(result.order.id)
         if (fullOrder) {
           // 1. Dispatch order confirmation email if customer provided an email address
           if (fullOrder.customerEmail?.trim()) {
             try {
+              console.info(`[API_ORDERS] Triggering sendOrderConfirmationEmail for order #${fullOrder.orderNumber}`)
               await sendOrderConfirmationEmail(fullOrder)
             } catch (emailErr) {
               console.error(
@@ -68,10 +75,13 @@ export async function POST(request: Request) {
                 emailErr instanceof Error ? emailErr.message : emailErr,
               )
             }
+          } else {
+            console.info(`[API_ORDERS] Skipping customer confirmation email (no email provided) for order #${fullOrder.orderNumber}`)
           }
 
           // 2. Dispatch admin order notification email to ORDER_NOTIFICATION_EMAIL
           try {
+            console.info(`[API_ORDERS] Triggering sendOrderNotificationEmail for order #${fullOrder.orderNumber}`)
             await sendOrderNotificationEmail(fullOrder)
           } catch (adminEmailErr) {
             console.error(

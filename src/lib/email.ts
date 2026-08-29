@@ -33,10 +33,13 @@ export function getEmailFromAddress(): string {
 
 /**
  * Returns the configured admin order notification email address from environment variables.
- * Checks ORDER_NOTIFICATION_EMAIL first, then ADMIN_EMAIL as fallback.
+ * Checks ORDER_NOTIFICATION_EMAIL first, then ADMIN_EMAIL or ADMIN_NOTIFICATION_EMAIL as fallback.
  */
 export function getOrderNotificationEmail(): string | null {
-  const email = process.env.ORDER_NOTIFICATION_EMAIL?.trim() || process.env.ADMIN_EMAIL?.trim()
+  const email =
+    process.env.ORDER_NOTIFICATION_EMAIL?.trim() ||
+    process.env.ADMIN_EMAIL?.trim() ||
+    process.env.ADMIN_NOTIFICATION_EMAIL?.trim()
   return email || null
 }
 
