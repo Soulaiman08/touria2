@@ -3,7 +3,7 @@ import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
 import { signOrderAccessToken } from '@/lib/auth'
 import { getCurrentCustomer } from '@/lib/customer-auth'
-import { sendOrderConfirmationEmail } from '@/lib/email'
+import { sendOrderConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email'
 
 export async function GET() {
   /*
@@ -53,21 +53,40 @@ export async function POST(request: Request) {
         path: '/',
       })
 
-      // Dispatch order confirmation email if customer provided an email address
-      const customerEmail = (body as { formData?: { customerEmail?: string } })?.formData?.customerEmail?.trim()
-      if (customerEmail) {
-        try {
-          const fullOrder = await orderService.getOrderById(result.order.id)
-          if (fullOrder) {
-            await sendOrderConfirmationEmail(fullOrder)
+      // Dispatch emails (customer confirmation + admin notification)
+      try {
+        const fullOrder = await orderService.getOrderById(result.order.id)
+        if (fullOrder) {
+          // 1. Dispatch order confirmation email if customer provided an email address
+          if (fullOrder.customerEmail?.trim()) {
+            try {
+              await sendOrderConfirmationEmail(fullOrder)
+            } catch (emailErr) {
+              console.error(
+                '[ORDER_EMAIL] Failed to send customer confirmation email for order:',
+                result.order.id,
+                emailErr instanceof Error ? emailErr.message : emailErr,
+              )
+            }
           }
-        } catch (emailErr) {
-          console.error(
-            '[ORDER_EMAIL] Failed to send order confirmation email for order:',
-            result.order.id,
-            emailErr instanceof Error ? emailErr.message : emailErr,
-          )
+
+          // 2. Dispatch admin order notification email to ORDER_NOTIFICATION_EMAIL
+          try {
+            await sendOrderNotificationEmail(fullOrder)
+          } catch (adminEmailErr) {
+            console.error(
+              '[ORDER_EMAIL] Failed to send admin notification email for order:',
+              result.order.id,
+              adminEmailErr instanceof Error ? adminEmailErr.message : adminEmailErr,
+            )
+          }
         }
+      } catch (fetchErr) {
+        console.error(
+          '[ORDER_EMAIL] Failed to retrieve full order for email dispatch:',
+          result.order.id,
+          fetchErr instanceof Error ? fetchErr.message : fetchErr,
+        )
       }
     }
     return response
