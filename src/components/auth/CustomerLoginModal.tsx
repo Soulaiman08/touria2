@@ -13,11 +13,13 @@ export function CustomerLoginModal({ locale }: CustomerLoginModalProps) {
   const pathname = usePathname()
   const { isLoginModalOpen, closeLoginModal } = useCustomerAuth()
 
-  // Prevent overlay on dedicated login/signup/admin pages to avoid redundant UI
+  // Prevent overlay on dedicated login/signup/admin/account pages to avoid redundant UI
   const isDedicatedAuthPage =
     pathname?.includes('/login') ||
     pathname?.includes('/signup') ||
-    pathname?.includes('/control-panel-ss7')
+    pathname?.includes('/control-panel-ss7') ||
+    // Account page shows its own login/signup links, so don't overlay the modal
+    pathname?.endsWith('/account')
 
   // Close on ESC key
   useEffect(() => {
