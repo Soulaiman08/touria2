@@ -3,7 +3,7 @@ import { orderService } from '@/services/order.service'
 import { checkoutSchema } from '@/lib/validations/checkout'
 import { signOrderAccessToken } from '@/lib/auth'
 import { getCurrentCustomer } from '@/lib/customer-auth'
-import { sendOrderConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 export async function GET() {
   /*
@@ -58,38 +58,17 @@ export async function POST(request: Request) {
         path: '/',
       })
 
-      // Dispatch emails (customer confirmation + admin notification)
+      // Dispatch the order confirmation email. sendOrderConfirmationEmail always
+      // sends a copy to the admin (ms3243737@gmail.com by default) and, if the
+      // customer provided an email, also sends a copy to the customer. The single
+      // admin email uses the OrderConfirmationEmail template. Failures are caught
+      // inside the function and never throw, so order creation proceeds regardless.
       try {
         console.info(`[API_ORDERS] Fetching full order #${result.order.orderNumber} (ID: ${result.order.id}) for email dispatch...`)
         const fullOrder = await orderService.getOrderById(result.order.id)
         if (fullOrder) {
-          // 1. Dispatch order confirmation email if customer provided an email address
-          if (fullOrder.customerEmail?.trim()) {
-            try {
-              console.info(`[API_ORDERS] Triggering sendOrderConfirmationEmail for order #${fullOrder.orderNumber}`)
-              await sendOrderConfirmationEmail(fullOrder)
-            } catch (emailErr) {
-              console.error(
-                '[ORDER_EMAIL_CUSTOMER] Failed to send customer confirmation email for order:',
-                result.order.id,
-                emailErr instanceof Error ? emailErr.message : emailErr,
-              )
-            }
-          } else {
-            console.info(`[API_ORDERS] Skipping customer confirmation email (no email provided) for order #${fullOrder.orderNumber}`)
-          }
-
-          // 2. Dispatch admin order notification email to ORDER_NOTIFICATION_EMAIL
-          try {
-            console.info(`[API_ORDERS] Triggering sendOrderNotificationEmail for order #${fullOrder.orderNumber}`)
-            await sendOrderNotificationEmail(fullOrder)
-          } catch (adminEmailErr) {
-            console.error(
-              '[ORDER_EMAIL_ADMIN] Failed to send admin notification email for order:',
-              result.order.id,
-              adminEmailErr instanceof Error ? adminEmailErr.message : adminEmailErr,
-            )
-          }
+          await sendOrderConfirmationEmail(fullOrder)
+          console.info(`[API_ORDERS] Confirmation email dispatch complete for order #${fullOrder.orderNumber} (customer email: ${fullOrder.customerEmail?.trim() || 'SKIPPED'})`)
         } else {
           console.warn('[ORDER_EMAIL] Order created but could not retrieve fullOrder for email dispatch:', result.order.id)
         }

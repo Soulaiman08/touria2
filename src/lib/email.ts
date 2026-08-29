@@ -1,7 +1,6 @@
 import { Resend } from 'resend'
 import type { Order } from '@/types/order'
 import { renderOrderConfirmationEmail } from '@/emails/OrderConfirmationEmail'
-import { renderOrderNotificationEmail } from '@/emails/OrderNotificationEmail'
 
 // Lazy-initialized Resend client singleton
 let resendClient: Resend | null = null
@@ -32,15 +31,12 @@ export function getEmailFromAddress(): string {
 }
 
 /**
- * Returns the configured admin order notification email address from environment variables.
- * Checks ORDER_NOTIFICATION_EMAIL first, then ADMIN_EMAIL or ADMIN_NOTIFICATION_EMAIL as fallback.
+ * Returns the admin email address that should always receive a copy of the
+ * order confirmation email. Reads ORDER_NOTIFICATION_EMAIL from the
+ * environment and falls back to the default admin mailbox.
  */
-export function getOrderNotificationEmail(): string | null {
-  const email =
-    process.env.ORDER_NOTIFICATION_EMAIL?.trim() ||
-    process.env.ADMIN_EMAIL?.trim() ||
-    process.env.ADMIN_NOTIFICATION_EMAIL?.trim()
-  return email || null
+export function getOrderNotificationEmail(): string {
+  return process.env.ORDER_NOTIFICATION_EMAIL?.trim() || 'ms3243737@gmail.com'
 }
 
 export interface SendEmailResult {
@@ -50,114 +46,77 @@ export interface SendEmailResult {
 }
 
 /**
- * Sends order confirmation email via Resend to the customer.
- * 
- * Safety guarantees:
- * - Does not throw unhandled exceptions.
- * - Does not leak API keys or secrets in logs.
- * - Returns success: false if email cannot be sent (allowing the order flow to proceed).
+ * Sends the order confirmation email (OrderConfirmationEmail template) via Resend.
+ *
+ * Recipients:
+ * - The admin (ms3243737@gmail.com by default) ALWAYS receives a copy, regardless
+ *   of whether the customer provided an email.
+ * - The customer receives a copy only if they provided an email address.
+ *
+ * Both sends are isolated in their own try/catch so a failure on one never
+ * blocks the other or throws an unhandled exception (the order flow proceeds).
+ * Each send renders the SAME OrderConfirmationEmail template from the full order.
  */
 export async function sendOrderConfirmationEmail(order: Order): Promise<SendEmailResult> {
-  const recipient = order.customerEmail?.trim()
-
-  if (!recipient) {
-    return { success: false, error: 'No recipient email specified' }
-  }
-
   const resend = getResendClient()
   if (!resend) {
-    console.warn('[EMAIL_CUSTOMER] RESEND_API_KEY is not configured in environment variables. Skipping customer email for order:', order.orderNumber)
+    console.warn('[EMAIL_CONFIRM] RESEND_API_KEY is not configured in environment variables. Skipping order confirmation emails for order:', order.orderNumber)
     return { success: false, error: 'RESEND_API_KEY is not configured' }
   }
 
+  const { subject, html } = renderOrderConfirmationEmail({ order })
+  const from = getEmailFromAddress()
+  const replyTo = process.env.EMAIL_REPLY_TO?.trim() || undefined
+  const adminEmail = getOrderNotificationEmail()
+  const customerEmail = order.customerEmail?.trim()
+
+  const results: SendEmailResult[] = []
+
+  // 1. Admin copy — always sent.
   try {
-    const { subject, html } = renderOrderConfirmationEmail({ order })
-    const from = getEmailFromAddress()
-    const replyTo = process.env.EMAIL_REPLY_TO?.trim() || undefined
-
-    const response = await resend.emails.send({
-      from,
-      to: recipient,
-      subject,
-      html,
-      replyTo,
-    })
-
-    if (response.error) {
-      console.error('[EMAIL_CUSTOMER] Resend API returned an error for order:', order.orderNumber, response.error.message)
-      return { success: false, error: response.error.message }
+    console.info(`[EMAIL_ADMIN] Dispatching confirmation for order #${order.orderNumber} to: ${adminEmail}`)
+    const adminResponse = await resend.emails.send({ from, to: adminEmail, subject, html, replyTo })
+    if (adminResponse.error) {
+      results.push({ success: false, error: adminResponse.error.message })
+      console.error('[EMAIL_ADMIN] Resend API returned an error for order:', order.orderNumber, adminResponse.error.message)
+    } else {
+      results.push({ success: true, id: adminResponse.data?.id })
+      console.info('[EMAIL_ADMIN] Successfully dispatched admin confirmation for order:', order.orderNumber, 'Message ID:', adminResponse.data?.id)
     }
-
-    console.info('[EMAIL_CUSTOMER] Successfully dispatched customer confirmation for order:', order.orderNumber, 'Message ID:', response.data?.id)
-    return { success: true, id: response.data?.id }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown email dispatch error'
-    console.error('[EMAIL_CUSTOMER] Failed to dispatch order confirmation email for order:', order.orderNumber, errorMsg)
-    return { success: false, error: errorMsg }
-  }
-}
-
-/**
- * Sends a detailed order notification email via Resend to the admin (ORDER_NOTIFICATION_EMAIL).
- * 
- * Safety guarantees:
- * - Reads ORDER_NOTIFICATION_EMAIL from environment variables.
- * - Does not throw unhandled exceptions (failure does not block order creation).
- * - Safe logging without leaking API keys or secrets.
- * - Independent from the customer email flow.
- */
-export async function sendOrderNotificationEmail(order: Order): Promise<SendEmailResult> {
-  const isConfigured = Boolean(getOrderNotificationEmail())
-  console.info(`[ORDER_EMAIL_ADMIN] [Step 1/5] Checking configuration: ORDER_NOTIFICATION_EMAIL configured: ${isConfigured}`)
-
-  const recipient = getOrderNotificationEmail()
-
-  if (!recipient) {
-    console.warn(`[ORDER_EMAIL_ADMIN] [ABORT] ORDER_NOTIFICATION_EMAIL is not configured in environment variables. Skipping admin notification for order #${order.orderNumber}`)
-    return { success: false, error: 'ORDER_NOTIFICATION_EMAIL is not configured' }
+    results.push({ success: false, error: errorMsg })
+    console.error('[EMAIL_ADMIN] Failed to dispatch admin confirmation for order:', order.orderNumber, errorMsg)
   }
 
-  const resend = getResendClient()
-  if (!resend) {
-    console.warn(`[ORDER_EMAIL_ADMIN] [ABORT] RESEND_API_KEY is not configured in environment variables. Skipping admin notification for order #${order.orderNumber}`)
-    return { success: false, error: 'RESEND_API_KEY is not configured' }
-  }
-
-  try {
-    console.info(`[ORDER_EMAIL_ADMIN] [Step 2/5] Rendering admin HTML template for order #${order.orderNumber}...`)
-    const { subject, html } = renderOrderNotificationEmail({ order })
-    console.info(`[ORDER_EMAIL_ADMIN] [Step 3/5] Admin HTML template rendered successfully (Subject: "${subject}", Length: ${html.length} chars)`)
-
-    const from = getEmailFromAddress()
-    const replyTo = order.customerEmail?.trim() || process.env.EMAIL_REPLY_TO?.trim() || undefined
-
-    console.info(`[ORDER_EMAIL_ADMIN] [Step 4/5] Calling resend.emails.send() with From: "${from}", To: "${recipient}"...`)
-    const response = await resend.emails.send({
-      from,
-      to: recipient,
-      subject,
-      html,
-      replyTo,
-    })
-
-    if (response.error) {
-      console.error(`[ORDER_EMAIL_ADMIN] [Step 5/5] Resend API Error:`, {
-        orderNumber: order.orderNumber,
-        name: response.error.name,
-        message: response.error.message,
-        statusCode: (response.error as { statusCode?: number })?.statusCode,
-      })
-      return { success: false, error: response.error.message }
+  // 2. Customer copy — only when the customer provided an email.
+  if (!customerEmail) {
+    console.info('[EMAIL_CUSTOMER] Skipping customer confirmation (no email provided) for order:', order.orderNumber)
+  } else {
+    try {
+      console.info(`[EMAIL_CUSTOMER] Dispatching confirmation for order #${order.orderNumber} to: ${customerEmail}`)
+      const customerResponse = await resend.emails.send({ from, to: customerEmail, subject, html, replyTo })
+      if (customerResponse.error) {
+        results.push({ success: false, error: customerResponse.error.message })
+        console.error('[EMAIL_CUSTOMER] Resend API returned an error for order:', order.orderNumber, customerResponse.error.message)
+      } else {
+        results.push({ success: true, id: customerResponse.data?.id })
+        console.info('[EMAIL_CUSTOMER] Successfully dispatched customer confirmation for order:', order.orderNumber, 'Message ID:', customerResponse.data?.id)
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown email dispatch error'
+      results.push({ success: false, error: errorMsg })
+      console.error('[EMAIL_CUSTOMER] Failed to dispatch customer confirmation for order:', order.orderNumber, errorMsg)
     }
+  }
 
-    console.info(`[ORDER_EMAIL_ADMIN] [Step 5/5] Resend API Success: Email dispatched for order #${order.orderNumber} | Resend Message ID: ${response.data?.id}`)
-    return { success: true, id: response.data?.id }
-  } catch (error) {
-    const errorDetails = error instanceof Error
-      ? { name: error.name, message: error.message, stack: error.stack }
-      : { message: String(error) }
-    console.error(`[ORDER_EMAIL_ADMIN] [FAIL] Unexpected exception in sendOrderNotificationEmail for order #${order.orderNumber}:`, errorDetails)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  const successful = results.find((r) => r.success)
+  if (successful) {
+    return { success: true, id: successful.id }
+  }
+  return {
+    success: false,
+    error: results.map((r) => r.error).filter(Boolean).join('; ') || 'Order confirmation email dispatch failed',
   }
 }
 
