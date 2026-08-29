@@ -24,7 +24,7 @@ export default function AccountPage({ params }: AccountPageProps) {
   const { locale } = use(params)
   const router = useRouter()
   const isRTL = locale === 'ar'
-  const { logout: authLogout, openLoginModal } = useCustomerAuth()
+  const { logout: authLogout } = useCustomerAuth()
 
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<CustomerUser | null>(null)
@@ -181,9 +181,8 @@ export default function AccountPage({ params }: AccountPageProps) {
           <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--foreground)', marginBottom: 8 }}>{t('signInTitle')}</h2>
           <p style={{ fontSize: 13, color: 'var(--muted-foreground)', maxWidth: 320, margin: '0 auto', lineHeight: 1.6 }}>{t('signInDesc')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 24 }}>
-            <button
-              type="button"
-              onClick={openLoginModal}
+            <Link
+              href={`/${locale}/login`}
               style={{
                 height: 48,
                 width: '100%',
@@ -198,10 +197,11 @@ export default function AccountPage({ params }: AccountPageProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                textDecoration: 'none',
               }}
             >
               {t('signIn')}
-            </button>
+            </Link>
             <Link
               href={`/${locale}/signup`}
               style={{
