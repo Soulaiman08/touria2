@@ -168,16 +168,17 @@ export function ProductGallery({
   )
 
   // ─── Keyboard ────────────────────────────────────────────────────────
+  // Logical navigation is direction-agnostic: ArrowLeft always goes to the
+  // previous image, ArrowRight always to the next. Only the visual arrow
+  // placement/rotation is mirrored for RTL, never the order logic.
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!hasMultiple) return
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      if (isRTL) handleNext()
-      else handlePrevious()
+      handlePrevious()
     } else if (e.key === 'ArrowRight') {
       e.preventDefault()
-      if (isRTL) handlePrevious()
-      else handleNext()
+      handleNext()
     }
   }
 
@@ -310,7 +311,7 @@ export function ProductGallery({
       {/* ── Main viewer ──────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
-        dir="ltr"
+        dir={isRTL ? 'rtl' : 'ltr'}
         className="product-main-image relative aspect-[4/5] w-full overflow-hidden rounded-2xl cursor-pointer"
         style={{
           border: '1px solid var(--border)',
@@ -336,7 +337,7 @@ export function ProductGallery({
           /* Cloned Slide Track for Seamless Infinite Loop */
           <div
             dir="ltr"
-            className="absolute inset-0 flex h-full"
+            className="absolute inset-y-0 left-0 flex h-full"
             style={{
               width: `${totalSlides * 100}%`,
               transform: trackTransform,
@@ -356,7 +357,9 @@ export function ProductGallery({
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
-                  priority={idx === 1}
+                  {...(idx === displayIndex + 1
+                    ? { preload: true }
+                    : { loading: 'lazy' as const })}
                   draggable={false}
                 />
               </div>
@@ -371,7 +374,7 @@ export function ProductGallery({
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover"
-              priority
+              preload
               draggable={false}
             />
           </div>
@@ -380,7 +383,8 @@ export function ProductGallery({
         {/* Nav arrows + counter — only when multiple images */}
         {hasMultiple && (
           <>
-            {/* Left Button */}
+            {/* Left/Previous Button — always goes to the previous image;
+                only its position and icon are mirrored for RTL */}
             <button
               type="button"
               onMouseDown={(e) => e.stopPropagation()}
@@ -389,11 +393,10 @@ export function ProductGallery({
               onClick={(e) => {
                 e.stopPropagation()
                 e.preventDefault()
-                if (isRTL) handleNext()
-                else handlePrevious()
+                handlePrevious()
               }}
-              aria-label={isRTL ? nextLabel : prevLabel}
-              className="
+              aria-label={prevLabel}
+              className={`
                 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 z-30
                 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center
                 rounded-full
@@ -409,12 +412,13 @@ export function ProductGallery({
                 hover:scale-110
                 active:scale-90
                 cursor-pointer
-              "
+              `}
             >
               <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
             </button>
 
-            {/* Right Button */}
+            {/* Right/Next Button — always goes to the next image;
+                only its position and icon are mirrored for RTL */}
             <button
               type="button"
               onMouseDown={(e) => e.stopPropagation()}
@@ -423,11 +427,10 @@ export function ProductGallery({
               onClick={(e) => {
                 e.stopPropagation()
                 e.preventDefault()
-                if (isRTL) handlePrevious()
-                else handleNext()
+                handleNext()
               }}
-              aria-label={isRTL ? prevLabel : nextLabel}
-              className="
+              aria-label={nextLabel}
+              className={`
                 absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 z-30
                 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center
                 rounded-full
@@ -443,7 +446,7 @@ export function ProductGallery({
                 hover:scale-110
                 active:scale-90
                 cursor-pointer
-              "
+              `}
             >
               <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
             </button>
