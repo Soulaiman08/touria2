@@ -237,7 +237,7 @@ export function MobileFullscreenGallery({
       role="dialog"
       aria-modal="true"
       aria-label={productName}
-      className="fixed inset-0 z-[9999] bg-black select-none flex flex-col"
+      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm select-none flex flex-col"
       dir={isRTL ? 'rtl' : 'ltr'}
       style={{ animation: 'fadeIn 0.15s ease-out' }}
     >
