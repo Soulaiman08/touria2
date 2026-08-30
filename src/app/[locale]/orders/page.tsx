@@ -21,6 +21,7 @@ import {
   MapPin,
   AlertCircle,
   SearchX,
+  Phone,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
@@ -182,6 +183,7 @@ export default function OrdersPage({ params }: OrdersPageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [searchOrderNumber, setSearchOrderNumber] = useState('')
+  const [searchPhone, setSearchPhone] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchResult, setSearchResult] = useState<Order | null>(null)
   const [searchNotFound, setSearchNotFound] = useState(false)
@@ -189,6 +191,7 @@ export default function OrdersPage({ params }: OrdersPageProps) {
   const [searching, setSearching] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const phoneInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (authLoading) return
@@ -226,6 +229,7 @@ export default function OrdersPage({ params }: OrdersPageProps) {
   const closeSearch = useCallback(() => {
     setSearchOpen(false)
     setSearchOrderNumber('')
+    setSearchPhone('')
     setSearchResult(null)
     setSearchNotFound(false)
     setSearchError(false)
@@ -269,15 +273,24 @@ export default function OrdersPage({ params }: OrdersPageProps) {
           setSearchNotFound(true)
         }
       } else {
-        const res = await fetch(`/api/orders/${encodeURIComponent(trimmed)}`, { cache: 'no-store' })
+        const phoneTrimmed = searchPhone.trim()
+        if (!phoneTrimmed) {
+          setSearchOpen(true)
+          if (phoneInputRef.current) phoneInputRef.current.focus()
+          setSearching(false)
+          return
+        }
+        const res = await fetch('/api/orders/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderNumber: trimmed, phone: phoneTrimmed }),
+          cache: 'no-store',
+        })
         if (res.ok) {
-          const data = await res.json()
-          if (data?.order) {
-            router.push(`/${locale}/orders/${trimmed}`)
-          } else {
-            setSearchNotFound(true)
-          }
+          router.push(`/${locale}/orders/${trimmed}`)
         } else if (res.status === 404) {
+          setSearchNotFound(true)
+        } else if (res.status === 429) {
           setSearchNotFound(true)
         } else {
           setSearchError(true)
@@ -326,9 +339,10 @@ export default function OrdersPage({ params }: OrdersPageProps) {
       trackSectionBtn: 'تتبع طلبك',
       welcome: 'مرحباً،',
       searchNoResults: 'لا توجد نتيجة',
-      searchNoResultsDesc: 'لم نتمكن من العثور على طلب بهذا الرقم. تأكد من رقم الطلب وحاول مرة أخرى.',
+      searchNoResultsDesc: 'لم نتمكن من العثور على طلب يطابق رقم الطلب ورقم الهاتف المُدخلين. تأكد من البيانات وحاول مرة أخرى.',
       searchError: 'حدث خطأ أثناء البحث',
       searchPlaceholder: 'أدخلي رقم الطلب...',
+      trackPhonePlaceholder: 'أدخلي رقم الهاتف المستخدم في الطلب...',
     },
     fr: {
       title: 'Mes Commandes',
@@ -359,9 +373,10 @@ export default function OrdersPage({ params }: OrdersPageProps) {
       trackSectionBtn: 'Suivre votre commande',
       welcome: 'Bonjour,',
       searchNoResults: 'Aucun résultat',
-      searchNoResultsDesc: 'Nous n\'avons trouvé aucune commande avec ce numéro. Vérifiez le numéro et réessayez.',
+      searchNoResultsDesc: 'Nous n\'avons trouvé aucune commande correspondant au numéro de commande et au numéro de téléphone saisis. Vérifiez vos informations et réessayez.',
       searchError: 'Une erreur s\'est produite lors de la recherche',
       searchPlaceholder: 'Entrez le numéro de commande...',
+      trackPhonePlaceholder: 'Entrez le numéro de téléphone utilisé pour la commande...',
     },
     en: {
       title: 'My Orders',
@@ -392,9 +407,10 @@ export default function OrdersPage({ params }: OrdersPageProps) {
       trackSectionBtn: 'Track Your Order',
       welcome: 'Hello,',
       searchNoResults: 'No results found',
-      searchNoResultsDesc: 'We couldn\'t find an order with that number. Please check the order number and try again.',
+      searchNoResultsDesc: 'We couldn\'t find an order matching the order number and phone number. Please check your details and try again.',
       searchError: 'An error occurred while searching',
       searchPlaceholder: 'Enter order number...',
+      trackPhonePlaceholder: 'Enter the phone number used for the order...',
     },
   }
 
@@ -514,7 +530,7 @@ export default function OrdersPage({ params }: OrdersPageProps) {
         {/* ── Quick Lookup Box ──────────────────────────────────────── */}
         <div id="order-lookup" style={{ padding: '18px 22px', background: 'var(--bg-subtle)' }}>
           <div ref={searchRef}>
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5" style={{ position: 'relative' }}>
+            <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5" style={{ position: 'relative' }}>
               <div
                 style={{
                   display: 'flex',
@@ -588,9 +604,48 @@ export default function OrdersPage({ params }: OrdersPageProps) {
                 )}
               </div>
 
+              {searchOpen && !isLoggedIn && (
+                <div className="relative w-full" style={{ flex: '1 1 100%' }}>
+                  <Phone
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      [isRTL ? 'right' : 'left']: 14,
+                      width: 16,
+                      height: 16,
+                      color: 'var(--muted-foreground)',
+                      zIndex: 1,
+                    }}
+                  />
+                  <input
+                    ref={phoneInputRef}
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={searchPhone}
+                    onChange={(e) => { setSearchPhone(e.target.value); setSearchNotFound(false); setSearchError(false) }}
+                    onKeyDown={handleSearchKeyDown}
+                    placeholder={t.trackPhonePlaceholder}
+                    style={{
+                      width: '100%',
+                      padding: '11px 16px',
+                      paddingLeft: isRTL ? 16 : 40,
+                      paddingRight: isRTL ? 40 : 16,
+                      borderRadius: 12,
+                      border: '1px solid var(--border)',
+                      background: 'var(--card)',
+                      color: 'var(--foreground)',
+                      fontSize: 13,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={searching || (searchOpen && !searchOrderNumber.trim())}
+                disabled={searching || (searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim())))}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -603,10 +658,10 @@ export default function OrdersPage({ params }: OrdersPageProps) {
                   fontSize: 13,
                   fontWeight: 800,
                   border: 'none',
-                  cursor: searching || (searchOpen && !searchOrderNumber.trim()) ? 'not-allowed' : 'pointer',
+                  cursor: searching || (searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim()))) ? 'not-allowed' : 'pointer',
                   boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
                   whiteSpace: 'nowrap',
-                  opacity: searchOpen && !searchOrderNumber.trim() ? 0.5 : 1,
+                  opacity: searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim())) ? 0.5 : 1,
                   transition: 'padding 0.3s ease, opacity 0.2s',
                   flexShrink: 0,
                 }}

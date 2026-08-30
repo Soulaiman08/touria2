@@ -20,6 +20,8 @@ interface CustomerItem {
   email: string
   city: string
   address: string
+  avatarUrl?: string | null
+  isGuest?: boolean
   totalSpent: number
   ordersCount: number
   lastOrderDate: string
@@ -30,6 +32,13 @@ interface CustomerItem {
     status: string
     createdAt: string
   }[]
+}
+
+function guestLabel(): string {
+  const lang = typeof navigator !== 'undefined' ? (navigator.language || '').toLowerCase() : ''
+  if (lang.startsWith('ar')) return '(ضيف)'
+  if (lang.startsWith('fr')) return '(Invité)'
+  return '(Guest)'
 }
 
 function CustomersContent() {
@@ -153,11 +162,40 @@ function CustomersContent() {
                   <tr key={cust.id} style={{ borderBottom: '1px solid rgba(63,63,70,0.4)' }} className="hover:bg-zinc-800/30 transition-colors">
                     <td style={{ padding: '16px 18px', fontWeight: 700, color: '#fff' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>
-                          {cust.name.charAt(0).toUpperCase()}
+                        <div
+                          style={{
+                            width: 36, height: 36, borderRadius: '50%',
+                            background: cust.avatarUrl ? 'transparent' : 'rgba(245,158,11,0.15)',
+                            color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)',
+                            fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 13, flexShrink: 0, overflow: 'hidden',
+                          }}
+                        >
+                          {cust.avatarUrl ? (
+                            <img
+                              src={cust.avatarUrl}
+                              alt={cust.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                            />
+                          ) : (
+                            cust.name.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <div>{cust.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>{cust.name}</span>
+                            {cust.isGuest && (
+                              <span
+                                style={{
+                                  fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6,
+                                  background: 'rgba(113,113,122,0.25)', color: '#a1a1aa',
+                                  border: '1px solid rgba(113,113,122,0.4)', whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {guestLabel()}
+                              </span>
+                            )}
+                          </div>
                           {cust.email && <div style={{ fontSize: 11, color: '#71717a', fontWeight: 400 }}>{cust.email}</div>}
                         </div>
                       </div>
@@ -211,11 +249,33 @@ function CustomersContent() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#09090b', fontWeight: 900, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(245,158,11,0.25)' }}>
-                {selectedCustomer.name.charAt(0).toUpperCase()}
+              <div
+                style={{
+                  width: 56, height: 56, borderRadius: 18,
+                  background: selectedCustomer.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  color: '#09090b', fontWeight: 900, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(245,158,11,0.25)', overflow: 'hidden', flexShrink: 0,
+                }}
+              >
+                {selectedCustomer.avatarUrl ? (
+                  <img
+                    src={selectedCustomer.avatarUrl}
+                    alt={selectedCustomer.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  selectedCustomer.name.charAt(0).toUpperCase()
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{selectedCustomer.name}</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {selectedCustomer.name}
+                  {selectedCustomer.isGuest && (
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 8, background: 'rgba(113,113,122,0.25)', color: '#a1a1aa', border: '1px solid rgba(113,113,122,0.4)' }}>
+                      {guestLabel()}
+                    </span>
+                  )}
+                </h2>
                 <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>Customer Profile & Transaction Summary</p>
               </div>
             </div>

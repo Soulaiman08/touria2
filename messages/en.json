@@ -329,6 +329,7 @@
     "trackSectionTitle": "How can I track my order?",
     "trackSectionDesc": "You can easily track your order by visiting the order tracking page and entering your order number to know the current preparation and shipping stage.",
     "trackSectionBtn": "Track Your Order",
-    "welcome": "Hello,"
+    "welcome": "Hello,",
+    "guestLabel": "(Guest)"
   }
 }

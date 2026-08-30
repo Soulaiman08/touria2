@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, use, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Package, PackageX } from 'lucide-react'
@@ -45,6 +45,61 @@ export default function AccountOrdersPage({ params }: AccountOrdersPageProps) {
 
   const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState<OrderListItem[] | null>(null)
+
+  const [claimOpen, setClaimOpen] = useState(false)
+  const [claimOrderNumber, setClaimOrderNumber] = useState('')
+  const [claimPhone, setClaimPhone] = useState('')
+  const [claimBusy, setClaimBusy] = useState(false)
+  const [claimMsg, setClaimMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  const claimT = (key: string): string => {
+    const map: Record<string, [string, string, string]> = {
+      title: ['ربط طلب زائر', 'Lier une commande invité', 'Claim a guest order'],
+      desc: ['هل لديك طلب سابق قمت به كزائر؟ اربطه بحسابك بواسطة رقم الطلب والهاتف.', 'Avez-vous une commande passée en tant qu\'invité ? Liez-la à votre compte avec le numéro de commande et le téléphone.', 'Had a guest order before? Link it to your account with your order number and phone.'],
+      orderNum: ['رقم الطلب', 'N° de commande', 'Order number'],
+      phone: ['الهاتف المستخدم في الطلب', 'Téléphone utilisé', 'Phone used on the order'],
+      submit: ['ربط الطلب', 'Lier la commande', 'Link order'],
+      toggle: ['ربط طلب قديم', 'Lier une ancienne commande', 'Link an old order'],
+      success: ['تم ربط الطلب بحسابك بنجاح', 'Commande liée à votre compte', 'Order linked to your account'],
+      fail: ['تعذّر التحقق. تحقق من رقم الطلب والهاتف.', 'Impossible de vérifier. Vérifiez le numéro et le téléphone.', 'Unable to verify. Check the order number and phone.'],
+      busy: ['جاري التحقق...', 'Vérification...', 'Verifying...'],
+      err: ['حدث خطأ، حاول مجدداً لاحقاً.', 'Une erreur est survenue.', 'Something went wrong, try later.'],
+    }
+    const e = map[key]
+    if (!e) return key
+    return locale === 'ar' ? e[0] : locale === 'fr' ? e[1] : e[2]
+  }
+
+  const submitClaim = async (ev: FormEvent) => {
+    ev.preventDefault()
+    if (!claimOrderNumber.trim() || !claimPhone.trim()) return
+    setClaimBusy(true)
+    setClaimMsg(null)
+    try {
+      const res = await fetch('/api/customer/orders/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderNumber: claimOrderNumber, phone: claimPhone }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.success) {
+        setClaimMsg({ ok: true, text: claimT('success') })
+        setClaimOrderNumber('')
+        setClaimPhone('')
+        // Refresh the order list so the newly claimed order appears.
+        fetch('/api/customer/orders', { cache: 'no-store' })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => { if (d && Array.isArray(d.orders)) setOrders(d.orders) })
+          .catch(() => {})
+      } else {
+        setClaimMsg({ ok: false, text: claimT('fail') })
+      }
+    } catch {
+      setClaimMsg({ ok: false, text: claimT('err') })
+    } finally {
+      setClaimBusy(false)
+    }
+  }
 
   const t = (key: string): string => {
     const map: Record<string, [string, string, string]> = {
@@ -130,6 +185,55 @@ export default function AccountOrdersPage({ params }: AccountOrdersPageProps) {
       </Link>
 
       <h1 className="mb-6 text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{t('title')}</h1>
+
+      {/* ── Claim a guest order ─────────────────────────────────────── */}
+      <div className="mb-6 rounded-2xl border p-5" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
+        <button
+          type="button"
+          onClick={() => { setClaimOpen((v) => !v); setClaimMsg(null) }}
+          className="flex w-full items-center justify-between text-sm font-bold"
+          style={{ color: 'var(--foreground)', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <span>{claimT('toggle')}</span>
+          <span style={{ color: '#C4622D' }}>{claimOpen ? '−' : '+'}</span>
+        </button>
+
+        {claimOpen && (
+          <form onSubmit={submitClaim} className="mt-4 space-y-3">
+            <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{claimT('desc')}</p>
+            <input
+              type="text"
+              value={claimOrderNumber}
+              onChange={(e) => setClaimOrderNumber(e.target.value)}
+              placeholder={claimT('orderNum')}
+              className="w-full rounded-xl border px-3.5 py-2.5 text-sm"
+              style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--foreground)' }}
+            />
+            <input
+              type="tel"
+              inputMode="tel"
+              value={claimPhone}
+              onChange={(e) => setClaimPhone(e.target.value)}
+              placeholder={claimT('phone')}
+              className="w-full rounded-xl border px-3.5 py-2.5 text-sm"
+              style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--foreground)' }}
+            />
+            {claimMsg && (
+              <p className="text-xs font-semibold" style={{ color: claimMsg.ok ? '#16a34a' : '#dc2626' }}>
+                {claimMsg.text}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={claimBusy}
+              className="inline-flex h-10 items-center justify-center rounded-xl px-5 text-sm font-bold text-white"
+              style={{ background: '#C4622D', opacity: claimBusy ? 0.6 : 1, border: 'none', cursor: claimBusy ? 'not-allowed' : 'pointer' }}
+            >
+              {claimBusy ? claimT('busy') : claimT('submit')}
+            </button>
+          </form>
+        )}
+      </div>
 
       {orders !== null && orders.length === 0 ? (
         <div className="rounded-2xl border p-8 text-center" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>

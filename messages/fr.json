@@ -329,6 +329,7 @@
     "trackSectionTitle": "Comment suivre ma commande ?",
     "trackSectionDesc": "Vous pouvez suivre votre commande facilement en visitant la page de suivi et en entrant votre numéro de commande pour connaître l'étape actuelle de préparation et de livraison.",
     "trackSectionBtn": "Suivre votre commande",
-    "welcome": "Bonjour,"
+    "welcome": "Bonjour,",
+    "guestLabel": "(Invité)"
   }
 }

@@ -9,6 +9,9 @@ interface CustomerRecord {
   email: string
   city: string
   address: string
+  avatarUrl?: string | null
+  isGuest: boolean
+  guestLabel?: string
   totalSpent: number
   ordersCount: number
   lastOrderDate: Date
@@ -24,27 +27,26 @@ interface CustomerRecord {
 export async function GET(request: Request) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
+
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')?.trim().toLowerCase() || ''
 
-    // Guest checkout orders do not currently have a Customer relation. Read
-    // both real data sources so saved customers and guest-order customers are
-    // represented without inventing fallback records.
-    const [savedCustomers, orders] = await prisma.$transaction([
+    // Registered customers: one row per real Customer.id, orders aggregated
+    // through the customerId relation (the authoritative link). Avatar comes
+    // from the Customer record. Never invent fallback identities.
+    const [savedCustomers, guestOrders] = await prisma.$transaction([
       prisma.customer.findMany({
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          phone: true,
-          email: true,
-          city: true,
-          address: true,
-          createdAt: true,
+        include: {
+          orders: {
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, orderNumber: true, total: true, status: true, createdAt: true },
+          },
         },
       }),
       prisma.order.findMany({
+        where: { customerId: null },
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -61,53 +63,71 @@ export async function GET(request: Request) {
       }),
     ])
 
-    const customerMap = new Map<string, CustomerRecord>()
-    for (const customer of savedCustomers) {
-      const key = (customer.phone || customer.email || customer.name).trim().toLowerCase()
-      if (!key) continue
-
-      customerMap.set(key, {
+    const customers: CustomerRecord[] = savedCustomers.map((customer) => {
+      const orders = customer.orders.map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        total: Number(o.total),
+        status: o.status as string,
+        createdAt: o.createdAt,
+      }))
+      const totalSpent = orders
+        .filter((o) => o.status !== 'CANCELLED')
+        .reduce((sum, o) => sum + Number(o.total), 0)
+      return {
         id: customer.id,
         name: customer.name,
         phone: customer.phone || '',
         email: customer.email || '',
         city: customer.city || '',
         address: customer.address || '',
-        totalSpent: 0,
-        ordersCount: 0,
-        lastOrderDate: customer.createdAt,
-        orders: [],
-      })
-    }
+        avatarUrl: customer.avatarUrl,
+        isGuest: false,
+        totalSpent,
+        ordersCount: orders.length,
+        lastOrderDate: orders.length ? orders[0].createdAt : customer.createdAt,
+        orders,
+      }
+    })
 
-    for (const order of orders) {
-      const key = (order.customerPhone || order.customerEmail || order.customerName).trim().toLowerCase()
-      if (!key) continue
-
-      if (!customerMap.has(key)) {
-        customerMap.set(key, {
-          id: `guest_${Buffer.from(key).toString('hex').slice(0, 12)}`,
-          name: order.customerName,
-          phone: order.customerPhone,
+    // Guests: no Customer record is created (customerId stays null). Orders are
+    // grouped by order phone/email so one guest with several orders is shown
+    // once, but always labelled as a guest and never confused with an account.
+    const guestMap = new Map<string, CustomerRecord>()
+    for (const order of guestOrders) {
+      // Guest identity proxy keyed by order phone/email (or the order id when
+      // the guest left no contact info). Never creates a Customer record and
+      // never merges with a registered account.
+      const key = ((order.customerPhone || order.customerEmail || '')).trim().toLowerCase() || (order.customerName || '').trim().toLowerCase()
+      const idKey = key
+        ? `guest_${Buffer.from(key).toString('hex').slice(0, 12)}`
+        : `guest_${order.id}`
+      let group = guestMap.get(idKey)
+      if (!group) {
+        group = {
+          id: idKey,
+          name: order.customerName || '',
+          phone: order.customerPhone || '',
           email: order.customerEmail || '',
-          city: order.city,
-          address: order.address,
+          city: order.city || '',
+          address: order.address || '',
+          avatarUrl: null,
+          isGuest: true,
           totalSpent: 0,
           ordersCount: 0,
           lastOrderDate: order.createdAt,
           orders: [],
-        })
+        }
+        guestMap.set(idKey, group)
       }
-
-      const customer = customerMap.get(key)!
-      customer.lastOrderDate = customer.ordersCount === 0 || order.createdAt > customer.lastOrderDate
+      group.lastOrderDate = group.ordersCount === 0 || order.createdAt > group.lastOrderDate
         ? order.createdAt
-        : customer.lastOrderDate
-      customer.ordersCount += 1
+        : group.lastOrderDate
+      group.ordersCount += 1
       if (order.status !== 'CANCELLED') {
-        customer.totalSpent += Number(order.total)
+        group.totalSpent += Number(order.total)
       }
-      customer.orders.push({
+      group.orders.push({
         id: order.id,
         orderNumber: order.orderNumber,
         total: Number(order.total),
@@ -116,9 +136,11 @@ export async function GET(request: Request) {
       })
     }
 
-    let customers = Array.from(customerMap.values())
+    const allCustomers = [...customers, ...guestMap.values()]
+
+    let result = allCustomers
     if (search) {
-      customers = customers.filter((customer) =>
+      result = result.filter((customer) =>
         customer.name.toLowerCase().includes(search) ||
         customer.phone.toLowerCase().includes(search) ||
         customer.email.toLowerCase().includes(search) ||
@@ -126,7 +148,7 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json({ customers, total: customers.length })
+    return NextResponse.json({ customers: result, total: result.length })
   } catch (error) {
     console.error('Failed to load admin customers:', error)
     return NextResponse.json({ error: 'Unable to load customers' }, { status: 500 })
