@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface MobileFullscreenGalleryProps {
@@ -223,10 +223,12 @@ export function MobileFullscreenGallery({
   const trackTransition =
     animating ? `transform ${SLIDE_MS}ms cubic-bezier(0.33, 1, 0.68, 1)` : 'none'
 
-  const prevAriaLabel =
-    locale === 'ar' ? 'الصورة السابقة' : locale === 'fr' ? 'Image précédente' : 'Previous image'
-  const nextAriaLabel =
-    locale === 'ar' ? 'الصورة التالية' : locale === 'fr' ? 'Image suivante' : 'Next image'
+  const swipeHintText =
+    locale === 'ar'
+      ? '← اسحب يمينًا أو يسارًا لتصفح الصور →'
+      : locale === 'fr'
+        ? 'Faites glisser pour parcourir les images'
+        : 'Swipe to browse images'
   const closeAriaLabel =
     locale === 'ar' ? 'إغلاق المعرض' : locale === 'fr' ? 'Fermer la galerie' : 'Close gallery'
 
@@ -235,33 +237,32 @@ export function MobileFullscreenGallery({
       role="dialog"
       aria-modal="true"
       aria-label={productName}
-      className="fixed inset-0 z-[9999] bg-black select-none touch-none"
+      className="fixed inset-0 z-[9999] bg-black select-none flex flex-col"
       dir={isRTL ? 'rtl' : 'ltr'}
       style={{ animation: 'fadeIn 0.15s ease-out' }}
     >
-      {/* ── Floating Counter Badge ─────────────────────────────────── */}
-      <div className="absolute top-8 start-6 z-40 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/70 border border-[#D4AE78]/50">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#D4AE78]" />
-        <span className="text-xs font-bold text-[#D4AE78] tracking-widest font-serif tabular-nums">
-          {displayIndex + 1} / {n}
-        </span>
+      {/* ── Header: Counter + Close ────────────────────────────────── */}
+      <div className="relative z-40 flex-shrink-0 h-16">
+        <div className="absolute top-8 start-6 inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/40">
+          <span className="text-sm text-white/90 tabular-nums">
+            {displayIndex + 1} / {n}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={closeAriaLabel}
+          className="absolute top-8 end-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/40 hover:bg-white/10 text-white/90 transition-all active:scale-90 cursor-pointer"
+        >
+          <X className="h-5 w-5" strokeWidth={1.8} />
+        </button>
       </div>
 
-      {/* ── Close Button ───────────────────────────────────────────── */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={closeAriaLabel}
-        className="absolute top-8 end-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-black/70 hover:bg-[#C4622D] text-[#FFFDF9] hover:text-white border border-[#D4AE78]/50 transition-all active:scale-90 cursor-pointer"
-      >
-        <X className="h-5 w-5" strokeWidth={2.2} />
-      </button>
-
-      {/* ── Main Viewer (3-slide window, dir is always LTR) ─────────── */}
+      {/* ── Main Viewer (3-slide window) ──────────────────────────── */}
       <div
         ref={containerRef}
         dir="ltr"
-        className="absolute inset-0 w-full h-full overflow-hidden flex items-center justify-center"
+        className="relative flex-1 min-h-0 overflow-hidden"
         style={{ touchAction: 'none' }}
       >
         <div
@@ -276,7 +277,7 @@ export function MobileFullscreenGallery({
               style={{ width: `${100 / 3}%` }}
               aria-hidden={slide.visible ? undefined : true}
             >
-              <div className="relative w-full h-full max-h-[72vh] flex items-center justify-center">
+              <div className="relative w-full h-full max-h-full flex items-center justify-center">
                 <Image
                   src={slide.src}
                   alt={productName}
@@ -291,61 +292,21 @@ export function MobileFullscreenGallery({
             </div>
           ))}
         </div>
-
-        {/* ── Previous Button ───────────────────────────────────────── */}
-        {hasMultiple && (
-          <button
-            type="button"
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              prev()
-            }}
-            aria-label={prevAriaLabel}
-            className={cn(
-              'absolute top-1/2 -translate-y-1/2 z-30',
-              'flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full',
-              'bg-[#1A1410]/80 text-[#D4AE78] border border-[#D4AE78]/50 shadow-[0_4px_18px_rgba(0,0,0,0.45)]',
-              'transition-all duration-200 active:scale-90 hover:bg-[#C4622D] hover:text-white',
-              'left-3 sm:left-5',
-            )}
-          >
-            <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
-          </button>
-        )}
-
-        {/* ── Next Button ───────────────────────────────────────────── */}
-        {hasMultiple && (
-          <button
-            type="button"
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              next()
-            }}
-            aria-label={nextAriaLabel}
-            className={cn(
-              'absolute top-1/2 -translate-y-1/2 z-30',
-              'flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full',
-              'bg-[#1A1410]/80 text-[#D4AE78] border border-[#D4AE78]/50 shadow-[0_4px_18px_rgba(0,0,0,0.45)]',
-              'transition-all duration-200 active:scale-90 hover:bg-[#C4622D] hover:text-white',
-              'right-3 sm:right-5',
-            )}
-          >
-            <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
-          </button>
-        )}
       </div>
 
-      {/* ── Miniature Thumbnails ────────────────────────────────────── */}
+      {/* ── Swipe Hint ────────────────────────────────────────────── */}
       {hasMultiple && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-2.5 max-w-[92vw] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden p-1.5">
+        <div
+          dir="auto"
+          className="flex-shrink-0 text-center py-2.5 text-[#D4AE78]/80 text-[11px] sm:text-xs pointer-events-none select-none"
+        >
+          {swipeHintText}
+        </div>
+      )}
+
+      {/* ── Thumbnails ────────────────────────────────────────────── */}
+      {hasMultiple && (
+        <div className="flex-shrink-0 flex items-center justify-center gap-2.5 py-3 px-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {images.map((img, idx) => {
             const isSelected = idx === displayIndex
             return (
@@ -356,17 +317,17 @@ export function MobileFullscreenGallery({
                 aria-label={`${productName} ${idx + 1}`}
                 aria-current={isSelected ? 'true' : undefined}
                 className={cn(
-                  'relative h-12 w-12 rounded-xl overflow-hidden flex-shrink-0 transition-all duration-200 focus:outline-none shadow-lg',
+                  'relative overflow-hidden flex-shrink-0 transition-all duration-200 focus:outline-none',
                   isSelected
-                    ? 'border-2 border-[#D4AE78] shadow-[0_0_12px_rgba(212,174,120,0.6)] scale-110 opacity-100 ring-2 ring-[#C4622D]'
-                    : 'border border-white/30 bg-black/40 opacity-55 hover:opacity-90',
+                    ? 'h-14 w-14 rounded-2xl border-2 border-[#D4AE78] shadow-[0_0_8px_rgba(212,174,120,0.4)] opacity-100'
+                    : 'h-11 w-11 rounded-xl border border-white/20 opacity-50 hover:opacity-80',
                 )}
               >
                 <Image
                   src={img}
                   alt={`${productName} ${idx + 1}`}
                   fill
-                  sizes="48px"
+                  sizes="56px"
                   className="object-cover"
                   loading="lazy"
                   draggable={false}
@@ -376,6 +337,9 @@ export function MobileFullscreenGallery({
           })}
         </div>
       )}
+
+      {/* ── Bottom Safe Area ──────────────────────────────────────── */}
+      <div className="flex-shrink-0" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
     </div>
   )
 }
