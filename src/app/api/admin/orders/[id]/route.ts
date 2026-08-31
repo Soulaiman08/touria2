@@ -64,18 +64,26 @@ export async function PATCH(
     if (!existing) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
 
     const updateData: Record<string, unknown> = {}
+    const hasNote = typeof note === 'string' && note.trim().length > 0
     const statusChanged = status && status !== existing.status
     if (statusChanged) updateData.status = status
     if (paymentStatus) updateData.paymentStatus = paymentStatus
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes
 
-    // Order status change + history entry happen atomically so the history
-    // can never be missing/duplicated relative to the order state.
+    // Order status change + history entry happen atomically. statusNote is kept
+    // separate from adminNotes and is also saved when status does not change.
     const updatedOrder = await prisma.$transaction(async (tx) => {
-      const updated = await tx.order.update({ where: { id }, data: updateData })
+      const updated =
+        Object.keys(updateData).length > 0
+          ? await tx.order.update({ where: { id }, data: updateData })
+          : existing
       if (statusChanged) {
         await tx.orderStatusHistory.create({
-          data: { orderId: id, status, note: note || `Status updated to ${status} by admin` },
+          data: { orderId: id, status, note: hasNote ? note.trim() : `Status updated to ${status} by admin` },
+        })
+      } else if (hasNote) {
+        await tx.orderStatusHistory.create({
+          data: { orderId: id, status: existing.status, note: note.trim() },
         })
       }
       return updated

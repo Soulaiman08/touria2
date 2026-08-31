@@ -215,10 +215,68 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
           </div>
         </div>
 
+        {/* ── Status History Remarks ─────────────────────────────────── */}
+        {order.statusHistory && order.statusHistory.length > 0 && (
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>
+              {locale === 'ar' ? 'سجل تحديثات الحالة' : locale === 'fr' ? 'Historique des statuts' : 'Status update history'}
+            </h3>
+            <div
+              style={{
+                borderInlineStart: '2px solid var(--border)',
+                paddingInlineStart: 16,
+                marginInlineStart: 6,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+              }}
+            >
+              {order.statusHistory.map((hist) => {
+                const stepObj = STEPS.find((s) => s.status === hist.status)
+                const statusLabel = stepObj
+                  ? (locale === 'ar' ? stepObj.labelAr : locale === 'fr' ? stepObj.labelFr : stepObj.labelEn)
+                  : hist.status === 'CANCELLED'
+                  ? (locale === 'ar' ? 'ملغى' : locale === 'fr' ? 'Annulée' : 'Cancelled')
+                  : hist.status === 'RETURNED'
+                  ? (locale === 'ar' ? 'مُرجَع' : locale === 'fr' ? 'Retournée' : 'Returned')
+                  : hist.status
+
+                return (
+                  <div key={hist.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        insetInlineStart: -21,
+                        top: 4,
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        background: '#C4622D',
+                        border: '3px solid var(--card)',
+                      }}
+                    />
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground)' }}>
+                      {statusLabel}
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
+                      {new Date(hist.createdAt).toLocaleString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
+                    </span>
+                    {hist.note?.trim() && (
+                      <p style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.5, margin: '4px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(196,98,45,0.06)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 10px' }}>
+                        {hist.note}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* ── Order Items ────────────────────────────────────────────── */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
           <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>
-            {locale === 'ar' ? 'تفاصيل طلبكِ' : 'Détails de votre commande'}
+            {locale === 'ar' ? 'تفاصيل طلبكِ' : locale === 'fr' ? 'Détails de votre commande' : 'Order details'}
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -238,13 +296,47 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
                   key={item.id}
                   style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: 12,
+                    alignItems: 'center',
+                    gap: 14,
                     padding: '12px 0',
                     borderBottom: idx < order.items.length - 1 ? '1px solid var(--border)' : 'none',
                   }}
                 >
+                  {snap.mainImage ? (
+                    <Image
+                      src={snap.mainImage}
+                      alt={locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
+                      width={56}
+                      height={56}
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 12,
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                        border: '1px solid var(--border)',
+                        background: 'var(--bg-subtle)',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 12,
+                        background: 'var(--bg-subtle)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        border: '1px solid var(--border)',
+                        color: 'var(--muted-foreground)',
+                      }}
+                    >
+                      <ShoppingBag style={{ width: 22, height: 22, opacity: 0.5 }} />
+                    </div>
+                  )}
+
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.3 }}>
                       {locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
@@ -319,6 +411,30 @@ export default function OrderTrackingPage({ params }: TrackingPageProps) {
             })}
           </div>
         </div>
+
+        {/* ── Delivery Notes (customer) ──────────────────────────────── */}
+        {order.notes?.trim() && (
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(196,98,45,0.03)' }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+              {locale === 'ar' ? 'ملاحظات التوصيل' : locale === 'fr' ? 'Notes de livraison' : 'Delivery notes'}
+            </h3>
+            <p style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
+              {order.notes}
+            </p>
+          </div>
+        )}
+
+        {/* ── Admin Notes (staff / management) ───────────────────────── */}
+        {order.adminNotes?.trim() && (
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(196,98,45,0.05)' }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#C4622D', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+              {locale === 'ar' ? 'ملاحظات الإدارة' : locale === 'fr' ? 'Notes de l\'administration' : 'Admin notes'}
+            </h3>
+            <p style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'var(--card)', border: '1px solid rgba(196,98,45,0.2)', borderRadius: 12, padding: '10px 12px' }}>
+              {order.adminNotes}
+            </p>
+          </div>
+        )}
 
         {/* ── Price Summary ──────────────────────────────────────────── */}
         <div style={{ padding: '16px 24px 20px' }}>

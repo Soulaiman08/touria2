@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { generateOrderNumber } from '@/lib/utils'
 import { DEFAULT_SHIPPING_PRICE, getCityByValue, MOROCCAN_CITIES } from '@/config/moroccan-cities'
-import type { CreateOrderRequest, CreateOrderResponse, Order, ProductSnapshot } from '@/types/order'
+import type { CreateOrderRequest, CreateOrderResponse, Order, OrderStatusHistory, ProductSnapshot } from '@/types/order'
 
 const asNumber = (value: Prisma.Decimal | number) => Number(value)
 
@@ -280,10 +280,53 @@ export const orderService = {
       where: {
         OR: [{ id }, { orderNumber: id }],
       },
-      include: { items: true },
+      include: { items: true, statusHistory: { orderBy: { createdAt: 'desc' } } },
     })
     if (!dbOrder) return null
-    return { ...dbOrder, subtotal: Number(dbOrder.subtotal), shippingCost: Number(dbOrder.shippingCost), discountAmount: Number(dbOrder.discountAmount), total: Number(dbOrder.total), items: dbOrder.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice), totalPrice: Number(item.totalPrice), productSnapshot: item.productSnapshot as unknown as ProductSnapshot })) } as unknown as Order
+
+    return {
+      id: dbOrder.id,
+      orderNumber: dbOrder.orderNumber,
+      status: dbOrder.status,
+      paymentMethod: dbOrder.paymentMethod,
+      paymentStatus: dbOrder.paymentStatus,
+      customerName: dbOrder.customerName,
+      customerPhone: dbOrder.customerPhone,
+      customerPhone2: dbOrder.customerPhone2,
+      customerEmail: dbOrder.customerEmail,
+      region: dbOrder.region,
+      city: dbOrder.city,
+      district: dbOrder.district,
+      address: dbOrder.address,
+      postalCode: dbOrder.postalCode,
+      notes: dbOrder.notes,
+      adminNotes: dbOrder.adminNotes,
+      subtotal: Number(dbOrder.subtotal),
+      shippingCost: Number(dbOrder.shippingCost),
+      discountAmount: Number(dbOrder.discountAmount),
+      total: Number(dbOrder.total),
+      locale: dbOrder.locale,
+      createdAt: dbOrder.createdAt,
+      updatedAt: dbOrder.updatedAt,
+      items: dbOrder.items.map((item) => ({
+        id: item.id,
+        orderId: item.orderId,
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        totalPrice: Number(item.totalPrice),
+        productSnapshot: item.productSnapshot as unknown as ProductSnapshot,
+        createdAt: item.createdAt,
+      })),
+      statusHistory: dbOrder.statusHistory.map((hist) => ({
+        id: hist.id,
+        orderId: hist.orderId,
+        status: hist.status,
+        note: hist.note,
+        createdAt: hist.createdAt,
+      })),
+    }
   },
 }
 

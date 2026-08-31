@@ -69,6 +69,8 @@ export interface Order {
   address: string
   postalCode?: string | null
   notes?: string | null
+  adminNotes?: string | null
+  statusHistory?: OrderStatusHistory[]
   subtotal: number
   shippingCost: number
   discountAmount: number

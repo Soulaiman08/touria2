@@ -163,9 +163,9 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 
       if (!res.ok) throw new Error('Failed to update order')
 
-      success('Order updated successfully')
+      await fetchOrderDetail()
       setStatusNote('')
-      fetchOrderDetail()
+      success('Order updated successfully')
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Update failed'
       error(errorMessage)
