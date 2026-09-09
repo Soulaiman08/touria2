@@ -1,7 +1,44 @@
 User-agent: *
-Allow: /
 
-# Block admin/API from indexing
+# ── Public pages: allow indexing ─────────────────────────────
+Allow: /ar/
+Allow: /fr/
+Allow: /en/
+Allow: /ar/products
+Allow: /fr/products
+Allow: /en/products
+Allow: /ar/about
+Allow: /fr/about
+Allow: /en/about
+
+# ── Private / sensitive pages ─────────────────────────────────
+Disallow: /control-panel-ss7/
 Disallow: /api/
+Disallow: /ar/account/
+Disallow: /fr/account/
+Disallow: /en/account/
+Disallow: /ar/cart/
+Disallow: /fr/cart/
+Disallow: /en/cart/
+Disallow: /ar/checkout/
+Disallow: /fr/checkout/
+Disallow: /en/checkout/
+Disallow: /ar/orders/
+Disallow: /fr/orders/
+Disallow: /en/orders/
+Disallow: /ar/signup/
+Disallow: /fr/signup/
+Disallow: /en/signup/
+Disallow: /ar/login/
+Disallow: /fr/login/
+Disallow: /en/login/
 
-Sitemap: https://thuraya-almaghribi.ma/sitemap.xml
+# ── Static assets: always allow ──────────────────────────────
+Allow: /_next/static/
+Allow: /_next/image/
+Allow: /images/
+Allow: /fonts/
+Allow: /favicon.ico
+Allow: /manifest.json
+
+Sitemap: https://thuraya-almaghribi.vercel.app/sitemap.xml

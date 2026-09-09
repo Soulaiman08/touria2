@@ -1,50 +1,84 @@
 import { MetadataRoute } from 'next'
 import { productService } from '@/services/product.service'
+import { categoryService } from '@/services/category.service'
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? 'https://thuraya-almaghribi.vercel.app'
+
+const LOCALES = ['ar', 'fr', 'en'] as const
+
+function buildAlternates(path: string) {
+  return Object.fromEntries(
+    LOCALES.map((l) => [l, `${BASE_URL}/${l}${path}`])
+  )
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://thuraya-almaghribi.ma'
-  const locales = ['ar', 'fr', 'en']
-
-  // Static pages
-  const staticPages = [
-    '',
-    '/products',
-    '/about',
+  // ── Static public pages ──────────────────────────────────────
+  const staticPaths: Array<{ path: string; priority: number; freq: MetadataRoute.Sitemap[number]['changeFrequency'] }> = [
+    { path: '',           priority: 1.0, freq: 'weekly'  },
+    { path: '/products',  priority: 0.9, freq: 'daily'   },
+    { path: '/about',     priority: 0.6, freq: 'monthly' },
+    { path: '/faq',       priority: 0.5, freq: 'monthly' },
+    { path: '/privacy',   priority: 0.3, freq: 'yearly'  },
+    { path: '/returns',   priority: 0.4, freq: 'monthly' },
   ]
 
-  const staticEntries: MetadataRoute.Sitemap = locales.flatMap((locale) =>
-    staticPages.map((page) => ({
-      url: `${baseUrl}/${locale}${page}`,
+  const staticEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
+    staticPaths.map(({ path, priority, freq }) => ({
+      url: `${BASE_URL}/${locale}${path}`,
       lastModified: new Date(),
-      changeFrequency: page === '' ? 'weekly' : 'monthly',
-      priority: page === '' ? 1.0 : 0.8,
+      changeFrequency: freq,
+      priority,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [l, `${baseUrl}/${l}${page}`])
-        ),
+        languages: buildAlternates(path),
       },
     }))
-  ) as MetadataRoute.Sitemap
+  )
 
-  // Dynamic product pages
+  const now = new Date()
+
+  // ── Category pages ───────────────────────────────────────────
+  let categoryEntries: MetadataRoute.Sitemap = []
   try {
-    const { items } = await productService.getProducts({ limit: 100 })
-    const productEntries: MetadataRoute.Sitemap = locales.flatMap((locale) =>
-      items.map((product) => ({
-        url: `${baseUrl}/${locale}/products/${product.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.9,
+    const categories = await categoryService.getCategories()
+    categoryEntries = LOCALES.flatMap((locale) =>
+      categories.map((cat) => ({
+        url: `${BASE_URL}/${locale}/products?category=${cat.slug}`,
+        lastModified: now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
         alternates: {
           languages: Object.fromEntries(
-            locales.map((l) => [l, `${baseUrl}/${l}/products/${product.slug}`])
+            LOCALES.map((l) => [l, `${BASE_URL}/${l}/products?category=${cat.slug}`])
           ),
         },
       }))
-    ) as MetadataRoute.Sitemap
-
-    return [...staticEntries, ...productEntries]
+    )
   } catch {
-    return staticEntries
+    // non-fatal — skip category pages if DB unavailable
   }
+
+  // ── Dynamic product pages ────────────────────────────────────
+  let productEntries: MetadataRoute.Sitemap = []
+  try {
+    const { items } = await productService.getProducts({ limit: 500 })
+    productEntries = LOCALES.flatMap((locale) =>
+      items.map((product) => ({
+        url: `${BASE_URL}/${locale}/products/${product.slug}`,
+        lastModified: now,
+        changeFrequency: 'weekly' as const,
+        priority: 0.9,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map((l) => [l, `${BASE_URL}/${l}/products/${product.slug}`])
+          ),
+        },
+      }))
+    )
+  } catch {
+    // non-fatal — fall back to static entries only
+  }
+
+  return [...staticEntries, ...categoryEntries, ...productEntries]
 }

@@ -28,7 +28,7 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://thuraya-almaghribi.ma'
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://thuraya-almaghribi.vercel.app'
   ),
   title: {
     default: 'ثريا المغربي – أناقة مغربية أصيلة',

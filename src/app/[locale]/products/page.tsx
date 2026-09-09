@@ -1,9 +1,11 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { SlidersHorizontal } from 'lucide-react'
 
 import { productService } from '@/services/product.service'
 import { categoryService } from '@/services/category.service'
+import { siteConfig } from '@/config/site'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 
 import type { ProductFilters } from '@/types/product'
@@ -14,6 +16,90 @@ interface ProductsPageProps {
     [key: string]: string | string[] | undefined
   }>
 }
+
+// ─────────────────────────────────────────────────────────────
+// Products page metadata — dynamic per locale + category
+// ─────────────────────────────────────────────────────────────
+export async function generateMetadata({
+  params,
+  searchParams,
+}: ProductsPageProps): Promise<Metadata> {
+  const { locale } = await params
+  const resolved = await searchParams
+  const baseUrl = siteConfig.url
+
+  const categorySlug =
+    typeof resolved.category === 'string' ? resolved.category : undefined
+
+  // Fetch category name if filter is active
+  let categoryName: Record<string, string> | undefined
+  if (categorySlug) {
+    const cat = await categoryService.getCategoryBySlug(categorySlug)
+    if (cat) {
+      categoryName = { ar: cat.nameAr, fr: cat.nameFr, en: cat.nameEn }
+    }
+  }
+
+  const titles: Record<string, string> = categoryName
+    ? {
+        ar: `${categoryName.ar} | ثريا المغربي`,
+        fr: `${categoryName.fr} | Thuraya Al-Maghribi`,
+        en: `${categoryName.en} | Thuraya Al-Maghribi`,
+      }
+    : {
+        ar: 'جميع المنتجات | جلابات ونقابات مغربية | ثريا المغربي',
+        fr: 'Tous les produits | Djellabas & Niqabs | Thuraya Al-Maghribi',
+        en: 'All Products | Moroccan Djellabas & Niqabs | Thuraya Al-Maghribi',
+      }
+
+  const descriptions: Record<string, string> = categoryName
+    ? {
+        ar: `تسوقي ${categoryName.ar} المغربية الأصيلة في متجر ثريا المغربي. جودة عالية وتصاميم أنيقة.`,
+        fr: `Découvrez notre collection de ${categoryName.fr} marocains chez Thuraya Al-Maghribi. Qualité et élégance.`,
+        en: `Shop our ${categoryName.en} collection at Thuraya Al-Maghribi. Authentic Moroccan quality and elegant designs.`,
+      }
+    : {
+        ar: 'تسوقي جميع منتجات ثريا المغربي — جلابات مغربية ونقابات وملابس تقليدية بتصاميم أنيقة وجودة عالية.',
+        fr: 'Explorez tous les produits Thuraya Al-Maghribi – djellabas, niqabs et vêtements traditionnels marocains.',
+        en: 'Browse all Thuraya Al-Maghribi products — Moroccan djellabas, niqabs, and traditional clothing.',
+      }
+
+  const title = titles[locale] ?? titles.ar
+  const description = descriptions[locale] ?? descriptions.ar
+
+  const canonicalPath = categorySlug
+    ? `${baseUrl}/${locale}/products?category=${categorySlug}`
+    : `${baseUrl}/${locale}/products`
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: canonicalPath,
+      languages: {
+        'ar': categorySlug
+          ? `${baseUrl}/ar/products?category=${categorySlug}`
+          : `${baseUrl}/ar/products`,
+        'fr': categorySlug
+          ? `${baseUrl}/fr/products?category=${categorySlug}`
+          : `${baseUrl}/fr/products`,
+        'en': categorySlug
+          ? `${baseUrl}/en/products?category=${categorySlug}`
+          : `${baseUrl}/en/products`,
+        'x-default': categorySlug
+          ? `${baseUrl}/ar/products?category=${categorySlug}`
+          : `${baseUrl}/ar/products`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalPath,
+      type: 'website',
+    },
+  }
+}
+
 
 export default async function ProductsPage({
   params,

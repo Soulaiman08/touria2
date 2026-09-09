@@ -12,7 +12,7 @@ export const siteConfig = {
     fr: 'Thuraya Al-Maghribi – Votre destination pour les djellabas et niqabs marocains artisanaux.',
     en: 'Thuraya Al-Maghribi – Your destination for handcrafted Moroccan djellabas and niqabs.',
   },
-  url: 'https://thuraya-almaghribi.ma',
+  url: process.env.NEXT_PUBLIC_APP_URL ?? 'https://thuraya-almaghribi.vercel.app',
   ogImage: '/images/brand/og-image.jpg',
   logoFull: '/images/brand/logo-full.png',
   logoIcon: '/images/brand/logo-icon.png',

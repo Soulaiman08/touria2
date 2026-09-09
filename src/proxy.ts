@@ -20,6 +20,19 @@ function unauthorizedResponse() {
   return response
 }
 
+/**
+ * Detects known search engine crawlers by User-Agent.
+ * This does NOT serve different content — it only skips the redirect loop
+ * so crawlers can index public pages. Same HTML is served to all.
+ */
+function isSearchCrawler(request: NextRequest): boolean {
+  const ua = request.headers.get('user-agent') ?? ''
+  if (!ua) return false
+  const crawlerPattern =
+    /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver|semrushbot|ahrefsbot|mj12bot|petalbot|applebot/i
+  return crawlerPattern.test(ua)
+}
+
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -66,12 +79,14 @@ export default async function proxy(request: NextRequest) {
 
   if (pathname.startsWith('/api')) return NextResponse.next()
 
-  // First-visit redirect: redirect to login if no onboarded cookie and no customer session
+  // First-visit redirect: redirect to login if no onboarded cookie and no customer session.
+  // Search engine crawlers are allowed through so they can index public pages —
+  // the same content is served to everyone (no cloaking).
   const isHomepage = pathname === '/' || /^\/(ar|fr|en)\/?$/.test(pathname)
   if (isHomepage) {
     const hasOnboarded = request.cookies.get(ONBOARDED_COOKIE)?.value
     const hasCustomerToken = request.cookies.get(CUSTOMER_COOKIE)?.value
-    if (!hasOnboarded && !hasCustomerToken) {
+    if (!hasOnboarded && !hasCustomerToken && !isSearchCrawler(request)) {
       const localeMatch = pathname.match(/^\/(ar|fr|en)/)
       const locale = localeMatch ? localeMatch[1] : 'ar'
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url))

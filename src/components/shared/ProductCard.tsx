@@ -203,7 +203,7 @@ export function ProductCard({
                 >
                   <Image
                     src={imgSrc}
-                    alt={`${name} - ${idx + 1}`}
+                    alt={name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                     className="product-card-img object-cover"
