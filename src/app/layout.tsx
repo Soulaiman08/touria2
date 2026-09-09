@@ -64,6 +64,9 @@ export const metadata: Metadata = {
     apple: [{ url: '/images/brand/logo-icon.png', sizes: '180x180' }],
   },
   manifest: '/manifest.json',
+  verification: {
+    google: 'google1cd5466d7413f04d',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
