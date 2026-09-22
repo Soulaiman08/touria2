@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { productService } from '@/services/product.service'
 import { bannerService } from '@/services/banner.service'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
 import { ProductCard } from '@/components/shared/ProductCard'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
+import { FirstVisitGate } from '@/components/shared/FirstVisitGate'
 
 export const dynamic = 'force-dynamic'
 
@@ -100,6 +102,14 @@ async function getSiteSettings(): Promise<SiteSettings> {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   const isRTL = locale === 'ar'
+
+  // ── First-visit detection (server-side, no User-Agent tricks) ───────────
+  // Reading cookies() is safe here because the page is already force-dynamic.
+  const cookieStore = await cookies()
+  const hasOnboarded = cookieStore.has('thuraya_onboarded')
+  const hasCustomerToken = cookieStore.has('customer_token')
+  const isFirstVisit = !hasOnboarded && !hasCustomerToken
+  // ────────────────────────────────────────────────────────────────────────
 
   const [featured, newestResponse, banners, settings] = await Promise.all([
     productService.getFeaturedProducts(),
@@ -348,9 +358,8 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <>
-      {/* =========================================================
-          HERO SECTION — HARMONIOUS MOROCCAN LUXURY STOREFRONT
-      ========================================================= */}
+      {/* First-visit overlay: server-rendered (no flash), same HTML for everyone */}
+      <FirstVisitGate locale={locale} defaultOpen={isFirstVisit} />
       <section
         className="home-hero relative overflow-hidden py-6 sm:py-8 md:py-12 lg:py-14 hero-section"
         style={{

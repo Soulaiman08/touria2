@@ -1,37 +1,16 @@
 User-agent: *
 
-# ── Public pages: allow indexing ─────────────────────────────
-Allow: /ar/
-Allow: /fr/
-Allow: /en/
-Allow: /ar/products
-Allow: /fr/products
-Allow: /en/products
-Allow: /ar/about
-Allow: /fr/about
-Allow: /en/about
+# ── Allow all public pages ────────────────────────────────────
+Allow: /
 
-# ── Private / sensitive pages ─────────────────────────────────
+# ── Block admin panel and API from crawling ───────────────────
+# Private pages (orders, account, login, signup, checkout) are NOT
+# blocked here. They carry a "noindex" meta tag so Google can
+# discover the directive while crawling. Blocking in robots.txt
+# would prevent Google from seeing noindex and could leave stale
+# indexed URLs uncorrected.
 Disallow: /control-panel-ss7/
 Disallow: /api/
-Disallow: /ar/account/
-Disallow: /fr/account/
-Disallow: /en/account/
-Disallow: /ar/cart/
-Disallow: /fr/cart/
-Disallow: /en/cart/
-Disallow: /ar/checkout/
-Disallow: /fr/checkout/
-Disallow: /en/checkout/
-Disallow: /ar/orders/
-Disallow: /fr/orders/
-Disallow: /en/orders/
-Disallow: /ar/signup/
-Disallow: /fr/signup/
-Disallow: /en/signup/
-Disallow: /ar/login/
-Disallow: /fr/login/
-Disallow: /en/login/
 
 # ── Static assets: always allow ──────────────────────────────
 Allow: /_next/static/

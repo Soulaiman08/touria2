@@ -13,9 +13,10 @@ const dmSans = DM_Sans({
 /* ── Display / Serif ── */
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--font-display',
   display: 'swap',
+  // weight omitted: loads as variable font — Turbopack requires a single query
+  // per non-variable font; omitting weight uses the full variable axis range
 })
 
 /* ── Arabic (headings + body) ── */

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
@@ -5,6 +6,24 @@ import { CheckoutForm } from '@/features/checkout/components/CheckoutForm/Checko
 
 interface CheckoutPageProps {
   params: Promise<{ locale: string }>
+}
+
+export async function generateMetadata({ params }: CheckoutPageProps): Promise<Metadata> {
+  const { locale } = await params
+
+  const titles: Record<string, string> = {
+    ar: 'إتمام الطلب | ثريا المغربي',
+    fr: 'Finaliser la commande | Thuraya Al-Maghribi',
+    en: 'Checkout | Thuraya Al-Maghribi',
+  }
+
+  return {
+    title: titles[locale] ?? titles.ar,
+    robots: {
+      index: false,
+      follow: true,
+    },
+  }
 }
 
 export default async function CheckoutPage({ params }: CheckoutPageProps) {
