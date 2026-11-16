@@ -57,7 +57,6 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
   // Calculations – react to the selected city
   const subtotal = computeCartSubtotal(cartStore.items)
-  // Use live fetched price; 0 when no city selected yet so total shows correctly
   const shippingCost = selectedCity ? (shippingPrice ?? DEFAULT_SHIPPING_PRICE) : 0
   const total = subtotal + shippingCost
 
@@ -67,7 +66,6 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const regionId = e.target.value
     setSelectedRegion(regionId)
-    // Reset city and shipping when region changes
     setSelectedCity('')
     setShippingPrice(null)
     setValue('region', regionId, { shouldValidate: true })
@@ -82,7 +80,6 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
       setShippingPrice(null)
       return
     }
-    // Fetch live shipping price from server
     setShippingLoading(true)
     try {
       const res = await fetch(`/api/shipping/price?city=${encodeURIComponent(val)}`)
@@ -148,89 +145,26 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   if (cartStore.items.length === 0) {
     return (
       <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '48px 16px 64px',
-          minHeight: '360px',
-        }}
+        className="flex flex-col items-center justify-center py-14 px-4 min-h-[340px]"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        {/* Empty Cart Card */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '440px',
-            background: 'var(--card)',
-            border: '1px solid var(--border)',
-            borderRadius: '24px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
-            padding: '40px 32px 36px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          {/* Icon */}
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 20,
-              background: 'rgba(196,98,45,0.10)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 24,
-              flexShrink: 0,
-            }}
-          >
-            <ShoppingBag
-              style={{ width: 32, height: 32, color: '#C4622D' }}
-              aria-hidden="true"
-            />
+        <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-9 text-center flex flex-col items-center shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mb-5">
+            <ShoppingBag className="w-7 h-7 text-[var(--accent)]" aria-hidden="true" />
           </div>
 
-          {/* Title */}
-          <h2
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 800,
-              color: 'var(--foreground)',
-              marginBottom: 10,
-              lineHeight: 1.35,
-            }}
-          >
+          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
             {cartT('empty')}
           </h2>
 
-          {/* Description */}
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: 'var(--text-muted)',
-              lineHeight: 1.7,
-              marginBottom: 28,
-              maxWidth: 320,
-            }}
-          >
+          <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-6 max-w-xs">
             {cartT('emptyDesc')}
           </p>
 
-          {/* CTA */}
           <button
+            type="button"
             onClick={() => router.push(`/${locale}/products`)}
-            className="btn btn-primary btn-round"
-            style={{
-              paddingInline: '28px',
-              paddingBlock: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 700,
-              minWidth: 180,
-            }}
+            className="btn btn-primary btn-round px-7 py-3 text-sm font-bold"
           >
             {cartT('startShopping')}
           </button>
@@ -242,91 +176,67 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-10"
+      className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Form Details Column (7 Cols) ───────────────────────── */}
-      <div className="lg:col-span-7">
+      <div className="lg:col-span-7 flex flex-col gap-6">
         {/* Card 1: Personal Details */}
-        <div
-          className="surface-card form-card mb-6 lg:mb-8"
-          style={{
-            borderColor: 'var(--border)',
-            marginBottom: '16px',
-          }}
-        >
-          {/* Card Title Header */}
-          <div
-            className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b"
-            style={{ borderColor: 'var(--border)', marginBottom: '20px' }}
-          >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7">
+          <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-[var(--border)]">
+            <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5" />
             </div>
-            <h2 className="font-bold text-lg sm:text-xl text-[var(--foreground)]">
+            <h2 className="font-bold text-lg text-[var(--text-primary)] m-0">
               {t('personal.title')}
             </h2>
           </div>
 
-          {/* Form Fields */}
-          <div>
+          <div className="flex flex-col gap-5">
             {/* Full Name */}
-            <div style={{ marginBottom: '28px' }}>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-              >
-                {t('personal.name')} <span className="text-red-500">*</span>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
+                {t('personal.name')} <span className="text-[var(--error)]">*</span>
               </label>
               <input
                 type="text"
                 {...register('customerName')}
                 placeholder={t('personal.namePlaceholder')}
-                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
+                className="w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
                 style={{
-                  background: 'var(--input)',
-                  color: 'var(--foreground)',
-                  borderColor: errors.customerName ? '#ef4444' : 'var(--border)',
+                  borderColor: errors.customerName ? 'var(--error)' : 'var(--border)',
                 }}
               />
               {errors.customerName && (
-                <p className="text-xs text-red-500 font-medium mt-2">{errors.customerName.message}</p>
+                <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.customerName.message}</p>
               )}
             </div>
 
             {/* Phones Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-7" style={{ marginBottom: '28px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Primary Phone */}
               <div>
-                <label
-                  className="block text-xs font-bold uppercase tracking-wider"
-                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-                >
-                  {t('personal.phone')} <span className="text-red-500">*</span>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
+                  {t('personal.phone')} <span className="text-[var(--error)]">*</span>
                 </label>
                 <input
                   type="tel"
                   dir="ltr"
                   {...register('customerPhone')}
                   placeholder={t('personal.phonePlaceholder')}
-                  className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                  className="tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
                   style={{
-                    background: 'var(--input)',
-                    color: 'var(--foreground)',
-                    borderColor: errors.customerPhone ? '#ef4444' : 'var(--border)',
+                    borderColor: errors.customerPhone ? 'var(--error)' : 'var(--border)',
                   }}
                 />
                 {errors.customerPhone && (
-                  <p className="text-xs text-red-500 font-medium mt-2">{errors.customerPhone.message}</p>
+                  <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.customerPhone.message}</p>
                 )}
               </div>
 
               {/* Secondary Phone */}
               <div>
-                <label
-                  className="block text-xs font-bold uppercase tracking-wider"
-                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-                >
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                   {t('personal.phone2')}
                 </label>
                 <input
@@ -334,25 +244,20 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                   dir="ltr"
                   {...register('customerPhone2')}
                   placeholder={t('personal.phone2Placeholder')}
-                  className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                  className="tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
                   style={{
-                    background: 'var(--input)',
-                    color: 'var(--foreground)',
-                    borderColor: errors.customerPhone2 ? '#ef4444' : 'var(--border)',
+                    borderColor: errors.customerPhone2 ? 'var(--error)' : 'var(--border)',
                   }}
                 />
                 {errors.customerPhone2 && (
-                  <p className="text-xs text-red-500 font-medium mt-2">{errors.customerPhone2.message}</p>
+                  <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.customerPhone2.message}</p>
                 )}
               </div>
             </div>
 
             {/* Email Address */}
             <div>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-              >
+              <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                 {t('personal.email')}
               </label>
               <input
@@ -360,64 +265,44 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 dir="ltr"
                 {...register('customerEmail')}
                 placeholder={t('personal.emailPlaceholder')}
-                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                className="w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
                 style={{
-                  background: 'var(--input)',
-                  color: 'var(--foreground)',
-                  borderColor: errors.customerEmail ? '#ef4444' : 'var(--border)',
+                  borderColor: errors.customerEmail ? 'var(--error)' : 'var(--border)',
                 }}
               />
               {errors.customerEmail && (
-                <p className="text-xs text-red-500 font-medium mt-2">{errors.customerEmail.message}</p>
+                <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.customerEmail.message}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Card 2: Shipping Address */}
-        <div
-          className="surface-card form-card"
-          style={{
-            borderColor: 'var(--border)',
-            marginTop: '16px',
-          }}
-        >
-          {/* Card Title Header */}
-          <div
-            className="flex items-center gap-4 pb-6 border-b"
-            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
-          >
-            <div className="w-11 h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7">
+          <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-[var(--border)]">
+            <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
               <MapPin className="w-5 h-5" />
             </div>
-            <h2 className="font-bold text-xl text-[var(--foreground)]">
+            <h2 className="font-bold text-lg text-[var(--text-primary)] m-0">
               {t('address.title')}
             </h2>
           </div>
 
-          {/* Form Fields */}
-          <div>
+          <div className="flex flex-col gap-5">
             {/* Region & City Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-7" style={{ marginBottom: '28px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Region Dropdown */}
               <div>
-                <label
-                  className="block text-xs font-bold uppercase tracking-wider"
-                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-                >
-                  {t('address.region')} <span className="text-red-500">*</span>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
+                  {t('address.region')} <span className="text-[var(--error)]">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedRegion}
                     onChange={handleRegionChange}
-                    className="w-full h-12 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer"
+                    className="w-full h-11 rounded-xl border text-sm font-medium appearance-none transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer ps-4 pe-10"
                     style={{
-                      background: 'var(--input)',
-                      color: 'var(--foreground)',
-                      borderColor: errors.region ? '#ef4444' : 'var(--border)',
-                      paddingInlineStart: '16px',
-                      paddingInlineEnd: '40px',
+                      borderColor: errors.region ? 'var(--error)' : 'var(--border)',
                     }}
                   >
                     <option value="">{t('address.regionPlaceholder')}</option>
@@ -427,33 +312,26 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
+                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-75" />
                 </div>
                 {errors.region && (
-                  <p className="text-xs text-red-500 font-medium mt-2">{errors.region.message}</p>
+                  <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.region.message}</p>
                 )}
               </div>
 
               {/* City Dropdown */}
               <div>
-                <label
-                  className="block text-xs font-bold uppercase tracking-wider"
-                  style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-                >
-                  {t('address.city')} <span className="text-red-500">*</span>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
+                  {t('address.city')} <span className="text-[var(--error)]">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={selectedCity}
                     onChange={handleCityChange}
                     disabled={!selectedRegion}
-                    className="w-full h-12 rounded-xl border text-sm font-medium appearance-none transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-11 rounded-xl border text-sm font-medium appearance-none transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ps-4 pe-10"
                     style={{
-                      background: 'var(--input)',
-                      color: 'var(--foreground)',
-                      borderColor: errors.city ? '#ef4444' : 'var(--border)',
-                      paddingInlineStart: '16px',
-                      paddingInlineEnd: '40px',
+                      borderColor: errors.city ? 'var(--error)' : 'var(--border)',
                     }}
                   >
                     <option value="">{t('address.cityPlaceholder')}</option>
@@ -463,65 +341,49 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-70" />
+                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-75" />
                 </div>
                 {errors.city && (
-                  <p className="text-xs text-red-500 font-medium mt-2">{errors.city.message}</p>
+                  <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.city.message}</p>
                 )}
               </div>
             </div>
 
             {/* District */}
-            <div style={{ marginBottom: '28px' }}>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-              >
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                 {t('address.district')}
               </label>
               <input
                 type="text"
                 {...register('district')}
                 placeholder={t('address.districtPlaceholder')}
-                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
-                style={{
-                  background: 'var(--input)',
-                  color: 'var(--foreground)',
-                  borderColor: 'var(--border)',
-                }}
+                className="w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] border-[var(--border)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
               />
             </div>
 
             {/* Detailed Address */}
-            <div style={{ marginBottom: '28px' }}>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-              >
-                {t('address.address')} <span className="text-red-500">*</span>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
+                {t('address.address')} <span className="text-[var(--error)]">*</span>
               </label>
               <input
                 type="text"
                 {...register('address')}
                 placeholder={t('address.addressPlaceholder')}
-                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15"
+                className="w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
                 style={{
-                  background: 'var(--input)',
-                  color: 'var(--foreground)',
-                  borderColor: errors.address ? '#ef4444' : 'var(--border)',
+                  borderColor: errors.address ? 'var(--error)' : 'var(--border)',
                 }}
               />
               {errors.address && (
-                <p className="text-xs text-red-500 font-medium mt-2">{errors.address.message}</p>
+                <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.address.message}</p>
               )}
             </div>
 
             {/* Postal Code */}
-            <div style={{ marginBottom: '28px' }}>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-              >
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                 {t('address.postalCode')}
               </label>
               <input
@@ -529,36 +391,26 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 dir="ltr"
                 {...register('postalCode')}
                 placeholder={t('address.postalCodePlaceholder')}
-                className="w-full h-12 px-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 text-start"
+                className="tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
                 style={{
-                  background: 'var(--input)',
-                  color: 'var(--foreground)',
-                  borderColor: errors.postalCode ? '#ef4444' : 'var(--border)',
+                  borderColor: errors.postalCode ? 'var(--error)' : 'var(--border)',
                 }}
               />
               {errors.postalCode && (
-                <p className="text-xs text-red-500 font-medium mt-2">{errors.postalCode.message}</p>
+                <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.postalCode.message}</p>
               )}
             </div>
 
             {/* Delivery Notes */}
             <div>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--foreground)', marginBottom: '10px', display: 'block' }}
-              >
+              <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                 {t('address.notes')}
               </label>
               <textarea
                 {...register('notes')}
                 placeholder={t('address.notesPlaceholder')}
                 rows={3}
-                className="w-full p-4.5 rounded-xl border text-sm font-medium transition-all outline-none focus:border-[#C4622D] focus:ring-2 focus:ring-[#C4622D]/15 resize-none min-h-[115px] leading-relaxed"
-                style={{
-                  background: 'var(--input)',
-                  color: 'var(--foreground)',
-                  borderColor: 'var(--border)',
-                }}
+                className="w-full p-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] border-[var(--border)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] resize-none min-h-[104px] leading-relaxed"
               />
             </div>
           </div>
@@ -567,67 +419,68 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
       {/* ── Order Summary Column (5 Cols - Sticky) ───────────── */}
       <div className="lg:col-span-5 lg:sticky lg:top-24">
-        <div
-          className="surface-card form-card"
-          style={{
-            borderColor: 'var(--border)',
-          }}
-        >
-          {/* Card Title Header */}
-          <div
-            className="flex items-center gap-4 pb-6 border-b"
-            style={{ borderColor: 'var(--border)', marginBottom: '32px' }}
-          >
-            <div className="w-11 h-11 rounded-2xl bg-[#C4622D]/10 text-[#C4622D] flex items-center justify-center flex-shrink-0">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7">
+          <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-[var(--border)]">
+            <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
               <ShoppingBag className="w-5 h-5" />
             </div>
-            <h2 className="font-bold text-xl text-[var(--foreground)]">
+            <h2 className="font-bold text-lg text-[var(--text-primary)] m-0">
               {t('order.title')}
             </h2>
           </div>
 
           {/* Cart Item List — djellabas and niqabs shown as independent items */}
-          <div
-            className="divide-y max-h-[420px] overflow-y-auto pe-1"
-            style={{ borderColor: 'var(--border)', marginBottom: '28px' }}
-          >
-            {/* Djellaba items — without embedded niqabs */}
-            {cartStore.items.filter(i => !i.isNiqab).map((item) => (
-              <div key={item.id} className="flex items-start gap-3 py-3 first:pt-0">
-                <Image
-                  src={item.mainImage}
-                  alt={item.nameAr}
-                  width={56}
-                  height={56}
-                  className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border"
-                  style={{ borderColor: 'var(--border)' }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate leading-snug" style={{ color: 'var(--foreground)' }}>
-                    {locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.colorCode ?? 'transparent', border: '1px solid rgba(0,0,0,0.12)' }} />
-                      {item.colorNameAr && (
-                        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.colorNameAr}</span>
+          <div className="divide-y divide-[var(--border)] max-h-[380px] overflow-y-auto pe-1 mb-5">
+            {cartStore.items.filter((i) => !i.isNiqab).map((item) => {
+              const itemName = locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn
+              const colorLabel = locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn
+              return (
+                <div key={item.id} className="flex items-start gap-3 py-3 first:pt-0">
+                  <Image
+                    src={item.mainImage || '/images/brand/logo-icon.png'}
+                    alt={itemName}
+                    width={56}
+                    height={56}
+                    referrerPolicy="no-referrer"
+                    className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
+                    onError={(e) => {
+                      ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm truncate leading-snug text-[var(--text-primary)]">
+                      {itemName}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-1 text-[var(--text-muted)]">
+                      <span className="inline-flex items-center gap-1">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-[var(--border)]"
+                          style={{ backgroundColor: item.colorCode ?? 'transparent' }}
+                        />
+                        {colorLabel && (
+                          <span className="font-semibold text-[var(--text-primary)]">{colorLabel}</span>
+                        )}
+                      </span>
+                      {item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
+                        <>
+                          <span className="opacity-60">·</span>
+                          <span>
+                            {cartT('size')}: <span className="font-semibold text-[var(--text-primary)]">{item.size}</span>
+                          </span>
+                        </>
                       )}
-                    </span>
-                    {item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
                       <span className="opacity-60">·</span>
-                    )}
-                    {item.size && !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim()) && (
-                      <span>{cartT('size')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.size}</span></span>
-                    )}
-                    <span className="opacity-60">·</span>
-                    <span>{cartT('quantity')}: <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{item.quantity}</span></span>
+                      <span className="tabular-nums">
+                        {cartT('quantity')}: <span className="font-semibold text-[var(--text-primary)]">{item.quantity}</span>
+                      </span>
+                    </div>
                   </div>
+                  <span className="tabular-nums font-extrabold text-sm text-[var(--accent)] whitespace-nowrap self-center">
+                    {formatPrice(item.unitPrice * item.quantity, locale)}
+                  </span>
                 </div>
-                <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap self-center">
-                  {formatPrice(item.unitPrice * item.quantity, locale)}
-                </span>
-              </div>
-            ))}
+              )
+            })}
 
             {/* Niqab add-ons — aggregated and shown once each */}
             {aggregateNiqabs(cartStore.items).map((n) => {
@@ -636,39 +489,43 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
               return (
                 <div key={`niqab-${n.productId}-${n.variantId ?? ''}`} className="flex items-start gap-3 py-3 first:pt-0">
                   <Image
-                    src={n.mainImage}
+                    src={n.mainImage || '/images/brand/logo-icon.png'}
                     alt={niqabName}
                     width={56}
                     height={56}
-                    className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border"
-                    style={{ borderColor: 'var(--border)' }}
+                    referrerPolicy="no-referrer"
+                    className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
+                    onError={(e) => {
+                      ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                    }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate leading-snug" style={{ color: 'var(--foreground)' }}>
+                    <p className="font-bold text-sm truncate leading-snug text-[var(--text-primary)]">
                       {niqabName}
                     </p>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-1 text-[var(--text-muted)]">
                       <span className="inline-flex items-center gap-1">
-                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: n.colorCode ?? 'transparent', border: '1px solid rgba(0,0,0,0.12)' }} />
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-[var(--border)]"
+                          style={{ backgroundColor: n.colorCode ?? 'transparent' }}
+                        />
                         {colorLabel && (
-                          <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{colorLabel}</span>
+                          <span className="font-semibold text-[var(--text-primary)]">{colorLabel}</span>
                         )}
                       </span>
                       {n.quantity > 1 && (
-                        <span className="opacity-60">·</span>
-                      )}
-                      {n.quantity > 1 && (
-                        <span>× <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{n.quantity}</span></span>
-                      )}
-                      {n.quantity > 1 && (
-                        <span className="opacity-60">·</span>
-                      )}
-                      {n.quantity > 1 && (
-                        <span className="opacity-75 text-[11px]">{formatPrice(n.unitPrice, locale)}/each</span>
+                        <>
+                          <span className="opacity-60">·</span>
+                          <span className="tabular-nums">
+                            × <span className="font-semibold text-[var(--text-primary)]">{n.quantity}</span>
+                          </span>
+                          <span className="opacity-60">·</span>
+                          <span className="tabular-nums opacity-75 text-[11px]">{formatPrice(n.unitPrice, locale)}/each</span>
+                        </>
                       )}
                     </div>
                   </div>
-                  <span className="font-extrabold text-sm text-[#C4622D] whitespace-nowrap self-center">
+                  <span className="tabular-nums font-extrabold text-sm text-[var(--accent)] whitespace-nowrap self-center">
                     {formatPrice(n.unitPrice * n.quantity, locale)}
                   </span>
                 </div>
@@ -676,28 +533,21 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
             })}
           </div>
 
-          {/* ── Order Pricing Sub-Box (Spacious Sub-Box) ───────────── */}
-          <div
-            className="p-5.5 rounded-2xl flex flex-col gap-3.5"
-            style={{
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--border)',
-              marginBottom: '32px',
-            }}
-          >
-            <div className="flex justify-between items-center text-xs sm:text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+          {/* ── Order Pricing Sub-Box ───────────────────────────── */}
+          <div className="p-4 sm:p-5 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)] flex flex-col gap-3 mb-5">
+            <div className="flex justify-between items-center text-xs sm:text-sm font-medium text-[var(--text-muted)]">
               <span>{cartT('subtotal')}</span>
-              <span className="font-bold" style={{ color: 'var(--foreground)' }}>
+              <span className="tabular-nums font-bold text-[var(--text-primary)]">
                 {formatPrice(subtotal, locale)}
               </span>
             </div>
 
-            <div className="flex justify-between items-center text-xs sm:text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+            <div className="flex justify-between items-center text-xs sm:text-sm font-medium text-[var(--text-muted)]">
               <span className="flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-[#C4622D] flex-shrink-0" />
+                <Truck className="w-4 h-4 text-[var(--accent)] flex-shrink-0" />
                 {cartT('shipping')}
               </span>
-              <span className="font-bold text-end" style={{ color: 'var(--foreground)' }}>
+              <span className="tabular-nums font-bold text-end text-[var(--text-primary)]">
                 {shippingLoading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin inline" />
                 ) : selectedCity ? (
@@ -708,32 +558,22 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
               </span>
             </div>
 
-            <div
-              className="border-t pt-3.5 flex justify-between items-center font-bold text-sm sm:text-base mt-0.5"
-              style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-            >
+            <div className="border-t border-[var(--border)] pt-3 flex justify-between items-center font-bold text-sm sm:text-base text-[var(--text-primary)]">
               <span>{cartT('total')}</span>
-              <span className="text-xl sm:text-2xl font-extrabold text-[#C4622D]">
+              <span className="tabular-nums text-xl sm:text-2xl font-extrabold text-[var(--accent)]">
                 {formatPrice(total, locale)}
               </span>
             </div>
           </div>
 
-          {/* ── COD Sub-Box (Spacious Sub-Box) ────────────────────── */}
-          <div
-            className="p-5 rounded-2xl border flex gap-3.5 items-center"
-            style={{
-              borderColor: 'rgba(184,150,90,0.3)',
-              background: 'rgba(184,150,90,0.06)',
-              marginBottom: '32px',
-            }}
-          >
-            <ShieldCheck className="w-6 h-6 text-[#C4622D] flex-shrink-0" />
+          {/* ── COD Notice ────────────────────── */}
+          <div className="p-4 rounded-xl border border-[var(--accent-ring)] bg-[var(--accent-light)] flex gap-3 items-center mb-5">
+            <ShieldCheck className="w-5 h-5 text-[var(--accent)] flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-xs sm:text-sm mb-0.5" style={{ color: 'var(--foreground)' }}>
+              <h4 className="font-bold text-xs sm:text-sm mb-0.5 text-[var(--text-primary)]">
                 {t('payment.cod')}
               </h4>
-              <p className="text-xs leading-relaxed opacity-90" style={{ color: 'var(--muted-foreground)' }}>
+              <p className="text-xs leading-relaxed text-[var(--text-muted)]">
                 {t('payment.codDesc')}
               </p>
             </div>
@@ -741,7 +581,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
           {/* Error Message Banner */}
           {errorMsg && (
-            <p className="text-xs text-red-500 text-center font-semibold bg-red-500/10 border border-red-500/20 py-3.5 px-4 rounded-xl mb-6">
+            <p className="text-xs text-[var(--error)] text-center font-semibold bg-[var(--error-bg)] border border-[var(--error-border)] py-3 px-4 rounded-xl mb-4">
               {errorMsg}
             </p>
           )}
@@ -750,7 +590,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full btn btn-primary py-4.5 rounded-2xl font-bold text-base shadow-lg shadow-[#C4622D]/20 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 mb-4"
+            className="w-full btn btn-primary py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 mb-3"
           >
             {isSubmitting ? (
               <>
@@ -762,7 +602,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
             )}
           </button>
 
-          <p className="text-xs text-center leading-relaxed px-2" style={{ color: 'var(--muted-foreground)' }}>
+          <p className="text-xs text-center leading-relaxed px-2 text-[var(--text-muted)]">
             {t('order.terms')}
           </p>
         </div>

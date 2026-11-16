@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Camera, Loader2, LogOut, Save, UserRound, Mail, Phone, User } from 'lucide-react'
+import { ArrowLeft, Camera, Loader2, LogOut, Save, UserRound, Mail, Phone, User, Package } from 'lucide-react'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 
 interface AccountPageProps {
@@ -56,6 +56,7 @@ export function AccountPageClient({ params }: AccountPageProps) {
       logout: ['تسجيل الخروج', 'Se déconnecter', 'Log out'],
       back: ['العودة للرئيسية', 'Retour à l\'accueil', 'Back to home'],
       memberSince: ['عضو منذ', 'Membre depuis', 'Member since'],
+      myOrders: ['طلباتي', 'Mes commandes', 'My orders'],
     }
     const entry = map[key]
     if (!entry) return key
@@ -72,9 +73,15 @@ export function AccountPageClient({ params }: AccountPageProps) {
         setName(data.user.name)
         setPhone(data.user.phone ?? '')
       })
-      .catch(() => { if (isMounted) setUser(null) })
-      .finally(() => { if (isMounted) setLoading(false) })
-    return () => { isMounted = false }
+      .catch(() => {
+        if (isMounted) setUser(null)
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const handleSave = async (e: React.FormEvent) => {
@@ -129,152 +136,90 @@ export function AccountPageClient({ params }: AccountPageProps) {
 
   if (loading) {
     return (
-      <div className="container-brand py-20 text-center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-        <div className="animate-spin" style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: '#C4622D' }} />
-        <p style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>{t('loading')}</p>
+      <div className="container-brand py-20 text-center flex flex-col items-center gap-4">
+        <div className="animate-spin w-10 h-10 rounded-full border-2 border-[var(--border)] border-t-[var(--accent)]" />
+        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       </div>
     )
   }
 
   return (
-    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 520, padding: '0 16px', paddingTop: 24 }}>
-      {/* Back link */}
-      <Link
-        href={`/${locale}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 20px',
-          fontSize: 13,
-          fontWeight: 700,
-          color: '#C4622D',
-          textDecoration: 'none',
-          marginBottom: 24,
-          border: '1px solid #C4622D',
-          borderRadius: 12,
-          transition: 'background 0.2s',
-        }}
-      >
-        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-        {t('back')}
-      </Link>
+    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 540 }}>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
+          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+          <span>{t('back')}</span>
+        </Link>
+
+        {user && (
+          <Link href={`/${locale}/account/orders`} className="btn btn-outline btn-sm btn-round">
+            <Package className="w-4 h-4 text-[var(--accent)]" />
+            <span>{t('myOrders')}</span>
+          </Link>
+        )}
+      </div>
 
       {!user ? (
         /* ── Not logged in ── */
-        <div style={{ padding: 24, borderRadius: 16, border: '1px solid var(--border)', background: 'var(--bg-subtle)', textAlign: 'center' }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: '#C4622D',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
-            <UserRound style={{ width: 24, height: 24 }} />
+        <div className="p-8 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] text-center">
+          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center mx-auto mb-4">
+            <UserRound className="w-6 h-6" />
           </div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--foreground)', marginBottom: 8 }}>{t('signInTitle')}</h2>
-          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', maxWidth: 320, margin: '0 auto', lineHeight: 1.6 }}>{t('signInDesc')}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 24 }}>
-            <Link
-              href={`/${locale}/login`}
-              style={{
-                height: 48,
-                width: '100%',
-                maxWidth: 280,
-                borderRadius: 12,
-                background: '#C4622D',
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 700,
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-              }}
-            >
+          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">{t('signInTitle')}</h2>
+          <p className="text-sm text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed mb-6">{t('signInDesc')}</p>
+          <div className="flex flex-col items-center gap-3 max-w-xs mx-auto">
+            <Link href={`/${locale}/login`} className="btn btn-primary w-full justify-center py-3 rounded-xl">
               {t('signIn')}
             </Link>
-            <Link
-              href={`/${locale}/signup`}
-              style={{
-                height: 48,
-                width: '100%',
-                maxWidth: 280,
-                borderRadius: 12,
-                border: '1px solid var(--border)',
-                background: 'transparent',
-                color: '#C4622D',
-                fontSize: 14,
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-              }}
-            >
+            <Link href={`/${locale}/signup`} className="btn btn-outline w-full justify-center py-3 rounded-xl">
               {t('createAccount')}
             </Link>
           </div>
         </div>
       ) : (
         /* ── Logged in ── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 40 }}>
+        <div className="flex flex-col gap-5 pb-10">
           {/* ── Profile Card ── */}
-          <div style={{ padding: 24, borderRadius: 16, border: '1px solid var(--border)', background: 'var(--bg-subtle)' }}>
-
+          <div className="p-6 sm:p-7 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]">
             {/* Avatar + Name */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-              <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div className="flex items-center gap-4 pb-5 mb-6 border-b border-[var(--border)]">
+              <div className="relative flex-shrink-0">
                 {user.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
                     alt={user.name}
-                    width={64}
-                    height={64}
-                    style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }}
+                    width={68}
+                    height={68}
+                    referrerPolicy="no-referrer"
+                    className="w-17 h-17 rounded-full object-cover border border-[var(--border)]"
+                    onError={(e) => {
+                      ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                    }}
                   />
                 ) : (
-                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#C4622D', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <UserRound style={{ width: 28, height: 28 }} />
+                  <div className="w-17 h-17 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center">
+                    <UserRound className="w-7 h-7" />
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  style={{
-                    position: 'absolute',
-                    bottom: -2,
-                    right: -2,
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    background: '#C4622D',
-                    color: '#fff',
-                    border: '2px solid var(--bg-subtle)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: uploading ? 0.6 : 1,
-                  }}
+                  className="absolute -bottom-0.5 -end-0.5 w-7 h-7 rounded-full bg-[var(--accent)] text-white border-2 border-[var(--card-bg)] flex items-center justify-center cursor-pointer disabled:opacity-60"
                   aria-label={t('uploadAvatar')}
                 >
-                  {uploading ? <Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} /> : <Camera style={{ width: 12, height: 12 }} />}
+                  {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Camera className="w-3 h-3" />}
                 </button>
                 <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatar} />
               </div>
-              <div>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--foreground)', marginBottom: 4 }}>{user.name}</h2>
-                <p style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+              <div className="min-w-0">
+                <h1
+                  className="text-xl font-extrabold text-[var(--text-primary)] truncate mb-1"
+                  style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+                >
+                  {user.name}
+                </h1>
+                <p className="tabular-nums text-xs text-[var(--text-muted)] m-0">
                   {t('memberSince')} {new Date(user.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
                 </p>
               </div>
@@ -283,15 +228,11 @@ export function AccountPageClient({ params }: AccountPageProps) {
             {/* Message */}
             {msg && (
               <div
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold mb-4 border"
                 style={{
-                  padding: '10px 16px',
-                  borderRadius: 10,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  marginBottom: 16,
-                  border: `1px solid ${msg.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}`,
-                  background: msg.type === 'error' ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',
-                  color: msg.type === 'error' ? '#ef4444' : '#16a34a',
+                  borderColor: msg.type === 'error' ? 'var(--error-border)' : 'var(--success-border)',
+                  background: msg.type === 'error' ? 'var(--error-bg)' : 'var(--success-bg)',
+                  color: msg.type === 'error' ? 'var(--error)' : 'var(--success)',
                 }}
               >
                 {msg.text}
@@ -299,14 +240,14 @@ export function AccountPageClient({ params }: AccountPageProps) {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={handleSave} className="flex flex-col gap-4">
               {/* Name */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 8 }}>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
                   {t('name')}
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <User style={{ position: 'absolute', top: '50%', left: isRTL ? undefined : 14, right: isRTL ? 14 : undefined, transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--muted-foreground)', opacity: 0.5 }} />
+                <div className="relative">
+                  <User className="w-4 h-4 text-[var(--text-muted)] opacity-60 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     type="text"
                     required
@@ -314,82 +255,41 @@ export function AccountPageClient({ params }: AccountPageProps) {
                     maxLength={100}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    style={{
-                      height: 48,
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid var(--border)',
-                      background: 'transparent',
-                      padding: isRTL ? '0 44px 0 16px' : '0 16px 0 44px',
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'var(--foreground)',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      textAlign: isRTL ? 'right' : 'left',
-                    }}
+                    className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
                   />
                 </div>
               </div>
 
               {/* Email (disabled) */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 8 }}>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
                   {t('email')}
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <Mail style={{ position: 'absolute', top: '50%', left: isRTL ? undefined : 14, right: isRTL ? 14 : undefined, transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--muted-foreground)', opacity: 0.5 }} />
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-[var(--text-muted)] opacity-60 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     type="email"
                     disabled
                     value={user.email}
-                    style={{
-                      height: 48,
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid var(--border)',
-                      background: 'transparent',
-                      padding: isRTL ? '0 44px 0 16px' : '0 16px 0 44px',
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'var(--foreground)',
-                      outline: 'none',
-                      opacity: 0.6,
-                      cursor: 'not-allowed',
-                      boxSizing: 'border-box',
-                      textAlign: isRTL ? 'right' : 'left',
-                    }}
+                    className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] ps-10 pe-4 text-sm font-medium text-[var(--text-muted)] opacity-70 cursor-not-allowed outline-none"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', marginBottom: 8 }}>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
                   {t('phone')}
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <Phone style={{ position: 'absolute', top: '50%', left: 14, transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--muted-foreground)', opacity: 0.5 }} />
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-[var(--text-muted)] opacity-60 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder={t('phonePlaceholder')}
                     dir="ltr"
-                    style={{
-                      height: 48,
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid var(--border)',
-                      background: 'transparent',
-                      padding: '0 16px 0 44px',
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'var(--foreground)',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      textAlign: 'left',
-                    }}
+                    className="tabular-nums h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
                   />
                 </div>
               </div>
@@ -398,27 +298,10 @@ export function AccountPageClient({ params }: AccountPageProps) {
               <button
                 type="submit"
                 disabled={saving}
-                style={{
-                  height: 48,
-                  width: '100%',
-                  borderRadius: 12,
-                  background: '#C4622D',
-                  color: '#fff',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  opacity: saving ? 0.7 : 1,
-                  marginTop: 4,
-                  boxShadow: '0 4px 14px rgba(196,98,45,0.25)',
-                }}
+                className="btn btn-primary w-full justify-center py-3 rounded-xl mt-2"
               >
-                {saving ? <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> : <Save style={{ width: 18, height: 18 }} />}
-                {t('save')}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>{t('save')}</span>
               </button>
             </form>
           </div>
@@ -427,27 +310,10 @@ export function AccountPageClient({ params }: AccountPageProps) {
           <button
             type="button"
             onClick={handleLogout}
-            style={{
-              height: 48,
-              width: '100%',
-              borderRadius: 12,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--muted-foreground)',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              transition: 'border-color 0.2s, color 0.2s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted-foreground)' }}
+            className="btn btn-outline w-full justify-center py-3 rounded-xl hover:border-[var(--error)] hover:text-[var(--error)]"
           >
-            <LogOut style={{ width: 18, height: 18 }} />
-            {t('logout')}
+            <LogOut className="w-4 h-4" />
+            <span>{t('logout')}</span>
           </button>
         </div>
       )}

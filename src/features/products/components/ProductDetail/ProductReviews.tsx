@@ -67,17 +67,17 @@ function StarRow({
             onClick={() => onChange?.(n)}
             onMouseEnter={() => onHover?.(n)}
             className={`p-0.5 transition-transform duration-150 ${
-              onChange ? 'cursor-pointer hover:scale-120' : 'cursor-default'
+              onChange ? 'cursor-pointer hover:scale-110' : 'cursor-default'
             }`}
             aria-label={`${n} star${n > 1 ? 's' : ''}`}
           >
             <Star
-              style={{ width: size, height: size }}
-              className={`transition-colors duration-150 ${
-                isFilled
-                  ? 'fill-amber-400 text-amber-400'
-                  : 'text-stone-300 dark:text-stone-700 fill-transparent'
-              }`}
+              style={{
+                width: size,
+                height: size,
+                color: isFilled ? 'var(--gold)' : 'var(--border-strong)',
+                fill: isFilled ? 'var(--gold)' : 'transparent',
+              }}
             />
           </button>
         )
@@ -99,7 +99,6 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const [submitted, setSubmitted] = useState(false)
   const [showForm, setShowForm] = useState(false)
 
   const isRTL = locale === 'ar'
@@ -119,7 +118,6 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
         'Basé sur {count} avis vérifiés',
         'Based on {count} verified reviews',
       ],
-      verifiedBadge: ['زبناء موثقون 100%', 'Avis 100% vérifiés', '100% Verified Customers'],
       writeReview: ['أضيفي تقييمكِ', 'Donner votre avis', 'Write a Review'],
       editReview: ['تعديل تقييمي', 'Modifier mon avis', 'Edit My Review'],
       signInToReview: ['سجلي الدخول للتقييم', 'Se connecter pour évaluer', 'Sign in to Review'],
@@ -130,12 +128,11 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
         'Partagez vos impressions sur la coupe, le tissu, les finitions...',
         'Share your thoughts on the fabric quality, stitching, fit, and delivery...',
       ],
-      publishReview: ['نشر التقييم', 'Publier l\'avis', 'Submit Review'],
+      publishReview: ['نشر التقييم', "Publier l'avis", 'Submit Review'],
       cancel: ['إلغاء', 'Annuler', 'Cancel'],
-      reviewSubmitted: ['تم تسجيل تقييمك بنجاح!', 'Votre avis a été enregistré avec succès !', 'Your review has been submitted successfully!'],
       verifiedBuyer: ['مشتري موثق', 'Acheteur vérifié', 'Verified Buyer'],
       loading: ['جاري تحميل التقييمات...', 'Chargement des avis...', 'Loading reviews...'],
-      failed: ['تعذر إرسال التقييم، يرجى المحاولة ثانية', 'Échec de l\'envoi de l\'avis', 'Failed to submit review'],
+      failed: ['تعذر إرسال التقييم، يرجى المحاولة ثانية', "Échec de l'envoi de l'avis", 'Failed to submit review'],
     }
     const entry = map[key]
     if (!entry) return key
@@ -171,7 +168,6 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           if (mine) {
             setRating(mine.rating)
             setComment(mine.comment)
-            setSubmitted(true)
           }
         }
       })
@@ -197,7 +193,6 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'failed')
-      setSubmitted(true)
       setShowForm(false)
       loadReviews()
     } catch (err: unknown) {
@@ -210,12 +205,12 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   if (loading) {
     return (
       <div
-        className="mt-8 rounded-2xl border p-6 text-center"
-        style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+        className="mt-10 rounded-2xl border p-6 text-center"
+        style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        <Loader2 className="animate-spin mx-auto w-5 h-5 text-[#C4622D]" />
-        <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+        <Loader2 className="animate-spin mx-auto w-5 h-5 text-[var(--accent)]" />
+        <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
           {t('loading')}
         </p>
       </div>
@@ -227,83 +222,58 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
   return (
     <section className="mt-10" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* ── Main Container Card ────────────────────────────────────── */}
       <div
+        className="rounded-2xl border overflow-hidden"
         style={{
-          borderRadius: 'clamp(16px, 2vw, 22px)',
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 4px 20px rgba(61,31,10,0.03)',
-          overflow: 'hidden',
+          borderColor: 'var(--border)',
+          background: 'var(--card-bg)',
         }}
       >
-        {/* ── Header & Action Bar ──────────────────────────────────── */}
+        {/* Header */}
         <div
+          className="px-5 py-4 sm:px-6 border-b flex items-center justify-between gap-3 flex-wrap"
           style={{
-            padding: 'clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 24px)',
-            borderBottom: '1px solid var(--border)',
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.04) 0%, rgba(184,150,90,0.02) 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
+            borderColor: 'var(--border)',
+            background: 'var(--bg-subtle)',
           }}
         >
-          {/* Title & Score Summary */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <div
+          <div className="flex items-center gap-3">
+            <span
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
                 background: 'var(--accent-light)',
-                border: '1px solid var(--accent-ring)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 color: 'var(--accent)',
-                flexShrink: 0,
               }}
             >
-              <Star className="w-4 h-4 fill-[var(--accent)] text-[var(--accent)]" />
-            </div>
+              <Star className="w-4 h-4 fill-current" />
+            </span>
 
             <div>
               <div className="flex items-center gap-2">
                 <h2
+                  className="text-base sm:text-lg font-bold"
                   style={{
-                    fontSize: 'clamp(14px, 1.6vw, 17px)',
-                    fontWeight: 800,
-                    color: 'var(--foreground)',
-                    margin: 0,
+                    color: 'var(--text-primary)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                   }}
                 >
                   {t('sectionTitle')}
                 </h2>
 
-                {count > 0 && (
+                {count > 0 && avgScore && (
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
                     style={{
                       background: 'var(--accent-light)',
                       color: 'var(--accent)',
-                      border: '1px solid var(--accent-ring)',
                     }}
                   >
-                    ★ {avgScore}
+                    {avgScore} / 5
                   </span>
                 )}
               </div>
 
-              <p
-                style={{
-                  fontSize: 11.5,
-                  color: 'var(--muted-foreground)',
-                  margin: '2px 0 0',
-                }}
-              >
+              <p className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
                 {count > 0
                   ? t('basedOnCount').replace('{count}', count.toString())
                   : t('noReviewsTitle')}
@@ -311,17 +281,12 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
             </div>
           </div>
 
-          {/* Action Trigger Button in Header (Only when reviews exist) */}
           {count > 0 && (
             <div>
               {authState === 'guest' ? (
                 <Link
                   href={`/${locale}/login`}
-                  className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
-                  style={{
-                    textDecoration: 'none',
-                    minHeight: '2.75rem',
-                  }}
+                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>{t('signInToReview')}</span>
@@ -330,8 +295,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 <button
                   type="button"
                   onClick={() => setShowForm(true)}
-                  className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer"
-                  style={{ minHeight: '2.75rem' }}
+                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 cursor-pointer"
                 >
                   <MessageSquarePlus className="w-4 h-4" />
                   <span>{t('writeReview')}</span>
@@ -341,42 +305,33 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           )}
         </div>
 
-        {/* ── Simplified Inline Review Form ────────────────────────── */}
+        {/* Review Form */}
         {showForm && (
           <form
             onSubmit={handleSubmit}
+            className="p-5 sm:p-6 border-b space-y-4"
             style={{
-              padding: 'clamp(14px, 2.5vw, 22px)',
               background: 'var(--bg-subtle)',
-              borderBottom: '1px solid var(--border)',
+              borderColor: 'var(--border)',
             }}
           >
-            {/* Header: Title + Close */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                 {t('ratingLabel')}
               </span>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                style={{ padding: 4, borderRadius: 999, color: '#a8a29e', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                className="p-1 rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Stars + Rating Badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <div className="flex items-center gap-3 flex-wrap">
               <div
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: 12,
-                  border: '1px solid var(--border)',
-                  background: 'var(--card)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+                className="px-3 py-1.5 rounded-xl border flex items-center"
+                style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
               >
                 <StarRow
                   value={rating}
@@ -390,26 +345,21 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
               {activeRatingDisplay > 0 && (
                 <span
+                  className="px-2.5 py-1 rounded-full text-xs font-semibold"
                   style={{
-                    padding: '4px 10px',
-                    borderRadius: 8,
-                    fontSize: 11,
-                    fontWeight: 700,
                     background: 'var(--accent-light)',
                     color: 'var(--accent)',
-                    border: '1px solid var(--accent-ring)',
-                    whiteSpace: 'nowrap',
                   }}
                 >
-                  ✦ {RATING_LABELS[activeRatingDisplay][isRTL ? 0 : isFR ? 1 : 2]}
+                  {RATING_LABELS[activeRatingDisplay][isRTL ? 0 : isFR ? 1 : 2]}
                 </span>
               )}
             </div>
 
-            {/* Comment Textarea */}
-            <div style={{ marginBottom: 12 }}>
+            <div>
               <label
-                style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--foreground)', marginBottom: 6 }}
+                className="block text-xs font-bold mb-1.5"
+                style={{ color: 'var(--text-primary)' }}
               >
                 {t('commentLabel')}
               </label>
@@ -419,51 +369,30 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 maxLength={500}
                 rows={3}
                 placeholder={t('commentPlaceholder')}
+                className="w-full p-3 rounded-xl border text-sm leading-relaxed resize-none outline-none focus:border-[var(--accent)]"
                 style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: 12,
-                  border: '1px solid var(--border)',
-                  background: 'var(--card)',
-                  color: 'var(--foreground)',
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                  resize: 'none',
-                  outline: 'none',
-                  boxSizing: 'border-box',
+                  borderColor: 'var(--border)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-primary)',
                 }}
               />
-              <div style={{ textAlign: 'end', fontSize: 11, color: 'var(--muted-foreground)', marginTop: 4 }}>
+              <div className="text-end text-[11px] tabular-nums mt-1" style={{ color: 'var(--text-muted)' }}>
                 {comment.length}/500
               </div>
             </div>
 
-            {errorMsg && <p style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', marginBottom: 10 }}>{errorMsg}</p>}
+            {errorMsg && <p className="text-xs font-bold text-red-500">{errorMsg}</p>}
 
-            {/* Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="flex items-center gap-2.5">
               <button
                 type="submit"
                 disabled={submitting || rating === 0}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 18px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: '#fff',
-                  background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-                  border: 'none',
-                  cursor: submitting || rating === 0 ? 'not-allowed' : 'pointer',
-                  opacity: submitting || rating === 0 ? 0.6 : 1,
-                }}
+                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 cursor-pointer disabled:opacity-60"
               >
                 {submitting ? (
-                  <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} />
+                  <Loader2 className="animate-spin w-3.5 h-3.5" />
                 ) : (
-                  <Send style={{ width: 14, height: 14 }} />
+                  <Send className="w-3.5 h-3.5" />
                 )}
                 <span>{t('publishReview')}</span>
               </button>
@@ -471,16 +400,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--muted-foreground)',
-                  background: 'transparent',
-                  border: '1px solid var(--border)',
-                  cursor: 'pointer',
-                }}
+                className="btn btn-outline btn-sm btn-round px-4 cursor-pointer"
               >
                 {t('cancel')}
               </button>
@@ -488,53 +408,24 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           </form>
         )}
 
-        {/* ── Zero-Reviews Empty State ─────────────────────────────── */}
+        {/* Empty State */}
         {count === 0 && !showForm && (
-          <div
-            style={{
-              padding: 'clamp(24px, 3.5vw, 36px) clamp(16px, 2.5vw, 24px)',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
-            <div
+          <div className="py-10 px-6 text-center flex flex-col items-center gap-3">
+            <span
+              className="w-11 h-11 rounded-full flex items-center justify-center"
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: 'var(--bg-subtle)',
-                border: '1px dashed var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                background: 'var(--accent-light)',
                 color: 'var(--gold)',
               }}
             >
               <Sparkles className="w-5 h-5" />
-            </div>
+            </span>
 
             <div>
-              <h3
-                style={{
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: 'var(--foreground)',
-                  margin: '0 0 4px',
-                }}
-              >
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                 {t('noReviewsTitle')}
               </h3>
-              <p
-                style={{
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)',
-                  margin: 0,
-                  maxWidth: 420,
-                }}
-              >
+              <p className="text-xs mt-1 max-w-md" style={{ color: 'var(--text-muted)' }}>
                 {t('noReviewsDesc')}
               </p>
             </div>
@@ -542,11 +433,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
             {authState === 'guest' ? (
               <Link
                 href={`/${locale}/login`}
-                className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-7 sm:px-9 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 mt-2"
-                style={{
-                  textDecoration: 'none',
-                  minHeight: '2.75rem',
-                }}
+                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-6 mt-1"
               >
                 <LogIn className="w-4 h-4" />
                 <span>{t('signInToReview')}</span>
@@ -555,8 +442,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="btn btn-primary btn-round inline-flex items-center justify-center gap-2.5 px-7 sm:px-9 text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer mt-2"
-                style={{ minHeight: '2.75rem' }}
+                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-6 mt-1 cursor-pointer"
               >
                 <MessageSquarePlus className="w-4 h-4" />
                 <span>{t('writeReview')}</span>
@@ -565,31 +451,18 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           </div>
         )}
 
-        {/* ── Reviews Cards List ───────────────────────────────────── */}
+        {/* Reviews List */}
         {reviews.length > 0 && (
-          <div
-            style={{
-              padding: 'clamp(12px, 2vw, 18px)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-            }}
-          >
+          <div className="p-4 sm:p-5 space-y-3">
             {reviews.map((review) => (
               <div
                 key={review.id}
+                className="rounded-xl border p-4 space-y-2.5"
                 style={{
-                  borderRadius: 14,
-                  border: '1px solid var(--border)',
+                  borderColor: 'var(--border)',
                   background: 'var(--bg-subtle)',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  transition: 'border-color 0.2s ease',
                 }}
               >
-                {/* Header: User details & Stars */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     {review.customer.avatarUrl ? (
@@ -603,10 +476,8 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                       />
                     ) : (
                       <div
-                        className="flex h-7 w-7 items-center justify-center rounded-full text-white font-bold text-[11px]"
-                        style={{
-                          background: 'linear-gradient(135deg, #C4622D 0%, #a34e23 100%)',
-                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-white font-bold text-xs"
+                        style={{ background: 'var(--accent)' }}
                       >
                         {review.customer.name ? (
                           review.customer.name.charAt(0).toUpperCase()
@@ -617,25 +488,16 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                     )}
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+                      <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
                         {review.customer.name}
                       </span>
 
-                      <span
-                        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9.5px] font-bold"
-                        style={{
-                          background: 'rgba(34,197,94,0.12)',
-                          color: '#16a34a',
-                        }}
-                      >
+                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                         <CheckCircle2 className="w-2.5 h-2.5" />
                         <span>{t('verifiedBuyer')}</span>
                       </span>
 
-                      <span
-                        className="text-[10.5px] font-medium"
-                        style={{ color: 'var(--muted-foreground)' }}
-                      >
+                      <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                         •{' '}
                         {new Date(review.createdAt).toLocaleDateString(
                           isRTL ? 'ar-MA' : isFR ? 'fr-FR' : 'en-US',
@@ -645,46 +507,31 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center">
-                    <StarRow value={review.rating} size={13} />
-                  </div>
+                  <StarRow value={review.rating} size={13} />
                 </div>
 
-                {/* Comment */}
                 {review.comment && (
-                  <p
-                    style={{
-                      fontSize: 12.5,
-                      lineHeight: 1.6,
-                      color: 'var(--foreground)',
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
                     {review.comment}
                   </p>
                 )}
 
-                {/* Edit button for current user's review */}
                 {currentUserId === review.customer.id && (
-                  <div style={{ marginTop: 4 }}>
+                  <div>
                     <button
                       type="button"
-                      onClick={() => { setRating(review.rating); setComment(review.comment); setShowForm(true); }}
+                      onClick={() => {
+                        setRating(review.rating)
+                        setComment(review.comment)
+                        setShowForm(true)
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-colors"
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        padding: '5px 12px',
-                        borderRadius: 999,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: '#C4622D',
-                        background: 'rgba(196,98,45,0.08)',
-                        border: '1px solid rgba(196,98,45,0.2)',
-                        cursor: 'pointer',
+                        color: 'var(--accent)',
+                        background: 'var(--accent-light)',
                       }}
                     >
-                      <Edit3 style={{ width: 12, height: 12 }} />
+                      <Edit3 className="w-3 h-3" />
                       <span>{t('editReview')}</span>
                     </button>
                   </div>

@@ -31,7 +31,7 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '70px 16px 16px 16px',
+          padding: '70px 16px 20px 16px',
           overflowY: 'auto',
           zIndex: 1,
         }}
@@ -52,18 +52,20 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
           }}
         >
           <div
-          className="auth-lang-switcher"
-          style={{
-            '--border': 'rgba(255,255,255,0.12)',
-            '--text-secondary': 'rgba(255,255,255,0.75)',
-            '--bg-subtle': 'rgba(0,0,0,0.25)',
-            '--card': 'rgba(13,15,17,0.8)',
-            '--foreground': 'rgba(255,255,255,0.85)',
-            '--shadow-elevated': '0 8px 32px rgba(0,0,0,0.45)',
-          } as React.CSSProperties}
-        >
-          <LanguageSwitcher locale={locale} align={isRTL ? 'end' : 'start'} />
-        </div>
+            className="auth-lang-switcher"
+            style={{
+              '--border': 'rgba(212, 174, 120, 0.25)',
+              '--text-secondary': '#E6D5BF',
+              '--bg-subtle': 'rgba(20, 13, 9, 0.65)',
+              '--card': '#1E140E',
+              '--card-bg': '#1E140E',
+              '--foreground': '#FAF6F0',
+              '--text-primary': '#FAF6F0',
+              '--shadow-elevated': '0 10px 32px rgba(0, 0, 0, 0.5)',
+            } as React.CSSProperties}
+          >
+            <LanguageSwitcher locale={locale} align={isRTL ? 'end' : 'start'} />
+          </div>
 
           <Link
             href={`/${locale}/signup`}
@@ -74,9 +76,9 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
               height: '40px',
               padding: '0 16px',
               borderRadius: '10px',
-              border: '1px solid rgba(255,255,255,0.12)',
-              backgroundColor: 'rgba(0,0,0,0.25)',
-              color: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(212, 174, 120, 0.25)',
+              backgroundColor: 'rgba(20, 13, 9, 0.65)',
+              color: '#FAF6F0',
               fontSize: '13px',
               fontWeight: 600,
               textDecoration: 'none',
@@ -84,7 +86,7 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
               lineHeight: 1,
             }}
           >
-            <UserPlus style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+            <UserPlus style={{ width: '16px', height: '16px', color: '#D4AE78' }} aria-hidden="true" />
             <span>{t('createAccountAction')}</span>
           </Link>
         </div>
@@ -95,10 +97,9 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
             position: 'relative',
             zIndex: 10,
             width: '100%',
-            maxWidth: '480px',
+            maxWidth: '460px',
             margin: 'auto',
-            borderRadius: '16px',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4)',
+            borderRadius: '18px',
           }}
         >
           <CustomerLoginCard

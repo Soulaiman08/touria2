@@ -225,25 +225,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <nav
         aria-label={locale === 'ar' ? 'مسار التنقل' : locale === 'fr' ? 'Fil d\'Ariane' : 'Breadcrumb'}
         className="product-breadcrumb flex items-center gap-2 text-xs"
-        style={{ color: 'var(--muted-foreground)' }}
+        style={{ color: 'var(--text-muted)' }}
       >
-        <Link href={`/${locale}`} className="hover:text-[#C4622D] transition-colors">
+        <Link href={`/${locale}`} className="hover:text-[var(--accent)] transition-colors">
           {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
         </Link>
         <ChevronRight className="w-3 h-3 rtl-flip" />
-        <Link href={`/${locale}/products`} className="hover:text-[#C4622D] transition-colors">
+        <Link href={`/${locale}/products`} className="hover:text-[var(--accent)] transition-colors">
           {locale === 'ar' ? 'المنتجات' : locale === 'fr' ? 'Produits' : 'Products'}
         </Link>
         <ChevronRight className="w-3 h-3 rtl-flip" />
-        <span className="font-semibold text-gradient">{productName}</span>
+        <span className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{productName}</span>
       </nav>
 
-      {/* ── Back to catalog link ────────────────────────────────── */}
-      <div>
+      {/* ── Back to catalog link (desktop / tablet) ───────────────── */}
+      <div className="hidden sm:block">
         <Link
           href={`/${locale}/products`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold hover:text-[#C4622D] transition-colors"
-          style={{ color: 'var(--muted-foreground)' }}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold hover:text-[var(--accent)] transition-colors"
+          style={{ color: 'var(--text-muted)' }}
         >
           <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
           {locale === 'ar' ? 'العودة لجميع المنتجات' : locale === 'fr' ? 'Retour aux produits' : 'Back to products'}

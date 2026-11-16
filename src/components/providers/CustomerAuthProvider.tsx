@@ -1,6 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 
 export interface CustomerUser {
   id: string
@@ -26,12 +27,28 @@ interface CustomerAuthContextType {
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined)
 
 const GUEST_STORAGE_KEY = 'thuraya_guest_dismissed'
+const SUPPORTED_LOCALES = new Set(['ar', 'fr', 'en'])
 
-export function CustomerAuthProvider({ children }: { children: React.ReactNode }) {
+export function CustomerAuthProvider({
+  children,
+  locale,
+}: {
+  children: React.ReactNode
+  locale?: string
+}) {
+  const pathname = usePathname()
+  const router = useRouter()
   const [customer, setCustomer] = useState<CustomerUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [isGuest, setIsGuest] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const checkedFirstVisitRef = useRef(false)
+
+  const resolvedLocale = (() => {
+    if (locale && SUPPORTED_LOCALES.has(locale)) return locale
+    const seg = pathname?.split('/')[1]
+    return seg && SUPPORTED_LOCALES.has(seg) ? seg : 'ar'
+  })()
 
   const fetchCustomer = useCallback(async (): Promise<CustomerUser | null> => {
     try {
@@ -52,6 +69,8 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   }, [])
 
   useEffect(() => {
+    if (checkedFirstVisitRef.current) return
+
     let isMounted = true
 
     async function initAuth() {
@@ -59,15 +78,33 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
         const user = await fetchCustomer()
         if (!isMounted) return
 
+        checkedFirstVisitRef.current = true
+
         // Check if visitor previously dismissed login as guest
-        const dismissed = typeof window !== 'undefined' ? localStorage.getItem(GUEST_STORAGE_KEY) : null
-        if (dismissed === 'true') {
+        const dismissed =
+          typeof window !== 'undefined' &&
+          localStorage.getItem(GUEST_STORAGE_KEY) === 'true'
+        const hasOnboardedCookie =
+          typeof document !== 'undefined' &&
+          document.cookie.split('; ').some((c) => c.startsWith('thuraya_onboarded='))
+
+        if (dismissed || hasOnboardedCookie) {
           setIsGuest(true)
         }
 
-        // If not logged in and never dismissed, trigger first-visit overlay
-        if (!user && dismissed !== 'true') {
-          setIsLoginModalOpen(true)
+        const currentPath =
+          typeof window !== 'undefined' ? window.location.pathname : ''
+        const isAuthOrAdminRoute =
+          currentPath.includes('/login') ||
+          currentPath.includes('/signup') ||
+          currentPath.includes('/control-panel-ss7')
+
+        // First-time visitor (not logged in and not yet onboarded/guest):
+        // redirect to the dedicated /[locale]/login page instead of overlaying the homepage.
+        if (!user && !dismissed && !hasOnboardedCookie && !isAuthOrAdminRoute) {
+          const seg = currentPath.split('/')[1]
+          const targetLocale = seg && SUPPORTED_LOCALES.has(seg) ? seg : 'ar'
+          router.replace(`/${targetLocale}/login`)
         }
       } finally {
         if (isMounted) {
@@ -81,11 +118,11 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     return () => {
       isMounted = false
     }
-  }, [fetchCustomer])
+  }, [fetchCustomer, router])
 
   const openLoginModal = useCallback(() => {
-    setIsLoginModalOpen(true)
-  }, [])
+    router.push(`/${resolvedLocale}/login`)
+  }, [resolvedLocale, router])
 
   const closeLoginModal = useCallback(() => {
     setIsLoginModalOpen(false)
@@ -95,7 +132,9 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     try {
       localStorage.setItem(GUEST_STORAGE_KEY, 'true')
       const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
-      document.cookie = `thuraya_onboarded=1; path=/; SameSite=Lax; max-age=31536000${isSecure ? '; Secure' : ''}`
+      const inIframe = typeof window !== 'undefined' && window.self !== window.top
+      const sameSite = isSecure && inIframe ? 'None' : 'Lax'
+      document.cookie = `thuraya_onboarded=1; path=/; SameSite=${sameSite}; max-age=31536000${isSecure ? '; Secure' : ''}`
     } catch {
       // ignore localstorage errors in restricted mode
     }

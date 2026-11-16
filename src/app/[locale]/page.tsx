@@ -1,14 +1,29 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { cookies } from 'next/headers'
+import {
+  ShoppingBag,
+  ArrowRight,
+  ArrowUpRight,
+  Banknote,
+  Sparkles,
+  Truck,
+  Heart,
+  MessageCircle,
+  Phone,
+  Camera,
+  Music2,
+  Share2,
+  PlayCircle,
+} from 'lucide-react'
 import { productService } from '@/services/product.service'
+import { categoryService } from '@/services/category.service'
 import { bannerService } from '@/services/banner.service'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
+import { formatPrice } from '@/lib/utils'
 import { ProductCard } from '@/components/shared/ProductCard'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
-import { FirstVisitGate } from '@/components/shared/FirstVisitGate'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,9 +31,6 @@ interface HomePageProps {
   params: Promise<{ locale: string }>
 }
 
-// ─────────────────────────────────────────────────────────────
-// Per-locale homepage metadata (overrides layout defaults)
-// ─────────────────────────────────────────────────────────────
 export async function generateMetadata({
   params,
 }: HomePageProps): Promise<Metadata> {
@@ -46,9 +58,9 @@ export async function generateMetadata({
     alternates: {
       canonical: `${baseUrl}/${locale}`,
       languages: {
-        'ar': `${baseUrl}/ar`,
-        'fr': `${baseUrl}/fr`,
-        'en': `${baseUrl}/en`,
+        ar: `${baseUrl}/ar`,
+        fr: `${baseUrl}/fr`,
+        en: `${baseUrl}/en`,
         'x-default': `${baseUrl}/ar`,
       },
     },
@@ -83,7 +95,6 @@ const DEFAULT_SETTINGS: SiteSettings = {
 async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const settingsList = await prisma.siteSetting.findMany()
-
     const settings: SiteSettings = { ...DEFAULT_SETTINGS }
 
     for (const item of settingsList) {
@@ -103,30 +114,26 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   const isRTL = locale === 'ar'
 
-  // ── First-visit detection (server-side, no User-Agent tricks) ───────────
-  // Reading cookies() is safe here because the page is already force-dynamic.
-  const cookieStore = await cookies()
-  const hasOnboarded = cookieStore.has('thuraya_onboarded')
-  const hasCustomerToken = cookieStore.has('customer_token')
-  const isFirstVisit = !hasOnboarded && !hasCustomerToken
-  // ────────────────────────────────────────────────────────────────────────
-
-  const [featured, newestResponse, banners, settings] = await Promise.all([
+  const [featured, newestResponse, categories, banners, settings] = await Promise.all([
     productService.getFeaturedProducts(),
     productService.getProducts({ sort: 'newest', limit: 8 }),
+    categoryService.getCategories(),
     bannerService.getActiveBanners(),
     getSiteSettings(),
   ])
 
   const whatsappNumber = (settings.whatsapp || '').replace(/[^0-9]/g, '')
 
+  const heroPrimary = featured[0] ?? newestResponse.items[0] ?? null
+  const heroSecondary = featured[1] ?? newestResponse.items[1] ?? null
+
   const labels = {
-    heroBadge:
+    heroEyebrow:
       locale === 'ar'
-        ? 'أناقة مغربية أصيلة'
+        ? 'دار ثريا المغربي · خياطة تقليدية أصيلة'
         : locale === 'fr'
-          ? 'Élégance marocaine authentique'
-          : 'Authentic Moroccan Elegance',
+          ? 'Maison Thuraya · Haute Couture Marocaine'
+          : 'Maison Thuraya · Moroccan Craft Atelier',
 
     heroTitle1:
       locale === 'ar'
@@ -144,24 +151,45 @@ export default async function HomePage({ params }: HomePageProps) {
 
     heroSub:
       locale === 'ar'
-        ? 'جلابيات ونقابات مغربية مصنوعة يدوياً بأجود الخامات وأرقى التصاميم، تجمع بين التراث الأصيل والذوق الرفيع.'
+        ? 'جلابيات ونقابات مغربية مصنوعة يدوياً بأجود الخامات وأرقى القصات، تجمع بين هيبة التراث والراحة اليومية.'
         : locale === 'fr'
-          ? 'Djellabas et niqabs marocains artisanaux, alliant héritage authentique et goût raffiné.'
-          : 'Handcrafted Moroccan djellabas and niqabs blending authentic heritage with refined taste.',
+          ? 'Djellabas et niqabs marocains confectionnés à la main avec des tissus nobles, alliant héritage et allure contemporaine.'
+          : 'Handcrafted Moroccan djellabas and niqabs tailored in noble fabrics, uniting heritage craft with everyday grace.',
 
     heroCta:
       locale === 'ar'
-        ? 'ابدأي التسوق'
+        ? 'تصفحي المجموعة'
         : locale === 'fr'
-          ? 'Commencer vos achats'
-          : 'Start Shopping',
+          ? 'Découvrir la collection'
+          : 'Shop Collection',
 
     heroSec:
       locale === 'ar'
-        ? 'اكتشفي المجموعة'
+        ? 'قصة الدار'
         : locale === 'fr'
-          ? 'Découvrir la collection'
-          : 'Discover the Collection',
+          ? 'Notre savoir-faire'
+          : 'Our Craft',
+
+    trustLine:
+      locale === 'ar'
+        ? ['صنع يدوي مغربي', 'الدفع عند الاستلام', 'توصيل لجميع المدن']
+        : locale === 'fr'
+          ? ['Artisanat marocain', 'Paiement à la livraison', 'Livraison nationale']
+          : ['Handcrafted in Morocco', 'Cash on Delivery', 'Nationwide Shipping'],
+
+    featuredPieceLabel:
+      locale === 'ar'
+        ? 'قطعة مميزة'
+        : locale === 'fr'
+          ? 'Pièce signature'
+          : 'Signature Piece',
+
+    bestEyebrow:
+      locale === 'ar'
+        ? 'مختارات الدار'
+        : locale === 'fr'
+          ? 'Sélection signature'
+          : 'Atelier Selection',
 
     bestSellers:
       locale === 'ar'
@@ -175,7 +203,14 @@ export default async function HomePage({ params }: HomePageProps) {
         ? 'اختيارات مميزة من أرقى جلابياتنا المغربية'
         : locale === 'fr'
           ? 'Nos créations les plus appréciées'
-          : 'Our most beloved creations',
+          : 'Our most beloved handcrafted pieces',
+
+    newEyebrow:
+      locale === 'ar'
+        ? 'إصدارات حديثة'
+        : locale === 'fr'
+          ? 'Dernières créations'
+          : 'Freshly Crafted',
 
     newCol:
       locale === 'ar'
@@ -198,12 +233,33 @@ export default async function HomePage({ params }: HomePageProps) {
           ? 'Voir tout'
           : 'View All',
 
+    allCatalog:
+      locale === 'ar'
+        ? 'جميع التصاميم'
+        : locale === 'fr'
+          ? 'Toute la collection'
+          : 'All Pieces',
+
     empty:
       locale === 'ar'
         ? 'سيتم إضافة المنتجات قريبًا.'
         : locale === 'fr'
           ? 'Les produits seront bientôt disponibles.'
           : 'Products will be available soon.',
+
+    storyQuote:
+      locale === 'ar'
+        ? '"كل جلابة تحكي قصة من تراثنا المغربي الأصيل"'
+        : locale === 'fr'
+          ? '"Chaque djellaba raconte une histoire de notre patrimoine marocain"'
+          : '"Every djellaba tells a story of our authentic Moroccan heritage"',
+
+    contactEyebrow:
+      locale === 'ar'
+        ? 'خدمة الزبونات'
+        : locale === 'fr'
+          ? 'Conciergerie'
+          : 'Atelier Concierge',
 
     contactTitle:
       locale === 'ar'
@@ -214,43 +270,36 @@ export default async function HomePage({ params }: HomePageProps) {
 
     contactSub:
       locale === 'ar'
-        ? 'نحن هنا للإجابة على استفساراتكم'
+        ? 'يسعدنا مساعدتك في اختيار المقاس أو اللون المناسب لطلبك.'
         : locale === 'fr'
-          ? 'Nous sommes là pour vous aider'
-          : "We're here to answer your questions",
+          ? 'Nous vous conseillons avec plaisir sur les tailles et coloris.'
+          : 'We are delighted to assist with sizing, colors, or custom inquiries.',
 
     whatsappCta:
       locale === 'ar'
-        ? 'تواصل عبر واتساب'
+        ? 'محادثة عبر واتساب'
         : locale === 'fr'
-          ? 'Contacter via WhatsApp'
-          : 'Contact via WhatsApp',
+          ? 'Discuter sur WhatsApp'
+          : 'Chat on WhatsApp',
 
     callCta:
       locale === 'ar'
-        ? 'اتصل بنا'
+        ? 'اتصال هاتفي'
         : locale === 'fr'
           ? 'Appeler'
-          : 'Call Us',
+          : 'Call Atelier',
+
+    followLabel:
+      locale === 'ar'
+        ? 'حساباتنا'
+        : locale === 'fr'
+          ? 'Réseaux'
+          : 'Socials',
   }
 
-  const features = [
+  const pillars = [
     {
-      icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-          />
-        </svg>
-      ),
+      icon: Sparkles,
       title:
         locale === 'ar'
           ? 'صنع يدوي أصيل'
@@ -259,58 +308,28 @@ export default async function HomePage({ params }: HomePageProps) {
             : 'Authentic Handmade',
       desc:
         locale === 'ar'
-          ? 'كل قطعة تُصنع بعناية فائقة وحرفية متوارثة'
+          ? 'خياطة متقنة بحرفية مغربية متوارثة'
           : locale === 'fr'
-            ? 'Chaque pièce est fabriquée avec un soin exceptionnel'
-            : 'Every piece crafted with exceptional care',
+            ? 'Finitions soignées par nos artisans'
+            : 'Tailored with traditional Moroccan craft',
     },
-
     {
-      icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-          />
-        </svg>
-      ),
+      icon: Heart,
       title:
         locale === 'ar'
-          ? 'أجود الخامات'
+          ? 'أجود الأقمشة'
           : locale === 'fr'
-            ? 'Matériaux premium'
-            : 'Premium Materials',
+            ? 'Tissus nobles'
+            : 'Premium Fabrics',
       desc:
         locale === 'ar'
-          ? 'أقمشة مختارة بعناية لضمان الراحة والمتانة'
+          ? 'خامات مختارة للراحة والأناقة الدائمة'
           : locale === 'fr'
-            ? 'Tissus sélectionnés pour le confort et la durabilité'
-            : 'Carefully selected fabrics for comfort and durability',
+            ? 'Matières choisies pour le confort'
+            : 'Selected textiles for lasting comfort',
     },
-
     {
-      icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
-          />
-        </svg>
-      ),
+      icon: Truck,
       title:
         locale === 'ar'
           ? 'توصيل لجميع المدن'
@@ -319,351 +338,255 @@ export default async function HomePage({ params }: HomePageProps) {
             : 'Nationwide Delivery',
       desc:
         locale === 'ar'
-          ? 'نوصل لجميع مدن المملكة المغربية'
+          ? 'شحن سريع وآمن لكافة مدن المملكة'
           : locale === 'fr'
-            ? 'Livraison dans toutes les villes du Maroc'
-            : 'Delivery to all Moroccan cities',
+            ? 'Expédition dans tout le Maroc'
+            : 'Fast delivery across all Moroccan cities',
     },
-
     {
-      icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
-          />
-        </svg>
-      ),
+      icon: Banknote,
       title:
         locale === 'ar'
           ? 'الدفع عند الاستلام'
           : locale === 'fr'
-            ? 'Paiement à la livraison'
+            ? 'Paiement à la réception'
             : 'Cash on Delivery',
       desc:
         locale === 'ar'
-          ? 'ادفعي عند استلام طلبك بكل أمان وسهولة'
+          ? 'معاينة وأداء آمن عند استلام الطلب'
           : locale === 'fr'
-            ? 'Payez en toute sécurité à la réception'
-            : 'Pay securely when you receive your order',
+            ? 'Réglez en toute confiance à l’arrivée'
+            : 'Pay securely upon receiving your order',
     },
   ]
 
+  const whatsappHref = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+        locale === 'ar'
+          ? 'مرحباً، أريد الاستفسار عن منتجاتكم'
+          : locale === 'fr'
+            ? 'Bonjour, je souhaite me renseigner sur vos produits'
+            : 'Hello, I would like to inquire about your products'
+      )}`
+    : '#'
+
+  const socialLinks = [
+    { href: settings.instagram || '', icon: Camera, label: 'Instagram' },
+    { href: settings.tiktok || '', icon: Music2, label: 'TikTok' },
+    { href: settings.facebook || '', icon: Share2, label: 'Facebook' },
+    { href: settings.youtube || '', icon: PlayCircle, label: 'YouTube' },
+  ].filter((s) => Boolean(s.href && s.href !== '#'))
+
+  const heroPrimaryName = heroPrimary
+    ? locale === 'ar'
+      ? heroPrimary.nameAr
+      : locale === 'fr'
+        ? heroPrimary.nameFr
+        : heroPrimary.nameEn
+    : siteConfig.name
+
+  const heroSecondaryName = heroSecondary
+    ? locale === 'ar'
+      ? heroSecondary.nameAr
+      : locale === 'fr'
+        ? heroSecondary.nameFr
+        : heroSecondary.nameEn
+    : ''
+
   return (
     <>
-      {/* First-visit overlay: server-rendered (no flash), same HTML for everyone */}
-      <FirstVisitGate locale={locale} defaultOpen={isFirstVisit} />
+      {/* ===================================================
+          1. ARCHITECTURAL MOROCCAN ARCH HERO
+      =================================================== */}
       <section
-        className="home-hero relative overflow-hidden py-6 sm:py-8 md:py-12 lg:py-14 hero-section"
-        style={{
-          background: 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-        }}
+        className="home-hero relative overflow-hidden py-6 sm:py-12 lg:py-20"
         aria-label={isRTL ? 'الرئيسية' : 'Hero'}
       >
-        {/* Moroccan background texture layer */}
-        <div className="absolute inset-0 pattern-moroccan pointer-events-none opacity-100" />
-
-        {/* Ambient atmospheric luxury glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 70% 60% at 75% 45%, rgba(196, 98, 45, 0.08) 0%, rgba(184, 150, 90, 0.03) 50%, transparent 70%)',
+              'radial-gradient(ellipse 60% 55% at 75% 40%, rgba(158, 67, 33, 0.055) 0%, rgba(154, 116, 56, 0.03) 50%, transparent 72%)',
           }}
         />
 
-        <div className="container-brand relative z-10 w-full">
-          <div className="hero-grid grid grid-cols-1 lg:grid-cols-12 items-center gap-x-6 sm:gap-x-8 lg:gap-x-10 xl:gap-x-12 gap-y-6 sm:gap-y-8 lg:gap-y-0" dir={isRTL ? 'rtl' : 'ltr'}>
-            
-            {/* ===================================================
-                HERO CONTENT (Col 7)
-            =================================================== */}
-            <div
-              className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-start"
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              {/* Overline Badge */}
-              <div
-                className="hero-badge inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide mb-2.5 sm:mb-3.5 shadow-2xs"
-                style={{
-                  background: 'var(--accent-light)',
-                  color: 'var(--accent)',
-                  border: '1px solid var(--accent-ring)',
-                }}
-              >
-                <span className="text-amber-500 dark:text-amber-400 text-xs">✦</span>
-                <span>{labels.heroBadge}</span>
-                <span className="text-amber-500 dark:text-amber-400 text-xs">✦</span>
+        <div className="container-brand relative z-10">
+          <div
+            className="grid grid-cols-1 lg:grid-cols-12 items-center gap-7 sm:gap-10 lg:gap-12 xl:gap-16"
+            dir={isRTL ? 'rtl' : 'ltr'}
+          >
+            {/* Editorial Copy Column */}
+            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-start space-y-4 sm:space-y-6">
+              <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-[var(--gold)]">
+                <span className="w-5 sm:w-6 h-px bg-[var(--gold)]/60" aria-hidden="true" />
+                <span>{labels.heroEyebrow}</span>
               </div>
 
-              {/* Main Headline */}
               <h1
-                className="font-extrabold tracking-tight leading-[1.18] sm:leading-[1.15] max-w-xl text-[var(--text-primary)]"
+                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)]"
                 style={{
-                  fontSize: 'clamp(1.65rem, 3.6vw, 3.2rem)',
+                  fontSize: 'clamp(1.9rem, 4.1vw, 3.65rem)',
                   fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                 }}
               >
                 {labels.heroTitle1}
-                <span className="block mt-0.5 sm:mt-1 gradient-text">
+                <span className="block mt-1 gradient-text">
                   {labels.heroTitle2}
                 </span>
               </h1>
 
-              {/* Moroccan Separator */}
-              <div
-                className="hero-separator flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3 my-2.5 sm:my-3.5 md:my-4"
-                aria-hidden="true"
-              >
-                <span
-                  className="h-[1.5px] w-8 sm:w-12 rounded-full"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent, var(--accent-ring), var(--gold))',
-                  }}
-                />
-                <span
-                  className="text-xs sm:text-sm font-serif"
-                  style={{ color: 'var(--gold)' }}
-                >
-                  ✦
-                </span>
-                <span
-                  className="h-[1.5px] w-8 sm:w-12 rounded-full"
-                  style={{
-                    background: 'linear-gradient(90deg, var(--gold), var(--accent-ring), transparent)',
-                  }}
-                />
-              </div>
-
-              {/* Description with comfortable line-height */}
-              <p
-                className="hero-description text-xs sm:text-sm md:text-base max-w-lg leading-6 sm:leading-7 md:leading-relaxed text-[var(--text-muted)] font-normal"
-              >
+              <p className="text-xs sm:text-base max-w-md sm:max-w-lg leading-relaxed text-[var(--text-muted)]">
                 {labels.heroSub}
               </p>
 
-              {/* Action Buttons */}
-              <div className="hero-actions flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3 mt-4 sm:mt-6 w-full sm:w-auto">
+              {/* Action Buttons (Side-by-side 2-col on mobile, inline flex on tablet+) */}
+              <div className="grid grid-cols-2 sm:flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-1 w-full sm:w-auto max-w-md sm:max-w-none">
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary btn-round w-full sm:w-auto shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 group"
-                  style={{
-                    minWidth: 155,
-                    minHeight: 44,
-                    justifyContent: 'center',
-                  }}
+                  className="btn btn-primary btn-round w-full sm:w-auto sm:min-w-[180px] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    className="w-4 h-4 transition-transform duration-300 group-hover:scale-110"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
-                    />
-                  </svg>
-                  <span className="font-semibold text-xs sm:text-sm">{labels.heroCta}</span>
+                  <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
+                  <span className="truncate">{labels.heroCta}</span>
                 </Link>
 
                 <Link
                   href={`/${locale}/about`}
-                  className="btn btn-outline btn-round w-full sm:w-auto transition-all duration-300 hover:scale-[1.02] active:scale-95 group"
-                  style={{
-                    minWidth: 155,
-                    minHeight: 44,
-                    justifyContent: 'center',
-                  }}
+                  className="btn btn-outline btn-round w-full sm:w-auto sm:min-w-[160px] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
                 >
-                  <span className="font-semibold text-xs sm:text-sm">{labels.heroSec}</span>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:translate-x-1 ${
-                      isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''
+                  <span className="truncate">{labels.heroSec}</span>
+                  <ArrowRight
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${
+                      isRTL
+                        ? 'rotate-180 group-hover:-translate-x-0.5'
+                        : 'group-hover:translate-x-0.5'
                     }`}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
-                  </svg>
+                  />
                 </Link>
               </div>
 
-
-            </div>
-
-            {/* ===================================================
-                HERO VISUAL SHOWCASE (Col 5)
-            =================================================== */}
-            <div
-              className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center"
-              dir="ltr"
-            >
-              <div
-                className="hero-showcase relative flex items-center justify-center p-1.5 sm:p-2"
-                style={{
-                  width: 'clamp(200px, 30vw, 340px)',
-                  aspectRatio: '1 / 1',
-                }}
-              >
-                {/* Soft ambient radial aura */}
-                <div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{
-                    background:
-                      'radial-gradient(circle, rgba(184, 150, 90, 0.14) 0%, rgba(196, 98, 45, 0.04) 55%, transparent 72%)',
-                    filter: 'blur(16px)',
-                  }}
-                />
-
-                {/* Decorative outer ring */}
-                <div
-                  className="absolute inset-1 rounded-full pointer-events-none"
-                  style={{
-                    border: '1.5px solid var(--accent-ring)',
-                    opacity: 0.65,
-                  }}
-                />
-
-                {/* Decorative dashed inner ring */}
-                <div
-                  className="absolute rounded-full pointer-events-none"
-                  style={{
-                    inset: 9,
-                    border: '1px dashed rgba(184, 150, 90, 0.35)',
-                  }}
-                />
-
-                {/* Showcase Container */}
-                <div
-                  className="hero-logo-mark relative rounded-full overflow-hidden shadow-xl transition-transform duration-500 hover:scale-[1.02]"
-                  style={{
-                    width: 'clamp(170px, 25vw, 290px)',
-                    height: 'clamp(170px, 25vw, 290px)',
-                    background: 'var(--card-bg)',
-                    boxShadow: 'var(--shadow-gold), 0 14px 28px -10px rgba(0, 0, 0, 0.25)',
-                    border: '3.5px solid var(--bg-base)',
-                  }}
-                >
-                  <Image
-                    src="/images/brand/logo-full.png"
-                    alt={siteConfig.name}
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 200px, (max-width: 1024px) 260px, 290px"
-                    className="object-cover transition-transform duration-700 hover:scale-105"
-                    style={{
-                      background: 'var(--bg-subtle)',
-                    }}
-                  />
-                </div>
-              </div>
-
-            </div>
-
-            {/* ===================================================
-                TRUST STRIP — All 4 features, one unified row
-                col-span-12 ensures same vertical level always
-            =================================================== */}
-            <div
-              className="hero-trust lg:col-span-12 flex items-center justify-center gap-3 sm:gap-4 md:gap-6 flex-nowrap overflow-x-auto scrollbar-hidden mt-4 sm:mt-5 lg:mt-6 pt-3 sm:pt-3.5 w-full"
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              {[
-                {
-                  icon: '✓',
-                  text:
-                    locale === 'ar'
-                      ? 'الدفع عند الاستلام'
-                      : locale === 'fr'
-                        ? 'Paiement à la livraison'
-                        : 'Cash on Delivery',
-                },
-                {
-                  icon: '🇲🇦',
-                  text:
-                    locale === 'ar'
-                      ? 'صنع في المغرب'
-                      : locale === 'fr'
-                        ? 'Fait au Maroc'
-                        : 'Made in Morocco',
-                },
-                {
-                  icon: '✦',
-                  text:
-                    locale === 'ar'
-                      ? 'صنع يدوي'
-                      : locale === 'fr'
-                        ? 'Artisanal'
-                        : 'Handmade',
-                },
-                {
-                  icon: '🚚',
-                  text:
-                    locale === 'ar'
-                      ? 'توصيل لكل المدن'
-                      : locale === 'fr'
-                        ? 'Livraison nationale'
-                        : 'Nationwide',
-                },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 sm:gap-4 md:gap-5 flex-shrink-0">
-                  <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-[var(--text-muted)] whitespace-nowrap">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold text-xs">{item.icon}</span>
-                    <span>{item.text}</span>
+              {/* Clean Typographic Assurances */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 sm:gap-x-4 gap-y-1.5 pt-3 border-t border-[var(--border-subtle)] text-[11px] sm:text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
+                {labels.trustLine.map((item, idx) => (
+                  <span key={item} className="inline-flex items-center gap-3 sm:gap-4">
+                    {idx > 0 && (
+                      <span className="text-[var(--gold)]/60" aria-hidden="true">
+                        ·
+                      </span>
+                    )}
+                    <span>{item}</span>
                   </span>
-                  {i < 3 && (
-                    <span
-                      className="text-[var(--border)]/60 text-xs select-none"
-                      aria-hidden="true"
-                    >
-                      |
-                    </span>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
+            {/* Moroccan Architectural Arch Editorial Showcase */}
+            <div className="lg:col-span-6 relative flex justify-center lg:justify-end px-3 sm:px-0">
+              <div className="relative w-full max-w-[290px] sm:max-w-[380px] lg:max-w-[410px]">
+                {heroPrimary ? (
+                  <Link
+                    href={`/${locale}/products/${heroPrimary.slug}`}
+                    className="block relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--bg-muted)] group no-underline"
+                    style={{ boxShadow: 'var(--card-shadow-hover)' }}
+                  >
+                    <Image
+                      src={heroPrimary.mainImage || '/images/brand/logo-full.png'}
+                      alt={heroPrimaryName}
+                      fill
+                      priority
+                      referrerPolicy="no-referrer"
+                      sizes="(max-width: 640px) 290px, (max-width: 1024px) 380px, 410px"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    />
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background:
+                          'linear-gradient(to top, rgba(20, 13, 9, 0.78) 0%, rgba(20, 13, 9, 0.12) 45%, transparent 100%)',
+                      }}
+                    />
+
+                    {/* Subtle Framed Showcase Caption */}
+                    <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 flex items-end justify-between gap-3 sm:gap-4 text-white">
+                      <div className="min-w-0 space-y-0.5 sm:space-y-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E4C48E] block">
+                          {labels.featuredPieceLabel}
+                        </span>
+                        <p className="text-xs sm:text-base font-bold truncate">
+                          {heroPrimaryName}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                        <span className="text-xs sm:text-sm font-bold tabular-nums text-[#F6EFE6]">
+                          {formatPrice(heroPrimary.salePrice ?? heroPrimary.basePrice, locale)}
+                        </span>
+                        <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+                          <ArrowUpRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? '-scale-x-100' : ''}`} />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ) : (
+                  <div
+                    className="relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--card-bg)]"
+                    style={{ boxShadow: 'var(--card-shadow-hover)' }}
+                  >
+                    <Image
+                      src="/images/brand/logo-full.png"
+                      alt={siteConfig.name}
+                      fill
+                      priority
+                      referrerPolicy="no-referrer"
+                      sizes="(max-width: 640px) 290px, (max-width: 1024px) 380px, 410px"
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Secondary Lookbook Preview Tile */}
+                {heroSecondary && (
+                  <Link
+                    href={`/${locale}/products/${heroSecondary.slug}`}
+                    aria-label={heroSecondaryName}
+                    className="block absolute -bottom-3 -start-3 w-20 sm:-bottom-5 sm:-start-6 sm:w-32 aspect-[3/4] rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
+                  >
+                    <Image
+                      src={heroSecondary.mainImage || '/images/brand/logo-icon.png'}
+                      alt={heroSecondaryName}
+                      fill
+                      referrerPolicy="no-referrer"
+                      sizes="(max-width: 640px) 80px, 140px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* BANNERS */}
+      {/* ===================================================
+          2. FEATURED BANNERS (only when active in DB)
+      =================================================== */}
       {banners.length > 0 && (
         <section
-          className="home-section home-section-banners section-gap"
+          className="home-section"
           aria-label={isRTL ? 'العروض الرئيسية' : 'Featured Banners'}
         >
           <div className="container-brand">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {banners.map((banner) => (
                 <div
                   key={banner.id}
-                  className="relative overflow-hidden rounded-3xl shadow-xl"
-                  style={{ minHeight: 200, background: 'var(--bg-muted)' }}
+                  className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-muted)] group"
+                  style={{ minHeight: 240, boxShadow: 'var(--card-shadow)' }}
                 >
                   <Image
                     src={banner.imageUrl}
                     alt={banner.title}
                     fill
-                    className="object-cover"
+                    referrerPolicy="no-referrer"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
 
@@ -671,16 +594,16 @@ export default async function HomePage({ params }: HomePageProps) {
                     className="absolute inset-0"
                     style={{
                       background:
-                        'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)',
+                        'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.32) 55%, transparent 100%)',
                     }}
                   />
 
                   <div
-                    className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 space-y-2 sm:space-y-3"
+                    className="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-2.5"
                     dir={isRTL ? 'rtl' : 'ltr'}
                   >
                     <h3
-                      className="text-xl font-bold text-white leading-tight"
+                      className="text-xl sm:text-2xl font-bold text-white leading-tight text-balance"
                       style={{
                         fontFamily: isRTL
                           ? 'var(--font-arabic)'
@@ -691,7 +614,7 @@ export default async function HomePage({ params }: HomePageProps) {
                     </h3>
 
                     {banner.subtitle && (
-                      <p className="text-sm text-white/80">
+                      <p className="text-sm text-white/85 max-w-md">
                         {banner.subtitle}
                       </p>
                     )}
@@ -699,13 +622,10 @@ export default async function HomePage({ params }: HomePageProps) {
                     {banner.buttonText && banner.buttonUrl && (
                       <Link
                         href={banner.buttonUrl}
-                        className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-colors"
-                        style={{
-                          background: 'var(--accent)',
-                          color: '#fff',
-                        }}
+                        className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 mt-2"
                       >
-                        {banner.buttonText}
+                        <span>{banner.buttonText}</span>
+                        <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
                       </Link>
                     )}
                   </div>
@@ -716,62 +636,71 @@ export default async function HomePage({ params }: HomePageProps) {
         </section>
       )}
 
-      {/* BEST SELLERS */}
-      <section className="home-section section-gap" aria-label={labels.bestSellers}>
-        <div className="container-brand space-y-5 sm:space-y-7 md:space-y-8">
-          <div
-            className="flex flex-row items-center justify-between gap-3"
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
-            <div>
-              <div className="section-eyebrow mb-1 sm:mb-2 text-[11px] sm:text-xs">
-                <span>✦</span>
-                {labels.bestSellers}
-                <span>✦</span>
+      {/* ===================================================
+          3. COLLECTIONS & BEST SELLERS
+      =================================================== */}
+      <section className="home-section" aria-label={labels.bestSellers}>
+        <div className="container-brand space-y-6 sm:space-y-8">
+          <div className="space-y-4 border-b border-[var(--border-subtle)] pb-5 sm:pb-6" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="flex items-end justify-between gap-3">
+              <div className="space-y-1 sm:space-y-1.5 min-w-0">
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                  <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
+                  <span>{labels.bestEyebrow}</span>
+                </div>
+
+                <h2 className="text-xl sm:text-3xl font-bold text-[var(--text-primary)] truncate">
+                  {labels.bestSellers}
+                </h2>
+
+                <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-1">
+                  {labels.bestSub}
+                </p>
               </div>
 
-              <h2
-                className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold"
-                style={{ color: 'var(--text-primary)' }}
+              <Link
+                href={`/${locale}/products`}
+                className="btn btn-outline btn-sm btn-round flex-shrink-0 !px-3.5 sm:!px-5 text-xs sm:text-sm"
               >
-                {labels.bestSellers}
-              </h2>
-
-              <p
-                className="text-xs sm:text-sm md:text-base mt-1"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                {labels.bestSub}
-              </p>
+                <span>{labels.viewAll}</span>
+                <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`} />
+              </Link>
             </div>
 
-            <Link
-              href={`/${locale}/products`}
-              className="btn btn-outline btn-sm btn-round flex-shrink-0 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
-            >
-              <span>{labels.viewAll}</span>
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </Link>
+            {categories.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hidden pt-1">
+                <Link
+                  href={`/${locale}/products`}
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] whitespace-nowrap flex-shrink-0 transition-colors"
+                >
+                  {labels.allCatalog}
+                </Link>
+                {categories.map((cat) => {
+                  const catLabel =
+                    locale === 'ar'
+                      ? cat.nameAr
+                      : locale === 'fr'
+                        ? cat.nameFr
+                        : cat.nameEn
+                  return (
+                    <Link
+                      key={cat.id}
+                      href={`/${locale}/products?category=${cat.slug}`}
+                      className="px-3.5 py-2 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] whitespace-nowrap flex-shrink-0 transition-colors"
+                    >
+                      {catLabel}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {featured.length === 0 ? (
             <EmptyState message={labels.empty} />
           ) : (
             <div
-              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6 lg:gap-7"
+              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {featured.map((p, i) => (
@@ -779,7 +708,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   key={p.id}
                   className="animate-fade-in-up"
                   style={{
-                    animationDelay: `${i * 60}ms`,
+                    animationDelay: `${i * 50}ms`,
                     animationFillMode: 'both',
                   }}
                 >
@@ -791,57 +720,39 @@ export default async function HomePage({ params }: HomePageProps) {
         </div>
       </section>
 
-      {/* NEW ARRIVALS */}
+      {/* ===================================================
+          4. NEW ARRIVALS COLLECTION
+      =================================================== */}
       <section
-        className="home-section home-section-muted section-gap"
+        className="home-section home-section-muted"
         aria-label={labels.newCol}
       >
-        <div className="container-brand space-y-5 sm:space-y-7 md:space-y-8">
+        <div className="container-brand space-y-6 sm:space-y-8">
           <div
-            className="flex flex-row items-center justify-between gap-3"
+            className="flex flex-row items-end justify-between gap-3 border-b border-[var(--border)] pb-5 sm:pb-6"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
-            <div>
-              <div className="section-eyebrow mb-1 sm:mb-2 text-[11px] sm:text-xs">
-                <span>✦</span>
-                {locale === 'ar' ? 'جديد' : 'Nouveau'}
-                <span>✦</span>
+            <div className="space-y-1 sm:space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
+                <span>{labels.newEyebrow}</span>
               </div>
 
-              <h2
-                className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold"
-                style={{ color: 'var(--text-primary)' }}
-              >
+              <h2 className="text-xl sm:text-3xl font-bold text-[var(--text-primary)] truncate">
                 {labels.newCol}
               </h2>
 
-              <p
-                className="text-xs sm:text-sm md:text-base mt-1"
-                style={{ color: 'var(--text-muted)' }}
-              >
+              <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-1">
                 {labels.newSub}
               </p>
             </div>
 
             <Link
               href={`/${locale}/products?sort=newest`}
-              className="btn btn-outline btn-sm btn-round flex-shrink-0 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
+              className="btn btn-outline btn-sm btn-round flex-shrink-0 !px-3.5 sm:!px-5 text-xs sm:text-sm"
             >
               <span>{labels.viewAll}</span>
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
+              <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`} />
             </Link>
           </div>
 
@@ -854,350 +765,168 @@ export default async function HomePage({ params }: HomePageProps) {
               locale={locale}
               filters={{ sort: 'newest' }}
               isNew
-              gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6"
+              gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
             />
           )}
         </div>
       </section>
 
-      {/* GOLD ORNAMENT BANNER */}
-      <section
-        className="home-brand-story py-8 sm:py-12 md:py-14"
-        style={{
-          background:
-            'linear-gradient(135deg, #3D1F0A 0%, #6B3A2A 50%, #3D1F0A 100%)',
-        }}
-        aria-label={isRTL ? 'رسالتنا' : 'Our mission'}
-      >
-        <div
-          className="container-brand text-center space-y-4 sm:space-y-6"
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <div className="ornament justify-center" style={{ color: '#000000' }}>
-            <span style={{ fontSize: '1.25rem' }}>✦</span>
-          </div>
-
-          <blockquote
-            className="text-lg sm:text-2xl font-bold leading-relaxed max-w-2xl mx-auto"
-            style={{
-              color: 'var(--text-primary)',
-              fontFamily: isRTL
-                ? 'var(--font-arabic)'
-                : 'var(--font-display)',
-            }}
-          >
-            {locale === 'ar'
-              ? '"كل جلابة تحكي قصة من تراثنا المغربي الأصيل"'
-              : locale === 'fr'
-                ? '"Chaque djellaba raconte une histoire de notre patrimoine marocain"'
-                : '"Every djellaba tells a story of our authentic Moroccan heritage"'}
-          </blockquote>
-
-          <p className="text-xs sm:text-sm font-medium" style={{ color: '#964B00' }}>
-            — {siteConfig.name}
-          </p>
-
-          <div className="ornament justify-center" style={{ color: '#000000' }}>
-            <span style={{ fontSize: '1.25rem' }}>✦</span>
-          </div>
-        </div>
-      </section>
-
-      {/* CONTACT SECTION */}
+      {/* ===================================================
+          5. UNIFIED ATELIER STORY & CONCIERGE SPLIT
+      =================================================== */}
       <section
         id="contact"
-        className="home-section section-gap home-contact-section scroll-mt-24"
+        className="home-section scroll-mt-24"
         style={{ scrollMarginTop: '6rem' }}
         aria-label={labels.contactTitle}
       >
         <div className="container-brand">
-          <div className="section-heading mb-6 sm:mb-10 md:mb-12 home-contact-heading" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="section-eyebrow mb-1 sm:mb-2 text-[11px] sm:text-xs">
-              <span>✦</span>
-              {labels.contactTitle}
-              <span>✦</span>
-            </div>
-
-            <h2
-              className="text-xl sm:text-2xl md:text-3xl font-bold"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {labels.contactTitle}
-            </h2>
-
-            <p
-              className="text-xs sm:text-sm mt-1 sm:mt-2"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {labels.contactSub}
-            </p>
-          </div>
-
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5 md:gap-6 max-w-5xl mx-auto home-contact-grid"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 items-start"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
-            {/* WhatsApp */}
-            <a
-              href={
-                whatsappNumber
-                  ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                    locale === 'ar'
-                      ? 'مرحباً، أريد الاستفسار عن منتجاتكم'
-                      : locale === 'fr'
-                        ? 'Bonjour, je souhaite me renseigner sur vos produits'
-                        : 'Hello, I would like to inquire about your products'
-                  )}`
-                  : '#'
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-            >
-              <div
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
-                style={{
-                  background: 'rgba(37,211,102,0.1)',
-                  color: '#25D366',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
-                >
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                </svg>
-              </div>
+            {/* Story Quote + 2x2 Craft Pillars */}
+            <div className="lg:col-span-7 space-y-6 sm:space-y-8">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                  <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
+                  <span>{labels.heroSec}</span>
+                </div>
 
-              <p
-                className="font-bold text-sm sm:text-base home-contact-label"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                WhatsApp
-              </p>
-
-              <p
-                className="text-xs sm:text-sm home-contact-detail"
-                style={{ color: 'var(--text-muted)' }}
-                dir="ltr"
-              >
-                {settings.whatsapp || settings.contactPhone || ''}
-              </p>
-            </a>
-
-            {/* Phone */}
-            <a
-              href={`tel:${settings.contactPhone || ''}`}
-              className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-            >
-              <div
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
-                style={{
-                  background: 'var(--accent-light)',
-                  color: 'var(--accent)',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  className="w-6 h-6 sm:w-8 sm:h-8"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-                  />
-                </svg>
-              </div>
-
-              <p
-                className="font-bold text-sm sm:text-base home-contact-label"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {labels.callCta}
-              </p>
-
-              <p
-                className="text-xs sm:text-sm home-contact-detail"
-                style={{ color: 'var(--text-muted)' }}
-                dir="ltr"
-              >
-                {settings.contactPhone || ''}
-              </p>
-            </a>
-
-            {/* Instagram */}
-            <a
-              href={settings.instagram || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-            >
-              <div
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
-                style={{
-                  background: 'rgba(225,48,108,0.08)',
-                  color: '#E1306C',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
-                >
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                </svg>
-              </div>
-
-              <p
-                className="font-bold text-sm sm:text-base home-contact-label"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Instagram
-              </p>
-
-              <p
-                className="text-xs sm:text-sm home-contact-detail"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                @thuraya.almaghribi
-              </p>
-            </a>
-
-            {/* TikTok */}
-            <a
-              href={settings.tiktok || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-            >
-              <div
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
-                style={{
-                  background: 'rgba(0,0,0,0.06)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
-                >
-                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.38a8.16 8.16 0 004.77 1.52V7.47a4.85 4.85 0 01-1-.78z" />
-                </svg>
-              </div>
-
-              <p
-                className="font-bold text-sm sm:text-base home-contact-label"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                TikTok
-              </p>
-
-              <p
-                className="text-xs sm:text-sm home-contact-detail"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                @thuraya.almaghribi
-              </p>
-            </a>
-
-            {/* Facebook */}
-            <a
-              href={settings.facebook || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-            >
-              <div
-                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
-                style={{
-                  background: 'rgba(24,119,242,0.08)',
-                  color: '#1877F2',
-                }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 sm:w-8 sm:h-8"
-                >
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-              </div>
-
-              <p
-                className="font-bold text-sm sm:text-base home-contact-label"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Facebook
-              </p>
-
-              <p
-                className="text-xs sm:text-sm home-contact-detail"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                thuraya.almaghribi
-              </p>
-            </a>
-
-            {/* YouTube */}
-            {settings.youtube && (
-              <a
-                href={settings.youtube}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="card p-5 sm:p-7 text-center space-y-3 sm:space-y-4 group no-underline hover:shadow-lg transition-all home-contact-card"
-              >
-                <div
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto flex items-center justify-center transition-transform group-hover:scale-105 home-contact-icon"
+                <blockquote
+                  className="text-xl sm:text-3xl font-bold leading-relaxed text-balance text-[var(--text-primary)]"
                   style={{
-                    background: 'rgba(255,0,0,0.08)',
-                    color: '#FF0000',
+                    fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                   }}
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-6 h-6 sm:w-8 sm:h-8"
-                  >
-                    <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                  </svg>
-                </div>
+                  {labels.storyQuote}
+                </blockquote>
 
-                <p
-                  className="font-bold text-sm sm:text-base home-contact-label"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  YouTube
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
+                  — {siteConfig.name}
                 </p>
-
-                <p
-                  className="text-xs sm:text-sm home-contact-detail"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  {settings.youtube.replace(/^https?:\/\/(www\.)?youtube\.com\/?/i, '@') || '@thuraya.almaghribi'}
-                </p>
-              </a>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="home-features-bottom section-gap" aria-label={isRTL ? 'مميزات المتجر' : 'Store features'}>
-        <div className="container-brand">
-          <div className="grid grid-cols-1 gap-3.5 sm:gap-5 md:grid-cols-2 lg:grid-cols-4" dir={isRTL ? 'rtl' : 'ltr'}>
-            {features.map((feature, index) => (
-              <div key={index} className="card p-5 sm:p-7 text-center">
-                <div className="mx-auto mb-3.5 sm:mb-5 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl" style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}>
-                  {feature.icon}
-                </div>
-                <h3 className="text-sm sm:text-base font-bold" style={{ color: 'var(--text-primary)' }}>{feature.title}</h3>
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm leading-6" style={{ color: 'var(--text-muted)' }}>{feature.desc}</p>
               </div>
-            ))}
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 pt-5 sm:pt-6 border-t border-[var(--border)]">
+                {pillars.map((pillar, index) => {
+                  const Icon = pillar.icon
+                  return (
+                    <div
+                      key={index}
+                      className="flex flex-col sm:flex-row sm:items-start gap-2.5 sm:gap-3.5 p-3.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-[var(--border)] bg-[var(--card-bg)] sm:bg-transparent"
+                    >
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-[var(--accent-light)] text-[var(--accent)] border border-[var(--accent-ring)] flex-shrink-0">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="space-y-0.5 sm:space-y-1">
+                        <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                          {pillar.title}
+                        </h3>
+                        <p className="text-[11px] sm:text-xs text-[var(--text-muted)] leading-relaxed">
+                          {pillar.desc}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Single Calm Atelier Concierge Card */}
+            <div className="lg:col-span-5">
+              <div
+                className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-8 space-y-5 sm:space-y-6"
+                style={{ boxShadow: 'var(--card-shadow)' }}
+              >
+                <div className="space-y-1.5 border-b border-[var(--border)] pb-5">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                    <span className="w-4 h-px bg-[var(--gold)]/60" aria-hidden="true" />
+                    <span>{labels.contactEyebrow}</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
+                    {labels.contactTitle}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
+                    {labels.contactSub}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[var(--accent-ring)] bg-[var(--accent-light)] hover:border-[var(--accent)] transition-colors no-underline group"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <span className="w-10 h-10 rounded-xl bg-[var(--accent)] text-white flex items-center justify-center flex-shrink-0">
+                        <MessageCircle className="w-5 h-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <span className="block text-sm font-bold text-[var(--text-primary)]">
+                          {labels.whatsappCta}
+                        </span>
+                        <span
+                          className="block text-xs text-[var(--text-muted)] tabular-nums truncate"
+                          dir="ltr"
+                        >
+                          {settings.whatsapp || settings.contactPhone || ''}
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowUpRight className={`w-4 h-4 text-[var(--accent)] flex-shrink-0 ${isRTL ? '-scale-x-100' : ''}`} />
+                  </a>
+
+                  <a
+                    href={`tel:${(settings.contactPhone || '').replace(/\s+/g, '')}`}
+                    className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] transition-colors no-underline group"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <span className="w-10 h-10 rounded-xl bg-[var(--card-bg)] border border-[var(--border)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-5 h-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <span className="block text-sm font-bold text-[var(--text-primary)]">
+                          {labels.callCta}
+                        </span>
+                        <span
+                          className="block text-xs text-[var(--text-muted)] tabular-nums truncate"
+                          dir="ltr"
+                        >
+                          {settings.contactPhone || ''}
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowUpRight className={`w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent)] flex-shrink-0 ${isRTL ? '-scale-x-100' : ''}`} />
+                  </a>
+                </div>
+
+                {socialLinks.length > 0 && (
+                  <div className="pt-4 border-t border-[var(--border)] flex items-center justify-between gap-4">
+                    <span className="text-xs font-semibold text-[var(--text-muted)]">
+                      {labels.followLabel}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {socialLinks.map((item) => {
+                        const Icon = item.icon
+                        return (
+                          <a
+                            key={item.label}
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={item.label}
+                            className="w-10 h-10 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center transition-colors"
+                          >
+                            <Icon className="w-4 h-4" />
+                          </a>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1207,13 +936,15 @@ export default async function HomePage({ params }: HomePageProps) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="text-center py-20 space-y-3" role="status">
-      <div className="text-5xl mb-4">🌸</div>
+    <div
+      className="text-center py-16 px-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-4"
+      role="status"
+    >
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center text-[var(--accent)]">
+        <ShoppingBag className="w-6 h-6" />
+      </div>
 
-      <p
-        className="text-base font-medium"
-        style={{ color: 'var(--text-muted)' }}
-      >
+      <p className="text-sm font-medium text-[var(--text-muted)]">
         {message}
       </p>
     </div>

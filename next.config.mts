@@ -4,6 +4,7 @@ import type { NextConfig } from 'next'
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -22,6 +23,9 @@ const nextConfig: NextConfig = {
     'thuraya-almaghribi.local',
     'localhost',
     '127.0.0.1',
+    '*.run.app',
+    '**.run.app',
+    '**.aistudio.google.com',
   ],
 
   devIndicators: false,

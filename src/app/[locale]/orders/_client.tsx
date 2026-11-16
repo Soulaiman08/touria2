@@ -103,9 +103,9 @@ function getStatusConfig(status: string, locale: string): StatusConfig {
     return {
       label: currentLabels.delivered,
       icon: CheckCircle2,
-      color: '#16a34a',
-      background: 'rgba(22, 163, 74, 0.12)',
-      border: 'rgba(22, 163, 74, 0.3)',
+      color: 'var(--success)',
+      background: 'var(--success-bg)',
+      border: 'var(--success-border)',
     }
   }
 
@@ -114,8 +114,8 @@ function getStatusConfig(status: string, locale: string): StatusConfig {
       label: currentLabels.shipped,
       icon: Truck,
       color: '#2563eb',
-      background: 'rgba(37, 99, 235, 0.12)',
-      border: 'rgba(37, 99, 235, 0.3)',
+      background: 'rgba(37, 99, 235, 0.1)',
+      border: 'rgba(37, 99, 235, 0.25)',
     }
   }
 
@@ -123,19 +123,19 @@ function getStatusConfig(status: string, locale: string): StatusConfig {
     return {
       label: s === 'confirmed' ? currentLabels.confirmed : currentLabels.processing,
       icon: RefreshCw,
-      color: '#d97706',
-      background: 'rgba(217, 119, 6, 0.12)',
-      border: 'rgba(217, 119, 6, 0.3)',
+      color: 'var(--accent)',
+      background: 'var(--accent-light)',
+      border: 'var(--accent-ring)',
     }
   }
 
-  if (s === 'cancelled' || s === 'canceled') {
+  if (s === 'cancelled' || s === 'canceled' || s === 'returned') {
     return {
-      label: currentLabels.cancelled,
+      label: s === 'returned' ? currentLabels.returned : currentLabels.cancelled,
       icon: XCircle,
-      color: '#dc2626',
-      background: 'rgba(220, 38, 38, 0.12)',
-      border: 'rgba(220, 38, 38, 0.3)',
+      color: 'var(--error)',
+      background: 'var(--error-bg)',
+      border: 'var(--error-border)',
     }
   }
 
@@ -143,18 +143,18 @@ function getStatusConfig(status: string, locale: string): StatusConfig {
     return {
       label: currentLabels.pending,
       icon: Clock,
-      color: '#9333ea',
-      background: 'rgba(147, 51, 234, 0.12)',
-      border: 'rgba(147, 51, 234, 0.3)',
+      color: 'var(--gold)',
+      background: 'var(--bg-subtle)',
+      border: 'var(--border)',
     }
   }
 
   return {
     label: currentLabels.unknown,
     icon: Clock,
-    color: '#71717a',
-    background: 'rgba(113, 113, 122, 0.12)',
-    border: 'rgba(113, 113, 122, 0.3)',
+    color: 'var(--text-muted)',
+    background: 'var(--bg-subtle)',
+    border: 'var(--border)',
   }
 }
 
@@ -185,7 +185,6 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
   const [searchOrderNumber, setSearchOrderNumber] = useState('')
   const [searchPhone, setSearchPhone] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchResult, setSearchResult] = useState<Order | null>(null)
   const [searchNotFound, setSearchNotFound] = useState(false)
   const [searchError, setSearchError] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -230,7 +229,6 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
     setSearchOpen(false)
     setSearchOrderNumber('')
     setSearchPhone('')
-    setSearchResult(null)
     setSearchNotFound(false)
     setSearchError(false)
   }, [])
@@ -252,13 +250,15 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
     }
   }, [searchOpen])
 
+  const isLoggedIn = !!customer
+  const showContent = !authLoading
+
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = searchOrderNumber.trim()
     if (!trimmed) return
 
     setSearching(true)
-    setSearchResult(null)
     setSearchNotFound(false)
     setSearchError(false)
 
@@ -288,9 +288,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
         })
         if (res.ok) {
           router.push(`/${locale}/orders/${trimmed}`)
-        } else if (res.status === 404) {
-          setSearchNotFound(true)
-        } else if (res.status === 429) {
+        } else if (res.status === 404 || res.status === 429) {
           setSearchNotFound(true)
         } else {
           setSearchError(true)
@@ -415,14 +413,12 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
   }
 
   const t = text[locale as keyof typeof text] || text.en
-  const isLoggedIn = !!customer
-  const showContent = !authLoading
 
   if (loading || authLoading) {
     return (
       <div className="container-brand page-shell py-24 text-center space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent)] mx-auto" />
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t.loading}</p>
+        <p className="text-sm text-[var(--text-muted)]">{t.loading}</p>
       </div>
     )
   }
@@ -431,214 +427,97 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 840, paddingLeft: 'max(16px, 4vw)', paddingRight: 'max(16px, 4vw)' }}
+      style={{ maxWidth: 840 }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
-      <Link
-        href={`/${locale}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 20px',
-          fontSize: 13,
-          fontWeight: 700,
-          color: '#C4622D',
-          textDecoration: 'none',
-          marginBottom: 20,
-          border: '1px solid #C4622D',
-          borderRadius: 12,
-          transition: 'background 0.2s',
-        }}
-      >
-        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-        {t.back}
+      <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round mb-5">
+        <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+        <span>{t.back}</span>
       </Link>
 
       {/* ── Page Header Card ──────────────────────────────────────── */}
-      <div
-        style={{
-          borderRadius: 24,
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
-          overflow: 'hidden',
-          marginBottom: 24,
-        }}
-      >
-        <div
-          style={{
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(184,150,90,0.04) 100%)',
-            padding: '32px 24px 28px',
-            textAlign: 'center',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: 'var(--accent-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 14px',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <Package style={{ width: 28, height: 28, color: 'var(--accent)' }} />
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-6">
+        <div className="p-7 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-3.5">
+            <Package className="w-7 h-7 text-[var(--accent)]" />
           </div>
 
-          <div
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
-            style={{
-              background: 'var(--accent-light)',
-              color: 'var(--accent)',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <span>✦</span>
-            <span>{t.badge}</span>
-            <span>✦</span>
-          </div>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent)] mb-1.5">
+            {t.badge}
+          </p>
 
           <h1
-            style={{
-              fontSize: 'clamp(1.4rem, 3vw, 1.85rem)',
-              fontWeight: 900,
-              color: 'var(--foreground)',
-              margin: '0 0 6px',
-              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-            }}
+            className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] mb-1.5"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
           >
             {t.title}
           </h1>
 
-          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 480, marginInline: 'auto' }}>
+          <p className="text-sm text-[var(--text-muted)] max-w-md mx-auto m-0">
             {t.subtitle}
           </p>
 
-          {/* Welcome message for logged-in users */}
           {isLoggedIn && customer?.name && (
-            <p style={{ fontSize: 13, color: 'var(--accent)', margin: '8px 0 0', fontWeight: 700 }}>
+            <p className="text-sm text-[var(--accent)] mt-2.5 font-bold">
               {t.welcome} {customer.name}
             </p>
           )}
         </div>
 
         {/* ── Quick Lookup Box ──────────────────────────────────────── */}
-        <div id="order-lookup" style={{ padding: '18px 22px', background: 'var(--bg-subtle)' }}>
+        <div id="order-lookup" className="p-5 bg-[var(--card-bg)]">
           <div ref={searchRef}>
-            <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5" style={{ position: 'relative' }}>
+            <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5">
               <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  flex: searchOpen ? 1 : 'none',
-                  position: 'relative',
-                  transition: 'flex 0.3s ease',
-                }}
+                className="flex items-center gap-2 relative"
+                style={{ flex: searchOpen ? 1 : 'none' }}
               >
-                {searchOpen && (
-                  <div className="relative flex-1 w-full" style={{ flex: 1 }}>
-                    <Search
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        [isRTL ? 'right' : 'left']: 14,
-                        width: 16,
-                        height: 16,
-                        color: 'var(--muted-foreground)',
-                        zIndex: 1,
-                      }}
-                    />
+                {searchOpen ? (
+                  <div className="relative flex-1 w-full">
+                    <Search className="w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                     <input
                       ref={inputRef}
                       type="text"
                       value={searchOrderNumber}
-                      onChange={(e) => { setSearchOrderNumber(e.target.value); setSearchNotFound(false); setSearchError(false) }}
+                      onChange={(e) => {
+                        setSearchOrderNumber(e.target.value)
+                        setSearchNotFound(false)
+                        setSearchError(false)
+                      }}
                       onKeyDown={handleSearchKeyDown}
                       placeholder={t.searchPlaceholder}
-                      style={{
-                        width: '100%',
-                        padding: '11px 16px',
-                        paddingLeft: isRTL ? 16 : 40,
-                        paddingRight: isRTL ? 40 : 16,
-                        borderRadius: 12,
-                        border: '1px solid var(--border)',
-                        background: 'var(--card)',
-                        color: 'var(--foreground)',
-                        fontSize: 13,
-                        outline: 'none',
-                        animation: 'searchExpand 0.3s ease forwards',
-                      }}
+                      className="w-full h-11 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     />
                   </div>
-                )}
-
-                {!searchOpen && (
+                ) : (
                   <button
                     type="button"
                     onClick={() => setSearchOpen(true)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 42,
-                      height: 42,
-                      borderRadius: 12,
-                      border: '1px solid var(--border)',
-                      background: 'var(--card)',
-                      color: 'var(--muted-foreground)',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      transition: 'background 0.2s, color 0.2s',
-                    }}
+                    className="w-11 h-11 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:text-[var(--accent)] flex items-center justify-center cursor-pointer flex-shrink-0"
                     aria-label={t.trackDirect}
                   >
-                    <Search style={{ width: 18, height: 18 }} />
+                    <Search className="w-4 h-4" />
                   </button>
                 )}
               </div>
 
               {searchOpen && !isLoggedIn && (
                 <div className="relative w-full" style={{ flex: '1 1 100%' }}>
-                  <Phone
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      [isRTL ? 'right' : 'left']: 14,
-                      width: 16,
-                      height: 16,
-                      color: 'var(--muted-foreground)',
-                      zIndex: 1,
-                    }}
-                  />
+                  <Phone className="w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     ref={phoneInputRef}
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"
                     value={searchPhone}
-                    onChange={(e) => { setSearchPhone(e.target.value); setSearchNotFound(false); setSearchError(false) }}
+                    onChange={(e) => {
+                      setSearchPhone(e.target.value)
+                      setSearchNotFound(false)
+                      setSearchError(false)
+                    }}
                     onKeyDown={handleSearchKeyDown}
                     placeholder={t.trackPhonePlaceholder}
-                    style={{
-                      width: '100%',
-                      padding: '11px 16px',
-                      paddingLeft: isRTL ? 16 : 40,
-                      paddingRight: isRTL ? 40 : 16,
-                      borderRadius: 12,
-                      border: '1px solid var(--border)',
-                      background: 'var(--card)',
-                      color: 'var(--foreground)',
-                      fontSize: 13,
-                      outline: 'none',
-                    }}
+                    className="tabular-nums w-full h-11 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                   />
                 </div>
               )}
@@ -646,32 +525,14 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
               <button
                 type="submit"
                 disabled={searching || (searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim())))}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  padding: searchOpen ? '11px 16px' : '11px 20px',
-                  borderRadius: 12,
-                  background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-                  color: '#fff',
-                  fontSize: 13,
-                  fontWeight: 800,
-                  border: 'none',
-                  cursor: searching || (searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim()))) ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
-                  whiteSpace: 'nowrap',
-                  opacity: searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim())) ? 0.5 : 1,
-                  transition: 'padding 0.3s ease, opacity 0.2s',
-                  flexShrink: 0,
-                }}
+                className="btn btn-primary rounded-xl px-5 py-2.5 text-sm font-bold whitespace-nowrap"
               >
                 {searching ? (
-                  <RefreshCw style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
+                  <RefreshCw className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
                     <span>{t.trackBtn}</span>
-                    <ArrowRight style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                    <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                   </>
                 )}
               </button>
@@ -679,63 +540,23 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
 
             {/* ── Search Results ──────────────────────────────────────── */}
             {searchNotFound && (
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: '20px 24px',
-                  borderRadius: 16,
-                  border: '1px solid var(--border)',
-                  background: 'var(--card)',
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  animation: 'fadeIn 0.25s ease',
-                }}
-              >
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 14,
-                    background: 'var(--accent-light)',
-                    border: '1px solid var(--accent-ring)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--accent)',
-                    marginBottom: 12,
-                  }}
-                >
-                  <SearchX style={{ width: 24, height: 24 }} />
+              <div className="mt-4 p-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] text-center flex flex-col items-center">
+                <div className="w-12 h-12 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-3">
+                  <SearchX className="w-6 h-6" />
                 </div>
-                <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--foreground)', margin: '0 0 6px' }}>
+                <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
                   {t.searchNoResults}
                 </h3>
-                <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 360, lineHeight: 1.5 }}>
+                <p className="text-xs text-[var(--text-muted)] max-w-sm leading-relaxed m-0">
                   {t.searchNoResultsDesc}
                 </p>
               </div>
             )}
 
             {searchError && (
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: '16px 20px',
-                  borderRadius: 16,
-                  border: '1px solid rgba(220,38,38,0.2)',
-                  background: 'rgba(220,38,38,0.04)',
-                  textAlign: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  animation: 'fadeIn 0.25s ease',
-                }}
-              >
-                <AlertCircle style={{ width: 18, height: 18, color: '#dc2626', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 600 }}>{t.searchError}</span>
+              <div className="mt-4 p-4 rounded-xl border border-[var(--error-border)] bg-[var(--error-bg)] flex items-center justify-center gap-2.5">
+                <AlertCircle className="w-4 h-4 text-[var(--error)] flex-shrink-0" />
+                <span className="text-xs text-[var(--error)] font-semibold">{t.searchError}</span>
               </div>
             )}
           </div>
@@ -744,223 +565,71 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
 
       {/* ── Content ─────────────────────────────────────── */}
       {showContent && !isLoggedIn ? (
-        /* ── Guest Empty State ── */
-        <div
-          style={{
-            borderRadius: 24,
-            border: '1px solid var(--border)',
-            background: 'var(--card)',
-            padding: '48px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-            marginBottom: 24,
-          }}
-        >
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 22,
-              background: 'var(--accent-light)',
-              border: '1.5px solid var(--accent-ring)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent)',
-              marginBottom: 20,
-            }}
-          >
-            <LogIn style={{ width: 34, height: 34 }} />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center flex flex-col items-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-5">
+            <LogIn className="w-7 h-7" />
           </div>
 
-          <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
+          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
             {t.guestTitle}
           </h2>
 
-          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 28px', lineHeight: 1.6 }}>
+          <p className="text-sm text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
             {t.guestDesc}
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3" style={{ width: '100%', maxWidth: 340 }}>
-            <Link
-              href={`/${locale}/login`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '13px 26px',
-                borderRadius: 14,
-                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 800,
-                textDecoration: 'none',
-                boxShadow: '0 6px 20px rgba(196,98,45,0.25)',
-                transition: 'transform 0.2s',
-                flex: 1,
-                width: '100%',
-              }}
-            >
-              <LogIn style={{ width: 16, height: 16 }} />
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs">
+            <Link href={`/${locale}/login`} className="btn btn-primary w-full justify-center py-3 rounded-xl">
+              <LogIn className="w-4 h-4" />
               <span>{t.guestLogin}</span>
             </Link>
 
-            <Link
-              href={`/${locale}/signup`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '13px 26px',
-                borderRadius: 14,
-                background: 'transparent',
-                color: '#C4622D',
-                fontSize: 14,
-                fontWeight: 800,
-                textDecoration: 'none',
-                border: '1.5px solid #C4622D',
-                transition: 'background 0.2s',
-                flex: 1,
-                width: '100%',
-              }}
-            >
-              <UserPlus style={{ width: 16, height: 16 }} />
+            <Link href={`/${locale}/signup`} className="btn btn-outline w-full justify-center py-3 rounded-xl">
+              <UserPlus className="w-4 h-4" />
               <span>{t.guestSignup}</span>
             </Link>
           </div>
         </div>
       ) : showContent && error ? (
-        /* ── Error State ── */
-        <div
-          style={{
-            borderRadius: 24,
-            border: '1px solid var(--border)',
-            background: 'var(--card)',
-            padding: '48px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-            marginBottom: 24,
-          }}
-        >
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 22,
-              background: 'rgba(220, 38, 38, 0.08)',
-              border: '1.5px solid rgba(220, 38, 38, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#dc2626',
-              marginBottom: 20,
-            }}
-          >
-            <AlertCircle style={{ width: 34, height: 34 }} />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center flex flex-col items-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--error-bg)] border border-[var(--error-border)] flex items-center justify-center text-[var(--error)] mb-5">
+            <AlertCircle className="w-7 h-7" />
           </div>
 
-          <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
+          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
             {t.errorTitle}
           </h2>
 
-          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 24px', lineHeight: 1.6 }}>
+          <p className="text-sm text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
             {t.errorDesc}
           </p>
 
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '13px 26px',
-              borderRadius: 14,
-              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 800,
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 6px 20px rgba(196,98,45,0.25)',
-            }}
-          >
-            <RefreshCw style={{ width: 16, height: 16 }} />
+          <button type="button" onClick={() => window.location.reload()} className="btn btn-primary rounded-xl px-6 py-3">
+            <RefreshCw className="w-4 h-4" />
             <span>{t.retry}</span>
           </button>
         </div>
       ) : showContent && orders.length === 0 ? (
-        /* ── No Orders Empty State ── */
-        <div
-          style={{
-            borderRadius: 24,
-            border: '1px solid var(--border)',
-            background: 'var(--card)',
-            padding: '48px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-            marginBottom: 24,
-          }}
-        >
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 22,
-              background: 'var(--accent-light)',
-              border: '1.5px solid var(--accent-ring)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent)',
-              marginBottom: 20,
-            }}
-          >
-            <Package style={{ width: 34, height: 34 }} />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center flex flex-col items-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-5">
+            <Package className="w-7 h-7" />
           </div>
 
-          <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 8px' }}>
+          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
             {t.noOrdersTitle}
           </h2>
 
-          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 400, margin: '0 0 24px', lineHeight: 1.6 }}>
+          <p className="text-sm text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
             {t.noOrdersDesc}
           </p>
 
-          <Link
-            href={`/${locale}/products`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '13px 26px',
-              borderRadius: 14,
-              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 800,
-              textDecoration: 'none',
-              boxShadow: '0 6px 20px rgba(196,98,45,0.25)',
-              transition: 'transform 0.2s',
-            }}
-          >
-            <ShoppingBag style={{ width: 16, height: 16 }} />
+          <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl px-6 py-3">
+            <ShoppingBag className="w-4 h-4" />
             <span>{t.browseProducts}</span>
           </Link>
         </div>
       ) : showContent && orders.length > 0 ? (
-        /* ── Orders Cards Grid ── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+        <div className="flex flex-col gap-4 mb-6">
           {orders.map((order) => {
             const statusConfig = getStatusConfig(order.status, locale)
             const StatusIcon = statusConfig.icon
@@ -970,117 +639,72 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
             return (
               <div
                 key={order.id}
-                style={{
-                  borderRadius: 20,
-                  border: '1px solid var(--border)',
-                  background: 'var(--card)',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                }}
+                className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden"
               >
                 {/* Top Info Bar */}
-                <div
-                  style={{
-                    padding: '14px 20px',
-                    borderBottom: '1px solid var(--border)',
-                    background: 'var(--bg-subtle)',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 10,
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>
+                <div className="px-5 py-3.5 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex flex-wrap items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                       {t.orderNum}
                     </span>
-                    <span style={{ fontSize: 14, fontWeight: 900, color: '#C4622D', fontFamily: 'monospace' }}>
+                    <span className="tabular-nums font-mono text-sm font-extrabold text-[var(--accent)]">
                       #{orderNum}
                     </span>
                   </div>
 
-                  {/* Status Badge */}
                   <div
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border"
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 800,
                       color: statusConfig.color,
                       background: statusConfig.background,
-                      border: `1px solid ${statusConfig.border}`,
+                      borderColor: statusConfig.border,
                     }}
                   >
-                    <StatusIcon style={{ width: 12, height: 12 }} />
+                    <StatusIcon className="w-3 h-3" />
                     <span>{statusConfig.label}</span>
                   </div>
                 </div>
 
                 {/* Details Body */}
-                <div style={{ padding: '18px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
+                <div className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <div>
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Calendar style={{ width: 12, height: 12 }} />
+                    <span className="text-[11px] text-[var(--text-muted)] inline-flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
                       {t.date}
                     </span>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)', margin: '4px 0 0' }}>
+                    <p className="tabular-nums text-sm font-bold text-[var(--text-primary)] mt-1 mb-0">
                       {formatDate(order.createdAt, locale)}
                     </p>
                   </div>
 
                   <div>
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Layers style={{ width: 12, height: 12 }} />
+                    <span className="text-[11px] text-[var(--text-muted)] inline-flex items-center gap-1">
+                      <Layers className="w-3 h-3" />
                       {t.items}
                     </span>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)', margin: '4px 0 0' }}>
+                    <p className="tabular-nums text-sm font-bold text-[var(--text-primary)] mt-1 mb-0">
                       {itemsCount} {t.items}
                     </p>
                   </div>
 
                   <div>
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
+                    <span className="text-[11px] text-[var(--text-muted)] block">
                       {t.total}
                     </span>
-                    <p style={{ fontSize: 16, fontWeight: 900, color: '#C4622D', margin: '2px 0 0' }}>
+                    <p className="tabular-nums text-base font-extrabold text-[var(--accent)] mt-0.5 mb-0">
                       {formatPrice(order.total, locale)}
                     </p>
                   </div>
                 </div>
 
                 {/* Bottom Action */}
-                <div
-                  style={{
-                    padding: '12px 20px',
-                    borderTop: '1px solid var(--border)',
-                    background: 'rgba(196,98,45,0.02)',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                  }}
-                >
+                <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex justify-end">
                   <Link
                     href={`/${locale}/orders/${order.id}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '9px 16px',
-                      borderRadius: 10,
-                      background: 'var(--accent-light)',
-                      border: '1px solid var(--accent-ring)',
-                      color: 'var(--accent)',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      textDecoration: 'none',
-                    }}
+                    className="btn btn-outline btn-sm rounded-xl text-xs font-bold text-[var(--accent)] border-[var(--accent-ring)]"
                   >
                     <span>{t.details}</span>
-                    <ArrowRight style={{ width: 13, height: 13, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+                    <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
                   </Link>
                 </div>
               </div>
@@ -1090,76 +714,27 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       ) : null}
 
       {/* ── Tracking Section ──────────────────────────────────────── */}
-      <div
-        style={{
-          borderRadius: 24,
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
-          overflow: 'hidden',
-          marginBottom: 24,
-        }}
-      >
-        <div
-          style={{
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.04) 0%, rgba(184,150,90,0.02) 100%)',
-            padding: '28px 24px',
-            textAlign: 'center',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              background: 'var(--accent-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 12px',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <MapPin style={{ width: 24, height: 24, color: 'var(--accent)' }} />
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-6">
+        <div className="p-7 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+          <div className="w-12 h-12 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-3">
+            <MapPin className="w-6 h-6 text-[var(--accent)]" />
           </div>
 
           <h2
-            style={{
-              fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)',
-              fontWeight: 900,
-              color: 'var(--foreground)',
-              margin: '0 0 8px',
-              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-            }}
+            className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] mb-2"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
           >
             {t.trackSectionTitle}
           </h2>
 
-          <p style={{ fontSize: 13.5, color: 'var(--muted-foreground)', maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
+          <p className="text-sm text-[var(--text-muted)] max-w-lg mx-auto leading-relaxed m-0">
             {t.trackSectionDesc}
           </p>
         </div>
 
-        <div style={{ padding: '20px 24px', textAlign: 'center' }}>
-          <Link
-            href="#order-lookup"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '12px 24px',
-              borderRadius: 14,
-              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 800,
-              textDecoration: 'none',
-              boxShadow: '0 4px 14px rgba(196,98,45,0.22)',
-              transition: 'transform 0.2s',
-            }}
-          >
-            <Truck style={{ width: 16, height: 16 }} />
+        <div className="p-5 text-center">
+          <Link href="#order-lookup" className="btn btn-primary btn-round px-6 py-2.5 text-sm">
+            <Truck className="w-4 h-4" />
             <span>{t.trackSectionBtn}</span>
           </Link>
         </div>

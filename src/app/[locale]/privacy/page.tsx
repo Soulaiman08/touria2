@@ -93,7 +93,6 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
         )}`
     : ''
 
-  // 4 Main Trust Highlights
   const trustHighlights = [
     {
       icon: Lock,
@@ -133,7 +132,6 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
     },
   ]
 
-  // Detailed Policy Articles
   const policySections = [
     {
       number: '01',
@@ -315,115 +313,34 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{
-        maxWidth: 960,
-        margin: '0 auto',
-        paddingLeft: 'max(16px, 3.5vw)',
-        paddingRight: 'max(16px, 3.5vw)',
-        paddingTop: 'clamp(14px, 2.5vw, 28px)',
-        paddingBottom: 'clamp(36px, 5vw, 64px)',
-      }}
+      style={{ maxWidth: 960 }}
     >
-      {/* ── 1. Top Navigation / Breadcrumb ───────────────────────── */}
-      <div style={{ marginBottom: 'clamp(14px, 2vw, 22px)' }}>
-        <Link
-          href={`/${locale}`}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 20px',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#C4622D',
-            textDecoration: 'none',
-            border: '1px solid #C4622D',
-            borderRadius: 12,
-            transition: 'background 0.2s',
-          }}
-        >
-          <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+      {/* ── 1. Top Navigation ───────────────────────── */}
+      <div className="mb-5">
+        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
+          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           <span>{isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}</span>
         </Link>
       </div>
 
       {/* ── 2. Hero Header Card ──────────────────────────────────── */}
-      <div
-        style={{
-          borderRadius: 'clamp(18px, 3vw, 28px)',
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 8px 32px rgba(61,31,10,0.04)',
-          overflow: 'hidden',
-          marginBottom: 'clamp(20px, 3vw, 32px)',
-        }}
-      >
-        <div
-          style={{
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.08) 0%, rgba(184,150,90,0.05) 50%, rgba(61,31,10,0.02) 100%)',
-            padding: 'clamp(26px, 4vw, 42px) clamp(16px, 3.5vw, 36px)',
-            textAlign: 'center',
-            borderBottom: '1px solid var(--border)',
-            position: 'relative',
-          }}
-        >
-          {/* Decorative Top Glow */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at 50% 0%, rgba(196,98,45,0.12) 0%, transparent 65%)',
-            }}
-          />
-
-          {/* Hero Icon Emblem */}
-          <div
-            style={{
-              width: 'clamp(52px, 7vw, 68px)',
-              height: 'clamp(52px, 7vw, 68px)',
-              borderRadius: '50%',
-              background: 'var(--accent-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto clamp(12px, 2vw, 18px)',
-              border: '2px solid var(--accent-ring)',
-              boxShadow: '0 6px 20px rgba(196,98,45,0.15)',
-              position: 'relative',
-            }}
-          >
-            <ShieldCheck style={{ width: 'clamp(26px, 3.5vw, 34px)', height: 'clamp(26px, 3.5vw, 34px)', color: 'var(--accent)' }} />
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-7">
+        <div className="p-8 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-7 h-7 text-[var(--accent)]" />
           </div>
 
-          {/* Overline Badge */}
-          <div
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3"
-            style={{
-              background: 'var(--accent-light)',
-              color: 'var(--accent)',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <span className="text-amber-500 text-xs">✦</span>
-            <span>
-              {isRTL
-                ? 'خصوصيتكِ أمانتنا ومسؤوليتنا'
-                : isFR
-                  ? 'Protection & Sécurité Garantie'
-                  : 'Privacy & Data Protection Guaranteed'}
-            </span>
-            <span className="text-amber-500 text-xs">✦</span>
-          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)] mb-2">
+            {isRTL
+              ? 'خصوصيتكِ أمانتنا ومسؤوليتنا'
+              : isFR
+                ? 'Protection & Sécurité Garantie'
+                : 'Privacy & Data Protection Guaranteed'}
+          </p>
 
-          {/* Main Title */}
           <h1
-            style={{
-              fontSize: 'clamp(1.45rem, 3.2vw, 2.2rem)',
-              fontWeight: 900,
-              color: 'var(--foreground)',
-              margin: '0 0 10px',
-              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-              lineHeight: 1.25,
-            }}
+            className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] mb-2.5"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
           >
             {isRTL
               ? 'سياسة الخصوصية وحماية البيانات'
@@ -432,41 +349,14 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                 : 'Privacy Policy & Data Security'}
           </h1>
 
-          {/* Moroccan Separator */}
-          <div
-            className="flex items-center justify-center gap-2.5 my-2.5"
-            aria-hidden="true"
-          >
-            <span
-              className="h-[1.5px] w-8 sm:w-12 rounded-full"
-              style={{
-                background: 'linear-gradient(90deg, transparent, var(--accent-ring), var(--gold))',
-              }}
-            />
-            <span
-              className="text-xs sm:text-sm font-serif"
-              style={{ color: 'var(--gold)' }}
-            >
-              ✦
-            </span>
-            <span
-              className="h-[1.5px] w-8 sm:w-12 rounded-full"
-              style={{
-                background: 'linear-gradient(90deg, var(--gold), var(--accent-ring), transparent)',
-              }}
-            />
+          {/* Subtle Moroccan Hairline */}
+          <div className="flex items-center justify-center gap-2.5 my-3" aria-hidden="true">
+            <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
+            <span className="w-1.5 h-1.5 rotate-45 bg-[var(--gold)]" />
+            <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
           </div>
 
-          {/* Subtitle */}
-          <p
-            style={{
-              fontSize: 'clamp(12px, 1.3vw, 14.5px)',
-              color: 'var(--muted-foreground)',
-              maxWidth: 580,
-              margin: '0 auto',
-              lineHeight: 1.65,
-            }}
-          >
+          <p className="text-sm text-[var(--text-muted)] max-w-xl mx-auto leading-relaxed mb-4">
             {isRTL
               ? 'في متجر ثريا المغربي نعتز بثقتكم ونلتزم بحماية بياناتكم الشخصية وفقاً لأعلى معايير الأمان والشفافية في كل مرحلة من مراحل التسوق والتوصيل.'
               : isFR
@@ -474,50 +364,15 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                 : 'At Thuraya Al-Maghribi, we deeply value your trust and are committed to protecting your personal data with utmost security and transparency.'}
           </p>
 
-          {/* Metadata Badges */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 'clamp(6px, 1vw, 10px)',
-              marginTop: 'clamp(14px, 2vw, 20px)',
-            }}
-          >
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '4px 10px',
-                borderRadius: 999,
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--muted-foreground)',
-              }}
-            >
-              <CheckCircle2 style={{ width: 12, height: 12, color: 'var(--accent)' }} />
-              <span>{isRTL ? 'آخر تحديث: 2026' : isFR ? 'Mise à jour : 2026' : 'Updated: 2026'}</span>
-            </div>
-
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '4px 10px',
-                borderRadius: 999,
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--muted-foreground)',
-              }}
-            >
-              <ShieldCheck style={{ width: 12, height: 12, color: '#16a34a' }} />
+          {/* Subtle Metadata Notes */}
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-muted)]">
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span className="tabular-nums">{isRTL ? 'آخر تحديث: 2026' : isFR ? 'Mise à jour : 2026' : 'Updated: 2026'}</span>
+            </span>
+            <span className="opacity-40">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[var(--success)]" />
               <span>
                 {isRTL
                   ? 'مطابق لمعايير حماية البيانات'
@@ -525,73 +380,29 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                     ? 'Conforme Loi 09-08'
                     : 'Compliant with Data Laws'}
               </span>
-            </div>
+            </span>
           </div>
         </div>
       </div>
 
       {/* ── 3. Trust Highlights (4 Quick Cards) ──────────────────── */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-          gap: 'clamp(10px, 1.8vw, 16px)',
-          marginBottom: 'clamp(24px, 3.5vw, 36px)',
-        }}
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {trustHighlights.map((item, idx) => {
           const Icon = item.icon
           return (
             <div
               key={idx}
-              style={{
-                borderRadius: 'clamp(14px, 2vw, 18px)',
-                border: '1px solid var(--border)',
-                background: 'var(--card)',
-                padding: 'clamp(14px, 2vw, 18px) clamp(12px, 1.8vw, 16px)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                boxShadow: '0 3px 12px rgba(61,31,10,0.03)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 flex flex-col gap-2.5"
             >
-              <div
-                style={{
-                  width: 'clamp(32px, 4vw, 40px)',
-                  height: 'clamp(32px, 4vw, 40px)',
-                  borderRadius: 10,
-                  background: 'var(--accent-light)',
-                  border: '1px solid var(--accent-ring)',
-                  color: 'var(--accent)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon style={{ width: 'clamp(16px, 2vw, 20px)', height: 'clamp(16px, 2vw, 20px)' }} />
+              <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4 h-4" />
               </div>
 
-              <h2
-                style={{
-                  fontSize: 'clamp(12.5px, 1.4vw, 14.5px)',
-                  fontWeight: 800,
-                  color: 'var(--foreground)',
-                  margin: 0,
-                }}
-              >
+              <h2 className="text-sm font-extrabold text-[var(--text-primary)] m-0">
                 {item.title}
               </h2>
 
-              <p
-                style={{
-                  fontSize: 'clamp(11px, 1.15vw, 12.5px)',
-                  lineHeight: 1.55,
-                  color: 'var(--muted-foreground)',
-                  margin: 0,
-                }}
-              >
+              <p className="text-xs leading-relaxed text-[var(--text-muted)] m-0">
                 {item.desc}
               </p>
             </div>
@@ -600,111 +411,40 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
       </div>
 
       {/* ── 4. Main Policy Sections ──────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'clamp(14px, 2vw, 20px)',
-          marginBottom: 'clamp(24px, 3.5vw, 36px)',
-        }}
-      >
+      <div className="flex flex-col gap-5 mb-8">
         {policySections.map((section, idx) => {
           const Icon = section.icon
           return (
             <section
               key={idx}
-              style={{
-                borderRadius: 'clamp(16px, 2.5vw, 22px)',
-                border: '1px solid var(--border)',
-                background: 'var(--card)',
-                boxShadow: '0 4px 16px rgba(61,31,10,0.03)',
-                overflow: 'hidden',
-                transition: 'border-color 0.2s ease',
-              }}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden"
             >
               {/* Section Header */}
-              <div
-                style={{
-                  padding: 'clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 24px)',
-                  borderBottom: '1px solid var(--border-subtle, var(--border))',
-                  background: 'linear-gradient(90deg, var(--bg-subtle) 0%, var(--card) 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 1.5vw, 12px)' }}>
-                  <div
-                    style={{
-                      width: 'clamp(30px, 3.5vw, 38px)',
-                      height: 'clamp(30px, 3.5vw, 38px)',
-                      borderRadius: 10,
-                      background: 'var(--accent-light)',
-                      border: '1px solid var(--accent-ring)',
-                      color: 'var(--accent)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Icon style={{ width: 'clamp(15px, 1.8vw, 19px)', height: 'clamp(15px, 1.8vw, 19px)' }} />
+              <div className="px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4" />
                   </div>
 
                   <div>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        letterSpacing: '0.05em',
-                        color: 'var(--accent)',
-                        display: 'block',
-                        marginBottom: 1,
-                      }}
-                    >
+                    <span className="tabular-nums text-[10px] font-bold tracking-widest text-[var(--accent)] block">
                       {section.number}
                     </span>
-                    <h2
-                      style={{
-                        fontSize: 'clamp(13.5px, 1.6vw, 17px)',
-                        fontWeight: 800,
-                        color: 'var(--foreground)',
-                        margin: 0,
-                      }}
-                    >
+                    <h2 className="text-base font-extrabold text-[var(--text-primary)] m-0">
                       {section.title}
                     </h2>
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    padding: '3px 9px',
-                    borderRadius: 999,
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: 'var(--muted-foreground)',
-                  }}
-                >
+                <span className="text-xs font-semibold text-[var(--text-muted)]">
                   {section.badge}
-                </div>
+                </span>
               </div>
 
               {/* Section Body */}
-              <div
-                style={{
-                  padding: 'clamp(16px, 2.5vw, 24px)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 'clamp(8px, 1.2vw, 12px)',
-                }}
-              >
+              <div className="p-5 sm:p-6 flex flex-col gap-3">
                 {section.content.map((paragraph, pIdx) => {
-                  const isNote = paragraph.startsWith('ملاحظة') || paragraph.startsWith('Note')
+                  const isNote = paragraph.startsWith('ملاحظة') || paragraph.startsWith('Note') || paragraph.startsWith('Important')
                   const isSubitem = paragraph.includes(':') && !isNote && pIdx > 0
 
                   if (isSubitem) {
@@ -712,31 +452,14 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                     return (
                       <div
                         key={pIdx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 10,
-                          padding: '8px 12px',
-                          borderRadius: 12,
-                          background: 'var(--bg-subtle)',
-                          border: '1px solid var(--border)',
-                        }}
+                        className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)]"
                       >
-                        <div
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: '50%',
-                            background: 'var(--accent)',
-                            marginTop: 7,
-                            flexShrink: 0,
-                          }}
-                        />
-                        <div style={{ fontSize: 'clamp(11.5px, 1.2vw, 13.5px)', lineHeight: 1.65 }}>
-                          <strong style={{ color: 'var(--foreground)', fontWeight: 700 }}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-2 flex-shrink-0" />
+                        <div className="text-sm leading-relaxed">
+                          <strong className="text-[var(--text-primary)] font-bold">
                             {heading}:
                           </strong>{' '}
-                          <span style={{ color: 'var(--muted-foreground)' }}>{rest.join(':')}</span>
+                          <span className="text-[var(--text-muted)]">{rest.join(':')}</span>
                         </div>
                       </div>
                     )
@@ -746,21 +469,9 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                     return (
                       <div
                         key={pIdx}
-                        style={{
-                          marginTop: 4,
-                          padding: '10px 14px',
-                          borderRadius: 12,
-                          background: 'var(--accent-light)',
-                          border: '1px solid var(--accent-ring)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          fontSize: 'clamp(11px, 1.15vw, 13px)',
-                          color: 'var(--foreground)',
-                          lineHeight: 1.6,
-                        }}
+                        className="mt-1 px-4 py-3 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center gap-2.5 text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed"
                       >
-                        <span style={{ color: 'var(--accent)', fontWeight: 800, flexShrink: 0 }}>✦</span>
+                        <ShieldCheck className="w-4 h-4 text-[var(--accent)] flex-shrink-0" />
                         <span>{paragraph}</span>
                       </div>
                     )
@@ -769,12 +480,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                   return (
                     <p
                       key={pIdx}
-                      style={{
-                        fontSize: 'clamp(12px, 1.25vw, 14px)',
-                        lineHeight: 1.7,
-                        color: 'var(--muted-foreground)',
-                        margin: 0,
-                      }}
+                      className="text-sm leading-relaxed text-[var(--text-muted)] m-0"
                     >
                       {paragraph}
                     </p>
@@ -787,60 +493,20 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
       </div>
 
       {/* ── 5. WhatsApp & Direct Support Banner ──────────────────── */}
-      <div
-        style={{
-          borderRadius: 'clamp(18px, 2.5vw, 24px)',
-          border: '1px solid rgba(37,211,102,0.35)',
-          background: 'linear-gradient(135deg, rgba(37,211,102,0.07) 0%, rgba(37,211,102,0.02) 100%)',
-          padding: 'clamp(20px, 3.5vw, 32px) clamp(16px, 3vw, 28px)',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 'clamp(10px, 1.5vw, 14px)',
-          boxShadow: '0 8px 28px rgba(0,0,0,0.04)',
-          marginBottom: 'clamp(24px, 3vw, 36px)',
-        }}
-      >
-        <div
-          style={{
-            width: 'clamp(44px, 5vw, 52px)',
-            height: 'clamp(44px, 5vw, 52px)',
-            borderRadius: 16,
-            background: 'rgba(37,211,102,0.14)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#25D366',
-          }}
-        >
-          <MessageCircle style={{ width: 'clamp(22px, 2.8vw, 26px)', height: 'clamp(22px, 2.8vw, 26px)' }} />
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] p-7 text-center flex flex-col items-center gap-3.5 mb-7">
+        <div className="w-12 h-12 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
+          <MessageCircle className="w-6 h-6" />
         </div>
 
         <div>
-          <h2
-            style={{
-              fontSize: 'clamp(14.5px, 2vw, 18px)',
-              fontWeight: 800,
-              color: 'var(--foreground)',
-              margin: '0 0 6px',
-            }}
-          >
+          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-1">
             {isRTL
               ? 'هل لديكِ أي استفسار حول خصوصيتكِ أو طلباتكِ؟'
               : isFR
                 ? 'Une question sur vos données ou votre commande ?'
                 : 'Questions about your privacy or orders?'}
           </h2>
-          <p
-            style={{
-              fontSize: 'clamp(11.5px, 1.2vw, 13.5px)',
-              color: 'var(--muted-foreground)',
-              margin: 0,
-              maxWidth: 520,
-              lineHeight: 1.6,
-            }}
-          >
+          <p className="text-sm text-[var(--text-muted)] m-0 max-w-lg leading-relaxed">
             {isRTL
               ? 'فريق خدمة عملاء ثريا المغربي مستعد دائماً للإجابة الفورية ومساعدتكِ في كل ما يخص بياناتكِ ومشترياتكِ بكل سرور وأمان.'
               : isFR
@@ -849,59 +515,26 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 10,
-            marginTop: 4,
-          }}
-        >
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 22px',
-              borderRadius: 12,
-              background: '#25D366',
-              color: '#ffffff',
-              fontSize: 'clamp(12px, 1.2vw, 13.5px)',
-              fontWeight: 800,
-              textDecoration: 'none',
-              boxShadow: '0 4px 16px rgba(37,211,102,0.3)',
-              transition: 'transform 0.2s ease',
-            }}
-          >
-            <MessageCircle style={{ width: 16, height: 16 }} />
-            <span>{isRTL ? 'تواصلي معنا عبر واتساب' : isFR ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
-          </a>
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary btn-round px-6 py-2.5 text-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>{isRTL ? 'تواصلي معنا عبر واتساب' : isFR ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
+            </a>
+          )}
 
           <a
             href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.contactEmail?.trim() || siteConfig.contact.email)}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 20px',
-              borderRadius: 12,
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--foreground)',
-              fontSize: 'clamp(12px, 1.2vw, 13.5px)',
-              fontWeight: 700,
-              textDecoration: 'none',
-              transition: 'background 0.2s ease',
-            }}
+            className="btn btn-outline btn-round px-6 py-2.5 text-sm"
           >
-            <Mail style={{ width: 15, height: 15, color: 'var(--accent)' }} />
+            <Mail className="w-4 h-4 text-[var(--accent)]" />
             <span>{isRTL ? 'البريد الإلكتروني' : isFR ? 'Envoyer un Email' : 'Email Us'}</span>
           </a>
         </div>
@@ -911,19 +544,17 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <Link
           href={`/${locale}`}
-          className="btn btn-outline btn-sm btn-round inline-flex w-full sm:w-auto"
-          style={{ justifyContent: 'center' }}
+          className="btn btn-outline btn-sm btn-round inline-flex w-full sm:w-auto justify-center"
         >
-          <ArrowLeft style={{ width: 13, height: 13, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+          <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
           <span>{isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}</span>
         </Link>
 
         <Link
           href={`/${locale}/products`}
-          className="btn btn-primary btn-sm btn-round inline-flex w-full sm:w-auto shadow-md"
-          style={{ justifyContent: 'center' }}
+          className="btn btn-primary btn-sm btn-round inline-flex w-full sm:w-auto justify-center"
         >
-          <ShoppingBag style={{ width: 14, height: 14 }} />
+          <ShoppingBag className="w-4 h-4" />
           <span>{isRTL ? 'اكتشفي تشكيلة المنتجات' : isFR ? 'Découvrir nos créations' : 'Explore Collections'}</span>
         </Link>
       </div>

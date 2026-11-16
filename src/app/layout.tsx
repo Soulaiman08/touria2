@@ -7,7 +7,6 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
 })
 
 /* ── Display / Serif ── */
@@ -22,7 +21,6 @@ const cormorant = Cormorant_Garamond({
 /* ── Arabic (headings + body) ── */
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-arabic',
   display: 'swap',
 })

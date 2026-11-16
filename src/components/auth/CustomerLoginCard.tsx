@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Image from 'next/image'
 import {
   AlertCircle,
   ArrowLeft,
@@ -12,7 +12,6 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
   UserCheck,
   UserPlus,
   X,
@@ -57,13 +56,13 @@ export function CustomerLoginCard({
       rememberMe: ['تذكرني', 'Se souvenir de moi', 'Remember me'],
       signInBtn: ['تسجيل الدخول', 'Se connecter', 'Sign In'],
       signingIn: ['جاري التحقق...', 'Connexion...', 'Signing in...'],
-      or: ['OR', 'OU', 'OR'],
+      or: ['أو', 'OU', 'OR'],
       createAccount: ['إنشاء حساب', 'Créer un compte', 'Create Account'],
       continueAsGuest: ['الدخول كضيف', 'Continuer en invité', 'Continue as Guest'],
       protectedSession: [
-        'Protected session · Authorized personnel only',
-        'Session protégée · Thuraya Al Maghribi',
-        'Protected session · Thuraya Al Maghribi',
+        'جلسة محمية · ثريا المغربي',
+        'Session protégée · Thuraya Al-Maghribi',
+        'Protected session · Thuraya Al-Maghribi',
       ],
       errorGeneric: [
         'بيانات الدخول غير صحيحة. يرجى المحاولة مجدداً.',
@@ -143,7 +142,7 @@ export function CustomerLoginCard({
       className="dark"
       style={{
         width: '100%',
-        maxWidth: '480px',
+        maxWidth: '460px',
         margin: '0 auto',
         boxSizing: 'border-box',
       }}
@@ -153,14 +152,14 @@ export function CustomerLoginCard({
           position: 'relative',
           width: '100%',
           overflow: 'hidden',
-          borderRadius: '12px',
-          border: '1px solid #4d4b47',
-          backgroundImage: 'linear-gradient(145deg, rgba(26, 28, 30, 0.98), rgba(13, 15, 17, 0.98))',
+          borderRadius: '18px',
+          border: '1px solid rgba(212, 174, 120, 0.25)',
+          backgroundImage: 'linear-gradient(155deg, rgba(34, 23, 16, 0.98) 0%, rgba(20, 13, 9, 0.99) 100%)',
           boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
-          color: '#f4f4f5',
+          color: '#FAF6F0',
         }}
       >
-        {/* Ambient glow */}
+        {/* Warm Terracotta & Brass ambient glow */}
         <div
           style={{
             pointerEvents: 'none',
@@ -171,7 +170,7 @@ export function CustomerLoginCard({
             width: '280px',
             height: '220px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(200, 139, 18, 0.12)',
+            backgroundColor: 'rgba(184, 84, 40, 0.16)',
             filter: 'blur(80px)',
           }}
           aria-hidden="true"
@@ -191,12 +190,12 @@ export function CustomerLoginCard({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: '8px',
-              border: '1px solid rgba(77, 75, 71, 0.8)',
-              backgroundColor: '#16181b',
-              color: '#9ca3af',
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
+              border: '1px solid rgba(212, 174, 120, 0.24)',
+              backgroundColor: 'rgba(20, 13, 9, 0.72)',
+              color: '#E6D5BF',
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
@@ -209,7 +208,7 @@ export function CustomerLoginCard({
         <div
           style={{
             position: 'relative',
-            padding: '24px',
+            padding: '28px 24px 24px',
             boxSizing: 'border-box',
           }}
         >
@@ -224,46 +223,54 @@ export function CustomerLoginCard({
               justifyContent: 'center',
             }}
           >
-            {/* Logo icon */}
+            {/* Brand Medallion */}
             <div
               style={{
                 width: '60px',
                 height: '60px',
-                borderRadius: '12px',
-                background: 'linear-gradient(145deg, #ffc51b 0%, #f39a06 100%)',
-                color: '#090909',
-                marginBottom: '16px',
+                borderRadius: '50%',
+                border: '1.5px solid rgba(212, 174, 120, 0.45)',
+                background: '#140D09',
+                marginBottom: '14px',
+                overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 7px 22px rgba(245,158,11,0.34)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
               }}
             >
-              <Sparkles style={{ width: '28px', height: '28px', strokeWidth: 2.2 }} />
+              <Image
+                src="/images/brand/logo-icon.png"
+                alt="Thuraya Al-Maghribi"
+                width={60}
+                height={60}
+                className="w-full h-full object-cover"
+              />
             </div>
 
             {/* Brand name */}
             <h1
               style={{
-                fontWeight: 700,
-                color: '#ffffff',
-                fontSize: '1.75rem',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.1,
-                marginBottom: '12px',
+                fontWeight: 800,
+                color: '#FAF6F0',
+                fontSize: '1.65rem',
+                letterSpacing: isRTL ? 'normal' : '0.03em',
+                lineHeight: 1.15,
+                marginBottom: '8px',
                 textAlign: 'center',
+                fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
               }}
             >
-              THURAYA
+              {isRTL ? 'ثريا المغربي' : 'THURAYA'}
             </h1>
 
             {/* Description */}
             <p
               style={{
-                color: '#b7b7bd',
-                fontSize: '14px',
+                color: '#C7B6A2',
+                fontSize: '13.5px',
                 lineHeight: '1.6',
-                maxWidth: '340px',
+                maxWidth: '330px',
                 margin: '0 auto',
                 textAlign: 'center',
               }}
@@ -278,47 +285,31 @@ export function CustomerLoginCard({
               role="alert"
               aria-live="polite"
               style={{
-                marginBottom: '24px',
-                padding: '14px 16px',
+                marginBottom: '20px',
+                padding: '12px 14px',
                 borderRadius: '12px',
-                border: '1px solid #9b3034',
-                backgroundColor: 'rgba(53, 23, 26, 0.7)',
+                border: '1px solid rgba(248, 113, 113, 0.38)',
+                backgroundColor: 'rgba(127, 29, 29, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '10px',
                 textAlign: isRTL ? 'right' : 'left',
               }}
             >
-              <span
+              <AlertCircle style={{ width: '18px', height: '18px', color: '#FCA5A5', flexShrink: 0 }} aria-hidden="true" />
+              <p
                 style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  border: '2px solid #ff414b',
-                  color: '#ff414b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
+                  fontWeight: 600,
+                  color: '#FEE2E2',
+                  fontSize: '13px',
+                  lineHeight: '1.4',
+                  margin: 0,
                 }}
               >
-                <AlertCircle style={{ width: '14px', height: '14px', strokeWidth: 3 }} aria-hidden="true" />
-              </span>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p
-                  style={{
-                    fontWeight: 700,
-                    color: '#f1eef0',
-                    fontSize: '13px',
-                    lineHeight: '1.4',
-                    marginBottom: '2px',
-                  }}
-                >
-                  {errorMsg.includes('Internal') || errorMsg.includes('خادم') || errorMsg.includes('serveur')
-                    ? t('errorServer')
-                    : t('errorGeneric')}
-                </p>
-              </div>
+                {errorMsg.includes('Internal') || errorMsg.includes('خادم') || errorMsg.includes('serveur')
+                  ? t('errorServer')
+                  : t('errorGeneric')}
+              </p>
             </div>
           )}
 
@@ -332,9 +323,9 @@ export function CustomerLoginCard({
                   display: 'block',
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#c6c8cd',
+                  color: '#E6D5BF',
                   fontSize: '11px',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.07em',
                   marginBottom: '8px',
                 }}
               >
@@ -347,10 +338,10 @@ export function CustomerLoginCard({
                     position: 'absolute',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    [isRTL ? 'right' : 'left']: '16px',
-                    width: '18px',
-                    height: '18px',
-                    color: '#8a7d73',
+                    [isRTL ? 'right' : 'left']: '14px',
+                    width: '17px',
+                    height: '17px',
+                    color: '#A68E76',
                   }}
                   aria-hidden="true"
                 />
@@ -364,14 +355,14 @@ export function CustomerLoginCard({
                   placeholder={t('emailPlaceholder')}
                   style={{
                     width: '100%',
-                    height: '48px',
-                    borderRadius: '8px',
-                    border: '1px solid #55483a',
-                    backgroundColor: 'rgba(17, 19, 21, 0.85)',
-                    color: '#f5f4f2',
+                    height: '46px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(212, 174, 120, 0.22)',
+                    backgroundColor: 'rgba(20, 13, 9, 0.85)',
+                    color: '#FAF6F0',
                     fontSize: '14px',
-                    paddingLeft: isRTL ? '16px' : '46px',
-                    paddingRight: isRTL ? '46px' : '16px',
+                    paddingLeft: isRTL ? '14px' : '44px',
+                    paddingRight: isRTL ? '44px' : '14px',
                     outline: 'none',
                     boxSizing: 'border-box',
                     transition: 'border-color 0.15s',
@@ -381,16 +372,16 @@ export function CustomerLoginCard({
             </div>
 
             {/* Password Field */}
-            <div style={{ marginBottom: '16px', textAlign: isRTL ? 'right' : 'left' }}>
+            <div style={{ marginBottom: '14px', textAlign: isRTL ? 'right' : 'left' }}>
               <label
                 htmlFor="customer-password"
                 style={{
                   display: 'block',
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#c6c8cd',
+                  color: '#E6D5BF',
                   fontSize: '11px',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.07em',
                   marginBottom: '8px',
                 }}
               >
@@ -403,10 +394,10 @@ export function CustomerLoginCard({
                     position: 'absolute',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    [isRTL ? 'right' : 'left']: '16px',
-                    width: '18px',
-                    height: '18px',
-                    color: '#8a7d73',
+                    [isRTL ? 'right' : 'left']: '14px',
+                    width: '17px',
+                    height: '17px',
+                    color: '#A68E76',
                   }}
                   aria-hidden="true"
                 />
@@ -420,15 +411,15 @@ export function CustomerLoginCard({
                   placeholder={t('passwordPlaceholder')}
                   style={{
                     width: '100%',
-                    height: '48px',
-                    borderRadius: '8px',
-                    border: '1px solid #55483a',
-                    backgroundColor: 'rgba(17, 19, 21, 0.85)',
-                    color: '#f5f4f2',
+                    height: '46px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(212, 174, 120, 0.22)',
+                    backgroundColor: 'rgba(20, 13, 9, 0.85)',
+                    color: '#FAF6F0',
                     fontSize: '14px',
                     letterSpacing: showPassword ? 'normal' : '0.12em',
-                    paddingLeft: isRTL ? '48px' : '46px',
-                    paddingRight: isRTL ? '46px' : '48px',
+                    paddingLeft: isRTL ? '46px' : '44px',
+                    paddingRight: isRTL ? '44px' : '46px',
                     outline: 'none',
                     boxSizing: 'border-box',
                     transition: 'border-color 0.15s',
@@ -441,12 +432,12 @@ export function CustomerLoginCard({
                     position: 'absolute',
                     top: '0',
                     [isRTL ? 'left' : 'right']: '0',
-                    width: '48px',
-                    height: '48px',
+                    width: '46px',
+                    height: '46px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#8a7d73',
+                    color: '#A68E76',
                     border: 'none',
                     background: 'transparent',
                     cursor: 'pointer',
@@ -454,9 +445,9 @@ export function CustomerLoginCard({
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
-                    <EyeOff style={{ width: '18px', height: '18px' }} />
+                    <EyeOff style={{ width: '17px', height: '17px' }} />
                   ) : (
-                    <Eye style={{ width: '18px', height: '18px' }} />
+                    <Eye style={{ width: '17px', height: '17px' }} />
                   )}
                 </button>
               </div>
@@ -469,7 +460,7 @@ export function CustomerLoginCard({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 fontSize: '13px',
-                color: '#c6c8cd',
+                color: '#C7B6A2',
                 marginBottom: '4px',
               }}
             >
@@ -489,7 +480,7 @@ export function CustomerLoginCard({
                   style={{
                     width: '16px',
                     height: '16px',
-                    accentColor: '#f7a307',
+                    accentColor: '#D97A4A',
                     cursor: 'pointer',
                   }}
                 />
@@ -504,32 +495,32 @@ export function CustomerLoginCard({
               style={{
                 width: '100%',
                 height: '48px',
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, #f7a307 0%, #ffb30d 100%)',
-                color: '#080808',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #B85428 0%, #D97A4A 100%)',
+                color: '#FFFFFF',
                 fontWeight: 700,
                 fontSize: '15px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '10px',
-                marginTop: '20px',
+                marginTop: '18px',
                 border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1,
-                boxShadow: '0 10px 22px rgba(245,158,11,0.22)',
-                transition: 'all 0.15s',
+                opacity: loading ? 0.72 : 1,
+                boxShadow: '0 8px 22px rgba(184, 84, 40, 0.28)',
+                transition: 'opacity 0.15s, transform 0.15s',
               }}
             >
               {loading ? (
                 <>
                   <span
                     style={{
-                      width: '18px',
-                      height: '18px',
+                      width: '17px',
+                      height: '17px',
                       borderRadius: '50%',
-                      border: '2px solid rgba(8, 8, 8, 0.3)',
-                      borderTopColor: '#080808',
+                      border: '2px solid rgba(255, 255, 255, 0.35)',
+                      borderTopColor: '#FFFFFF',
                       animation: 'spin 1s linear infinite',
                     }}
                   />
@@ -539,9 +530,9 @@ export function CustomerLoginCard({
                 <>
                   <span>{t('signInBtn')}</span>
                   {isRTL ? (
-                    <ArrowLeft style={{ width: '18px', height: '18px' }} />
+                    <ArrowLeft style={{ width: '17px', height: '17px' }} />
                   ) : (
-                    <ArrowRight style={{ width: '18px', height: '18px' }} />
+                    <ArrowRight style={{ width: '17px', height: '17px' }} />
                   )}
                 </>
               )}
@@ -554,15 +545,15 @@ export function CustomerLoginCard({
               display: 'flex',
               alignItems: 'center',
               fontSize: '12px',
-              color: '#a5a4aa',
-              marginTop: '24px',
+              color: '#A68E76',
+              marginTop: '22px',
               marginBottom: '16px',
               gap: '12px',
             }}
           >
-            <span style={{ height: '1px', flex: 1, backgroundColor: '#48494b' }} />
+            <span style={{ height: '1px', flex: 1, backgroundColor: 'rgba(212, 174, 120, 0.2)' }} />
             <span style={{ letterSpacing: '0.06em' }}>{t('or')}</span>
-            <span style={{ height: '1px', flex: 1, backgroundColor: '#48494b' }} />
+            <span style={{ height: '1px', flex: 1, backgroundColor: 'rgba(212, 174, 120, 0.2)' }} />
           </div>
 
           {/* ── The Two Bottom Action Buttons ── */}
@@ -570,7 +561,7 @@ export function CustomerLoginCard({
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '12px',
+              gap: '10px',
             }}
           >
             {/* Button 1: Create Account */}
@@ -578,11 +569,11 @@ export function CustomerLoginCard({
               type="button"
               onClick={handleSignupClick}
               style={{
-                height: '48px',
-                borderRadius: '8px',
-                border: '1px solid #55575a',
-                backgroundColor: 'rgba(17, 19, 21, 0.6)',
-                color: '#d0d0d5',
+                height: '44px',
+                borderRadius: '10px',
+                border: '1px solid rgba(212, 174, 120, 0.24)',
+                backgroundColor: 'rgba(20, 13, 9, 0.65)',
+                color: '#FAF6F0',
                 fontSize: '13px',
                 fontWeight: 600,
                 display: 'flex',
@@ -590,10 +581,10 @@ export function CustomerLoginCard({
                 justifyContent: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'border-color 0.15s',
               }}
             >
-              <UserPlus style={{ width: '17px', height: '17px', color: '#f39a06' }} aria-hidden="true" />
+              <UserPlus style={{ width: '16px', height: '16px', color: '#D4AE78' }} aria-hidden="true" />
               <span>{t('createAccount')}</span>
             </button>
 
@@ -602,11 +593,11 @@ export function CustomerLoginCard({
               type="button"
               onClick={handleGuestClick}
               style={{
-                height: '48px',
-                borderRadius: '8px',
-                border: '1px solid #55575a',
-                backgroundColor: 'rgba(17, 19, 21, 0.6)',
-                color: '#d0d0d5',
+                height: '44px',
+                borderRadius: '10px',
+                border: '1px solid rgba(212, 174, 120, 0.24)',
+                backgroundColor: 'rgba(20, 13, 9, 0.65)',
+                color: '#E6D5BF',
                 fontSize: '13px',
                 fontWeight: 600,
                 display: 'flex',
@@ -614,10 +605,10 @@ export function CustomerLoginCard({
                 justifyContent: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'border-color 0.15s',
               }}
             >
-              <UserCheck style={{ width: '17px', height: '17px', color: '#9ca3af' }} aria-hidden="true" />
+              <UserCheck style={{ width: '16px', height: '16px', color: '#C7B6A2' }} aria-hidden="true" />
               <span>{t('continueAsGuest')}</span>
             </button>
           </div>
@@ -631,15 +622,15 @@ export function CustomerLoginCard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderTop: '1px solid #26282a',
+            borderTop: '1px solid rgba(212, 174, 120, 0.16)',
             fontSize: '12px',
-            color: '#8f9097',
+            color: '#A68E76',
             gap: '8px',
-            padding: '14px 24px',
-            backgroundColor: 'rgba(13, 15, 17, 0.6)',
+            padding: '13px 24px',
+            backgroundColor: 'rgba(20, 13, 9, 0.72)',
           }}
         >
-          <ShieldCheck style={{ width: '14px', height: '14px', flexShrink: 0 }} aria-hidden="true" />
+          <ShieldCheck style={{ width: '14px', height: '14px', color: '#D4AE78', flexShrink: 0 }} aria-hidden="true" />
           <span>{t('protectedSession')}</span>
         </footer>
       </section>

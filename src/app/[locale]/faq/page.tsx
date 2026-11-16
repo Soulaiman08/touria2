@@ -43,7 +43,7 @@ export default function FaqPage({ params }: FaqPageProps) {
     : ''
 
   const [activeCategory, setActiveCategory] = useState<string>('all')
-  const [openIds, setOpenIds] = useState<Record<string, boolean>>({ 'q1': true })
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({ q1: true })
 
   const toggleItem = (id: string) => {
     setOpenIds((prev) => ({
@@ -184,91 +184,33 @@ export default function FaqPage({ params }: FaqPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 860, paddingLeft: 'max(16px, 4vw)', paddingRight: 'max(16px, 4vw)' }}
+      style={{ maxWidth: 860 }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
-      <Link
-        href={`/${locale}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 20px',
-          fontSize: 13,
-          fontWeight: 700,
-          color: '#C4622D',
-          textDecoration: 'none',
-          marginBottom: 20,
-          border: '1px solid #C4622D',
-          borderRadius: 12,
-          transition: 'background 0.2s',
-        }}
-      >
-        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-        {isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+      <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round mb-5">
+        <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+        <span>{isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
       </Link>
 
       {/* ── Hero Header Card ──────────────────────────────────────── */}
-      <div
-        style={{
-          borderRadius: 24,
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
-          overflow: 'hidden',
-          marginBottom: 24,
-        }}
-      >
-        <div
-          style={{
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(184,150,90,0.04) 100%)',
-            padding: '32px 24px 28px',
-            textAlign: 'center',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: 'var(--accent-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 14px',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <HelpCircle style={{ width: 28, height: 28, color: 'var(--accent)' }} />
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-6">
+        <div className="p-7 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-3.5">
+            <HelpCircle className="w-7 h-7 text-[var(--accent)]" />
           </div>
 
-          <div
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2.5"
-            style={{
-              background: 'var(--accent-light)',
-              color: 'var(--accent)',
-              border: '1px solid var(--accent-ring)',
-            }}
-          >
-            <span>✦</span>
-            <span>{isRTL ? 'مركز المساعدة والإجابات' : locale === 'fr' ? 'Centre d\'aide' : 'Help Center'}</span>
-            <span>✦</span>
-          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)] mb-1.5">
+            {isRTL ? 'مركز المساعدة والإجابات' : locale === 'fr' ? 'Centre d\'aide' : 'Help Center'}
+          </p>
 
           <h1
-            style={{
-              fontSize: 'clamp(1.4rem, 3vw, 1.85rem)',
-              fontWeight: 900,
-              color: 'var(--foreground)',
-              margin: '0 0 8px',
-              fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
-            }}
+            className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] mb-2"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
           >
             {isRTL ? 'الأسئلة الشائعة' : locale === 'fr' ? 'Foire Aux Questions' : 'Frequently Asked Questions'}
           </h1>
 
-          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 500, marginInline: 'auto' }}>
+          <p className="text-sm text-[var(--text-muted)] max-w-lg mx-auto m-0">
             {isRTL
               ? 'كل ما تحتاجين معرفته حول الطلب، الشحن والمقاسات في مكان واحد.'
               : locale === 'fr'
@@ -278,41 +220,23 @@ export default function FaqPage({ params }: FaqPageProps) {
         </div>
 
         {/* ── Category Filter Tabs ──────────────────────────────────── */}
-        <div
-          style={{
-            padding: '14px 20px',
-            display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            background: 'var(--bg-subtle)',
-          }}
-        >
+        <div className="p-4 flex gap-2 overflow-x-auto no-scrollbar bg-[var(--card-bg)]">
           {categories.map((cat) => {
             const isActive = activeCategory === cat.id
             const Icon = cat.icon
             return (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => setActiveCategory(cat.id)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border whitespace-nowrap cursor-pointer transition-colors"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 14px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
-                  background: isActive ? 'var(--accent)' : 'var(--card)',
-                  color: isActive ? '#fff' : 'var(--foreground)',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.2s',
-                  boxShadow: isActive ? '0 4px 12px rgba(196,98,45,0.2)' : 'none',
+                  borderColor: isActive ? 'var(--accent)' : 'var(--border)',
+                  background: isActive ? 'var(--accent)' : 'var(--bg-subtle)',
+                  color: isActive ? '#ffffff' : 'var(--text-primary)',
                 }}
               >
-                {Icon && <Icon style={{ width: 13, height: 13 }} />}
+                {Icon && <Icon className="w-3.5 h-3.5" />}
                 <span>{cat.label}</span>
               </button>
             )
@@ -321,89 +245,51 @@ export default function FaqPage({ params }: FaqPageProps) {
       </div>
 
       {/* ── Accordion List ────────────────────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+      <div className="flex flex-col gap-3 mb-7">
         {filteredFaqs.map((faq) => {
           const isOpen = Boolean(openIds[faq.id])
           return (
             <div
               key={faq.id}
+              className="rounded-2xl border bg-[var(--card-bg)] overflow-hidden transition-colors"
               style={{
-                borderRadius: 16,
-                border: `1px solid ${isOpen ? 'var(--accent-ring)' : 'var(--border)'}`,
-                background: 'var(--card)',
-                boxShadow: isOpen ? '0 8px 24px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.02)',
-                transition: 'all 0.25s ease',
-                overflow: 'hidden',
+                borderColor: isOpen ? 'var(--accent-ring)' : 'var(--border)',
               }}
             >
               <button
                 type="button"
                 onClick={() => toggleItem(faq.id)}
+                className="w-full flex items-center justify-between gap-3.5 px-5 py-4 border-0 text-start cursor-pointer"
                 style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 14,
-                  padding: '16px 20px',
-                  background: isOpen ? 'rgba(196,98,45,0.03)' : 'transparent',
-                  border: 'none',
-                  textAlign: isRTL ? 'right' : 'left',
-                  cursor: 'pointer',
+                  background: isOpen ? 'var(--accent-light)' : 'transparent',
                 }}
               >
                 <span
+                  className="text-sm font-bold leading-snug transition-colors"
                   style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: isOpen ? '#C4622D' : 'var(--foreground)',
-                    lineHeight: 1.4,
-                    transition: 'color 0.2s',
+                    color: isOpen ? 'var(--accent)' : 'var(--text-primary)',
                   }}
                 >
                   {faq.q}
                 </span>
 
                 <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-300"
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: isOpen ? 'var(--accent-light)' : 'var(--bg-subtle)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    transition: 'transform 0.3s ease',
+                    background: isOpen ? 'var(--card-bg)' : 'var(--bg-subtle)',
                     transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                   }}
                 >
                   <ChevronDown
-                    style={{
-                      width: 15,
-                      height: 15,
-                      color: isOpen ? 'var(--accent)' : 'var(--muted-foreground)',
-                    }}
+                    className="w-4 h-4"
+                    style={{ color: isOpen ? 'var(--accent)' : 'var(--text-muted)' }}
                   />
                 </div>
               </button>
 
               {isOpen && (
-                <div
-                  style={{
-                    padding: '0 20px 18px',
-                    borderTop: '1px solid var(--border-subtle)',
-                    background: 'rgba(196,98,45,0.015)',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: 13,
-                      lineHeight: 1.7,
-                      color: 'var(--muted-foreground)',
-                      margin: '14px 0 0',
-                    }}
-                  >
+                <div className="px-5 pb-4 pt-3 border-t border-[var(--border)] bg-[var(--card-bg)]">
+                  <p className="text-sm leading-relaxed text-[var(--text-muted)] m-0">
                     {faq.a}
                   </p>
                 </div>
@@ -414,40 +300,16 @@ export default function FaqPage({ params }: FaqPageProps) {
       </div>
 
       {/* ── WhatsApp Direct Support Banner ────────────────────────── */}
-      <div
-        style={{
-          borderRadius: 20,
-          border: '1px solid rgba(37,211,102,0.3)',
-          background: 'linear-gradient(135deg, rgba(37,211,102,0.06) 0%, rgba(37,211,102,0.02) 100%)',
-          padding: '24px 20px',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 12,
-          boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
-        }}
-      >
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 14,
-            background: 'rgba(37,211,102,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#25D366',
-          }}
-        >
-          <MessageCircle style={{ width: 22, height: 22 }} />
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] p-6 text-center flex flex-col items-center gap-3">
+        <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
+          <MessageCircle className="w-5 h-5" />
         </div>
 
         <div>
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--foreground)', margin: '0 0 4px' }}>
+          <h3 className="text-base font-extrabold text-[var(--text-primary)] mb-1">
             {isRTL ? 'هل لديكِ سؤال آخر لم تجدي إجابته؟' : locale === 'fr' ? 'Vous avez d\'autres questions ?' : 'Still have questions?'}
           </h3>
-          <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>
+          <p className="text-xs sm:text-sm text-[var(--text-muted)] m-0">
             {isRTL
               ? 'فريق خدمة العملاء جاهز للإجابة على جميع استفساراتكِ ومساعدتكِ فوراً عبر واتساب.'
               : locale === 'fr'
@@ -461,23 +323,9 @@ export default function FaqPage({ params }: FaqPageProps) {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '11px 22px',
-              borderRadius: 12,
-              background: '#25D366',
-              color: '#fff',
-              fontSize: 13,
-              fontWeight: 800,
-              textDecoration: 'none',
-              boxShadow: '0 4px 16px rgba(37,211,102,0.3)',
-              marginTop: 4,
-              transition: 'transform 0.2s',
-            }}
+            className="btn btn-primary btn-round px-6 py-2.5 text-sm mt-1"
           >
-            <MessageCircle style={{ width: 16, height: 16 }} />
+            <MessageCircle className="w-4 h-4" />
             <span>{isRTL ? 'تواصلي معنا عبر واتساب' : locale === 'fr' ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
           </a>
         )}

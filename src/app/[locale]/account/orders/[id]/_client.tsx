@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, XCircle } from 'lucide-react'
 import type { ProductSnapshot } from '@/types/order'
 
 interface AccountOrderDetailPageProps {
@@ -51,13 +51,13 @@ const STATUS_LABELS: Record<string, [string, string, string]> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: '#f59e0b',
+  PENDING: '#A68246',
   CONFIRMED: '#3b82f6',
   PROCESSING: '#8b5cf6',
   SHIPPED: '#0ea5e9',
-  DELIVERED: '#22c55e',
-  CANCELLED: '#ef4444',
-  RETURNED: '#ef4444',
+  DELIVERED: '#16a34a',
+  CANCELLED: '#dc2626',
+  RETURNED: '#dc2626',
 }
 
 export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageProps) {
@@ -101,7 +101,9 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
         if (!res.ok) throw new Error('not-found')
         return res.json()
       })
-      .then((data) => { if (isMounted) setOrder(data.order) })
+      .then((data) => {
+        if (isMounted) setOrder(data.order)
+      })
       .catch((err: Error) => {
         if (!isMounted) return
         if (err.message === 'not-authenticated') {
@@ -110,8 +112,12 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
           setOrder(null)
         }
       })
-      .finally(() => { if (isMounted) setLoading(false) })
-    return () => { isMounted = false }
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
+    }
   }, [id, locale, router])
 
   const statusLabel = (status: string) => {
@@ -125,23 +131,21 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
   if (loading) {
     return (
       <div className="container-brand py-20 text-center space-y-4">
-        <div className="animate-spin mx-auto h-10 w-10 rounded-full border-b-2 border-[#C4622D]" />
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('loading')}</p>
+        <div className="animate-spin mx-auto h-10 w-10 rounded-full border-2 border-[var(--border)] border-t-[var(--accent)]" />
+        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       </div>
     )
   }
 
   if (!order) {
     return (
-      <div className="container-brand py-20 text-center space-y-4">
-        <div className="text-4xl">❌</div>
-        <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{t('notFound')}</h2>
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('notFoundDesc')}</p>
-        <Link
-          href={`/${locale}/account/orders`}
-          className="inline-block rounded-xl px-6 py-2.5 font-medium text-white hover:bg-[#A34E23]"
-          style={{ background: '#C4622D' }}
-        >
+      <div className="container-brand py-20 text-center space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-[var(--error-bg)] border border-[var(--error-border)] text-[var(--error)]">
+          <XCircle className="w-8 h-8" />
+        </div>
+        <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('notFound')}</h2>
+        <p className="text-sm text-[var(--text-muted)]">{t('notFoundDesc')}</p>
+        <Link href={`/${locale}/account/orders`} className="btn btn-primary btn-round">
           {t('backOrders')}
         </Link>
       </div>
@@ -149,7 +153,7 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
   }
 
   const snapshotName = (snap: ProductSnapshot) =>
-    snap.nameAr || snap.nameFr || snap.nameEn || ''
+    (locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn) || snap.nameAr || snap.nameFr || snap.nameEn || ''
 
   const addressParts = [
     order.address,
@@ -161,25 +165,16 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
 
   return (
     <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 720 }}>
-      <Link
-        href={`/${locale}/account/orders`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          fontSize: 13,
-          fontWeight: 600,
-          color: 'var(--muted-foreground)',
-          textDecoration: 'none',
-          marginBottom: 20,
-        }}
-      >
-        <ArrowLeft style={{ width: 14, height: 14, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-        {t('backOrders')}
+      <Link href={`/${locale}/account/orders`} className="btn btn-outline btn-sm btn-round mb-5">
+        <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+        <span>{t('backOrders')}</span>
       </Link>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+        <h1
+          className="tabular-nums text-2xl font-extrabold text-[var(--text-primary)]"
+          style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+        >
           {t('title')} #{order.orderNumber}
         </h1>
         <span
@@ -190,9 +185,9 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
         </span>
       </div>
 
-      <div className="space-y-6">
-        <div className="rounded-2xl border p-6" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
-          <h2 className="mb-4 font-bold" style={{ color: 'var(--foreground)' }}>{t('items')}</h2>
+      <div className="space-y-5">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6">
+          <h2 className="mb-4 font-bold text-[var(--text-primary)]">{t('items')}</h2>
           <div className="space-y-4">
             {order.items.map((item) => {
               const snap = item.productSnapshot
@@ -204,29 +199,32 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
                       alt={snapshotName(snap)}
                       width={64}
                       height={64}
-                      className="rounded-xl object-cover"
+                      referrerPolicy="no-referrer"
+                      className="rounded-xl object-cover border border-[var(--border)] bg-[var(--bg-muted)]"
                       style={{ width: 64, height: 64 }}
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                      }}
                     />
                   ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-xl" style={{ background: 'var(--bg-muted)' }} />
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[var(--bg-muted)] border border-[var(--border)]" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>{snapshotName(snap)}</p>
-                    <p className="mt-0.5 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                    <p className="font-bold text-sm text-[var(--text-primary)]">{snapshotName(snap)}</p>
+                    <p className="tabular-nums mt-0.5 text-xs text-[var(--text-muted)]">
                       {snap.selectedSize ? ` ${snap.selectedSize}` : ''}
                       {snap.selectedColor?.nameAr ? ` · ${snap.selectedColor.nameAr}` : ''}
                       {' · '}{t('quantity')}: {item.quantity}
                     </p>
                     {snap.niqabs && snap.niqabs.length > 0 && (
-                      <div className="mt-1.5 flex flex-col gap-1">
+                      <div className="mt-2 flex flex-col gap-1">
                         {snap.niqabs.map((n, nIdx) => {
                           const niqabName = locale === 'ar' ? n.nameAr : locale === 'fr' ? n.nameFr : n.nameEn
                           const niqabColor = n.color?.nameAr || n.color?.nameFr || n.color?.nameEn || ''
                           return (
                             <div
                               key={`${n.id}-${nIdx}`}
-                              className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs"
-                              style={{ background: 'rgba(196,98,45,0.04)', border: '1px solid rgba(196,98,45,0.1)' }}
+                              className="flex items-center gap-2 rounded-lg px-2.5 py-1 text-xs bg-[var(--accent-light)] border border-[var(--accent-ring)]"
                             >
                               {n.image && (
                                 <Image
@@ -234,27 +232,31 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
                                   alt={niqabName}
                                   width={20}
                                   height={20}
+                                  referrerPolicy="no-referrer"
                                   className="rounded object-cover"
                                   style={{ width: 20, height: 20, flexShrink: 0 }}
+                                  onError={(e) => {
+                                    ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                                  }}
                                 />
                               )}
-                              <span className="font-semibold" style={{ color: '#C4622D' }}>
+                              <span className="font-semibold text-[var(--accent)]">
                                 {locale === 'ar' ? 'نقاب' : 'Niqab'}: {niqabName}
                               </span>
                               {niqabColor && (
                                 <>
-                                  <span style={{ color: '#ccc' }}>—</span>
-                                  <span style={{ color: 'var(--muted-foreground)' }}>{niqabColor}</span>
+                                  <span className="text-[var(--text-muted)]">—</span>
+                                  <span className="text-[var(--text-muted)]">{niqabColor}</span>
                                 </>
                               )}
-                              <span style={{ color: 'var(--muted-foreground)' }}>×{n.quantity}</span>
+                              <span className="tabular-nums text-[var(--text-muted)]">×{n.quantity}</span>
                             </div>
                           )
                         })}
                       </div>
                     )}
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>
+                  <p className="tabular-nums font-extrabold text-sm text-[var(--accent)] whitespace-nowrap">
                     {fmt(item.totalPrice)} MAD
                   </p>
                 </div>
@@ -262,43 +264,43 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
             })}
           </div>
 
-          <div className="mt-6 space-y-1.5 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
-            <div className="flex justify-between text-sm" style={{ color: 'var(--muted-foreground)' }}>
+          <div className="mt-6 space-y-2 border-t border-[var(--border)] pt-4">
+            <div className="flex justify-between text-sm text-[var(--text-muted)]">
               <span>{t('subtotal')}</span>
-              <span>{fmt(order.subtotal)} MAD</span>
+              <span className="tabular-nums">{fmt(order.subtotal)} MAD</span>
             </div>
-            <div className="flex justify-between text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            <div className="flex justify-between text-sm text-[var(--text-muted)]">
               <span>{t('shipping')}</span>
-              <span>{fmt(order.shippingCost)} MAD</span>
+              <span className="tabular-nums">{fmt(order.shippingCost)} MAD</span>
             </div>
-            <div className="flex justify-between font-bold" style={{ color: 'var(--foreground)' }}>
+            <div className="flex justify-between font-extrabold text-base text-[var(--text-primary)] pt-1">
               <span>{t('total')}</span>
-              <span>{fmt(order.total)} MAD</span>
+              <span className="tabular-nums text-[var(--accent)]">{fmt(order.total)} MAD</span>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="rounded-2xl border p-6" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
-            <h2 className="mb-4 font-bold" style={{ color: 'var(--foreground)' }}>{t('address')}</h2>
-            <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{order.customerName}</p>
-            <p className="mt-0.5 text-sm" style={{ color: 'var(--muted-foreground)' }}>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6">
+            <h2 className="mb-3 font-bold text-[var(--text-primary)]">{t('address')}</h2>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{order.customerName}</p>
+            <p className="tabular-nums mt-0.5 text-sm text-[var(--text-muted)]">
               {order.customerPhone}
               {order.customerPhone2 ? ` · ${order.customerPhone2}` : ''}
             </p>
-            <p className="mt-2 text-sm" style={{ color: 'var(--muted-foreground)' }}>{addressParts.join(' — ')}</p>
+            <p className="mt-2 text-sm text-[var(--text-muted)] leading-relaxed">{addressParts.join(' — ')}</p>
             {order.notes && (
-              <p className="mt-3 rounded-xl bg-[#C4622D]/10 p-3 text-xs">
-                <span className="font-bold" style={{ color: 'var(--foreground)' }}>{t('notes')}: </span>
-                <span style={{ color: 'var(--muted-foreground)' }}>{order.notes}</span>
+              <p className="mt-3 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] p-3 text-xs">
+                <span className="font-bold text-[var(--text-primary)]">{t('notes')}: </span>
+                <span className="text-[var(--text-muted)]">{order.notes}</span>
               </p>
             )}
           </div>
 
-          <div className="rounded-2xl border p-6" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
-            <h2 className="mb-4 font-bold" style={{ color: 'var(--foreground)' }}>{t('payment')}</h2>
-            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('cod')}</p>
-            <p className="mt-3 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6">
+            <h2 className="mb-3 font-bold text-[var(--text-primary)]">{t('payment')}</h2>
+            <p className="text-sm text-[var(--text-muted)]">{t('cod')}</p>
+            <p className="tabular-nums mt-3 text-xs text-[var(--text-muted)]">
               {t('orderDate')}: {new Date(order.createdAt).toLocaleString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
             </p>
           </div>

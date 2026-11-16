@@ -37,118 +37,51 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* ── Breadcrumb + Back Button Row ───────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          paddingBlock: '4px',
-        }}
-      >
-        {/* Breadcrumb */}
+      <div className="flex items-center justify-between gap-3 py-1">
         <nav
           aria-label="breadcrumb"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.75rem',
-            color: 'var(--text-muted)',
-          }}
+          className="hidden sm:flex items-center gap-2 text-xs text-[var(--text-muted)]"
         >
           <Link
             href={`/${locale}`}
-            style={{
-              color: 'var(--text-muted)',
-              fontWeight: 500,
-              textDecoration: 'none',
-              transition: 'color 0.15s',
-            }}
-            className="hover:text-[#C4622D]"
+            className="font-medium text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors no-underline"
           >
             {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
           </Link>
           <ChevronRight
             aria-hidden="true"
-            style={{
-              width: 13,
-              height: 13,
-              opacity: 0.5,
-              transform: isRTL ? 'rotate(180deg)' : 'none',
-              flexShrink: 0,
-            }}
+            className={`w-3.5 h-3.5 opacity-50 flex-shrink-0 ${isRTL ? 'rotate-180' : ''}`}
           />
-          <span style={{ fontWeight: 600, color: '#C4622D' }}>{t('title')}</span>
+          <span className="font-semibold text-[var(--accent)]">{t('title')}</span>
         </nav>
 
-        {/* Back button */}
         <Link
           href={`/${locale}/products`}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-            textDecoration: 'none',
-            paddingInline: '14px',
-            paddingBlock: '8px',
-            borderRadius: '12px',
-            border: '1px solid var(--border)',
-            background: 'var(--card)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            transition: 'all 0.15s',
-            whiteSpace: 'nowrap',
-          }}
-          className="hover:text-[#C4622D] hover:border-[#C4622D]/40"
+          className="btn btn-outline btn-sm btn-round whitespace-nowrap"
         >
           <ArrowLeft
             aria-hidden="true"
-            style={{
-              width: 13,
-              height: 13,
-              flexShrink: 0,
-              transform: isRTL ? 'rotate(180deg)' : 'none',
-            }}
+            className={`w-3.5 h-3.5 flex-shrink-0 ${isRTL ? 'rotate-180' : ''}`}
           />
-          {locale === 'ar'
-            ? 'العودة للتسوق'
-            : locale === 'fr'
-              ? 'Continuer vos achats'
-              : 'Continue shopping'}
+          <span>
+            {locale === 'ar'
+              ? 'العودة للتسوق'
+              : locale === 'fr'
+                ? 'Continuer vos achats'
+                : 'Continue shopping'}
+          </span>
         </Link>
       </div>
 
       {/* ── Page Title ─────────────────────────────────────── */}
-      <div
-        style={{
-          paddingBottom: '28px',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
+      <div className="pb-6 border-b border-[var(--border)]">
         <h1
-          style={{
-            fontSize: 'clamp(1.5rem, 3vw, 2.25rem)',
-            fontWeight: 800,
-            color: 'var(--foreground)',
-            letterSpacing: '-0.02em',
-            marginBottom: '8px',
-            lineHeight: 1.2,
-          }}
+          className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight mb-2 leading-tight"
+          style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
         >
           {t('title')}
         </h1>
-        <p
-          style={{
-            fontSize: '0.9rem',
-            color: 'var(--text-muted)',
-            lineHeight: 1.65,
-            maxWidth: '520px',
-          }}
-        >
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed max-w-xl">
           {locale === 'ar'
             ? 'يرجى ملء المعلومات أدناه لتأكيد طلبك وتوصيله إليكِ.'
             : locale === 'fr'

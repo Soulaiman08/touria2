@@ -13,7 +13,6 @@ import { WhatsAppButton } from '@/components/shared/WhatsAppButton'
 import { VisitorTracker } from '@/components/shared/VisitorTracker'
 
 import { CustomerAuthProvider } from '@/components/providers/CustomerAuthProvider'
-import { CustomerLoginModal } from '@/components/auth/CustomerLoginModal'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -179,7 +178,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider>
         <CartProvider>
-          <CustomerAuthProvider>
+          <CustomerAuthProvider locale={locale}>
             <div className="storefront-shell flex min-h-screen flex-col relative w-full">
               {/* Skip to content for accessibility */}
               <a
@@ -201,7 +200,6 @@ export default async function LocaleLayout({
               <CartDrawer locale={locale} />
               <WhatsAppButton />
               <VisitorTracker />
-              <CustomerLoginModal locale={locale} />
             </div>
           </CustomerAuthProvider>
         </CartProvider>

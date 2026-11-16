@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
-import { Truck, Check, Package, ShoppingBag, Clock, ArrowLeft, type LucideIcon } from 'lucide-react'
+import { Truck, Check, Package, ShoppingBag, Clock, ArrowLeft, XCircle, type LucideIcon } from 'lucide-react'
 import type { Order, OrderStatus, ProductSnapshot } from '@/types/order'
 
 interface TrackingPageProps {
@@ -39,132 +39,98 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
         return res.json()
       })
       .then((res) => {
-        if (isMounted) { setOrder(res); setLoading(false) }
+        if (isMounted) {
+          setOrder(res)
+          setLoading(false)
+        }
       })
-      .catch(() => { if (isMounted) setLoading(false) })
-    return () => { isMounted = false }
+      .catch(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
+    }
   }, [id])
 
   if (loading) {
     return (
       <div className="container-brand py-20 text-center space-y-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#C4622D] mx-auto" />
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{cartT('loading')}</p>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent)] mx-auto" />
+        <p className="text-sm text-[var(--text-muted)]">{cartT('loading')}</p>
       </div>
     )
   }
 
   if (!order) {
     return (
-      <div className="container-brand py-20 text-center space-y-4">
-        <div className="text-4xl text-red-500">❌</div>
-        <h2 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+      <div className="container-brand py-20 text-center space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-[var(--error-bg)] border border-[var(--error-border)] text-[var(--error)]">
+          <XCircle className="w-8 h-8" />
+        </div>
+        <h2 className="font-bold text-lg text-[var(--text-primary)]">
           {t('notFound')}
         </h2>
-        <Link
-          href={`/${locale}`}
-          className="inline-block px-6 py-2.5 rounded-xl text-white font-medium hover:bg-[#A34E23]"
-          style={{ background: '#C4622D' }}
-        >
-          {locale === 'ar' ? 'العودة للرئيسية' : 'Retour à l\'accueil'}
+        <Link href={`/${locale}`} className="btn btn-primary btn-round">
+          {locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
         </Link>
       </div>
     )
   }
 
-  const currentStepIndex = STEPS.findIndex((s) => s.status === order.status)
+  const currentStepIndex = Math.max(0, STEPS.findIndex((s) => s.status === order.status))
 
   return (
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 640, paddingLeft: 'max(16px, 5vw)', paddingRight: 'max(16px, 5vw)' }}
+      style={{ maxWidth: 640 }}
     >
       {/* ── Back link ─────────────────────────────────────────────── */}
-      <Link
-        href={`/${locale}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 20px',
-          fontSize: 13,
-          fontWeight: 700,
-          color: '#C4622D',
-          textDecoration: 'none',
-          marginBottom: 20,
-          border: '1px solid #C4622D',
-          borderRadius: 12,
-          transition: 'background 0.2s',
-        }}
-      >
-        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-        {locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+      <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round mb-5">
+        <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+        <span>{locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
       </Link>
 
-      <div
-        style={{
-          borderRadius: 24,
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden">
         {/* ── Page Header ───────────────────────────────────────────── */}
-        <div
-          style={{
-            padding: '24px 24px 20px',
-            borderBottom: '1px solid var(--border)',
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.04) 0%, transparent 100%)',
-          }}
-        >
-          <h1 style={{ fontSize: 20, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 4px' }}>
+        <div className="p-6 border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+          <h1
+            className="text-xl font-extrabold text-[var(--text-primary)] mb-1"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+          >
             {t('title')}
           </h1>
-          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0 }}>
+          <p className="text-sm text-[var(--text-muted)] m-0">
             {t('orderNumber')}:{' '}
-            <span style={{ color: '#C4622D', fontWeight: 800, fontFamily: 'monospace' }}>
+            <span className="tabular-nums font-mono text-[var(--accent)] font-extrabold">
               {order.orderNumber}
             </span>
           </p>
         </div>
 
         {/* ── Status Timeline ────────────────────────────────────────── */}
-        <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--border)' }}>
-          {/* Progress bar background */}
-          <div style={{ position: 'relative', paddingBottom: 4 }}>
+        <div className="p-6 border-b border-[var(--border)]">
+          <div className="relative pb-1">
             {/* Track line */}
             <div
+              className="absolute top-[18px] h-[3px] bg-[var(--border)] rounded-full z-0"
               style={{
-                position: 'absolute',
-                top: 18,
                 left: isRTL ? 0 : '10%',
                 right: isRTL ? '10%' : 0,
-                height: 3,
-                background: 'var(--border)',
-                borderRadius: 99,
-                zIndex: 0,
               }}
             />
             {/* Filled track */}
             <div
+              className="absolute top-[18px] h-[3px] bg-[var(--accent)] rounded-full z-1 transition-all duration-500"
               style={{
-                position: 'absolute',
-                top: 18,
                 left: isRTL ? 'auto' : '10%',
                 right: isRTL ? '10%' : 'auto',
-                height: 3,
                 width: `${(currentStepIndex / (STEPS.length - 1)) * 80}%`,
-                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-                borderRadius: 99,
-                zIndex: 1,
-                transition: 'width 0.5s ease',
               }}
             />
 
             {/* Steps */}
-            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', zIndex: 2 }}>
+            <div className="relative flex justify-between z-2">
               {STEPS.map((step, idx) => {
                 const StepIcon = step.icon
                 const isCompleted = idx <= currentStepIndex
@@ -172,38 +138,25 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                 const stepLabel = locale === 'ar' ? step.labelAr : locale === 'fr' ? step.labelFr : step.labelEn
 
                 return (
-                  <div key={step.status} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <div key={step.status} className="flex flex-col items-center gap-2 flex-1">
                     <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center transition-all flex-shrink-0"
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: isCompleted ? '#C4622D' : 'var(--bg-subtle)',
-                        border: isCurrent ? '3px solid #C4622D' : `2px solid ${isCompleted ? '#C4622D' : 'var(--border)'}`,
-                        boxShadow: isCurrent ? '0 0 0 4px rgba(196,98,45,0.12)' : 'none',
-                        transition: 'all 0.3s',
-                        flexShrink: 0,
+                        background: isCompleted ? 'var(--accent)' : 'var(--bg-subtle)',
+                        border: isCurrent ? '3px solid var(--accent)' : `2px solid ${isCompleted ? 'var(--accent)' : 'var(--border)'}`,
+                        boxShadow: isCurrent ? '0 0 0 4px var(--accent-light)' : 'none',
                       }}
                     >
                       <StepIcon
-                        style={{
-                          width: 15,
-                          height: 15,
-                          color: isCompleted ? '#fff' : 'var(--muted-foreground)',
-                        }}
+                        className="w-3.5 h-3.5"
+                        style={{ color: isCompleted ? '#fff' : 'var(--text-muted)' }}
                       />
                     </div>
                     <span
+                      className="text-[10.5px] text-center leading-tight whitespace-nowrap"
                       style={{
-                        fontSize: 10,
                         fontWeight: isCompleted ? 700 : 500,
-                        color: isCompleted ? 'var(--foreground)' : 'var(--muted-foreground)',
-                        textAlign: 'center',
-                        lineHeight: 1.2,
-                        whiteSpace: 'nowrap',
+                        color: isCompleted ? 'var(--text-primary)' : 'var(--text-muted)',
                       }}
                     >
                       {stepLabel}
@@ -217,52 +170,34 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
 
         {/* ── Status History Remarks ─────────────────────────────────── */}
         {order.statusHistory && order.statusHistory.length > 0 && (
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>
+          <div className="px-6 py-5 border-b border-[var(--border)]">
+            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">
               {locale === 'ar' ? 'سجل تحديثات الحالة' : locale === 'fr' ? 'Historique des statuts' : 'Status update history'}
             </h3>
-            <div
-              style={{
-                borderInlineStart: '2px solid var(--border)',
-                paddingInlineStart: 16,
-                marginInlineStart: 6,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 14,
-              }}
-            >
+            <div className="border-s-2 border-[var(--border)] ps-4 ms-1.5 flex flex-col gap-3.5">
               {order.statusHistory.map((hist) => {
                 const stepObj = STEPS.find((s) => s.status === hist.status)
                 const statusLabel = stepObj
                   ? (locale === 'ar' ? stepObj.labelAr : locale === 'fr' ? stepObj.labelFr : stepObj.labelEn)
                   : hist.status === 'CANCELLED'
-                  ? (locale === 'ar' ? 'ملغى' : locale === 'fr' ? 'Annulée' : 'Cancelled')
-                  : hist.status === 'RETURNED'
-                  ? (locale === 'ar' ? 'مُرجَع' : locale === 'fr' ? 'Retournée' : 'Returned')
-                  : hist.status
+                    ? (locale === 'ar' ? 'ملغى' : locale === 'fr' ? 'Annulée' : 'Cancelled')
+                    : hist.status === 'RETURNED'
+                      ? (locale === 'ar' ? 'مُرجَع' : locale === 'fr' ? 'Retournée' : 'Returned')
+                      : hist.status
 
                 return (
-                  <div key={hist.id} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div key={hist.id} className="relative flex flex-col gap-1">
                     <div
-                      style={{
-                        position: 'absolute',
-                        insetInlineStart: -21,
-                        top: 4,
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        background: '#C4622D',
-                        border: '3px solid var(--card)',
-                      }}
+                      className="absolute -start-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--accent)] border-2 border-[var(--card-bg)]"
                     />
-                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground)' }}>
+                    <div className="text-sm font-bold text-[var(--text-primary)]">
                       {statusLabel}
                     </div>
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
+                    <span className="tabular-nums text-[11px] text-[var(--text-muted)]">
                       {new Date(hist.createdAt).toLocaleString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
                     </span>
                     {hist.note?.trim() && (
-                      <p style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.5, margin: '4px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(196,98,45,0.06)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 10px' }}>
+                      <p className="text-xs text-[var(--text-primary)] leading-relaxed mt-1 mb-0 whitespace-pre-wrap break-words bg-[var(--accent-light)] border border-[var(--accent-ring)] rounded-xl px-3 py-2">
                         {hist.note}
                       </p>
                     )}
@@ -274,13 +209,13 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
         )}
 
         {/* ── Order Items ────────────────────────────────────────────── */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
-          <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>
+        <div className="px-6 py-5 border-b border-[var(--border)]">
+          <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3.5">
             {locale === 'ar' ? 'تفاصيل طلبكِ' : locale === 'fr' ? 'Détails de votre commande' : 'Order details'}
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {order.items.map((item, idx) => {
+          <div className="flex flex-col divide-y divide-[var(--border)]">
+            {order.items.map((item) => {
               const snap = item.productSnapshot as ProductSnapshot
               const rawSize = snap.selectedSize || ''
               const isNiqabItem = Boolean(snap.isNiqab)
@@ -290,93 +225,57 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                 !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(rawSize.toLowerCase().trim())
               const colorName = snap.selectedColor?.nameAr || snap.selectedColor?.nameFr || snap.selectedColor?.nameEn || ''
               const niqabs = Array.isArray(snap.niqabs) ? snap.niqabs : []
+              const itemName = locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn
 
               return (
-                <div
-                  key={item.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: '12px 0',
-                    borderBottom: idx < order.items.length - 1 ? '1px solid var(--border)' : 'none',
-                  }}
-                >
+                <div key={item.id} className="flex items-center gap-3.5 py-3 first:pt-0 last:pb-0">
                   {snap.mainImage ? (
                     <Image
                       src={snap.mainImage}
-                      alt={locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
+                      alt={itemName}
                       width={56}
                       height={56}
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 12,
-                        objectFit: 'cover',
-                        flexShrink: 0,
-                        border: '1px solid var(--border)',
-                        background: 'var(--bg-subtle)',
+                      referrerPolicy="no-referrer"
+                      className="w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
                       }}
                     />
                   ) : (
-                    <div
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 12,
-                        background: 'var(--bg-subtle)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        border: '1px solid var(--border)',
-                        color: 'var(--muted-foreground)',
-                      }}
-                    >
-                      <ShoppingBag style={{ width: 22, height: 22, opacity: 0.5 }} />
+                    <div className="w-14 h-14 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center flex-shrink-0 border border-[var(--border)] text-[var(--text-muted)]">
+                      <ShoppingBag className="w-5 h-5 opacity-50" />
                     </div>
                   )}
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.3 }}>
-                      {locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[var(--text-primary)] mb-1 leading-snug">
+                      {itemName}
                     </p>
-                    <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: 0 }}>
+                    <p className="tabular-nums text-xs text-[var(--text-muted)] m-0">
                       {hasRealSize && (
                         <>
-                          <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{rawSize}</span>
+                          <span className="font-semibold text-[var(--text-primary)]">{rawSize}</span>
                           {' · '}
                         </>
                       )}
                       {colorName && (
                         <>
-                          <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{colorName}</span>
+                          <span className="font-semibold text-[var(--text-primary)]">{colorName}</span>
                           {' · '}
                         </>
                       )}
-                      {cartT('quantity')}: <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{item.quantity}</span>
+                      {cartT('quantity')}: <span className="font-semibold text-[var(--text-primary)]">{item.quantity}</span>
                     </p>
 
-                    {/* ── Niqab Add-ons ── */}
                     {niqabs.length > 0 && (
-                      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div className="mt-1.5 flex flex-col gap-1">
                         {niqabs.map((niqab, nIdx) => {
                           const niqabName = locale === 'ar' ? niqab.nameAr : locale === 'fr' ? niqab.nameFr : niqab.nameEn
                           const niqabColor = niqab.color?.nameAr || niqab.color?.nameFr || niqab.color?.nameEn || ''
                           return (
                             <div
                               key={`${niqab.id}-${nIdx}`}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                fontSize: 11,
-                                color: 'var(--muted-foreground)',
-                                background: 'rgba(196,98,45,0.04)',
-                                padding: '4px 8px',
-                                borderRadius: 8,
-                                border: '1px solid rgba(196,98,45,0.1)',
-                              }}
+                              className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] bg-[var(--accent-light)] px-2 py-1 rounded-lg border border-[var(--accent-ring)]"
                             >
                               {niqab.image && (
                                 <Image
@@ -384,26 +283,30 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                                   alt={niqabName}
                                   width={20}
                                   height={20}
-                                  style={{ borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+                                  referrerPolicy="no-referrer"
+                                  className="rounded object-cover flex-shrink-0"
+                                  onError={(e) => {
+                                    ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                                  }}
                                 />
                               )}
-                              <span style={{ fontWeight: 600, color: '#C4622D' }}>
+                              <span className="font-semibold text-[var(--accent)]">
                                 {locale === 'ar' ? 'نقاب' : 'Niqab'}: {niqabName}
                               </span>
                               {niqabColor && (
                                 <>
-                                  <span style={{ color: '#ccc' }}>—</span>
+                                  <span className="opacity-50">—</span>
                                   <span>{niqabColor}</span>
                                 </>
                               )}
-                              <span>×{niqab.quantity}</span>
+                              <span className="tabular-nums">×{niqab.quantity}</span>
                             </div>
                           )
                         })}
                       </div>
                     )}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#C4622D', flexShrink: 0 }}>
+                  <span className="tabular-nums text-sm font-extrabold text-[var(--accent)] flex-shrink-0">
                     {formatPrice(item.totalPrice, locale)}
                   </span>
                 </div>
@@ -414,11 +317,11 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
 
         {/* ── Delivery Notes (customer) ──────────────────────────────── */}
         {order.notes?.trim() && (
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(196,98,45,0.03)' }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+          <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
               {locale === 'ar' ? 'ملاحظات التوصيل' : locale === 'fr' ? 'Notes de livraison' : 'Delivery notes'}
             </h3>
-            <p style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
+            <p className="text-sm text-[var(--text-primary)] leading-relaxed m-0 whitespace-pre-wrap break-words bg-[var(--card-bg)] border border-[var(--border)] rounded-xl px-3.5 py-2.5">
               {order.notes}
             </p>
           </div>
@@ -426,63 +329,37 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
 
         {/* ── Admin Notes (staff / management) ───────────────────────── */}
         {order.adminNotes?.trim() && (
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(196,98,45,0.05)' }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#C4622D', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
+          <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--accent-light)]">
+            <h3 className="text-xs font-bold text-[var(--accent)] uppercase tracking-wider mb-2">
               {locale === 'ar' ? 'ملاحظات الإدارة' : locale === 'fr' ? 'Notes de l\'administration' : 'Admin notes'}
             </h3>
-            <p style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'var(--card)', border: '1px solid rgba(196,98,45,0.2)', borderRadius: 12, padding: '10px 12px' }}>
+            <p className="text-sm text-[var(--text-primary)] leading-relaxed m-0 whitespace-pre-wrap break-words bg-[var(--card-bg)] border border-[var(--accent-ring)] rounded-xl px-3.5 py-2.5">
               {order.adminNotes}
             </p>
           </div>
         )}
 
         {/* ── Price Summary ──────────────────────────────────────────── */}
-        <div style={{ padding: '16px 24px 20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted-foreground)' }}>
+        <div className="p-6">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between text-sm text-[var(--text-muted)]">
               <span>{cartT('subtotal')}</span>
-              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{formatPrice(order.subtotal, locale)}</span>
+              <span className="tabular-nums font-semibold text-[var(--text-primary)]">{formatPrice(order.subtotal, locale)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted-foreground)' }}>
+            <div className="flex justify-between text-sm text-[var(--text-muted)]">
               <span>{cartT('shipping')}</span>
-              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{formatPrice(order.shippingCost, locale)}</span>
+              <span className="tabular-nums font-semibold text-[var(--text-primary)]">{formatPrice(order.shippingCost, locale)}</span>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingTop: 12,
-                marginTop: 4,
-                borderTop: '1px solid var(--border)',
-              }}
-            >
-              <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--foreground)' }}>{cartT('total')}</span>
-              <span style={{ fontSize: 20, fontWeight: 900, color: '#C4622D' }}>{formatPrice(order.total, locale)}</span>
+            <div className="flex justify-between items-center pt-3 mt-1 border-t border-[var(--border)]">
+              <span className="text-base font-extrabold text-[var(--text-primary)]">{cartT('total')}</span>
+              <span className="tabular-nums text-xl font-extrabold text-[var(--accent)]">{formatPrice(order.total, locale)}</span>
             </div>
           </div>
 
-          {/* ── Return button ───────────────────────────────────────── */}
-          <div style={{ marginTop: 20 }}>
-            <Link
-              href={`/${locale}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '13px 20px',
-                borderRadius: 12,
-                background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 800,
-                textDecoration: 'none',
-                boxShadow: '0 4px 16px rgba(196,98,45,0.22)',
-              }}
-            >
-              <ShoppingBag style={{ width: 15, height: 15 }} />
-              {locale === 'ar' ? 'العودة للرئيسية' : 'Retour à l\'accueil'}
+          <div className="mt-5">
+            <Link href={`/${locale}`} className="btn btn-primary w-full justify-center py-3 rounded-xl text-sm">
+              <ShoppingBag className="w-4 h-4" />
+              <span>{locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
             </Link>
           </div>
         </div>

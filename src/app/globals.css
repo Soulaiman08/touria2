@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
    PREMIUM DESIGN SYSTEM — ثريا المغربي
@@ -101,189 +102,187 @@
 ═══════════════════════════════════════════════ */
 :root {
   /* Compatibility aliases for Shadcn / tailwind primitives */
-  --background: #fefcf9;
-  --foreground: #3d1f0a;
-  --card: #ffffff;
-  --card-foreground: #3d1f0a;
-  --muted: #f7efe4;
-  --muted-foreground: #806f63;
-  --border-muted: #e8d5b5;
+  --background: #FAF6F0;
+  --foreground: #241710;
+  --card: #FFFFFF;
+  --card-foreground: #241710;
+  --muted: #F3ECE1;
+  --muted-foreground: #6E5A4C;
+  --border-muted: #E5D9C8;
 
   /* Surfaces */
-  --bg-base: #fefcf9;
-  --bg-subtle: #f8f1e7;
-  --bg-muted: #efe3d3;
-  --bg-overlay: rgba(61, 31, 10, 0.035);
+  --bg-base: #FAF6F0;
+  --bg-subtle: #F3ECE1;
+  --bg-muted: #EAE0D2;
+  --bg-overlay: rgba(36, 23, 16, 0.04);
 
-  /* Cards */
-  --card-bg: #ffffff;
-  --card-border: #e8d5b5;
-  --card-shadow: 0 8px 32px rgba(61, 31, 10, 0.08);
-  --card-shadow-hover: 0 20px 48px rgba(61, 31, 10, 0.14);
+  /* Cards (Single Elevation Surface) */
+  --card-bg: #FFFFFF;
+  --card-border: #E5D9C8;
+  --card-shadow: 0 2px 14px rgba(36, 23, 16, 0.045);
+  --card-shadow-hover: 0 12px 28px rgba(36, 23, 16, 0.085);
 
   /* Text */
-  --text-primary: #3d1f0a;
-  --text-secondary: #5c3b2a;
-  --text-muted: #806f63;
-  --text-placeholder: #9a887b;
+  --text-primary: #241710;
+  --text-secondary: #523A2B;
+  --text-muted: #6E5A4C;
+  --text-placeholder: #9A8777;
 
-  /* Interactive */
-  --accent: #f59e0b;
-  --accent-hover: #d97706;
-  --accent-light: rgba(196, 98, 45, 0.10);
-  --accent-ring: rgba(196, 98, 45, 0.22);
+  /* Interactive — Deep Moroccan Henna Terracotta */
+  --accent: #9E4321;
+  --accent-hover: #7E3317;
+  --accent-light: rgba(158, 67, 33, 0.08);
+  --accent-ring: rgba(158, 67, 33, 0.24);
 
-  /* Gold */
-  --gold: #b8965a;
-  --gold-light: #d4ae78;
-  --gold-bg: rgba(184, 150, 90, 0.12);
+  /* Antique Brass / Gold */
+  --gold: #9A7438;
+  --gold-light: #C6A060;
+  --gold-bg: rgba(154, 116, 56, 0.10);
 
   /* Borders */
-  --border: #e8d5b5;
-  --border-subtle: rgba(184, 150, 90, 0.28);
-  --border-focus: #f59e0b;
+  --border: #E6DAC8;
+  --border-subtle: rgba(154, 116, 56, 0.18);
+  --border-focus: #9E4321;
 
-  /* Header */
-  --header-bg: rgba(255, 253, 249, 0.94);
-  --header-border: rgba(184, 150, 90, 0.28);
-  --header-height: 68px;
+  /* Header — Frosted Fez Limestone */
+  --header-bg: rgba(250, 246, 240, 0.92);
+  --header-border: rgba(154, 116, 56, 0.20);
+  --header-height: 72px;
 
-  /* Footer - Deep Moroccan chocolate brown in light mode */
-  --footer-bg: #221209;
-  --footer-text: #eadecd;
-  --footer-muted: #af9782;
-  --footer-heading: #ffffff;
-  --footer-accent: #d4ae78;
-  --footer-border: rgba(184, 150, 90, 0.22);
+  /* Footer — Deep Cedar Wood */
+  --footer-bg: #1F130C;
+  --footer-text: #EADECD;
+  --footer-muted: #B6A18E;
+  --footer-heading: #FAF6F0;
+  --footer-accent: #D4AE78;
+  --footer-border: rgba(212, 174, 120, 0.18);
 
   /* Inputs */
-  --input: #ffffff;
-  --input-bg: #ffffff;
-  --input-border: #d8c2a5;
-  --input-focus: #f59e0b;
+  --input: #FFFFFF;
+  --input-bg: #FFFFFF;
+  --input-border: #D9CBB7;
+  --input-focus: #B85428;
 
   /* Status */
-  --success: #4a7c59;
-  --success-bg: rgba(74, 124, 89, 0.06);
-  --error: #c4362d;
-  --error-bg: rgba(196, 54, 45, 0.06);
-  --warning: #fbbf24;
-  --warning-bg: rgba(251, 191, 36, 0.12);
+  --success: #3E6B4C;
+  --success-bg: rgba(62, 107, 76, 0.08);
+  --error: #B9382E;
+  --error-bg: rgba(185, 56, 46, 0.08);
+  --warning: #B87B28;
+  --warning-bg: rgba(184, 123, 40, 0.10);
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(61, 31, 10, 0.06);
-  --shadow-md: 0 8px 24px rgba(61, 31, 10, 0.10);
-  --shadow-lg: 0 16px 48px rgba(61, 31, 10, 0.14);
-  --shadow-xl: 0 24px 64px rgba(61, 31, 10, 0.16);
-  --shadow-gold: 0 6px 24px rgba(245, 158, 11, 0.18);
+  --shadow-sm: 0 2px 8px rgba(36, 23, 16, 0.05);
+  --shadow-md: 0 8px 24px rgba(36, 23, 16, 0.08);
+  --shadow-lg: 0 16px 40px rgba(36, 23, 16, 0.11);
+  --shadow-xl: 0 24px 56px rgba(36, 23, 16, 0.14);
+  --shadow-gold: 0 8px 24px rgba(184, 84, 40, 0.14);
 
   /* Radius */
   --radius-xs: 0.25rem;
-  /*  4px */
   --radius-sm: 0.375rem;
-  /*  6px */
   --radius-md: 0.5rem;
-  /*  8px */
   --radius-lg: 0.75rem;
-  /* 12px */
   --radius-xl: 1rem;
-  /* 16px */
   --radius-2xl: 1.25rem;
-  /* 20px */
   --radius-3xl: 1.5rem;
-  /* 24px */
   --radius-full: 9999px;
 
-  /* Layout rhythm — shared by public pages, forms, and drawers */
+  /* Layout rhythm */
   --space-1: 0.5rem;
   --space-2: 0.75rem;
   --space-3: 1rem;
   --space-4: 1.5rem;
   --space-5: 2rem;
   --space-6: 2.5rem;
-  --page-block: 2rem;
+  --page-block: 1.5rem;
   --content-gap: 1.25rem;
   --card-padding: 1rem;
 
   /* Transitions */
   --transition-fast: all 0.15s ease;
-  --transition-base: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-base: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-spring: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── Premium Dark Mode ──────────────────────────── */
+/* ── Marrakesh Evening Dark Mode ──────────────────────────── */
 .dark {
-  --background: #140a03;
-  --foreground: #f2e4ce;
-  --card: #1f1008;
-  --card-foreground: #f2e4ce;
-  --muted: #1c0f06;
-  --muted-foreground: #a08060;
-  --border-muted: rgba(184, 150, 90, 0.15);
+  --background: #140D09;
+  --foreground: #F6EFE6;
+  --card: #1E140E;
+  --card-foreground: #F6EFE6;
+  --muted: #19100B;
+  --muted-foreground: #B09884;
+  --border-muted: rgba(212, 174, 120, 0.14);
 
-  --bg-base: #140a03;
-  --bg-subtle: #1c0f06;
-  --bg-muted: #251509;
-  --bg-overlay: rgba(242, 228, 206, 0.04);
-  --footer-bg: #090402;
-  --footer-text: #d8c2aa;
-  --footer-muted: #8e745d;
-  --footer-heading: #fcf6eb;
-  --footer-accent: #d4ae78;
-  --footer-border: rgba(184, 150, 90, 0.25);
+  --bg-base: #140D09;
+  --bg-subtle: #19100B;
+  --bg-muted: #281B13;
+  --bg-overlay: rgba(246, 239, 230, 0.04);
+  --footer-bg: #0D0704;
+  --footer-text: #D8C2AA;
+  --footer-muted: #9A816B;
+  --footer-heading: #FAF6F0;
+  --footer-accent: #D4AE78;
+  --footer-border: rgba(212, 174, 120, 0.20);
 
-  --card-bg: #1f1008;
-  --card-border: rgba(184, 150, 90, 0.12);
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
-  --card-shadow-hover: 0 20px 48px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --card-bg: #1E140E;
+  --card-border: rgba(212, 174, 120, 0.14);
+  --card-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
+  --card-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.38);
 
-  --text-primary: #f2e4ce;
-  --text-secondary: #d4ae78;
-  --text-muted: #a08060;
-  --text-placeholder: #7a5a40;
+  --text-primary: #F6EFE6;
+  --text-secondary: #DFC5A4;
+  --text-muted: #B09884;
+  --text-placeholder: #8A7463;
 
-  --accent: #d97b4a;
-  --accent-hover: #c4622d;
-  --accent-light: rgba(217, 123, 74, 0.08);
-  --accent-ring: rgba(217, 123, 74, 0.20);
+  --accent: #D97A4A;
+  --accent-hover: #E58C5E;
+  --accent-light: rgba(217, 122, 74, 0.12);
+  --accent-ring: rgba(217, 122, 74, 0.24);
 
-  --gold: #d4ae78;
-  --gold-light: #e4c48e;
-  --gold-bg: rgba(212, 174, 120, 0.08);
+  --gold: #D4AE78;
+  --gold-light: #E4C48E;
+  --gold-bg: rgba(212, 174, 120, 0.10);
 
-  --border: rgba(184, 150, 90, 0.15);
-  --border-subtle: rgba(184, 150, 90, 0.08);
-  --border-focus: #d97b4a;
+  --border: rgba(212, 174, 120, 0.16);
+  --border-subtle: rgba(212, 174, 120, 0.09);
+  --border-focus: #D97A4A;
 
-  --header-bg: rgba(20, 10, 3, 0.94);
-  --header-border: rgba(184, 150, 90, 0.10);
+  --header-bg: rgba(20, 13, 9, 0.92);
+  --header-border: rgba(212, 174, 120, 0.14);
 
-  --input: #251509;
-  --input-bg: #251509;
-  --input-border: rgba(184, 150, 90, 0.15);
-  --input-focus: #d97b4a;
+  --input: #231710;
+  --input-bg: #231710;
+  --input-border: rgba(212, 174, 120, 0.18);
+  --input-focus: #D97A4A;
 
-  --success: #5a9c6e;
-  --error: #d4584e;
-  --warning: #d4ae78;
+  --success: #5A9C6E;
+  --success-bg: rgba(90, 156, 110, 0.10);
+  --error: #DC685E;
+  --error-bg: rgba(220, 104, 94, 0.10);
+  --warning: #D4AE78;
+  --warning-bg: rgba(212, 174, 120, 0.12);
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.35);
-  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.45);
-  --shadow-gold: 0 6px 24px rgba(212, 174, 120, 0.10);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.36);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.46);
+  --shadow-gold: 0 8px 24px rgba(217, 122, 74, 0.16);
 }
 
 /* ═══════════════════════════════════════════════
-   BASE RESET & GLOBAL STYLES
+   BASE RESET & GLOBAL STYLES (Layered for Tailwind v4!)
 ═══════════════════════════════════════════════ */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 html {
@@ -295,24 +294,24 @@ html {
   overflow-x: hidden;
 }
 
-/* ── Moroccan SVG pattern (Light Mode) ── */
+/* ── Whisper-Quiet Moroccan SVG pattern (Light Mode) ── */
 body,
 .storefront-shell,
 .pattern-moroccan {
   background-color: var(--bg-base);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none'%3E%3Cpath d='M40 0L80 40 40 80 0 40z' fill='%23b8965a' fill-opacity='0.055'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' stroke='%23b8965a' stroke-opacity='0.09' stroke-width='1.2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none'%3E%3Cpath d='M48 0L96 48 48 96 0 48z' fill='%23a68246' fill-opacity='0.022'/%3E%3Cpath d='M48 14L82 48 48 82 14 48z' stroke='%23a68246' stroke-opacity='0.042' stroke-width='1' fill='none'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 80px 80px;
+  background-size: 96px 96px;
 }
 
-/* ── Moroccan SVG pattern (Dark Mode override) ── */
+/* ── Whisper-Quiet Moroccan SVG pattern (Dark Mode override) ── */
 .dark body,
 .dark .storefront-shell,
 .dark .pattern-moroccan {
   background-color: var(--bg-base);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none'%3E%3Cpath d='M40 0L80 40 40 80 0 40z' fill='%23d4ae78' fill-opacity='0.035'/%3E%3Cpath d='M40 10L70 40 40 70 10 40z' stroke='%23d4ae78' stroke-opacity='0.065' stroke-width='1.2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none'%3E%3Cpath d='M48 0L96 48 48 96 0 48z' fill='%23d4ae78' fill-opacity='0.018'/%3E%3Cpath d='M48 14L82 48 48 82 14 48z' stroke='%23d4ae78' stroke-opacity='0.036' stroke-width='1' fill='none'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 80px 80px;
+  background-size: 96px 96px;
 }
 
 body {
@@ -334,13 +333,9 @@ footer {
 /* ── Main content wrappers remain transparent to let global pattern flow ── */
 #main-content,
 main,
-.page-shell,
-.home-section,
-.home-section-muted,
-.home-section-banners,
-.home-features-bottom {
-  background-color: transparent !important;
-  background-image: none !important;
+.page-shell {
+  background-color: transparent;
+  background-image: none;
 }
 
 /* Arabic locale override */
@@ -423,10 +418,9 @@ h6 {
 ═══════════════════════════════════════════════ */
 .container-brand {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1360px;
   margin-inline: auto;
   padding-inline: 1.25rem;
-  /* 20px mobile */
 }
 
 @media (min-width: 640px) {
@@ -435,24 +429,15 @@ h6 {
   }
 }
 
-/* 32px tablet   */
 @media (min-width: 1024px) {
   .container-brand {
-    padding-inline: 4rem;
+    padding-inline: 2.5rem;
   }
 }
 
-/* 64px laptop   */
 @media (min-width: 1280px) {
   .container-brand {
-    padding-inline: 5rem;
-  }
-}
-
-/* 80px desktop  */
-@media (min-width: 1536px) {
-  .container-brand {
-    padding-inline: 6rem;
+    padding-inline: 3rem;
   }
 }
 
@@ -562,325 +547,35 @@ h6 {
   border: 4px solid var(--gold);
 }
 
-/* Homepage refresh: a premium editorial storefront while retaining all content. */
+/* Homepage Editorial Storefront — Spacious Atelier Cadence */
 .home-hero {
-  background: transparent !important;
-  border-bottom: 0 !important;
-}
-
-.home-hero-shell {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.home-hero-content {
-  padding: clamp(2rem, 5vw, 5rem);
-}
-
-.home-hero-content h1 {
-  max-width: 13ch;
-  margin-inline: auto;
-}
-
-.home-hero-visual {
-  min-height: 340px;
-  padding: 2rem;
-  background: radial-gradient(circle at center, rgba(245, 158, 11, .15), transparent 64%);
-}
-
-.home-hero-visual>div {
-  transform: scale(.9);
+  background: transparent;
 }
 
 .home-section {
-  padding-block: 1rem;
-  background: var(--bg-base);
+  padding-block: clamp(3rem, 5vw, 5rem);
 }
 
-.home-section .section-heading {
-  max-width: 720px;
-}
-
-.home-section>.container-brand {
-  position: relative;
-  border: 1px solid var(--border);
-  border-radius: 1.5rem;
-  background: var(--card-bg);
-  box-shadow: var(--card-shadow);
-  padding-top: clamp(2rem, 4vw, 3.5rem);
-  padding-bottom: clamp(2rem, 4vw, 3.5rem);
-}
-
-.home-section-muted>.container-brand {
-  background: var(--card-bg);
-}
-
-.home-features-bottom {
-  background: var(--bg-base);
-  border-top: 1px solid var(--border);
-}
-
-.home-features-bottom>.container-brand {
-  padding-top: 1rem;
-}
-
-.home-section .card,
-.home-section a.card {
-  border-color: var(--border);
-  box-shadow: var(--card-shadow);
-}
-
-.home-section .card:hover,
-.home-section a.card:hover {
-  border-color: rgba(245, 158, 11, .42);
-  box-shadow: var(--shadow-gold);
-}
-
-.home-section .container-brand>.flex.flex-col.sm\:flex-row {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.home-section .product-card {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  background: var(--card-bg);
-  box-shadow: var(--card-shadow);
-}
-
-.home-section .product-card:hover {
-  border-color: rgba(245, 158, 11, .42);
-  box-shadow: var(--shadow-gold);
-}
-
-.home-section .product-card-info {
-  padding: 1rem 1.125rem 1.125rem;
-}
-
-.home-section-banners>.container-brand {
-  padding-top: clamp(2rem, 4vw, 3.5rem);
-  padding-bottom: clamp(2rem, 4vw, 3.5rem);
-}
-
-.home-section-banners>.container-brand>div>div {
-  border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  box-shadow: var(--card-shadow);
+.home-section-muted {
+  background-color: var(--bg-subtle);
+  border-block: 1px solid var(--border-subtle);
 }
 
 .home-brand-story {
   position: relative;
   overflow: hidden;
-  border-block: 1px solid rgba(245, 158, 11, .24);
-  background: linear-gradient(135deg, var(--bg-subtle), var(--bg-base) 55%, var(--bg-subtle)) !important;
-}
-
-.home-brand-story::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: .45;
-  background: radial-gradient(circle at 20% 50%, rgba(245, 158, 11, .14), transparent 28%), radial-gradient(circle at 80% 50%, rgba(245, 158, 11, .1), transparent 28%);
-}
-
-.home-brand-story>.container-brand {
-  position: relative;
-  z-index: 1;
-}
-
-@media (min-width: 1024px) {
-  .home-hero-content h1 {
-    margin-inline: 0;
-  }
-
-  .home-hero-visual {
-    border-inline-start: 1px solid var(--border);
-  }
-}
-
-@media (max-width: 1023px) {
-  .home-hero-shell {
-    min-height: auto;
-    border-radius: 1.5rem;
-  }
-
-  .home-hero-visual {
-    border-top: 1px solid var(--border);
-    padding-top: 0;
-  }
+  border-block: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
 }
 
 @media (max-width: 639px) {
   .btn {
-    padding: 0.6875rem 1.125rem;
-    min-height: 2.5rem;
+    padding: 0.75rem 1.25rem;
+    min-height: 2.75rem;
   }
 
-  /* ── Mobile Side-by-Side Hero ── */
-  .hero-section {
-    padding-top: 0.75rem;
-    padding-bottom: 0.375rem;
-  }
-
-  .hero-section > .container-brand {
-    padding-inline: 0.75rem;
-    padding-block: 0;
-  }
-
-  .hero-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 0.625rem !important;
-    align-items: center;
-  }
-
-  /* Content column: on LTR it's first (natural), on RTL it's second */
-  .hero-grid > :first-child {
-    order: var(--hero-text-order, 1);
-    text-align: start;
-    align-items: flex-start;
-  }
-
-  /* Visual column: on LTR it's second (natural), on RTL it's first */
-  .hero-grid > :nth-child(2) {
-    order: var(--hero-visual-order, 2);
-  }
-
-  /* RTL: swap — visual first (left), text second (right) */
-  [dir="rtl"] .hero-grid > :first-child { --hero-text-order: 2; }
-  [dir="rtl"] .hero-grid > :nth-child(2) { --hero-visual-order: 1; }
-
-  /* Trust strip: always last (order 0 < 1/2, so explicitly push it after) */
-  .hero-grid > :nth-child(3) {
-    order: 3;
-  }
-
-  /* Badge */
-  .hero-badge {
-    margin-bottom: 0.25rem;
-    padding: 0.1875rem 0.5rem;
-    font-size: 0.5rem;
-    gap: 0.25rem;
-  }
-
-  .hero-badge .text-amber-500 { display: none; }
-
-  /* Title */
-  .hero-grid h1 {
-    font-size: 1rem !important;
-    line-height: 1.2 !important;
-    max-width: none !important;
-    margin-bottom: 0;
-  }
-
-  .hero-grid h1 .block { margin-top: 0.125rem; }
-
-  /* Separator */
-  .hero-separator {
-    margin: 0.25rem 0 !important;
-    gap: 0.375rem !important;
-  }
-
-  .hero-separator span:first-child,
-  .hero-separator span:last-child {
-    width: 1rem;
-  }
-
-  .hero-separator span:nth-child(2) {
-    font-size: 0.5rem;
-  }
-
-  /* Description */
-  .hero-description {
-    font-size: 0.625rem !important;
-    line-height: 1.3 !important;
-    max-width: none !important;
-    margin-bottom: 0;
-    -webkit-line-clamp: 3;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* Buttons */
-  .hero-actions {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.375rem !important;
-    margin-top: 0.5rem !important;
-    width: 100%;
-  }
-
-  .hero-actions .btn {
-    min-height: 1.75rem !important;
-    padding: 0.375rem 0.625rem !important;
-    font-size: 0.625rem !important;
-    min-width: 0 !important;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .hero-actions .btn svg { display: none; }
-
-  /* Visual showcase — compact circle */
-  .hero-showcase {
-    width: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-    padding: 0 !important;
-  }
-
-  .hero-showcase > .absolute { display: none; }
-
-  .hero-logo-mark {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    aspect-ratio: 1 / 1;
-    border-width: 2px !important;
-  }
-
-  /* Remove outer wrapper min constraint */
-  .hero-grid > :nth-child(2) > div {
-    width: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-  }
-
-  /* Trust strip */
-  .hero-trust {
-    grid-column: 1 / -1;
-    margin-top: 0.25rem;
-    padding-top: 0.25rem;
-    gap: 0.375rem;
-  }
-
-  .hero-trust .flex-shrink-0 { gap: 0.25rem; }
-
-  .hero-trust span.text-\[11px\] {
-    font-size: 0.5rem;
-  }
-
-  .hero-trust .text-amber-600 { font-size: 0.5rem; }
-
-  .hero-trust .text-\[var\(--border\)\]\/60 { display: none; }
-
-  /* ── End Mobile Side-by-Side Hero ── */
-
-  .home-section>.container-brand {
-    border-radius: 1.125rem;
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
-  }
-
-  .home-section .container-brand>.flex.flex-col.sm\:flex-row {
-    margin-bottom: 1.25rem;
-    padding-bottom: 1rem;
-  }
-
-  .home-section .product-card-info {
-    padding: .75rem;
+  .home-section {
+    padding-block: 2.5rem;
   }
 }
 
@@ -911,20 +606,21 @@ h6 {
   }
 }
 
-/* Product detail: split the purchase flow into calm, clearly bounded panels. */
+/* Product detail: clean contiguous purchase module & warm neutral gallery */
 .product-page-shell {
   display: grid;
   gap: 1.25rem;
 }
 
 .product-breadcrumb {
-  min-height: 2.75rem;
-  padding-inline: 1rem;
+  min-height: 2.5rem;
+  padding-inline: 0.25rem;
   overflow: hidden;
   white-space: nowrap;
-  border: 1px solid var(--border);
-  border-radius: .875rem;
-  background: var(--card-bg);
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  background: transparent;
 }
 
 .product-detail-grid {
@@ -934,90 +630,88 @@ h6 {
 .product-gallery-panel,
 .product-purchase-panel {
   border: 1px solid var(--border);
-  border-radius: 1.5rem;
+  border-radius: var(--radius-2xl);
   background: var(--card-bg);
   box-shadow: var(--card-shadow);
 }
 
 .product-gallery-panel {
-  padding: .875rem;
+  padding: 0.875rem;
 }
 
 .product-main-image {
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: linear-gradient(145deg, #27272a, #09090b);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--bg-muted);
 }
 
 .product-thumbnails {
-  padding-inline: .25rem;
+  padding-inline: 0.25rem;
 }
 
 .product-thumbnails button {
-  border-radius: .75rem;
-  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
 }
 
 .product-purchase-panel {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: clamp(1.5rem, 3.5vw, 2.5rem);
-  border-top-color: rgba(245, 158, 11, .5);
-  border-top-width: 2px;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  border-top: 2px solid var(--gold);
 }
 
-.product-purchase-panel>* {
+.product-purchase-panel > * {
   margin-top: 0 !important;
 }
 
 .product-title-block {
-  padding-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
   border-bottom: 0;
 }
 
 .product-title-block h1 {
   line-height: 1.25;
-  letter-spacing: -.025em;
+  letter-spacing: -0.02em;
 }
 
 .product-price-row {
-  padding: 1.125rem 1.25rem;
-  border: 1px solid rgba(245, 158, 11, .2);
-  border-radius: 1rem;
-  background: rgba(245, 158, 11, .06);
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--accent-ring);
+  border-radius: var(--radius-xl);
+  background: var(--accent-light);
 }
 
 .product-description {
-  line-height: 1.9;
-  padding: 0 .125rem 1.5rem;
+  line-height: 1.85;
+  padding: 0 0.125rem 1.25rem;
   border-bottom: 1px solid var(--border);
 }
 
-/* ── Main Site Moroccan Pattern (Connected seamlessly across all pages) ── */
-/* Pattern lives on body — see top of globals.css. #main-content is transparent. */
+/* ── Main Site Moroccan Pattern ── */
 #main-content {
   background-color: transparent;
   background-image: none;
 }
 
 .product-option-group {
-  padding: 1.25rem;
+  padding: 1.125rem;
   border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: rgba(9, 9, 11, .32);
+  border-radius: var(--radius-xl);
+  background: var(--bg-subtle);
 }
 
 .product-addon {
   padding: 1rem !important;
-  background: rgba(245, 158, 11, .035);
+  background: var(--accent-light);
 }
 
 .product-stock {
-  min-height: 2.75rem;
+  min-height: 2.5rem;
   padding-inline: 1rem;
-  border-radius: .75rem;
-  background: rgba(34, 197, 94, .06);
+  border-radius: var(--radius-lg);
+  background: var(--success-bg);
 }
 
 .product-actions {
@@ -1261,14 +955,14 @@ h6 {
 }
 
 /* ═══════════════════════════════════════════════
-   PRODUCT CARD SYSTEM
+   PRODUCT CARD SYSTEM (Clean Studio Framing)
 ═══════════════════════════════════════════════ */
 .product-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  transition: var(--transition-smooth);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1276,22 +970,17 @@ h6 {
 
 .product-card:hover {
   box-shadow: var(--card-shadow-hover);
-  transform: translateY(-6px);
-  border-color: rgba(184, 150, 90, 0.35);
-}
-
-.product-card:hover .product-card-actions {
-  opacity: 1;
-  transform: translateY(0);
+  transform: translateY(-2px);
+  border-color: var(--gold);
 }
 
 .product-card:hover .product-card-img {
-  transform: scale(1.06);
+  transform: scale(1.03);
 }
 
 .product-card-img-wrap {
   position: relative;
-  aspect-ratio: 3/4;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   background: var(--bg-muted);
   flex-shrink: 0;
@@ -1301,29 +990,15 @@ h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .product-card-info {
-  padding: 0.75rem;
+  padding: 0.75rem 0.75rem 0.875rem;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.375rem;
   flex: 1;
-}
-
-.product-card-actions {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0.875rem 1rem;
-  background: linear-gradient(to top, rgba(20, 10, 3, 0.85) 0%, rgba(20, 10, 3, 0.3) 70%, transparent 100%);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  gap: 0.625rem;
 }
 
 .product-card-badge {
@@ -1633,19 +1308,28 @@ h6 {
 ═══════════════════════════════════════════════ */
 .whatsapp-fab {
   position: fixed;
-  bottom: 1.5rem;
-  inset-inline-end: 1.5rem;
-  z-index: 50;
-  width: 3.25rem;
-  height: 3.25rem;
+  bottom: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 45;
+  width: 2.75rem;
+  height: 2.75rem;
   background: #25D366;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.36);
   transition: var(--transition-base);
   cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .whatsapp-fab {
+    bottom: 1.5rem;
+    inset-inline-end: 1.5rem;
+    width: 3.25rem;
+    height: 3.25rem;
+  }
 }
 
 .whatsapp-fab:hover {
@@ -1685,51 +1369,48 @@ h6 {
 }
 
 /* ═══════════════════════════════════════════════
-   HEADER SPECIFICS
+   HEADER SPECIFICS (Frosted Fez Atelier Navigation)
 ═══════════════════════════════════════════════ */
 .storefront-header {
-  /* Light theme: a warm light-brown navigation bar. */
-  --header-bg: #d8a16f;
-  --header-border: rgba(103, 57, 28, 0.35);
-  --text-primary: #2f1709;
-  --text-secondary: #4b2813;
-  --text-muted: #684124;
-  --text-placeholder: #795138;
-  --bg-subtle: rgba(255, 248, 239, 0.48);
-  --bg-muted: rgba(255, 248, 239, 0.68);
-  --border: rgba(103, 57, 28, 0.28);
-  --border-subtle: rgba(103, 57, 28, 0.18);
-  --accent-light: rgba(255, 248, 239, 0.32);
+  --header-bg: rgba(250, 246, 240, 0.90);
+  --header-border: rgba(166, 130, 70, 0.22);
+  --text-primary: #241710;
+  --text-secondary: #523A2B;
+  --text-muted: #6E5A4C;
+  --text-placeholder: #9A8777;
+  --bg-subtle: rgba(243, 236, 225, 0.85);
+  --bg-muted: rgba(234, 224, 210, 0.9);
+  --border: #E5D9C8;
+  --border-subtle: rgba(166, 130, 70, 0.16);
+  --accent-light: rgba(184, 84, 40, 0.09);
 }
 
 .dark .storefront-header {
-  /* Dark theme: black navigation bar with warm, readable controls. */
-  --header-bg: #050403;
-  --header-border: rgba(212, 174, 120, 0.34);
-  --text-primary: #f7ecdc;
-  --text-secondary: #dec39e;
-  --text-muted: #b99a78;
-  --text-placeholder: #9f8062;
-  --bg-subtle: #120a05;
-  --bg-muted: #1a0e07;
-  --border: rgba(212, 174, 120, 0.25);
-  --border-subtle: rgba(212, 174, 120, 0.16);
-  --accent-light: rgba(217, 123, 74, 0.14);
+  --header-bg: rgba(20, 13, 9, 0.90);
+  --header-border: rgba(212, 174, 120, 0.16);
+  --text-primary: #F6EFE6;
+  --text-secondary: #DFC5A4;
+  --text-muted: #B09884;
+  --text-placeholder: #8A7463;
+  --bg-subtle: rgba(30, 20, 14, 0.92);
+  --bg-muted: rgba(40, 27, 19, 0.95);
+  --border: rgba(212, 174, 120, 0.18);
+  --border-subtle: rgba(212, 174, 120, 0.10);
+  --accent-light: rgba(217, 122, 74, 0.14);
 }
 
 .header-scrolled {
-  box-shadow: 0 1px 0 var(--header-border), 0 4px 24px rgba(61, 31, 10, 0.06);
+  box-shadow: 0 1px 0 var(--header-border), 0 6px 24px rgba(36, 23, 16, 0.06);
 }
 
 .nav-link {
   position: relative;
   white-space: nowrap;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 0.625rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
+  transition: color 0.18s ease;
   text-decoration: none;
 }
 
@@ -1740,19 +1421,19 @@ h6 {
   left: 50%;
   transform: translateX(-50%);
   width: 0;
-  height: 2px;
+  height: 1.5px;
   background: var(--accent);
   border-radius: 99px;
-  transition: width 0.25s ease;
+  transition: width 0.22s ease;
 }
 
 .nav-link:hover {
   color: var(--accent);
-  background: var(--accent-light);
 }
 
-.nav-link:hover::after {
-  width: 60%;
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 65%;
 }
 
 .nav-link.active {
@@ -1760,15 +1441,10 @@ h6 {
   font-weight: 600;
 }
 
-.nav-link.active::after {
-  width: 60%;
-}
-
 /* ── Icon Button (header actions) ── */
 .icon-btn {
-  width: 2.75rem;
-  /* 44px — min tap target */
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1779,6 +1455,13 @@ h6 {
   cursor: pointer;
   transition: var(--transition-fast);
   flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
 
 .icon-btn:hover {
@@ -1860,35 +1543,15 @@ h6 {
    THURAYA HOMEPAGE — CONTAINER GEOMETRY & TRANSPARENT SECTIONS
    ============================================================ */
 
-/* The container grid alignment */
-.home-hero>.container-brand,
-.home-section>.container-brand,
-.home-section-banners>.container-brand {
+.home-hero > .container-brand,
+.home-section > .container-brand,
+.home-section-banners > .container-brand {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1360px;
   margin-inline: auto;
 }
 
-/* Sections and hero remain transparent so the global pattern shows seamlessly */
-.home-hero,
-.home-section,
-.home-section-banners,
-.home-hero-shell,
-.home-features-bottom {
-  background: transparent !important;
-  background-color: transparent !important;
-  border-top: 0 !important;
-  border-bottom: 0 !important;
-}
-
-/* On mobile, preserve the normal page breathing room */
 @media (max-width: 639px) {
-
-  .home-hero>.container-brand,
-  .home-section>.container-brand,
-  .home-section-banners>.container-brand {
-    padding-inline: 1rem !important;
-  }
 
   .admin-sidebar {
     position: fixed !important;
@@ -1977,11 +1640,18 @@ h6 {
 
 /* ── Touch target minimum ── */
 .touch-target {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 40px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 /* Hero section styling & transparency */
@@ -2157,239 +1827,72 @@ h6 {
 
 
 /* ============================================================
-   THURAYA HOMEPAGE — FINAL THEME + HERO ALIGNMENT
+   THURAYA HOMEPAGE — THEME + CLEAN EDITORIAL OVERRIDES
    ============================================================ */
-
-/* The page itself always follows the active theme variables. */
 html,
 body {
   background: var(--bg-base);
   color: var(--text-primary);
 }
 
-/* dark body pattern handled at top of globals.css — this duplicate removed */
-
-/* HERO and the sections below use the exact same container geometry.
-   Do NOT remove the container padding on desktop. */
-.home-hero>.container-brand,
-.home-section>.container-brand,
-.home-section-banners>.container-brand {
-  width: 100%;
-  max-width: 1280px;
-  margin-inline: auto;
+.home-section-muted {
+  background-color: var(--bg-subtle);
+  border-block: 1px solid var(--border-subtle);
 }
 
-/* Keep the Hero itself visually open and remove the separator below it.
-   It must stay transparent so the single shell pattern flows through it. */
-.home-hero {
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 0 !important;
+.home-brand-story {
+  background: var(--bg-subtle);
+  border-block: 1px solid var(--border-subtle);
 }
 
-.home-hero-shell {
-  width: 100%;
-  max-width: 100%;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-bottom: 0;
-  box-shadow: var(--shadow-xl);
-}
-
-/* The first section after the Hero must not draw a top separator. */
-.home-hero+.home-section,
-.home-hero+.home-section-banners,
-.home-hero+.home-section-banners+.home-section {
-  border-top: 0 !important;
-}
-
-/* The feature strip at the bottom should not create an unrelated separator. */
-.home-features-bottom {
-  border-top: 0 !important;
-}
-
-/* Light mode: explicit surfaces for elements that previously had fixed dark colors. */
-:root .home-hero-shell {
-  background: #ffffff;
-  border-color: var(--border);
-}
-
-:root .home-brand-story {
-  background: linear-gradient(135deg, #f2e4ce 0%, #fffaf3 55%, #f2e4ce 100%) !important;
-}
-
-:root .home-hero-visual {
-  background: radial-gradient(circle at center,
-      rgba(245, 158, 11, 0.10),
-      transparent 66%);
-}
-
-/* Dark mode: explicit surfaces so the dark theme cannot be overridden by
-   legacy fixed-color homepage rules. */
-.dark .home-hero-shell {
-  background: linear-gradient(135deg, #251509 0%, #140a03 58%, #1c0f06 100%);
-  border-color: rgba(184, 150, 90, 0.15);
-}
-
-.dark .home-brand-story {
-  background: linear-gradient(135deg, #1c0f06 0%, #140a03 55%, #1c0f06 100%) !important;
-}
-
-.dark .home-hero-visual {
-  background: radial-gradient(circle at center,
-      rgba(217, 123, 74, 0.12),
-      transparent 66%);
-}
-
-/* Match the existing light/dark selectors with higher specificity. */
-:root .home-hero-shell,
-.dark .home-hero-shell {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-  }
-
-  /* Keep the pattern layer visible behind all Hero content. */
-  .home-hero>.pattern-moroccan {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
-  /* The decorative radial glow should not become an opaque surface. */
-  .home-hero>.absolute.inset-0.pointer-events-none:not(.pattern-moroccan) {
-    background-color: transparent !important;
-  }
-
-  /* إخفاء شريط التمرير مع إبقاء التمرير يعمل */
-  .scrollbar-hidden {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .scrollbar-hidden::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
-
-  /* ── Select Option Theme Support (Light / Dark Mode) ── */
-  select option {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .dark select option {
-    background-color: #1f1008 !important;
-    color: #ffffff !important;
-  }
-
-  /* Homepage contact links use the same compact layout on every screen size. */
-  .home-contact-section.section-gap {
-    padding-block: 1rem;
-  }
-
-  .home-contact-section>.container-brand {
-    padding-block: 1.25rem;
-  }
-
-  .home-contact-heading {
-    margin-bottom: 1.25rem;
-  }
-
-  .home-contact-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 0.5rem;
-    max-width: none;
-  }
-
-  .home-contact-card {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    min-width: 0;
-    min-height: 4.5rem;
-    padding: 0.5rem 0.25rem;
-    text-align: center;
-    overflow: hidden;
-  }
-
-  .home-contact-card> :not([hidden])~ :not([hidden]) {
-    margin-top: 0;
-  }
-
-  .home-contact-icon {
-    width: 2rem;
-    height: 2rem;
-    margin: 0;
-    border-radius: 0.625rem;
-  }
-
-  .home-contact-icon svg {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-
-  .home-contact-label,
-  .home-contact-detail {
-    min-width: 0;
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .home-contact-label {
-    font-size: 0.625rem;
-    line-height: 1.1;
-  }
-
-  .home-contact-detail {
-    display: none;
-  }
-
-  @media (min-width: 1024px) {
-    .home-contact-grid {
-      grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    }
-  }
-
-/* Hide scrollbar while keeping scroll functionality */
+/* Scrollbar utilities */
+.scrollbar-hidden,
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
+.scrollbar-hidden::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Select Option Theme Support (Light / Dark Mode) */
+select option {
+  background-color: #FFFFFF !important;
+  color: #241710 !important;
+}
+
+.dark select option {
+  background-color: #1E140E !important;
+  color: #F6EFE6 !important;
 }
 
 /* ═══════════════════════════════════════════════
    AUTH PAGES — GLASS LANGUAGE SWITCHER
 ═══════════════════════════════════════════════ */
 .auth-lang-switcher [role="listbox"] {
-  background: rgba(13, 15, 17, 0.8) !important;
+  background: rgba(20, 13, 9, 0.88) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
   backdrop-filter: blur(24px) saturate(1.4);
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(212, 174, 120, 0.20) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 0.5px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 .auth-lang-switcher [role="option"] {
   background: transparent !important;
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: rgba(246, 239, 230, 0.88) !important;
   border-radius: 10px !important;
 }
 
 .auth-lang-switcher [role="option"]:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(212, 174, 120, 0.12) !important;
 }
 
 .auth-lang-switcher [role="option"][aria-selected="true"] {
-  background: rgba(196, 98, 45, 0.15) !important;
-  color: #f7a307 !important;
+  background: rgba(217, 122, 74, 0.18) !important;
+  color: #E4C48E !important;
   font-weight: 600 !important;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState, use, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Package, PackageX } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, PackageX, Plus, Minus } from 'lucide-react'
 
 interface AccountOrdersPageProps {
   params: Promise<{ locale: string }>
@@ -29,13 +29,13 @@ const STATUS_LABELS: Record<string, [string, string, string]> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: '#f59e0b',
+  PENDING: '#A68246',
   CONFIRMED: '#3b82f6',
   PROCESSING: '#8b5cf6',
   SHIPPED: '#0ea5e9',
-  DELIVERED: '#22c55e',
-  CANCELLED: '#ef4444',
-  RETURNED: '#ef4444',
+  DELIVERED: '#16a34a',
+  CANCELLED: '#dc2626',
+  RETURNED: '#dc2626',
 }
 
 export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
@@ -86,10 +86,11 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
         setClaimMsg({ ok: true, text: claimT('success') })
         setClaimOrderNumber('')
         setClaimPhone('')
-        // Refresh the order list so the newly claimed order appears.
         fetch('/api/customer/orders', { cache: 'no-store' })
           .then((r) => (r.ok ? r.json() : null))
-          .then((d) => { if (d && Array.isArray(d.orders)) setOrders(d.orders) })
+          .then((d) => {
+            if (d && Array.isArray(d.orders)) setOrders(d.orders)
+          })
           .catch(() => {})
       } else {
         setClaimMsg({ ok: false, text: claimT('fail') })
@@ -130,7 +131,9 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
         if (!res.ok) throw new Error('failed')
         return res.json()
       })
-      .then((data) => { if (isMounted) setOrders(data.orders) })
+      .then((data) => {
+        if (isMounted) setOrders(data.orders)
+      })
       .catch((err: Error) => {
         if (isMounted) {
           if (err.message === 'not-authenticated') {
@@ -140,8 +143,12 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
           }
         }
       })
-      .finally(() => { if (isMounted) setLoading(false) })
-    return () => { isMounted = false }
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
+    }
   }, [locale, router])
 
   const statusLabel = (status: string) => {
@@ -155,59 +162,51 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
   if (loading) {
     return (
       <div className="container-brand py-20 text-center space-y-4">
-        <div className="animate-spin mx-auto h-10 w-10 rounded-full border-b-2 border-[#C4622D]" />
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('loading')}</p>
+        <div className="animate-spin mx-auto h-10 w-10 rounded-full border-2 border-[var(--border)] border-t-[var(--accent)]" />
+        <p className="text-sm text-[var(--text-muted)]">{t('loading')}</p>
       </div>
     )
   }
 
   return (
     <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 720 }}>
-      <Link
-        href={`/${locale}/account`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '10px 20px',
-          fontSize: 13,
-          fontWeight: 700,
-          color: '#C4622D',
-          textDecoration: 'none',
-          marginBottom: 20,
-          border: '1px solid #C4622D',
-          borderRadius: 12,
-          transition: 'background 0.2s',
-        }}
-      >
-        <ArrowLeft style={{ width: 16, height: 16, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
-        {t('back')}
+      <Link href={`/${locale}/account`} className="btn btn-outline btn-sm btn-round mb-5">
+        <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+        <span>{t('back')}</span>
       </Link>
 
-      <h1 className="mb-6 text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{t('title')}</h1>
+      <h1
+        className="mb-6 text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]"
+        style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+      >
+        {t('title')}
+      </h1>
 
       {/* ── Claim a guest order ─────────────────────────────────────── */}
-      <div className="mb-6 rounded-2xl border p-5" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
+      <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5">
         <button
           type="button"
-          onClick={() => { setClaimOpen((v) => !v); setClaimMsg(null) }}
-          className="flex w-full items-center justify-between text-sm font-bold"
-          style={{ color: 'var(--foreground)', background: 'none', border: 'none', cursor: 'pointer' }}
+          onClick={() => {
+            setClaimOpen((v) => !v)
+            setClaimMsg(null)
+          }}
+          className="flex w-full items-center justify-between text-sm font-bold text-[var(--text-primary)] bg-transparent border-0 cursor-pointer"
         >
           <span>{claimT('toggle')}</span>
-          <span style={{ color: '#C4622D' }}>{claimOpen ? '−' : '+'}</span>
+          <span className="text-[var(--accent)]">
+            {claimOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          </span>
         </button>
 
         {claimOpen && (
           <form onSubmit={submitClaim} className="mt-4 space-y-3">
-            <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{claimT('desc')}</p>
+            <p className="text-xs text-[var(--text-muted)]">{claimT('desc')}</p>
             <input
               type="text"
               value={claimOrderNumber}
               onChange={(e) => setClaimOrderNumber(e.target.value)}
               placeholder={claimT('orderNum')}
-              className="w-full rounded-xl border px-3.5 py-2.5 text-sm"
-              style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--foreground)' }}
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
             />
             <input
               type="tel"
@@ -215,19 +214,17 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
               value={claimPhone}
               onChange={(e) => setClaimPhone(e.target.value)}
               placeholder={claimT('phone')}
-              className="w-full rounded-xl border px-3.5 py-2.5 text-sm"
-              style={{ borderColor: 'var(--border)', background: 'var(--card)', color: 'var(--foreground)' }}
+              className="tabular-nums w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
             />
             {claimMsg && (
-              <p className="text-xs font-semibold" style={{ color: claimMsg.ok ? '#16a34a' : '#dc2626' }}>
+              <p className="text-xs font-semibold" style={{ color: claimMsg.ok ? 'var(--success)' : 'var(--error)' }}>
                 {claimMsg.text}
               </p>
             )}
             <button
               type="submit"
               disabled={claimBusy}
-              className="inline-flex h-10 items-center justify-center rounded-xl px-5 text-sm font-bold text-white"
-              style={{ background: '#C4622D', opacity: claimBusy ? 0.6 : 1, border: 'none', cursor: claimBusy ? 'not-allowed' : 'pointer' }}
+              className="btn btn-primary btn-sm rounded-xl px-5"
             >
               {claimBusy ? claimT('busy') : claimT('submit')}
             </button>
@@ -236,32 +233,28 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
       </div>
 
       {orders !== null && orders.length === 0 ? (
-        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: '#C4622D', color: '#fff' }}>
-            <PackageX style={{ width: 28, height: 28 }} />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-9 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)]">
+            <PackageX className="w-7 h-7" />
           </div>
-          <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{t('empty')}</h2>
-          <p className="mx-auto mt-1 max-w-sm text-sm" style={{ color: 'var(--muted-foreground)' }}>{t('emptyDesc')}</p>
-          <Link
-            href={`/${locale}`}
-            className="btn btn-primary mt-6 inline-flex h-11 items-center justify-center rounded-xl px-6 font-bold"
-          >
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('empty')}</h2>
+          <p className="mx-auto mt-1.5 max-w-sm text-sm text-[var(--text-muted)]">{t('emptyDesc')}</p>
+          <Link href={`/${locale}/products`} className="btn btn-primary btn-round mt-6 px-6">
             {t('shop')}
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {orders?.map((order) => (
             <Link
               key={order.id}
               href={`/${locale}/account/orders/${order.id}`}
-              className="block rounded-2xl border p-5 transition-all hover:shadow-md"
-              style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}
+              className="block rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 transition-all hover:border-[var(--accent-ring)] hover:shadow-sm no-underline"
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold" style={{ color: 'var(--foreground)' }}>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="tabular-nums font-bold text-[var(--text-primary)]">
                       {t('order')} #{order.orderNumber}
                     </span>
                     <span
@@ -271,21 +264,21 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
                       {statusLabel(order.status)}
                     </span>
                   </div>
-                  <p className="mt-1.5 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                  <p className="tabular-nums mt-1.5 text-xs text-[var(--text-muted)]">
                     {new Date(order.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
                     {' · '}
                     {order.itemsCount} {t('items')}
-                    {order.itemsCount > 1 ? 's' : ''}
+                    {order.itemsCount > 1 && locale !== 'ar' ? 's' : ''}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <div className="text-end">
-                    <p className="text-[11px]" style={{ color: 'var(--muted-foreground)' }}>{t('total')}</p>
-                    <p className="font-bold" style={{ color: 'var(--foreground)' }}>
+                    <p className="text-[11px] text-[var(--text-muted)] m-0">{t('total')}</p>
+                    <p className="tabular-nums font-extrabold text-[var(--accent)] m-0">
                       {order.total.toLocaleString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')} MAD
                     </p>
                   </div>
-                  <Chevron style={{ width: 18, height: 18, color: 'var(--muted-foreground)' }} />
+                  <Chevron className="w-4 h-4 text-[var(--text-muted)]" />
                 </div>
               </div>
             </Link>

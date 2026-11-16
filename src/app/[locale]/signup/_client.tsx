@@ -3,6 +3,7 @@
 import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   AlertCircle,
   ArrowLeft,
@@ -13,10 +14,8 @@ import {
   LogIn,
   Mail,
   ShieldCheck,
-  Sparkles,
   User,
   UserCheck,
-  UserPlus,
 } from 'lucide-react'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 import { SilkBackground } from '@/components/shared/SilkBackground'
@@ -60,13 +59,13 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
       passwordPlaceholder: ['••••••••••', '••••••••••', '••••••••••'],
       createBtn: ['إنشاء الحساب', 'Créer le compte', 'Create Account'],
       creating: ['جاري إنشاء الحساب...', 'Création...', 'Creating account...'],
-      or: ['OR', 'OU', 'OR'],
+      or: ['أو', 'OU', 'OR'],
       signIn: ['تسجيل الدخول', 'Se connecter', 'Sign In'],
       continueAsGuest: ['الدخول كضيف', 'Continuer en invité', 'Continue as Guest'],
       protectedSession: [
-        'Protected session · Authorized personnel only',
-        'Session protégée · Thuraya Al Maghribi',
-        'Protected session · Thuraya Al Maghribi',
+        'جلسة محمية · ثريا المغربي',
+        'Session protégée · Thuraya Al-Maghribi',
+        'Protected session · Thuraya Al-Maghribi',
       ],
       passwordMismatch: [
         'كلمتا المرور غير متطابقتين.',
@@ -143,649 +142,636 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '70px 16px 16px 16px',
+          padding: '70px 16px 20px 16px',
           overflowY: 'auto',
           boxSizing: 'border-box',
           zIndex: 1,
         }}
       >
-
-      {/* Top Bar */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '14px 16px',
-          boxSizing: 'border-box',
-        }}
-      >
+        {/* Top Bar */}
         <div
-          className="auth-lang-switcher"
           style={{
-            '--border': 'rgba(255,255,255,0.12)',
-            '--text-secondary': 'rgba(255,255,255,0.75)',
-            '--bg-subtle': 'rgba(0,0,0,0.25)',
-            '--card': 'rgba(13,15,17,0.8)',
-            '--foreground': 'rgba(255,255,255,0.85)',
-            '--shadow-elevated': '0 8px 32px rgba(0,0,0,0.45)',
-          } as React.CSSProperties}
-        >
-          <LanguageSwitcher locale={locale} align={isRTL ? 'end' : 'start'} />
-        </div>
-
-        <Link
-          href={`/${locale}/login`}
-          style={{
-            display: 'inline-flex',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 20,
+            display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            height: '40px',
-            padding: '0 16px',
-            borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.12)',
-            backgroundColor: 'rgba(0,0,0,0.25)',
-            color: 'rgba(255,255,255,0.85)',
-            fontSize: '13px',
-            fontWeight: 600,
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-            lineHeight: 1,
+            gap: '10px',
+            padding: '14px 16px',
+            boxSizing: 'border-box',
           }}
         >
-          <LogIn style={{ width: '16px', height: '16px' }} aria-hidden="true" />
-          <span>{tAuth('loginAction')}</span>
-        </Link>
-      </div>
-
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          width: '100%',
-          maxWidth: '480px',
-          margin: 'auto',
-          borderRadius: '16px',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4)',
-        }}
-      >
-        {/* Signup Card */}
-        <section
-          style={{
-            position: 'relative',
-            width: '100%',
-            overflow: 'hidden',
-            borderRadius: '12px',
-            border: '1px solid #4d4b47',
-            backgroundImage: 'linear-gradient(145deg, rgba(26, 28, 30, 0.98), rgba(13, 15, 17, 0.98))',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
-            color: '#f4f4f5',
-          }}
-        >
-          {/* Ambient glow */}
           <div
+            className="auth-lang-switcher"
             style={{
-              pointerEvents: 'none',
-              position: 'absolute',
-              top: '-120px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '280px',
-              height: '220px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(200, 139, 18, 0.12)',
-              filter: 'blur(80px)',
-            }}
-            aria-hidden="true"
-          />
+              '--border': 'rgba(212, 174, 120, 0.25)',
+              '--text-secondary': '#E6D5BF',
+              '--bg-subtle': 'rgba(20, 13, 9, 0.65)',
+              '--card': '#1E140E',
+              '--card-bg': '#1E140E',
+              '--foreground': '#FAF6F0',
+              '--text-primary': '#FAF6F0',
+              '--shadow-elevated': '0 10px 32px rgba(0, 0, 0, 0.5)',
+            } as React.CSSProperties}
+          >
+            <LanguageSwitcher locale={locale} align={isRTL ? 'end' : 'start'} />
+          </div>
 
-          {/* ── Card Body ── */}
-          <div
+          <Link
+            href={`/${locale}/login`}
             style={{
-              position: 'relative',
-              padding: '24px',
-              boxSizing: 'border-box',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              height: '40px',
+              padding: '0 16px',
+              borderRadius: '10px',
+              border: '1px solid rgba(212, 174, 120, 0.25)',
+              backgroundColor: 'rgba(20, 13, 9, 0.65)',
+              color: '#FAF6F0',
+              fontSize: '13px',
+              fontWeight: 600,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              lineHeight: 1,
             }}
           >
-            {/* ── HEADER ── */}
-            <header
+            <LogIn style={{ width: '16px', height: '16px', color: '#D4AE78' }} aria-hidden="true" />
+            <span>{tAuth('loginAction')}</span>
+          </Link>
+        </div>
+
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            width: '100%',
+            maxWidth: '460px',
+            margin: 'auto',
+            borderRadius: '18px',
+          }}
+        >
+          {/* Signup Card */}
+          <section
+            style={{
+              position: 'relative',
+              width: '100%',
+              overflow: 'hidden',
+              borderRadius: '18px',
+              border: '1px solid rgba(212, 174, 120, 0.25)',
+              backgroundImage: 'linear-gradient(155deg, rgba(34, 23, 16, 0.98) 0%, rgba(20, 13, 9, 0.99) 100%)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
+              color: '#FAF6F0',
+            }}
+          >
+            {/* Ambient glow */}
+            <div
               style={{
-                marginBottom: '24px',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
+                pointerEvents: 'none',
+                position: 'absolute',
+                top: '-120px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '280px',
+                height: '220px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(184, 84, 40, 0.16)',
+                filter: 'blur(80px)',
+              }}
+              aria-hidden="true"
+            />
+
+            {/* ── Card Body ── */}
+            <div
+              style={{
+                position: 'relative',
+                padding: '28px 24px 24px',
+                boxSizing: 'border-box',
               }}
             >
-              {/* Logo icon */}
-              <div
+              {/* ── HEADER ── */}
+              <header
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(145deg, #ffc51b 0%, #f39a06 100%)',
-                  color: '#090909',
-                  marginBottom: '16px',
+                  marginBottom: '22px',
+                  textAlign: 'center',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 7px 22px rgba(245,158,11,0.34)',
                 }}
               >
-                <Sparkles style={{ width: '28px', height: '28px', strokeWidth: 2.2 }} />
-              </div>
-
-              {/* Brand name */}
-              <h1
-                style={{
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  fontSize: '1.75rem',
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1.1,
-                  marginBottom: '12px',
-                  textAlign: 'center',
-                }}
-              >
-                THURAYA
-              </h1>
-
-              {/* Description */}
-              <p
-                style={{
-                  color: '#b7b7bd',
-                  fontSize: '14px',
-                  lineHeight: '1.6',
-                  maxWidth: '340px',
-                  margin: '0 auto',
-                  textAlign: 'center',
-                }}
-              >
-                {t('subtitle')}
-              </p>
-            </header>
-
-            {/* ── ERROR MESSAGE ── */}
-            {errorMsg && (
-              <div
-                role="alert"
-                aria-live="polite"
-                style={{
-                  marginBottom: '24px',
-                  padding: '14px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid #9b3034',
-                  backgroundColor: 'rgba(53, 23, 26, 0.7)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  textAlign: isRTL ? 'right' : 'left',
-                }}
-              >
-                <span
+                <div
                   style={{
-                    width: '28px',
-                    height: '28px',
+                    width: '60px',
+                    height: '60px',
                     borderRadius: '50%',
-                    border: '2px solid #ff414b',
-                    color: '#ff414b',
+                    border: '1.5px solid rgba(212, 174, 120, 0.45)',
+                    background: '#140D09',
+                    marginBottom: '14px',
+                    overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0,
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
                   }}
                 >
-                  <AlertCircle style={{ width: '14px', height: '14px', strokeWidth: 3 }} aria-hidden="true" />
-                </span>
-                <div style={{ minWidth: 0, flex: 1 }}>
+                  <Image
+                    src="/images/brand/logo-icon.png"
+                    alt="Thuraya Al-Maghribi"
+                    width={60}
+                    height={60}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <h1
+                  style={{
+                    fontWeight: 800,
+                    color: '#FAF6F0',
+                    fontSize: '1.65rem',
+                    letterSpacing: isRTL ? 'normal' : '0.03em',
+                    lineHeight: 1.15,
+                    marginBottom: '8px',
+                    textAlign: 'center',
+                    fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
+                  }}
+                >
+                  {isRTL ? 'ثريا المغربي' : 'THURAYA'}
+                </h1>
+
+                <p
+                  style={{
+                    color: '#C7B6A2',
+                    fontSize: '13.5px',
+                    lineHeight: '1.6',
+                    maxWidth: '330px',
+                    margin: '0 auto',
+                    textAlign: 'center',
+                  }}
+                >
+                  {t('subtitle')}
+                </p>
+              </header>
+
+              {/* ── ERROR MESSAGE ── */}
+              {errorMsg && (
+                <div
+                  role="alert"
+                  aria-live="polite"
+                  style={{
+                    marginBottom: '20px',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(248, 113, 113, 0.38)',
+                    backgroundColor: 'rgba(127, 29, 29, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    textAlign: isRTL ? 'right' : 'left',
+                  }}
+                >
+                  <AlertCircle style={{ width: '18px', height: '18px', color: '#FCA5A5', flexShrink: 0 }} aria-hidden="true" />
                   <p
                     style={{
-                      fontWeight: 700,
-                      color: '#f1eef0',
+                      fontWeight: 600,
+                      color: '#FEE2E2',
                       fontSize: '13px',
                       lineHeight: '1.4',
-                      marginBottom: '2px',
+                      margin: 0,
                     }}
                   >
                     {errorMsg}
                   </p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* ── FORM ── */}
-            <form onSubmit={handleSignup}>
-              {/* Name Field */}
-              <div style={{ marginBottom: '16px', textAlign: isRTL ? 'right' : 'left' }}>
-                <label
-                  htmlFor="signup-name"
-                  style={{
-                    display: 'block',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#c6c8cd',
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {t('nameLabel')}
-                </label>
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <User
+              {/* ── FORM ── */}
+              <form onSubmit={handleSignup}>
+                {/* Name Field */}
+                <div style={{ marginBottom: '14px', textAlign: isRTL ? 'right' : 'left' }}>
+                  <label
+                    htmlFor="signup-name"
                     style={{
-                      pointerEvents: 'none',
-                      position: 'absolute',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      [isRTL ? 'right' : 'left']: '16px',
-                      width: '18px',
-                      height: '18px',
-                      color: '#8a7d73',
+                      display: 'block',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      color: '#E6D5BF',
+                      fontSize: '11px',
+                      letterSpacing: '0.07em',
+                      marginBottom: '7px',
                     }}
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="signup-name"
-                    type="text"
-                    required
-                    minLength={2}
-                    maxLength={100}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t('namePlaceholder')}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: '1px solid #55483a',
-                      backgroundColor: 'rgba(17, 19, 21, 0.85)',
-                      color: '#f5f4f2',
-                      fontSize: '14px',
-                      paddingLeft: isRTL ? '16px' : '46px',
-                      paddingRight: isRTL ? '46px' : '16px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Email Field */}
-              <div style={{ marginBottom: '16px', textAlign: isRTL ? 'right' : 'left' }}>
-                <label
-                  htmlFor="signup-email"
-                  style={{
-                    display: 'block',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#c6c8cd',
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {t('emailLabel')}
-                </label>
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <Mail
-                    style={{
-                      pointerEvents: 'none',
-                      position: 'absolute',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      [isRTL ? 'right' : 'left']: '16px',
-                      width: '18px',
-                      height: '18px',
-                      color: '#8a7d73',
-                    }}
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="signup-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('emailPlaceholder')}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: '1px solid #55483a',
-                      backgroundColor: 'rgba(17, 19, 21, 0.85)',
-                      color: '#f5f4f2',
-                      fontSize: '14px',
-                      paddingLeft: isRTL ? '16px' : '46px',
-                      paddingRight: isRTL ? '46px' : '16px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div style={{ marginBottom: '16px', textAlign: isRTL ? 'right' : 'left' }}>
-                <label
-                  htmlFor="signup-password"
-                  style={{
-                    display: 'block',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#c6c8cd',
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {t('passwordLabel')}
-                </label>
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <LockKeyhole
-                    style={{
-                      pointerEvents: 'none',
-                      position: 'absolute',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      [isRTL ? 'right' : 'left']: '16px',
-                      width: '18px',
-                      height: '18px',
-                      color: '#8a7d73',
-                    }}
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="signup-password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={8}
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('passwordPlaceholder')}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: '1px solid #55483a',
-                      backgroundColor: 'rgba(17, 19, 21, 0.85)',
-                      color: '#f5f4f2',
-                      fontSize: '14px',
-                      letterSpacing: showPassword ? 'normal' : '0.12em',
-                      paddingLeft: isRTL ? '48px' : '46px',
-                      paddingRight: isRTL ? '46px' : '48px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      top: '0',
-                      [isRTL ? 'left' : 'right']: '0',
-                      width: '48px',
-                      height: '48px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#8a7d73',
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                    }}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? (
-                      <EyeOff style={{ width: '18px', height: '18px' }} />
-                    ) : (
-                      <Eye style={{ width: '18px', height: '18px' }} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirm Password Field */}
-              <div style={{ marginBottom: '20px', textAlign: isRTL ? 'right' : 'left' }}>
-                <label
-                  htmlFor="signup-confirm-password"
-                  style={{
-                    display: 'block',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: '#c6c8cd',
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {t('confirmPasswordLabel')}
-                </label>
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <LockKeyhole
-                    style={{
-                      pointerEvents: 'none',
-                      position: 'absolute',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      [isRTL ? 'right' : 'left']: '16px',
-                      width: '18px',
-                      height: '18px',
-                      color: '#8a7d73',
-                    }}
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="signup-confirm-password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    minLength={8}
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t('passwordPlaceholder')}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: '1px solid #55483a',
-                      backgroundColor: 'rgba(17, 19, 21, 0.85)',
-                      color: '#f5f4f2',
-                      fontSize: '14px',
-                      letterSpacing: showConfirmPassword ? 'normal' : '0.12em',
-                      paddingLeft: isRTL ? '48px' : '46px',
-                      paddingRight: isRTL ? '46px' : '48px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{
-                      position: 'absolute',
-                      top: '0',
-                      [isRTL ? 'left' : 'right']: '0',
-                      width: '48px',
-                      height: '48px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#8a7d73',
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                    }}
-                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff style={{ width: '18px', height: '18px' }} />
-                    ) : (
-                      <Eye style={{ width: '18px', height: '18px' }} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  height: '48px',
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #f7a307 0%, #ffb30d 100%)',
-                  color: '#080808',
-                  fontWeight: 700,
-                  fontSize: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  marginTop: '16px',
-                  border: 'none',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.7 : 1,
-                  boxShadow: '0 10px 22px rgba(245,158,11,0.22)',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {loading ? (
-                  <>
-                    <span
+                    {t('nameLabel')}
+                  </label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <User
                       style={{
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        border: '2px solid rgba(8, 8, 8, 0.3)',
-                        borderTopColor: '#080808',
-                        animation: 'spin 1s linear infinite',
+                        pointerEvents: 'none',
+                        position: 'absolute',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        [isRTL ? 'right' : 'left']: '14px',
+                        width: '17px',
+                        height: '17px',
+                        color: '#A68E76',
+                      }}
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="signup-name"
+                      type="text"
+                      required
+                      minLength={2}
+                      maxLength={100}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={t('namePlaceholder')}
+                      style={{
+                        width: '100%',
+                        height: '46px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(212, 174, 120, 0.22)',
+                        backgroundColor: 'rgba(20, 13, 9, 0.85)',
+                        color: '#FAF6F0',
+                        fontSize: '14px',
+                        paddingLeft: isRTL ? '14px' : '44px',
+                        paddingRight: isRTL ? '44px' : '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
                       }}
                     />
-                    <span>{t('creating')}</span>
-                  </>
-                ) : (
-                  <>
-                    <span>{t('createBtn')}</span>
-                    {isRTL ? (
-                      <ArrowLeft style={{ width: '18px', height: '18px' }} />
-                    ) : (
-                      <ArrowRight style={{ width: '18px', height: '18px' }} />
-                    )}
-                  </>
-                )}
-              </button>
-            </form>
+                  </div>
+                </div>
 
-            {/* ── OR Divider ── */}
-            <div
+                {/* Email Field */}
+                <div style={{ marginBottom: '14px', textAlign: isRTL ? 'right' : 'left' }}>
+                  <label
+                    htmlFor="signup-email"
+                    style={{
+                      display: 'block',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      color: '#E6D5BF',
+                      fontSize: '11px',
+                      letterSpacing: '0.07em',
+                      marginBottom: '7px',
+                    }}
+                  >
+                    {t('emailLabel')}
+                  </label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <Mail
+                      style={{
+                        pointerEvents: 'none',
+                        position: 'absolute',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        [isRTL ? 'right' : 'left']: '14px',
+                        width: '17px',
+                        height: '17px',
+                        color: '#A68E76',
+                      }}
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="signup-email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t('emailPlaceholder')}
+                      style={{
+                        width: '100%',
+                        height: '46px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(212, 174, 120, 0.22)',
+                        backgroundColor: 'rgba(20, 13, 9, 0.85)',
+                        color: '#FAF6F0',
+                        fontSize: '14px',
+                        paddingLeft: isRTL ? '14px' : '44px',
+                        paddingRight: isRTL ? '44px' : '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div style={{ marginBottom: '14px', textAlign: isRTL ? 'right' : 'left' }}>
+                  <label
+                    htmlFor="signup-password"
+                    style={{
+                      display: 'block',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      color: '#E6D5BF',
+                      fontSize: '11px',
+                      letterSpacing: '0.07em',
+                      marginBottom: '7px',
+                    }}
+                  >
+                    {t('passwordLabel')}
+                  </label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <LockKeyhole
+                      style={{
+                        pointerEvents: 'none',
+                        position: 'absolute',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        [isRTL ? 'right' : 'left']: '14px',
+                        width: '17px',
+                        height: '17px',
+                        color: '#A68E76',
+                      }}
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="signup-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t('passwordPlaceholder')}
+                      style={{
+                        width: '100%',
+                        height: '46px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(212, 174, 120, 0.22)',
+                        backgroundColor: 'rgba(20, 13, 9, 0.85)',
+                        color: '#FAF6F0',
+                        fontSize: '14px',
+                        letterSpacing: showPassword ? 'normal' : '0.12em',
+                        paddingLeft: isRTL ? '46px' : '44px',
+                        paddingRight: isRTL ? '44px' : '46px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        top: '0',
+                        [isRTL ? 'left' : 'right']: '0',
+                        width: '46px',
+                        height: '46px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#A68E76',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                      }}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <EyeOff style={{ width: '17px', height: '17px' }} />
+                      ) : (
+                        <Eye style={{ width: '17px', height: '17px' }} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password Field */}
+                <div style={{ marginBottom: '18px', textAlign: isRTL ? 'right' : 'left' }}>
+                  <label
+                    htmlFor="signup-confirm-password"
+                    style={{
+                      display: 'block',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      color: '#E6D5BF',
+                      fontSize: '11px',
+                      letterSpacing: '0.07em',
+                      marginBottom: '7px',
+                    }}
+                  >
+                    {t('confirmPasswordLabel')}
+                  </label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <LockKeyhole
+                      style={{
+                        pointerEvents: 'none',
+                        position: 'absolute',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        [isRTL ? 'right' : 'left']: '14px',
+                        width: '17px',
+                        height: '17px',
+                        color: '#A68E76',
+                      }}
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="signup-confirm-password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('passwordPlaceholder')}
+                      style={{
+                        width: '100%',
+                        height: '46px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(212, 174, 120, 0.22)',
+                        backgroundColor: 'rgba(20, 13, 9, 0.85)',
+                        color: '#FAF6F0',
+                        fontSize: '14px',
+                        letterSpacing: showConfirmPassword ? 'normal' : '0.12em',
+                        paddingLeft: isRTL ? '46px' : '44px',
+                        paddingRight: isRTL ? '44px' : '46px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{
+                        position: 'absolute',
+                        top: '0',
+                        [isRTL ? 'left' : 'right']: '0',
+                        width: '46px',
+                        height: '46px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#A68E76',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                      }}
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff style={{ width: '17px', height: '17px' }} />
+                      ) : (
+                        <Eye style={{ width: '17px', height: '17px' }} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    height: '48px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #B85428 0%, #D97A4A 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: '15px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    marginTop: '14px',
+                    border: 'none',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.72 : 1,
+                    boxShadow: '0 8px 22px rgba(184, 84, 40, 0.28)',
+                    transition: 'opacity 0.15s',
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <span
+                        style={{
+                          width: '17px',
+                          height: '17px',
+                          borderRadius: '50%',
+                          border: '2px solid rgba(255, 255, 255, 0.35)',
+                          borderTopColor: '#FFFFFF',
+                          animation: 'spin 1s linear infinite',
+                        }}
+                      />
+                      <span>{t('creating')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{t('createBtn')}</span>
+                      {isRTL ? (
+                        <ArrowLeft style={{ width: '17px', height: '17px' }} />
+                      ) : (
+                        <ArrowRight style={{ width: '17px', height: '17px' }} />
+                      )}
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* ── OR Divider ── */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontSize: '12px',
+                  color: '#A68E76',
+                  marginTop: '22px',
+                  marginBottom: '16px',
+                  gap: '12px',
+                }}
+              >
+                <span style={{ height: '1px', flex: 1, backgroundColor: 'rgba(212, 174, 120, 0.2)' }} />
+                <span style={{ letterSpacing: '0.06em' }}>{t('or')}</span>
+                <span style={{ height: '1px', flex: 1, backgroundColor: 'rgba(212, 174, 120, 0.2)' }} />
+              </div>
+
+              {/* ── The Two Bottom Action Buttons ── */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '10px',
+                }}
+              >
+                {/* Button 1: Sign In */}
+                <Link
+                  href={`/${locale}/login`}
+                  style={{
+                    height: '44px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(212, 174, 120, 0.24)',
+                    backgroundColor: 'rgba(20, 13, 9, 0.65)',
+                    color: '#FAF6F0',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <LogIn style={{ width: '16px', height: '16px', color: '#D4AE78' }} aria-hidden="true" />
+                  <span>{t('signIn')}</span>
+                </Link>
+
+                {/* Button 2: Continue as Guest */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    continueAsGuest()
+                    router.push(`/${locale}`)
+                  }}
+                  style={{
+                    height: '44px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(212, 174, 120, 0.24)',
+                    backgroundColor: 'rgba(20, 13, 9, 0.65)',
+                    color: '#E6D5BF',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <UserCheck style={{ width: '16px', height: '16px', color: '#C7B6A2' }} aria-hidden="true" />
+                  <span>{t('continueAsGuest')}</span>
+                </button>
+              </div>
+            </div>
+            {/* ── END Card Body ── */}
+
+            {/* ── FOOTER ── */}
+            <footer
               style={{
+                position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
+                borderTop: '1px solid rgba(212, 174, 120, 0.16)',
                 fontSize: '12px',
-                color: '#a5a4aa',
-                marginTop: '24px',
-                marginBottom: '16px',
-                gap: '12px',
+                color: '#A68E76',
+                gap: '8px',
+                padding: '13px 24px',
+                backgroundColor: 'rgba(20, 13, 9, 0.72)',
               }}
             >
-              <span style={{ height: '1px', flex: 1, backgroundColor: '#48494b' }} />
-              <span style={{ letterSpacing: '0.06em' }}>{t('or')}</span>
-              <span style={{ height: '1px', flex: 1, backgroundColor: '#48494b' }} />
-            </div>
-
-            {/* ── The Two Bottom Action Buttons ── */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '12px',
-              }}
-            >
-              {/* Button 1: Sign In */}
-              <Link
-                href={`/${locale}/login`}
-                style={{
-                  height: '48px',
-                  borderRadius: '8px',
-                  border: '1px solid #55575a',
-                  backgroundColor: 'rgba(17, 19, 21, 0.6)',
-                  color: '#d0d0d5',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  textDecoration: 'none',
-                  transition: 'all 0.15s',
-                }}
-              >
-                <LogIn style={{ width: '17px', height: '17px', color: '#f39a06' }} aria-hidden="true" />
-                <span>{t('signIn')}</span>
-              </Link>
-
-              {/* Button 2: Continue as Guest */}
-              <button
-                type="button"
-                onClick={() => {
-                  continueAsGuest()
-                  router.push(`/${locale}`)
-                }}
-                style={{
-                  height: '48px',
-                  borderRadius: '8px',
-                  border: '1px solid #55575a',
-                  backgroundColor: 'rgba(17, 19, 21, 0.6)',
-                  color: '#d0d0d5',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                <UserCheck style={{ width: '17px', height: '17px', color: '#9ca3af' }} aria-hidden="true" />
-                <span>{t('continueAsGuest')}</span>
-              </button>
-            </div>
-          </div>
-          {/* ── END Card Body ── */}
-
-          {/* ── FOOTER ── */}
-          <footer
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderTop: '1px solid #26282a',
-              fontSize: '12px',
-              color: '#8f9097',
-              gap: '8px',
-              padding: '14px 24px',
-              backgroundColor: 'rgba(13, 15, 17, 0.6)',
-            }}
-          >
-            <ShieldCheck style={{ width: '14px', height: '14px', flexShrink: 0 }} aria-hidden="true" />
-            <span>{t('protectedSession')}</span>
-          </footer>
-        </section>
+              <ShieldCheck style={{ width: '14px', height: '14px', color: '#D4AE78', flexShrink: 0 }} aria-hidden="true" />
+              <span>{t('protectedSession')}</span>
+            </footer>
+          </section>
+        </div>
       </div>
-    </div>
     </>
   )
 }

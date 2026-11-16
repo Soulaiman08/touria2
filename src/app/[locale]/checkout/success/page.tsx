@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
-import { CheckCircle2, Truck, ShoppingBag, ArrowRight, Phone, MapPin, User } from 'lucide-react'
+import { CheckCircle2, Truck, ShoppingBag, ArrowRight, Phone, MapPin, User, XCircle } from 'lucide-react'
 import type { Order } from '@/types/order'
 
 interface SuccessPageProps {
@@ -34,34 +34,39 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
         return res.json()
       })
       .then((res) => {
-        if (isMounted) { setOrder(res); setLoading(false) }
+        if (isMounted) {
+          setOrder(res)
+          setLoading(false)
+        }
       })
-      .catch(() => { if (isMounted) setLoading(false) })
-    return () => { isMounted = false }
+      .catch(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
+    }
   }, [orderId])
 
   if (loading) {
     return (
       <div className="container-brand py-20 text-center space-y-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#C4622D] mx-auto" />
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{cartT('loading')}</p>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--border)] border-t-[var(--accent)] mx-auto" />
+        <p className="text-sm text-[var(--text-muted)]">{cartT('loading')}</p>
       </div>
     )
   }
 
   if (!order) {
     return (
-      <div className="container-brand py-20 text-center space-y-4">
-        <div className="text-4xl text-red-500">❌</div>
-        <h2 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
-          {locale === 'ar' ? 'لم يتم العثور على الطلب' : 'Commande introuvable'}
+      <div className="container-brand py-20 text-center space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-[var(--error-bg)] border border-[var(--error-border)] text-[var(--error)]">
+          <XCircle className="w-8 h-8" />
+        </div>
+        <h2 className="font-bold text-lg text-[var(--text-primary)]">
+          {locale === 'ar' ? 'لم يتم العثور على الطلب' : locale === 'fr' ? 'Commande introuvable' : 'Order not found'}
         </h2>
-        <Link
-          href={`/${locale}`}
-          className="inline-block px-6 py-2.5 rounded-xl text-white font-medium hover:bg-[#A34E23]"
-          style={{ background: '#C4622D' }}
-        >
-          {locale === 'ar' ? 'العودة للرئيسية' : 'Retour à l\'accueil'}
+        <Link href={`/${locale}`} className="btn btn-primary btn-round">
+          {locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
         </Link>
       </div>
     )
@@ -71,119 +76,86 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 560, paddingLeft: 'max(16px, 5vw)', paddingRight: 'max(16px, 5vw)' }}
+      style={{ maxWidth: 560 }}
     >
-      <div
-        style={{
-          borderRadius: 24,
-          border: '1px solid var(--border)',
-          background: 'var(--card)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-sm overflow-hidden">
         {/* ── Success Header ──────────────────────────────────────── */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(196,98,45,0.02) 100%)',
-            padding: '32px 28px 24px',
-            textAlign: 'center',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              background: 'rgba(34,197,94,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
-            <CheckCircle2 style={{ width: 34, height: 34, color: '#22c55e' }} />
+        <div className="p-7 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-[var(--success-bg)] border border-[var(--success-border)]">
+            <CheckCircle2 className="w-8 h-8 text-[var(--success)]" />
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground)', margin: '0 0 6px' }}>
+          <h1
+            className="text-2xl font-extrabold text-[var(--text-primary)] mb-1.5"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+          >
             {t('title')}
           </h1>
-          <p style={{ fontSize: 14, color: 'var(--muted-foreground)', margin: 0 }}>
+          <p className="text-sm text-[var(--text-muted)] m-0">
             {t('subtitle')}
           </p>
         </div>
 
         {/* ── Order Number ─────────────────────────────────────────── */}
-        <div style={{ padding: '20px 28px', borderBottom: '1px solid var(--border)' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 16px',
-              borderRadius: 12,
-              background: 'rgba(196,98,45,0.04)',
-              border: '1px solid rgba(196,98,45,0.15)',
-            }}
-          >
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <div className="px-6 py-5 border-b border-[var(--border)]">
+          <div className="flex justify-between items-center px-4 py-3 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)]">
+            <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
               {t('orderNumber')}
             </span>
-            <span style={{ fontSize: 16, fontWeight: 900, color: '#C4622D', fontFamily: 'monospace' }}>
+            <span className="tabular-nums font-mono text-base font-extrabold text-[var(--accent)]">
               {order.orderNumber}
             </span>
           </div>
         </div>
 
         {/* ── Customer Info ─────────────────────────────────────────── */}
-        <div style={{ padding: '20px 28px', borderBottom: '1px solid var(--border)' }}>
-          <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>
+        <div className="px-6 py-5 border-b border-[var(--border)]">
+          <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3.5">
             {locale === 'ar' ? 'معلومات الطلب' : locale === 'fr' ? 'Informations de commande' : 'Order Info'}
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="flex flex-col gap-3">
             {/* Name */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <User style={{ width: 14, height: 14, color: 'var(--muted-foreground)' }} />
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                <User className="w-3.5 h-3.5 text-[var(--text-muted)]" />
               </div>
               <div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {locale === 'ar' ? 'الاسم' : 'Nom'}
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                  {locale === 'ar' ? 'الاسم' : locale === 'fr' ? 'Nom' : 'Name'}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginTop: 2 }}>
+                <div className="text-sm font-bold text-[var(--text-primary)] mt-0.5">
                   {order.customerName}
                 </div>
               </div>
             </div>
 
             {/* Phone */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Phone style={{ width: 14, height: 14, color: 'var(--muted-foreground)' }} />
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                <Phone className="w-3.5 h-3.5 text-[var(--text-muted)]" />
               </div>
               <div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {locale === 'ar' ? 'الهاتف' : 'Téléphone'}
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                  {locale === 'ar' ? 'الهاتف' : locale === 'fr' ? 'Téléphone' : 'Phone'}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', marginTop: 2, fontFamily: 'monospace' }}>
+                <div dir="ltr" className="tabular-nums font-mono text-sm font-bold text-[var(--text-primary)] mt-0.5 text-start">
                   {order.customerPhone}
                 </div>
               </div>
             </div>
 
             {/* Address */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <MapPin style={{ width: 14, height: 14, color: 'var(--muted-foreground)' }} />
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-3.5 h-3.5 text-[var(--text-muted)]" />
               </div>
               <div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {locale === 'ar' ? 'العنوان' : 'Adresse'}
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                  {locale === 'ar' ? 'العنوان' : locale === 'fr' ? 'Adresse' : 'Address'}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)', marginTop: 2, lineHeight: 1.4 }}>
+                <div className="text-sm font-semibold text-[var(--text-primary)] mt-0.5 leading-snug">
                   {order.address}
-                  <span style={{ color: '#C4622D', fontWeight: 700 }}> — {order.city}</span>
+                  <span className="text-[var(--accent)] font-bold"> — {order.city}</span>
                 </div>
               </div>
             </div>
@@ -191,30 +163,18 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
         </div>
 
         {/* ── Total ─────────────────────────────────────────────────── */}
-        <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)' }}>{cartT('total')}</span>
-            <span style={{ fontSize: 22, fontWeight: 900, color: '#C4622D' }}>{formatPrice(order.total, locale)}</span>
-          </div>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center">
+          <span className="text-sm font-bold text-[var(--text-primary)]">{cartT('total')}</span>
+          <span className="tabular-nums text-xl font-extrabold text-[var(--accent)]">{formatPrice(order.total, locale)}</span>
         </div>
 
         {/* ── Info Message ──────────────────────────────────────────── */}
-        <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)' }}>
-          <div
-            style={{
-              padding: '12px 14px',
-              borderRadius: 12,
-              border: '1px solid rgba(184,150,90,0.3)',
-              background: 'rgba(184,150,90,0.05)',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 10,
-            }}
-          >
-            <Truck style={{ width: 16, height: 16, color: '#C4622D', flexShrink: 0, marginTop: 2 }} />
+        <div className="px-6 py-4 border-b border-[var(--border)]">
+          <div className="p-3.5 rounded-xl border border-[var(--accent-ring)] bg-[var(--accent-light)] flex items-start gap-2.5">
+            <Truck className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground)', margin: '0 0 2px' }}>{t('message')}</p>
-              <p style={{ fontSize: 11, color: 'var(--muted-foreground)', margin: 0 }}>
+              <p className="text-xs font-bold text-[var(--text-primary)] m-0 mb-0.5">{t('message')}</p>
+              <p className="text-[11.5px] text-[var(--text-muted)] m-0">
                 {t('estimatedDelivery')}: {t('deliveryDays')}
               </p>
             </div>
@@ -222,47 +182,21 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
         </div>
 
         {/* ── Actions ───────────────────────────────────────────────── */}
-        <div style={{ padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="p-6 flex flex-col gap-2.5">
           <Link
             href={`/${locale}/orders/${order.id}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              padding: '13px 20px',
-              borderRadius: 12,
-              background: 'linear-gradient(90deg, #C4622D, #d97b4a)',
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 800,
-              textDecoration: 'none',
-              boxShadow: '0 4px 16px rgba(196,98,45,0.25)',
-            }}
+            className="btn btn-primary w-full justify-center py-3 rounded-xl text-sm font-bold"
           >
-            {t('trackOrder')}
-            <ArrowRight style={{ width: 15, height: 15, transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+            <span>{t('trackOrder')}</span>
+            <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           </Link>
 
           <Link
             href={`/${locale}/products`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              padding: '12px 20px',
-              borderRadius: 12,
-              border: '1px solid var(--border)',
-              color: 'var(--foreground)',
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-              background: 'var(--bg-subtle)',
-            }}
+            className="btn btn-outline w-full justify-center py-3 rounded-xl text-sm font-semibold"
           >
-            <ShoppingBag style={{ width: 14, height: 14 }} />
-            {t('continueShopping')}
+            <ShoppingBag className="w-4 h-4" />
+            <span>{t('continueShopping')}</span>
           </Link>
         </div>
       </div>
