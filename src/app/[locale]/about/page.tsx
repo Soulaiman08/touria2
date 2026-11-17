@@ -45,9 +45,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   return (
     <div
-      className="container-brand page-shell flex flex-col gap-10"
+      className="container-brand page-shell flex flex-col gap-10 sm:gap-12"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 1100 }}
+      style={{ maxWidth: 1160 }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div>
@@ -57,25 +57,19 @@ export default async function AboutPage({ params }: AboutPageProps) {
         </Link>
       </div>
 
-      {/* ── 1. Hero Story Section ─────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        <div
-          className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12"
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
+      {/* ── 1. Hero Story Section (Moroccan Arch) ─────────────────── */}
+      <section className="relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12">
           {/* Story Text */}
-          <div
-            className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-start"
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
+          <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-start">
             <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)] mb-2">
               {isRTL ? 'أناقة مغربية أصيلة' : locale === 'fr' ? 'Élégance marocaine authentique' : 'Authentic Moroccan Elegance'}
             </p>
 
             <h1
-              className="font-extrabold tracking-tight leading-[1.18] max-w-xl text-[var(--text-primary)] mb-3"
+              className="font-extrabold tracking-tight leading-[1.18] max-w-xl text-[var(--text-primary)] mb-3 text-balance"
               style={{
-                fontSize: 'clamp(1.75rem, 3.6vw, 3rem)',
+                fontSize: 'clamp(1.85rem, 3.6vw, 3rem)',
                 fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
               }}
             >
@@ -89,11 +83,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
             </div>
 
-            <p className="text-sm md:text-base max-w-lg leading-relaxed text-[var(--text-muted)] mb-6">
+            <p className="text-sm sm:text-base max-w-xl leading-relaxed text-[var(--text-muted)] mb-6">
               {t('story')}
             </p>
 
-            <Link href={`/${locale}/products`} className="btn btn-primary btn-round px-6 py-3">
+            <Link href={`/${locale}/products`} className="btn btn-primary btn-round px-6 h-11">
               <ShoppingBag className="w-4 h-4" />
               <span className="font-semibold text-sm">
                 {isRTL ? 'اكتشفي المجموعة' : locale === 'fr' ? 'Découvrir la collection' : 'Explore Collection'}
@@ -101,23 +95,19 @@ export default async function AboutPage({ params }: AboutPageProps) {
             </Link>
           </div>
 
-          {/* Single Clean Showcase Medallion */}
+          {/* Architectural Moroccan Arch Showcase */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center" dir="ltr">
-            <div
-              className="relative rounded-full overflow-hidden border-2 border-[var(--gold-ring)] bg-[var(--card-bg)] shadow-lg"
-              style={{
-                width: 'clamp(190px, 26vw, 290px)',
-                height: 'clamp(190px, 26vw, 290px)',
-              }}
-            >
-              <Image
-                src="/images/brand/logo-full.png"
-                alt={siteConfig.name}
-                fill
-                priority
-                sizes="(max-width: 768px) 190px, (max-width: 1024px) 240px, 290px"
-                className="object-cover"
-              />
+            <div className="relative w-full max-w-[270px] sm:max-w-[310px] aspect-[4/5] rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)] p-2.5 shadow-[var(--shadow-md)]">
+              <div className="relative w-full h-full rounded-t-[999px] rounded-b-xl overflow-hidden border border-[var(--border)] bg-[var(--card-bg)]">
+                <Image
+                  src="/images/brand/logo-full.png"
+                  alt={siteConfig.name}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 270px, 310px"
+                  className="object-cover"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -133,7 +123,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 key={idx}
                 className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 flex flex-col items-center text-center gap-3 transition-colors hover:border-[var(--accent-ring)]"
               >
-                <div className="w-12 h-12 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
                   <Icon className="w-5 h-5" />
                 </div>
                 <h2 className="text-base font-extrabold text-[var(--text-primary)] m-0">
@@ -151,7 +141,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
       {/* ── 3. Mission & Vision ───────────────────────────────────── */}
       <section>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {/* Mission */}
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
@@ -166,7 +155,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
             </p>
           </div>
 
-          {/* Vision */}
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
@@ -184,13 +172,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
       </section>
 
       {/* ── 4. Call to Action Banner ──────────────────────────────── */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] p-8 text-center flex flex-col items-center gap-3.5">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-7 sm:p-9 text-center flex flex-col items-center gap-3.5">
         <p className="text-xs font-bold uppercase tracking-widest text-[var(--gold)] m-0">
           {isRTL ? 'تشكيلة حصرية' : locale === 'fr' ? 'Collection exclusive' : 'Exclusive Collection'}
         </p>
 
         <h2
-          className="text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] m-0"
+          className="text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] m-0 text-balance"
           style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
         >
           {isRTL ? 'اكتشفي تشكيلة الجلابيات والنقابات الآن' : locale === 'fr' ? 'Découvrez notre collection exclusive' : 'Explore Our Exclusive Collection'}
@@ -204,7 +192,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
               : 'Refined designs handcrafted by master Moroccan artisans to elevate your style.'}
         </p>
 
-        <Link href={`/${locale}/products`} className="btn btn-primary btn-round px-7 py-3 mt-1">
+        <Link href={`/${locale}/products`} className="btn btn-primary btn-round px-7 h-11 mt-1">
           <ShoppingBag className="w-4 h-4" />
           <span>{isRTL ? 'تصفحي المجموعة' : locale === 'fr' ? 'Voir la collection' : 'Shop Collection'}</span>
         </Link>

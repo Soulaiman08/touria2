@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
+  Loader2,
   LockKeyhole,
   Mail,
   ShieldCheck,
@@ -60,7 +61,7 @@ export function CustomerLoginCard({
       createAccount: ['إنشاء حساب', 'Créer un compte', 'Create Account'],
       continueAsGuest: ['الدخول كضيف', 'Continuer en invité', 'Continue as Guest'],
       protectedSession: [
-        'جلسة محمية · ثريا المغربي',
+        'جلسة محمية · دار ثريا المغربي',
         'Session protégée · Thuraya Al-Maghribi',
         'Protected session · Thuraya Al-Maghribi',
       ],
@@ -137,43 +138,12 @@ export function CustomerLoginCard({
   }
 
   return (
-    <div
-      dir={isRTL ? 'rtl' : 'ltr'}
-      className="dark"
-      style={{
-        width: '100%',
-        maxWidth: '460px',
-        margin: '0 auto',
-        boxSizing: 'border-box',
-      }}
-    >
-      <section
-        style={{
-          position: 'relative',
-          width: '100%',
-          overflow: 'hidden',
-          borderRadius: '18px',
-          border: '1px solid rgba(212, 174, 120, 0.25)',
-          backgroundImage: 'linear-gradient(155deg, rgba(34, 23, 16, 0.98) 0%, rgba(20, 13, 9, 0.99) 100%)',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
-          color: '#FAF6F0',
-        }}
-      >
-        {/* Warm Terracotta & Brass ambient glow */}
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-[440px] mx-auto">
+      <section className="relative w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]/95 backdrop-blur-md shadow-[var(--shadow-modal)] text-[var(--text-primary)]">
+        {/* Subtle Moroccan top brass hairline */}
         <div
-          style={{
-            pointerEvents: 'none',
-            position: 'absolute',
-            top: '-120px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '280px',
-            height: '220px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(184, 84, 40, 0.16)',
-            filter: 'blur(80px)',
-          }}
           aria-hidden="true"
+          className="h-1 w-full bg-gradient-to-r from-transparent via-[var(--gold)]/60 to-transparent"
         />
 
         {/* Close button for Modal */}
@@ -182,130 +152,53 @@ export function CustomerLoginCard({
             type="button"
             onClick={onClose}
             aria-label={t('closeAria')}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              [isRTL ? 'left' : 'right']: '16px',
-              zIndex: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '34px',
-              height: '34px',
-              borderRadius: '10px',
-              border: '1px solid rgba(212, 174, 120, 0.24)',
-              backgroundColor: 'rgba(20, 13, 9, 0.72)',
-              color: '#E6D5BF',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
+            className="absolute top-3.5 end-3.5 z-20 flex items-center justify-center w-9 h-9 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:text-[var(--accent)] hover:border-[var(--accent-ring)] transition-colors cursor-pointer"
           >
-            <X style={{ width: '16px', height: '16px' }} />
+            <X className="w-4 h-4" />
           </button>
         )}
 
         {/* ── Card Body ── */}
-        <div
-          style={{
-            position: 'relative',
-            padding: '28px 24px 24px',
-            boxSizing: 'border-box',
-          }}
-        >
-          {/* ── HEADER ── */}
-          <header
-            style={{
-              marginBottom: '24px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* Brand Medallion */}
-            <div
-              style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                border: '1.5px solid rgba(212, 174, 120, 0.45)',
-                background: '#140D09',
-                marginBottom: '14px',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
-              }}
-            >
-              <Image
-                src="/images/brand/logo-icon.png"
-                alt="Thuraya Al-Maghribi"
-                width={60}
-                height={60}
-                className="w-full h-full object-cover"
-              />
+        <div className="px-5 py-6 sm:px-7 sm:py-7">
+          {/* ── Header ── */}
+          <header className="mb-6 text-center flex flex-col items-center">
+            {/* Moroccan Arch Emblem Frame */}
+            <div className="w-16 h-[72px] rounded-t-[999px] rounded-b-xl border border-[var(--gold-ring)] bg-[var(--bg-subtle)] p-1 mb-3.5 shadow-[var(--shadow-sm)] overflow-hidden">
+              <div className="relative w-full h-full rounded-t-[999px] rounded-b-lg overflow-hidden">
+                <Image
+                  src="/images/brand/logo-icon.png"
+                  alt="Thuraya Al-Maghribi"
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              </div>
             </div>
 
-            {/* Brand name */}
             <h1
+              className="text-2xl font-extrabold text-[var(--text-primary)] leading-tight mb-1.5"
               style={{
-                fontWeight: 800,
-                color: '#FAF6F0',
-                fontSize: '1.65rem',
-                letterSpacing: isRTL ? 'normal' : '0.03em',
-                lineHeight: 1.15,
-                marginBottom: '8px',
-                textAlign: 'center',
                 fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
+                letterSpacing: isRTL ? 'normal' : '0.03em',
               }}
             >
               {isRTL ? 'ثريا المغربي' : 'THURAYA'}
             </h1>
 
-            {/* Description */}
-            <p
-              style={{
-                color: '#C7B6A2',
-                fontSize: '13.5px',
-                lineHeight: '1.6',
-                maxWidth: '330px',
-                margin: '0 auto',
-                textAlign: 'center',
-              }}
-            >
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] max-w-[310px] leading-relaxed m-0">
               {t('welcomeSubtitle')}
             </p>
           </header>
 
-          {/* ── ERROR MESSAGE ── */}
+          {/* ── Error Message ── */}
           {errorMsg && (
             <div
               role="alert"
               aria-live="polite"
-              style={{
-                marginBottom: '20px',
-                padding: '12px 14px',
-                borderRadius: '12px',
-                border: '1px solid rgba(248, 113, 113, 0.38)',
-                backgroundColor: 'rgba(127, 29, 29, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                textAlign: isRTL ? 'right' : 'left',
-              }}
+              className="mb-5 px-3.5 py-2.5 rounded-xl border border-[var(--error-border)] bg-[var(--error-bg)] flex items-center gap-2.5 text-start"
             >
-              <AlertCircle style={{ width: '18px', height: '18px', color: '#FCA5A5', flexShrink: 0 }} aria-hidden="true" />
-              <p
-                style={{
-                  fontWeight: 600,
-                  color: '#FEE2E2',
-                  fontSize: '13px',
-                  lineHeight: '1.4',
-                  margin: 0,
-                }}
-              >
+              <AlertCircle className="w-4 h-4 text-[var(--error)] flex-shrink-0" aria-hidden="true" />
+              <p className="text-xs font-semibold text-[var(--error)] leading-snug m-0">
                 {errorMsg.includes('Internal') || errorMsg.includes('خادم') || errorMsg.includes('serveur')
                   ? t('errorServer')
                   : t('errorGeneric')}
@@ -313,36 +206,19 @@ export function CustomerLoginCard({
             </div>
           )}
 
-          {/* ── FORM ── */}
-          <form onSubmit={handleLogin}>
-            {/* Email Field */}
-            <div style={{ marginBottom: '16px', textAlign: isRTL ? 'right' : 'left' }}>
+          {/* ── Form ── */}
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Email */}
+            <div className="text-start">
               <label
                 htmlFor="customer-email"
-                style={{
-                  display: 'block',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  color: '#E6D5BF',
-                  fontSize: '11px',
-                  letterSpacing: '0.07em',
-                  marginBottom: '8px',
-                }}
+                className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5"
               >
                 {t('emailLabel')}
               </label>
-              <div style={{ position: 'relative', width: '100%' }}>
+              <div className="relative">
                 <Mail
-                  style={{
-                    pointerEvents: 'none',
-                    position: 'absolute',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    [isRTL ? 'right' : 'left']: '14px',
-                    width: '17px',
-                    height: '17px',
-                    color: '#A68E76',
-                  }}
+                  className="pointer-events-none w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5"
                   aria-hidden="true"
                 />
                 <input
@@ -353,52 +229,23 @@ export function CustomerLoginCard({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('emailPlaceholder')}
-                  style={{
-                    width: '100%',
-                    height: '46px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(212, 174, 120, 0.22)',
-                    backgroundColor: 'rgba(20, 13, 9, 0.85)',
-                    color: '#FAF6F0',
-                    fontSize: '14px',
-                    paddingLeft: isRTL ? '14px' : '44px',
-                    paddingRight: isRTL ? '44px' : '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.15s',
-                  }}
+                  dir="ltr"
+                  className="w-full h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm ps-10 pe-3.5 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors text-start"
                 />
               </div>
             </div>
 
-            {/* Password Field */}
-            <div style={{ marginBottom: '14px', textAlign: isRTL ? 'right' : 'left' }}>
+            {/* Password */}
+            <div className="text-start">
               <label
                 htmlFor="customer-password"
-                style={{
-                  display: 'block',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  color: '#E6D5BF',
-                  fontSize: '11px',
-                  letterSpacing: '0.07em',
-                  marginBottom: '8px',
-                }}
+                className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5"
               >
                 {t('passwordLabel')}
               </label>
-              <div style={{ position: 'relative', width: '100%' }}>
+              <div className="relative">
                 <LockKeyhole
-                  style={{
-                    pointerEvents: 'none',
-                    position: 'absolute',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    [isRTL ? 'right' : 'left']: '14px',
-                    width: '17px',
-                    height: '17px',
-                    color: '#A68E76',
-                  }}
+                  className="pointer-events-none w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5"
                   aria-hidden="true"
                 />
                 <input
@@ -409,228 +256,85 @@ export function CustomerLoginCard({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('passwordPlaceholder')}
-                  style={{
-                    width: '100%',
-                    height: '46px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(212, 174, 120, 0.22)',
-                    backgroundColor: 'rgba(20, 13, 9, 0.85)',
-                    color: '#FAF6F0',
-                    fontSize: '14px',
-                    letterSpacing: showPassword ? 'normal' : '0.12em',
-                    paddingLeft: isRTL ? '46px' : '44px',
-                    paddingRight: isRTL ? '44px' : '46px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.15s',
-                  }}
+                  className="w-full h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm ps-10 pe-11 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors"
+                  style={{ letterSpacing: showPassword ? 'normal' : '0.1em' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    top: '0',
-                    [isRTL ? 'left' : 'right']: '0',
-                    width: '46px',
-                    height: '46px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#A68E76',
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                  }}
+                  className="absolute top-0 end-0 w-11 h-11 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff style={{ width: '17px', height: '17px' }} />
-                  ) : (
-                    <Eye style={{ width: '17px', height: '17px' }} />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* Remember Me */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: '13px',
-                color: '#C7B6A2',
-                marginBottom: '4px',
-              }}
-            >
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
+            <div className="flex items-center justify-between pt-0.5">
+              <label className="inline-flex items-center gap-2 text-xs font-medium text-[var(--text-muted)] cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    accentColor: '#D97A4A',
-                    cursor: 'pointer',
-                  }}
+                  className="w-4 h-4 rounded accent-[var(--accent)] cursor-pointer"
                 />
                 <span>{t('rememberMe')}</span>
               </label>
             </div>
 
-            {/* Sign In Button */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              style={{
-                width: '100%',
-                height: '48px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #B85428 0%, #D97A4A 100%)',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                fontSize: '15px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                marginTop: '18px',
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.72 : 1,
-                boxShadow: '0 8px 22px rgba(184, 84, 40, 0.28)',
-                transition: 'opacity 0.15s, transform 0.15s',
-              }}
+              className="btn btn-primary w-full h-11 rounded-xl justify-center text-sm font-bold"
             >
               {loading ? (
                 <>
-                  <span
-                    style={{
-                      width: '17px',
-                      height: '17px',
-                      borderRadius: '50%',
-                      border: '2px solid rgba(255, 255, 255, 0.35)',
-                      borderTopColor: '#FFFFFF',
-                      animation: 'spin 1s linear infinite',
-                    }}
-                  />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>{t('signingIn')}</span>
                 </>
               ) : (
                 <>
                   <span>{t('signInBtn')}</span>
-                  {isRTL ? (
-                    <ArrowLeft style={{ width: '17px', height: '17px' }} />
-                  ) : (
-                    <ArrowRight style={{ width: '17px', height: '17px' }} />
-                  )}
+                  {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                 </>
               )}
             </button>
           </form>
 
-          {/* ── OR Divider ── */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              fontSize: '12px',
-              color: '#A68E76',
-              marginTop: '22px',
-              marginBottom: '16px',
-              gap: '12px',
-            }}
-          >
-            <span style={{ height: '1px', flex: 1, backgroundColor: 'rgba(212, 174, 120, 0.2)' }} />
-            <span style={{ letterSpacing: '0.06em' }}>{t('or')}</span>
-            <span style={{ height: '1px', flex: 1, backgroundColor: 'rgba(212, 174, 120, 0.2)' }} />
+          {/* ── Divider ── */}
+          <div className="flex items-center gap-3 my-5 text-xs text-[var(--text-muted)]">
+            <span className="h-px flex-1 bg-[var(--border)]" />
+            <span className="font-medium">{t('or')}</span>
+            <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
 
-          {/* ── The Two Bottom Action Buttons ── */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '10px',
-            }}
-          >
-            {/* Button 1: Create Account */}
+          {/* ── Secondary Actions ── */}
+          <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={handleSignupClick}
-              style={{
-                height: '44px',
-                borderRadius: '10px',
-                border: '1px solid rgba(212, 174, 120, 0.24)',
-                backgroundColor: 'rgba(20, 13, 9, 0.65)',
-                color: '#FAF6F0',
-                fontSize: '13px',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'border-color 0.15s',
-              }}
+              className="h-11 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] hover:border-[var(--accent-ring)] hover:text-[var(--accent)] text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
             >
-              <UserPlus style={{ width: '16px', height: '16px', color: '#D4AE78' }} aria-hidden="true" />
-              <span>{t('createAccount')}</span>
+              <UserPlus className="w-4 h-4 text-[var(--accent)] flex-shrink-0" aria-hidden="true" />
+              <span className="truncate">{t('createAccount')}</span>
             </button>
 
-            {/* Button 2: Continue as Guest */}
             <button
               type="button"
               onClick={handleGuestClick}
-              style={{
-                height: '44px',
-                borderRadius: '10px',
-                border: '1px solid rgba(212, 174, 120, 0.24)',
-                backgroundColor: 'rgba(20, 13, 9, 0.65)',
-                color: '#E6D5BF',
-                fontSize: '13px',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'border-color 0.15s',
-              }}
+              className="h-11 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent-ring)] hover:text-[var(--accent)] text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
             >
-              <UserCheck style={{ width: '16px', height: '16px', color: '#C7B6A2' }} aria-hidden="true" />
-              <span>{t('continueAsGuest')}</span>
+              <UserCheck className="w-4 h-4 text-[var(--gold)] flex-shrink-0" aria-hidden="true" />
+              <span className="truncate">{t('continueAsGuest')}</span>
             </button>
           </div>
         </div>
-        {/* ── END Card Body ── */}
 
-        {/* ── FOOTER ── */}
-        <footer
-          style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderTop: '1px solid rgba(212, 174, 120, 0.16)',
-            fontSize: '12px',
-            color: '#A68E76',
-            gap: '8px',
-            padding: '13px 24px',
-            backgroundColor: 'rgba(20, 13, 9, 0.72)',
-          }}
-        >
-          <ShieldCheck style={{ width: '14px', height: '14px', color: '#D4AE78', flexShrink: 0 }} aria-hidden="true" />
+        {/* ── Footer ── */}
+        <footer className="flex items-center justify-center gap-2 px-6 py-3 border-t border-[var(--border)] bg-[var(--bg-subtle)] text-xs text-[var(--text-muted)]">
+          <ShieldCheck className="w-3.5 h-3.5 text-[var(--gold)] flex-shrink-0" aria-hidden="true" />
           <span>{t('protectedSession')}</span>
         </footer>
       </section>

@@ -13,15 +13,12 @@ export function CustomerLoginModal({ locale }: CustomerLoginModalProps) {
   const pathname = usePathname()
   const { isLoginModalOpen, closeLoginModal } = useCustomerAuth()
 
-  // Prevent overlay on dedicated login/signup/admin/account pages to avoid redundant UI
   const isDedicatedAuthPage =
     pathname?.includes('/login') ||
     pathname?.includes('/signup') ||
     pathname?.includes('/control-panel-ss7') ||
-    // Account page shows its own login/signup links, so don't overlay the modal
     pathname?.endsWith('/account')
 
-  // Close on ESC key
   useEffect(() => {
     if (!isLoginModalOpen) return
 
@@ -35,7 +32,6 @@ export function CustomerLoginModal({ locale }: CustomerLoginModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isLoginModalOpen, closeLoginModal])
 
-  // Prevent scrolling when modal is open
   useEffect(() => {
     if (isLoginModalOpen && !isDedicatedAuthPage) {
       document.body.style.overflow = 'hidden'
@@ -60,12 +56,12 @@ export function CustomerLoginModal({ locale }: CustomerLoginModalProps) {
       {/* Backdrop */}
       <div
         onClick={closeLoginModal}
-        className="fixed inset-0 bg-[#060709]/85 backdrop-blur-md transition-opacity duration-300"
+        className="fixed inset-0 bg-[#140D09]/70 backdrop-blur-md transition-opacity duration-300"
         aria-hidden="true"
       />
 
       {/* Login Card Modal Container */}
-      <div className="relative z-10 w-full max-w-[480px] my-auto animate-in fade-in duration-200">
+      <div className="relative z-10 w-full max-w-[440px] my-auto animate-fade-in">
         <CustomerLoginCard
           locale={locale}
           isModal={true}

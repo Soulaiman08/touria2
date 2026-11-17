@@ -13,11 +13,11 @@ interface TrackingPageProps {
 }
 
 const STEPS: Array<{ status: OrderStatus; labelAr: string; labelFr: string; labelEn: string; icon: LucideIcon }> = [
-  { status: 'PENDING', labelAr: 'في الانتظار', labelFr: 'En attente', labelEn: 'Pending', icon: Clock },
-  { status: 'CONFIRMED', labelAr: 'تم التأكيد', labelFr: 'Confirmé', labelEn: 'Confirmed', icon: Check },
-  { status: 'PROCESSING', labelAr: 'قيد التجهيز', labelFr: 'En préparation', labelEn: 'Processing', icon: Package },
-  { status: 'SHIPPED', labelAr: 'تم الشحن', labelFr: 'Expédié', labelEn: 'Shipped', icon: Truck },
-  { status: 'DELIVERED', labelAr: 'تم التوصيل', labelFr: 'Livré', labelEn: 'Delivered', icon: Check },
+  { status: 'PENDING', labelAr: 'الانتظار', labelFr: 'En attente', labelEn: 'Pending', icon: Clock },
+  { status: 'CONFIRMED', labelAr: 'التأكيد', labelFr: 'Confirmé', labelEn: 'Confirmed', icon: Check },
+  { status: 'PROCESSING', labelAr: 'التجهيز', labelFr: 'Préparation', labelEn: 'Processing', icon: Package },
+  { status: 'SHIPPED', labelAr: 'الشحن', labelFr: 'Expédié', labelEn: 'Shipped', icon: Truck },
+  { status: 'DELIVERED', labelAr: 'التوصيل', labelFr: 'Livré', labelEn: 'Delivered', icon: Check },
 ]
 
 export function OrderTrackingPageClient({ params }: TrackingPageProps) {
@@ -83,45 +83,49 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 640 }}
+      style={{ maxWidth: 660 }}
     >
       {/* ── Back link ─────────────────────────────────────────────── */}
-      <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round mb-5">
-        <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-        <span>{locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
-      </Link>
+      <div className="mb-5">
+        <Link href={`/${locale}/orders`} className="btn btn-outline btn-sm btn-round">
+          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+          <span>{locale === 'ar' ? 'طلباتي' : locale === 'fr' ? 'Mes commandes' : 'My Orders'}</span>
+        </Link>
+      </div>
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden">
         {/* ── Page Header ───────────────────────────────────────────── */}
-        <div className="p-6 border-b border-[var(--border)] bg-[var(--bg-subtle)]">
-          <h1
-            className="text-xl font-extrabold text-[var(--text-primary)] mb-1"
-            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
-          >
-            {t('title')}
-          </h1>
-          <p className="text-sm text-[var(--text-muted)] m-0">
-            {t('orderNumber')}:{' '}
-            <span className="tabular-nums font-mono text-[var(--accent)] font-extrabold">
-              {order.orderNumber}
-            </span>
-          </p>
+        <div className="p-5 sm:p-6 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h1
+              className="text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] mb-1"
+              style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+            >
+              {t('title')}
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] m-0">
+              {t('orderNumber')}:{' '}
+              <span className="tabular-nums font-mono text-[var(--accent)] font-extrabold">
+                #{order.orderNumber}
+              </span>
+            </p>
+          </div>
         </div>
 
-        {/* ── Status Timeline ────────────────────────────────────────── */}
-        <div className="p-6 border-b border-[var(--border)]">
-          <div className="relative pb-1">
-            {/* Track line */}
+        {/* ── Mobile-Safe 5-Step Status Timeline ───────────────────── */}
+        <div className="px-3 py-6 sm:p-6 border-b border-[var(--border)]">
+          <div className="relative">
+            {/* Track background */}
             <div
-              className="absolute top-[18px] h-[3px] bg-[var(--border)] rounded-full z-0"
+              className="absolute top-[17px] h-[2px] bg-[var(--border)] rounded-full z-0"
               style={{
-                left: isRTL ? 0 : '10%',
-                right: isRTL ? '10%' : 0,
+                left: '10%',
+                right: '10%',
               }}
             />
-            {/* Filled track */}
+            {/* Filled progress track */}
             <div
-              className="absolute top-[18px] h-[3px] bg-[var(--accent)] rounded-full z-1 transition-all duration-500"
+              className="absolute top-[17px] h-[2px] bg-[var(--accent)] rounded-full z-[1] transition-all duration-500"
               style={{
                 left: isRTL ? 'auto' : '10%',
                 right: isRTL ? '10%' : 'auto',
@@ -129,8 +133,8 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
               }}
             />
 
-            {/* Steps */}
-            <div className="relative flex justify-between z-2">
+            {/* Steps Grid */}
+            <div className="relative grid grid-cols-5 gap-1 z-[2]">
               {STEPS.map((step, idx) => {
                 const StepIcon = step.icon
                 const isCompleted = idx <= currentStepIndex
@@ -138,26 +142,23 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                 const stepLabel = locale === 'ar' ? step.labelAr : locale === 'fr' ? step.labelFr : step.labelEn
 
                 return (
-                  <div key={step.status} className="flex flex-col items-center gap-2 flex-1">
+                  <div key={step.status} className="flex flex-col items-center gap-2 min-w-0">
                     <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center transition-all flex-shrink-0"
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all flex-shrink-0 border-2 ${
+                        isCompleted
+                          ? 'bg-[var(--accent)] border-[var(--accent)] text-white'
+                          : 'bg-[var(--card-bg)] border-[var(--border)] text-[var(--text-muted)]'
+                      }`}
                       style={{
-                        background: isCompleted ? 'var(--accent)' : 'var(--bg-subtle)',
-                        border: isCurrent ? '3px solid var(--accent)' : `2px solid ${isCompleted ? 'var(--accent)' : 'var(--border)'}`,
                         boxShadow: isCurrent ? '0 0 0 4px var(--accent-light)' : 'none',
                       }}
                     >
-                      <StepIcon
-                        className="w-3.5 h-3.5"
-                        style={{ color: isCompleted ? '#fff' : 'var(--text-muted)' }}
-                      />
+                      <StepIcon className="w-3.5 h-3.5" />
                     </div>
                     <span
-                      className="text-[10.5px] text-center leading-tight whitespace-nowrap"
-                      style={{
-                        fontWeight: isCompleted ? 700 : 500,
-                        color: isCompleted ? 'var(--text-primary)' : 'var(--text-muted)',
-                      }}
+                      className={`text-[10px] sm:text-xs text-center leading-tight px-0.5 ${
+                        isCompleted ? 'font-bold text-[var(--text-primary)]' : 'font-medium text-[var(--text-muted)]'
+                      }`}
                     >
                       {stepLabel}
                     </span>
@@ -170,10 +171,10 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
 
         {/* ── Status History Remarks ─────────────────────────────────── */}
         {order.statusHistory && order.statusHistory.length > 0 && (
-          <div className="px-6 py-5 border-b border-[var(--border)]">
-            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+          <div className="px-5 py-5 sm:px-6 border-b border-[var(--border)]">
+            <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3.5">
               {locale === 'ar' ? 'سجل تحديثات الحالة' : locale === 'fr' ? 'Historique des statuts' : 'Status update history'}
-            </h3>
+            </h2>
             <div className="border-s-2 border-[var(--border)] ps-4 ms-1.5 flex flex-col gap-3.5">
               {order.statusHistory.map((hist) => {
                 const stepObj = STEPS.find((s) => s.status === hist.status)
@@ -197,7 +198,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                       {new Date(hist.createdAt).toLocaleString(locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-FR' : 'en-US')}
                     </span>
                     {hist.note?.trim() && (
-                      <p className="text-xs text-[var(--text-primary)] leading-relaxed mt-1 mb-0 whitespace-pre-wrap break-words bg-[var(--accent-light)] border border-[var(--accent-ring)] rounded-xl px-3 py-2">
+                      <p className="text-xs text-[var(--text-primary)] leading-relaxed mt-1 mb-0 whitespace-pre-wrap break-words bg-[var(--bg-subtle)] border border-[var(--border)] rounded-xl px-3 py-2">
                         {hist.note}
                       </p>
                     )}
@@ -209,7 +210,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
         )}
 
         {/* ── Order Items ────────────────────────────────────────────── */}
-        <div className="px-6 py-5 border-b border-[var(--border)]">
+        <div className="px-5 py-5 sm:px-6 border-b border-[var(--border)]">
           <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3.5">
             {locale === 'ar' ? 'تفاصيل طلبكِ' : locale === 'fr' ? 'Détails de votre commande' : 'Order details'}
           </h2>
@@ -228,54 +229,48 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
               const itemName = locale === 'ar' ? snap.nameAr : locale === 'fr' ? snap.nameFr : snap.nameEn
 
               return (
-                <div key={item.id} className="flex items-center gap-3.5 py-3 first:pt-0 last:pb-0">
+                <div key={item.id} className="flex items-start gap-3.5 py-3.5 first:pt-0 last:pb-0">
                   {snap.mainImage ? (
                     <Image
                       src={snap.mainImage}
                       alt={itemName}
                       width={56}
-                      height={56}
+                      height={72}
                       referrerPolicy="no-referrer"
-                      className="w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
+                      className="w-14 h-[72px] rounded-xl object-cover flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
                       onError={(e) => {
                         ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
                       }}
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center flex-shrink-0 border border-[var(--border)] text-[var(--text-muted)]">
+                    <div className="w-14 h-[72px] rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center flex-shrink-0 border border-[var(--border)] text-[var(--text-muted)]">
                       <ShoppingBag className="w-5 h-5 opacity-50" />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[var(--text-primary)] mb-1 leading-snug">
+                    <p className="text-sm font-bold text-[var(--text-primary)] mb-1 leading-snug">
                       {itemName}
                     </p>
                     <p className="tabular-nums text-xs text-[var(--text-muted)] m-0">
-                      {hasRealSize && (
-                        <>
-                          <span className="font-semibold text-[var(--text-primary)]">{rawSize}</span>
-                          {' · '}
-                        </>
-                      )}
-                      {colorName && (
-                        <>
-                          <span className="font-semibold text-[var(--text-primary)]">{colorName}</span>
-                          {' · '}
-                        </>
-                      )}
-                      {cartT('quantity')}: <span className="font-semibold text-[var(--text-primary)]">{item.quantity}</span>
+                      {[
+                        hasRealSize ? rawSize : '',
+                        colorName,
+                        `${cartT('quantity')}: ${item.quantity}`,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                     </p>
 
                     {niqabs.length > 0 && (
-                      <div className="mt-1.5 flex flex-col gap-1">
+                      <div className="mt-2 flex flex-col gap-1">
                         {niqabs.map((niqab, nIdx) => {
                           const niqabName = locale === 'ar' ? niqab.nameAr : locale === 'fr' ? niqab.nameFr : niqab.nameEn
                           const niqabColor = niqab.color?.nameAr || niqab.color?.nameFr || niqab.color?.nameEn || ''
                           return (
                             <div
                               key={`${niqab.id}-${nIdx}`}
-                              className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] bg-[var(--accent-light)] px-2 py-1 rounded-lg border border-[var(--accent-ring)]"
+                              className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] bg-[var(--bg-subtle)] px-2.5 py-1 rounded-lg border border-[var(--border)]"
                             >
                               {niqab.image && (
                                 <Image
@@ -295,7 +290,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                               </span>
                               {niqabColor && (
                                 <>
-                                  <span className="opacity-50">—</span>
+                                  <span className="opacity-50">·</span>
                                   <span>{niqabColor}</span>
                                 </>
                               )}
@@ -315,32 +310,31 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
           </div>
         </div>
 
-        {/* ── Delivery Notes (customer) ──────────────────────────────── */}
+        {/* ── Delivery & Admin Notes ─────────────────────────────────── */}
         {order.notes?.trim() && (
-          <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)]">
-            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+          <div className="px-5 py-4 sm:px-6 border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+            <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
               {locale === 'ar' ? 'ملاحظات التوصيل' : locale === 'fr' ? 'Notes de livraison' : 'Delivery notes'}
             </h3>
-            <p className="text-sm text-[var(--text-primary)] leading-relaxed m-0 whitespace-pre-wrap break-words bg-[var(--card-bg)] border border-[var(--border)] rounded-xl px-3.5 py-2.5">
+            <p className="text-sm text-[var(--text-primary)] leading-relaxed m-0 whitespace-pre-wrap break-words">
               {order.notes}
             </p>
           </div>
         )}
 
-        {/* ── Admin Notes (staff / management) ───────────────────────── */}
         {order.adminNotes?.trim() && (
-          <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--accent-light)]">
-            <h3 className="text-xs font-bold text-[var(--accent)] uppercase tracking-wider mb-2">
+          <div className="px-5 py-4 sm:px-6 border-b border-[var(--border)] bg-[var(--accent-light)]">
+            <h3 className="text-xs font-bold text-[var(--accent)] uppercase tracking-wider mb-1.5">
               {locale === 'ar' ? 'ملاحظات الإدارة' : locale === 'fr' ? 'Notes de l\'administration' : 'Admin notes'}
             </h3>
-            <p className="text-sm text-[var(--text-primary)] leading-relaxed m-0 whitespace-pre-wrap break-words bg-[var(--card-bg)] border border-[var(--accent-ring)] rounded-xl px-3.5 py-2.5">
+            <p className="text-sm text-[var(--text-primary)] leading-relaxed m-0 whitespace-pre-wrap break-words">
               {order.adminNotes}
             </p>
           </div>
         )}
 
         {/* ── Price Summary ──────────────────────────────────────────── */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm text-[var(--text-muted)]">
               <span>{cartT('subtotal')}</span>
@@ -357,7 +351,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
           </div>
 
           <div className="mt-5">
-            <Link href={`/${locale}`} className="btn btn-primary w-full justify-center py-3 rounded-xl text-sm">
+            <Link href={`/${locale}`} className="btn btn-primary w-full justify-center h-11 rounded-xl text-sm font-bold">
               <ShoppingBag className="w-4 h-4" />
               <span>{locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
             </Link>

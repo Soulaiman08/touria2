@@ -12,7 +12,6 @@ import {
   Mail,
   MessageCircle,
   ArrowLeft,
-  CheckCircle2,
   Sparkles,
   ShoppingBag,
 } from 'lucide-react'
@@ -315,77 +314,69 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
       dir={isRTL ? 'rtl' : 'ltr'}
       style={{ maxWidth: 960 }}
     >
-      {/* ── 1. Top Navigation ───────────────────────── */}
-      <div className="mb-5">
+      {/* ── Top Navigation ────────────────────────────────────────── */}
+      <div className="mb-6">
         <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
           <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           <span>{isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}</span>
         </Link>
       </div>
 
-      {/* ── 2. Hero Header Card ──────────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-7">
-        <div className="p-8 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
-          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-7 h-7 text-[var(--accent)]" />
-          </div>
-
-          <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)] mb-2">
-            {isRTL
-              ? 'خصوصيتكِ أمانتنا ومسؤوليتنا'
-              : isFR
-                ? 'Protection & Sécurité Garantie'
-                : 'Privacy & Data Protection Guaranteed'}
-          </p>
-
-          <h1
-            className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] mb-2.5"
-            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
-          >
-            {isRTL
-              ? 'سياسة الخصوصية وحماية البيانات'
-              : isFR
-                ? 'Politique de Confidentialité'
-                : 'Privacy Policy & Data Security'}
-          </h1>
-
-          {/* Subtle Moroccan Hairline */}
-          <div className="flex items-center justify-center gap-2.5 my-3" aria-hidden="true">
-            <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
-            <span className="w-1.5 h-1.5 rotate-45 bg-[var(--gold)]" />
-            <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
-          </div>
-
-          <p className="text-sm text-[var(--text-muted)] max-w-xl mx-auto leading-relaxed mb-4">
-            {isRTL
-              ? 'في متجر ثريا المغربي نعتز بثقتكم ونلتزم بحماية بياناتكم الشخصية وفقاً لأعلى معايير الأمان والشفافية في كل مرحلة من مراحل التسوق والتوصيل.'
-              : isFR
-                ? 'Chez Thuraya Al-Maghribi, nous veillons avec le plus grand soin à la protection de votre vie privée et à la sécurité de vos informations personnelles.'
-                : 'At Thuraya Al-Maghribi, we deeply value your trust and are committed to protecting your personal data with utmost security and transparency.'}
-          </p>
-
-          {/* Subtle Metadata Notes */}
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-muted)]">
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent)]" />
-              <span className="tabular-nums">{isRTL ? 'آخر تحديث: 2026' : isFR ? 'Mise à jour : 2026' : 'Updated: 2026'}</span>
-            </span>
-            <span className="opacity-40">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[var(--success)]" />
-              <span>
-                {isRTL
-                  ? 'مطابق لمعايير حماية البيانات'
-                  : isFR
-                    ? 'Conforme Loi 09-08'
-                    : 'Compliant with Data Laws'}
-              </span>
-            </span>
-          </div>
+      {/* ── Editorial Hero Header ─────────────────────────────────── */}
+      <header className="text-center mb-8">
+        <div className="w-12 h-14 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] flex items-center justify-center mx-auto mb-3.5 text-[var(--accent)]">
+          <ShieldCheck className="w-5 h-5" />
         </div>
-      </div>
 
-      {/* ── 3. Trust Highlights (4 Quick Cards) ──────────────────── */}
+        <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)] mb-1.5">
+          {isRTL
+            ? 'خصوصيتكِ أمانتنا ومسؤوليتنا'
+            : isFR
+              ? 'Protection & Sécurité Garantie'
+              : 'Privacy & Data Protection Guaranteed'}
+        </p>
+
+        <h1
+          className="text-2xl sm:text-4xl font-extrabold text-[var(--text-primary)] mb-3 text-balance"
+          style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+        >
+          {isRTL
+            ? 'سياسة الخصوصية وحماية البيانات'
+            : isFR
+              ? 'Politique de Confidentialité'
+              : 'Privacy Policy & Data Security'}
+        </h1>
+
+        {/* Subtle Moroccan Hairline */}
+        <div className="flex items-center justify-center gap-2.5 my-3" aria-hidden="true">
+          <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
+          <span className="w-1.5 h-1.5 rotate-45 bg-[var(--gold)]" />
+          <span className="h-[1px] w-10 bg-[var(--gold)] opacity-60" />
+        </div>
+
+        <p className="text-sm text-[var(--text-muted)] max-w-xl mx-auto leading-relaxed mb-3">
+          {isRTL
+            ? 'في متجر ثريا المغربي نعتز بثقتكم ونلتزم بحماية بياناتكم الشخصية وفقاً لأعلى معايير الأمان والشفافية في كل مرحلة من مراحل التسوق والتوصيل.'
+            : isFR
+              ? 'Chez Thuraya Al-Maghribi, nous veillons avec le plus grand soin à la protection de votre vie privée et à la sécurité de vos informations personnelles.'
+              : 'At Thuraya Al-Maghribi, we deeply value your trust and are committed to protecting your personal data with utmost security and transparency.'}
+        </p>
+
+        {/* Quiet Inline Metadata */}
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-[var(--text-muted)] tabular-nums">
+          <span>{isRTL ? 'آخر تحديث: 2026' : isFR ? 'Mise à jour : 2026' : 'Updated: 2026'}</span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {isRTL
+              ? 'مطابق لقانون حماية المعطيات الشخصية'
+              : isFR
+                ? 'Conforme Loi 09-08'
+                : 'Compliant with Data Protection Laws'}
+          </span>
+        </div>
+      </header>
+
+      {/* ── Trust Highlights (4 Calm Cards) ───────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {trustHighlights.map((item, idx) => {
           const Icon = item.icon
@@ -410,7 +401,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
         })}
       </div>
 
-      {/* ── 4. Main Policy Sections ──────────────────────────────── */}
+      {/* ── Policy Chapters (Clean Hairline Rows, No Nested Cards) ── */}
       <div className="flex flex-col gap-5 mb-8">
         {policySections.map((section, idx) => {
           const Icon = section.icon
@@ -419,7 +410,6 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               key={idx}
               className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden"
             >
-              {/* Section Header */}
               <div className="px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
@@ -427,21 +417,18 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                   </div>
 
                   <div>
-                    <span className="tabular-nums text-[10px] font-bold tracking-widest text-[var(--accent)] block">
-                      {section.number}
-                    </span>
                     <h2 className="text-base font-extrabold text-[var(--text-primary)] m-0">
+                      <span className="tabular-nums text-[var(--accent)] me-2">{section.number}.</span>
                       {section.title}
                     </h2>
                   </div>
                 </div>
 
-                <span className="text-xs font-semibold text-[var(--text-muted)]">
+                <span className="text-xs font-medium text-[var(--text-muted)]">
                   {section.badge}
                 </span>
               </div>
 
-              {/* Section Body */}
               <div className="p-5 sm:p-6 flex flex-col gap-3">
                 {section.content.map((paragraph, pIdx) => {
                   const isNote = paragraph.startsWith('ملاحظة') || paragraph.startsWith('Note') || paragraph.startsWith('Important')
@@ -452,9 +439,9 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                     return (
                       <div
                         key={pIdx}
-                        className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)]"
+                        className="flex items-start gap-2.5 py-2 border-b last:border-b-0 border-[var(--border-subtle)]"
                       >
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-2 flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 rotate-45 bg-[var(--gold)] mt-2 flex-shrink-0" aria-hidden="true" />
                         <div className="text-sm leading-relaxed">
                           <strong className="text-[var(--text-primary)] font-bold">
                             {heading}:
@@ -469,9 +456,9 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
                     return (
                       <div
                         key={pIdx}
-                        className="mt-1 px-4 py-3 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center gap-2.5 text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed"
+                        className="mt-1 px-4 py-3 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-start gap-2.5 text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed"
                       >
-                        <ShieldCheck className="w-4 h-4 text-[var(--accent)] flex-shrink-0" />
+                        <ShieldCheck className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
                         <span>{paragraph}</span>
                       </div>
                     )
@@ -492,14 +479,14 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
         })}
       </div>
 
-      {/* ── 5. WhatsApp & Direct Support Banner ──────────────────── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] p-7 text-center flex flex-col items-center gap-3.5 mb-7">
-        <div className="w-12 h-12 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
-          <MessageCircle className="w-6 h-6" />
+      {/* ── Direct Privacy Concierge Banner ──────────────────────── */}
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 text-center flex flex-col items-center gap-3.5 mb-7">
+        <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
+          <MessageCircle className="w-5 h-5" />
         </div>
 
         <div>
-          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-1">
+          <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] mb-1">
             {isRTL
               ? 'هل لديكِ أي استفسار حول خصوصيتكِ أو طلباتكِ؟'
               : isFR
@@ -521,7 +508,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary btn-round px-6 py-2.5 text-sm"
+              className="btn btn-primary btn-round px-6 h-11 text-sm"
             >
               <MessageCircle className="w-4 h-4" />
               <span>{isRTL ? 'تواصلي معنا عبر واتساب' : isFR ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
@@ -532,7 +519,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
             href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.contactEmail?.trim() || siteConfig.contact.email)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-outline btn-round px-6 py-2.5 text-sm"
+            className="btn btn-outline btn-round px-6 h-11 text-sm"
           >
             <Mail className="w-4 h-4 text-[var(--accent)]" />
             <span>{isRTL ? 'البريد الإلكتروني' : isFR ? 'Envoyer un Email' : 'Email Us'}</span>
@@ -540,7 +527,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
         </div>
       </div>
 
-      {/* ── 6. Bottom Navigation CTA ─────────────────────────────── */}
+      {/* ── Bottom Navigation CTA ─────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <Link
           href={`/${locale}`}

@@ -37,16 +37,14 @@ export function AccountPageClient({ params }: AccountPageProps) {
 
   const t = (key: string): string => {
     const map: Record<string, [string, string, string]> = {
-      title: ['حسابي', 'Mon compte', 'My account'],
       loading: ['جاري التحميل...', 'Chargement...', 'Loading...'],
       signInTitle: ['سجّل الدخول', 'Connectez-vous', 'Sign in'],
       signInDesc: ['سجّل الدخول للاطلاع على ملفك وطلباتك', 'Connectez-vous pour voir votre profil et vos commandes', 'Sign in to view your profile and orders'],
       signIn: ['تسجيل الدخول', 'Se connecter', 'Sign in'],
       createAccount: ['إنشاء حساب', 'Créer un compte', 'Create account'],
-      profile: ['الملف الشخصي', 'Profil', 'Profile'],
-      name: ['الاسم', 'Nom', 'Name'],
+      name: ['الاسم الكامل', 'Nom complet', 'Full name'],
       email: ['البريد الإلكتروني', 'E-mail', 'Email'],
-      phone: ['الهاتف', 'Téléphone', 'Phone'],
+      phone: ['رقم الهاتف', 'Téléphone', 'Phone'],
       phonePlaceholder: ['06XXXXXXXX', '06XXXXXXXX', '06XXXXXXXX'],
       save: ['حفظ التغييرات', 'Enregistrer', 'Save changes'],
       saved: ['تم الحفظ بنجاح', 'Enregistré avec succès', 'Saved successfully'],
@@ -144,7 +142,7 @@ export function AccountPageClient({ params }: AccountPageProps) {
   }
 
   return (
-    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 540 }}>
+    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 560 }}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
           <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
@@ -161,43 +159,49 @@ export function AccountPageClient({ params }: AccountPageProps) {
 
       {!user ? (
         /* ── Not logged in ── */
-        <div className="p-8 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] text-center">
-          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center mx-auto mb-4">
+        <div className="p-7 sm:p-8 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] text-center flex flex-col items-center">
+          <div className="w-14 h-16 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] text-[var(--accent)] flex items-center justify-center mb-4">
             <UserRound className="w-6 h-6" />
           </div>
-          <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">{t('signInTitle')}</h2>
+          <h1
+            className="text-xl font-extrabold text-[var(--text-primary)] mb-2"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+          >
+            {t('signInTitle')}
+          </h1>
           <p className="text-sm text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed mb-6">{t('signInDesc')}</p>
-          <div className="flex flex-col items-center gap-3 max-w-xs mx-auto">
-            <Link href={`/${locale}/login`} className="btn btn-primary w-full justify-center py-3 rounded-xl">
+          <div className="flex flex-col items-center gap-3 w-full max-w-xs mx-auto">
+            <Link href={`/${locale}/login`} className="btn btn-primary w-full justify-center h-11 rounded-xl text-sm font-bold">
               {t('signIn')}
             </Link>
-            <Link href={`/${locale}/signup`} className="btn btn-outline w-full justify-center py-3 rounded-xl">
+            <Link href={`/${locale}/signup`} className="btn btn-outline w-full justify-center h-11 rounded-xl text-sm font-semibold">
               {t('createAccount')}
             </Link>
           </div>
         </div>
       ) : (
         /* ── Logged in ── */
-        <div className="flex flex-col gap-5 pb-10">
-          {/* ── Profile Card ── */}
-          <div className="p-6 sm:p-7 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]">
+        <div className="flex flex-col gap-4 pb-8">
+          <div className="p-5 sm:p-7 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]">
             {/* Avatar + Name */}
             <div className="flex items-center gap-4 pb-5 mb-6 border-b border-[var(--border)]">
               <div className="relative flex-shrink-0">
                 {user.avatarUrl ? (
-                  <Image
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    width={68}
-                    height={68}
-                    referrerPolicy="no-referrer"
-                    className="w-17 h-17 rounded-full object-cover border border-[var(--border)]"
-                    onError={(e) => {
-                      ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
-                    }}
-                  />
+                  <div className="w-16 h-[72px] rounded-t-[999px] rounded-b-xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)]">
+                    <Image
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      width={64}
+                      height={72}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                      }}
+                    />
+                  </div>
                 ) : (
-                  <div className="w-17 h-17 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center">
+                  <div className="w-16 h-[72px] rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] text-[var(--accent)] flex items-center justify-center">
                     <UserRound className="w-7 h-7" />
                   </div>
                 )}
@@ -205,14 +209,15 @@ export function AccountPageClient({ params }: AccountPageProps) {
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="absolute -bottom-0.5 -end-0.5 w-7 h-7 rounded-full bg-[var(--accent)] text-white border-2 border-[var(--card-bg)] flex items-center justify-center cursor-pointer disabled:opacity-60"
+                  className="absolute -bottom-1 -end-1 w-8 h-8 rounded-full bg-[var(--accent)] text-white border-2 border-[var(--card-bg)] flex items-center justify-center cursor-pointer disabled:opacity-60 shadow-xs"
                   aria-label={t('uploadAvatar')}
                 >
-                  {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Camera className="w-3 h-3" />}
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
                 </button>
                 <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatar} />
               </div>
-              <div className="min-w-0">
+
+              <div className="min-w-0 flex-1">
                 <h1
                   className="text-xl font-extrabold text-[var(--text-primary)] truncate mb-1"
                   style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
@@ -225,7 +230,7 @@ export function AccountPageClient({ params }: AccountPageProps) {
               </div>
             </div>
 
-            {/* Message */}
+            {/* Feedback message */}
             {msg && (
               <div
                 className="px-4 py-2.5 rounded-xl text-xs font-semibold mb-4 border"
@@ -239,15 +244,14 @@ export function AccountPageClient({ params }: AccountPageProps) {
               </div>
             )}
 
-            {/* Form */}
+            {/* Profile Form */}
             <form onSubmit={handleSave} className="flex flex-col gap-4">
-              {/* Name */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5">
                   {t('name')}
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-[var(--text-muted)] opacity-60 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
+                  <User className="w-4 h-4 text-[var(--text-muted)] opacity-70 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     type="text"
                     required
@@ -255,50 +259,48 @@ export function AccountPageClient({ params }: AccountPageProps) {
                     maxLength={100}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
+                    className="h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors"
                   />
                 </div>
               </div>
 
-              {/* Email (disabled) */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5">
                   {t('email')}
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[var(--text-muted)] opacity-60 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
+                  <Mail className="w-4 h-4 text-[var(--text-muted)] opacity-70 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     type="email"
                     disabled
+                    dir="ltr"
                     value={user.email}
-                    className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] ps-10 pe-4 text-sm font-medium text-[var(--text-muted)] opacity-70 cursor-not-allowed outline-none"
+                    className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] ps-10 pe-4 text-sm font-medium text-[var(--text-muted)] opacity-75 cursor-not-allowed outline-none text-start"
                   />
                 </div>
               </div>
 
-              {/* Phone */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5">
                   {t('phone')}
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-[var(--text-muted)] opacity-60 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
+                  <Phone className="w-4 h-4 text-[var(--text-muted)] opacity-70 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder={t('phonePlaceholder')}
                     dir="ltr"
-                    className="tabular-nums h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                    className="tabular-nums h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start transition-colors"
                   />
                 </div>
               </div>
 
-              {/* Save button */}
               <button
                 type="submit"
                 disabled={saving}
-                className="btn btn-primary w-full justify-center py-3 rounded-xl mt-2"
+                className="btn btn-primary w-full justify-center h-11 rounded-xl mt-2 text-sm font-bold"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>{t('save')}</span>
@@ -306,11 +308,10 @@ export function AccountPageClient({ params }: AccountPageProps) {
             </form>
           </div>
 
-          {/* ── Logout button ── */}
           <button
             type="button"
             onClick={handleLogout}
-            className="btn btn-outline w-full justify-center py-3 rounded-xl hover:border-[var(--error)] hover:text-[var(--error)]"
+            className="btn btn-outline w-full justify-center h-11 rounded-xl text-sm font-semibold hover:border-[var(--error)] hover:text-[var(--error)]"
           >
             <LogOut className="w-4 h-4" />
             <span>{t('logout')}</span>

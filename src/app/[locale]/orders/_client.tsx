@@ -113,9 +113,9 @@ function getStatusConfig(status: string, locale: string): StatusConfig {
     return {
       label: currentLabels.shipped,
       icon: Truck,
-      color: '#2563eb',
-      background: 'rgba(37, 99, 235, 0.1)',
-      border: 'rgba(37, 99, 235, 0.25)',
+      color: 'var(--accent)',
+      background: 'var(--accent-light)',
+      border: 'var(--accent-ring)',
     }
   }
 
@@ -144,8 +144,8 @@ function getStatusConfig(status: string, locale: string): StatusConfig {
       label: currentLabels.pending,
       icon: Clock,
       color: 'var(--gold)',
-      background: 'var(--bg-subtle)',
-      border: 'var(--border)',
+      background: 'var(--gold-bg)',
+      border: 'var(--gold-ring)',
     }
   }
 
@@ -180,7 +180,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
   const { customer, loading: authLoading } = useCustomerAuth()
 
   const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
+  const [fetchedCustomerId, setFetchedCustomerId] = useState<string | null>(null)
   const [error, setError] = useState(false)
   const [searchOrderNumber, setSearchOrderNumber] = useState('')
   const [searchPhone, setSearchPhone] = useState('')
@@ -193,14 +193,10 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
   const phoneInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (authLoading) return
-
-    if (!customer) {
-      setLoading(false)
-      return
-    }
+    if (authLoading || !customer) return
 
     let mounted = true
+    const targetCustomerId = customer.id
     async function loadOrders() {
       try {
         const res = await fetch('/api/customer/orders', { method: 'GET', cache: 'no-store' })
@@ -216,7 +212,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       } catch {
         if (mounted) setError(true)
       } finally {
-        if (mounted) setLoading(false)
+        if (mounted) setFetchedCustomerId(targetCustomerId)
       }
     }
     loadOrders()
@@ -224,6 +220,8 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       mounted = false
     }
   }, [customer, authLoading])
+
+  const loading = authLoading || (Boolean(customer) && fetchedCustomerId !== customer?.id)
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false)
@@ -255,6 +253,10 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
 
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!searchOpen) {
+      setSearchOpen(true)
+      return
+    }
     const trimmed = searchOrderNumber.trim()
     if (!trimmed) return
 
@@ -313,8 +315,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       subtitle: 'تابعي حالة طلباتكِ ومشترياتكِ السابقة بكل سهولة وشفافية.',
       badge: 'سجل المشتريات والتتبع',
       loading: 'جاري تحميل الطلبات...',
-      trackDirect: 'تتبع طلب مباشر',
-      trackPlaceholder: 'أدخلي رقم الطلب (مثال: ORD-12345)...',
+      trackDirect: 'تتبع طلب مباشر برقم الطلب',
       trackBtn: 'تتبع الآن',
       orderNum: 'رقم الطلب',
       date: 'تاريخ الطلب',
@@ -333,14 +334,14 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       errorDesc: 'يرجى المحاولة مجدداً.',
       retry: 'حاول مجدداً',
       trackSectionTitle: 'كيف يمكنني تتبع حالة طلبي؟',
-      trackSectionDesc: 'يمكنكِ تتبع الطلب بكل سهولة من خلال زيارة صفحة تتبع الطلب وإدخال رقم طلبكِ لمعرفة المرحلة الحالية للتجهيز والشحن.',
-      trackSectionBtn: 'تتبع طلبك',
+      trackSectionDesc: 'يمكنكِ تتبع الطلب بكل سهولة من خلال إدخال رقم الطلب ورقم الهاتف المستخدم في الخانة أعلاه لمعرفة مرحلة التجهيز والشحن.',
+      trackSectionBtn: 'البحث عن طلب',
       welcome: 'مرحباً،',
       searchNoResults: 'لا توجد نتيجة',
-      searchNoResultsDesc: 'لم نتمكن من العثور على طلب يطابق رقم الطلب ورقم الهاتف المُدخلين. تأكد من البيانات وحاول مرة أخرى.',
+      searchNoResultsDesc: 'لم نتمكن من العثور على طلب يطابق رقم الطلب ورقم الهاتف المُدخلين. تأكدي من البيانات وحاولي مرة أخرى.',
       searchError: 'حدث خطأ أثناء البحث',
-      searchPlaceholder: 'أدخلي رقم الطلب...',
-      trackPhonePlaceholder: 'أدخلي رقم الهاتف المستخدم في الطلب...',
+      searchPlaceholder: 'أدخلي رقم الطلب (مثال: ORD-12345)...',
+      trackPhonePlaceholder: 'رقم الهاتف المستخدم في الطلب...',
     },
     fr: {
       title: 'Mes Commandes',
@@ -348,7 +349,6 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       badge: 'Historique et suivi des commandes',
       loading: 'Chargement des commandes...',
       trackDirect: 'Suivi direct d\'une commande',
-      trackPlaceholder: 'Entrez le numéro de commande (ex: ORD-12345)...',
       trackBtn: 'Suivre',
       orderNum: 'N° de commande',
       date: 'Date',
@@ -367,22 +367,21 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       errorDesc: 'Veuillez réessayer.',
       retry: 'Réessayer',
       trackSectionTitle: 'Comment suivre ma commande ?',
-      trackSectionDesc: 'Vous pouvez suivre votre commande facilement en visitant la page de suivi et en entrant votre numéro de commande pour connaître l\'étape actuelle de préparation et de livraison.',
-      trackSectionBtn: 'Suivre votre commande',
+      trackSectionDesc: 'Vous pouvez suivre votre commande facilement en saisissant votre numéro de commande et le téléphone utilisé ci-dessus.',
+      trackSectionBtn: 'Rechercher une commande',
       welcome: 'Bonjour,',
       searchNoResults: 'Aucun résultat',
-      searchNoResultsDesc: 'Nous n\'avons trouvé aucune commande correspondant au numéro de commande et au numéro de téléphone saisis. Vérifiez vos informations et réessayez.',
+      searchNoResultsDesc: 'Nous n\'avons trouvé aucune commande correspondant au numéro et au téléphone saisis. Vérifiez vos informations et réessayez.',
       searchError: 'Une erreur s\'est produite lors de la recherche',
       searchPlaceholder: 'Entrez le numéro de commande...',
-      trackPhonePlaceholder: 'Entrez le numéro de téléphone utilisé pour la commande...',
+      trackPhonePlaceholder: 'Téléphone utilisé pour la commande...',
     },
     en: {
       title: 'My Orders',
       subtitle: 'Easily track the status of your orders and previous purchases.',
       badge: 'Order History & Tracking',
       loading: 'Loading orders...',
-      trackDirect: 'Direct Order Tracking',
-      trackPlaceholder: 'Enter order number (e.g. ORD-12345)...',
+      trackDirect: 'Direct order tracking',
       trackBtn: 'Track Order',
       orderNum: 'Order #',
       date: 'Date',
@@ -401,14 +400,14 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       errorDesc: 'Please try again.',
       retry: 'Try Again',
       trackSectionTitle: 'How can I track my order?',
-      trackSectionDesc: 'You can easily track your order by visiting the order tracking page and entering your order number to know the current preparation and shipping stage.',
-      trackSectionBtn: 'Track Your Order',
+      trackSectionDesc: 'Enter your order number and phone number in the tracking lookup above to inspect real-time preparation and delivery stages.',
+      trackSectionBtn: 'Find an Order',
       welcome: 'Hello,',
       searchNoResults: 'No results found',
       searchNoResultsDesc: 'We couldn\'t find an order matching the order number and phone number. Please check your details and try again.',
       searchError: 'An error occurred while searching',
       searchPlaceholder: 'Enter order number...',
-      trackPhonePlaceholder: 'Enter the phone number used for the order...',
+      trackPhonePlaceholder: 'Phone number used for order...',
     },
   }
 
@@ -427,82 +426,77 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 840 }}
+      style={{ maxWidth: 860 }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
-      <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round mb-5">
-        <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-        <span>{t.back}</span>
-      </Link>
+      <div className="mb-6">
+        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
+          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+          <span>{t.back}</span>
+        </Link>
+      </div>
 
-      {/* ── Page Header Card ──────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-6">
-        <div className="p-7 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
-          <div className="w-14 h-14 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-3.5">
-            <Package className="w-7 h-7 text-[var(--accent)]" />
-          </div>
-
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent)] mb-1.5">
-            {t.badge}
-          </p>
-
-          <h1
-            className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] mb-1.5"
-            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
-          >
-            {t.title}
-          </h1>
-
-          <p className="text-sm text-[var(--text-muted)] max-w-md mx-auto m-0">
-            {t.subtitle}
-          </p>
-
-          {isLoggedIn && customer?.name && (
-            <p className="text-sm text-[var(--accent)] mt-2.5 font-bold">
-              {t.welcome} {customer.name}
-            </p>
-          )}
+      {/* ── Editorial Page Header ─────────────────────────────────── */}
+      <header className="text-center mb-6">
+        <div className="w-12 h-14 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] flex items-center justify-center mx-auto mb-3.5 text-[var(--accent)]">
+          <Package className="w-5 h-5" />
         </div>
 
-        {/* ── Quick Lookup Box ──────────────────────────────────────── */}
-        <div id="order-lookup" className="p-5 bg-[var(--card-bg)]">
-          <div ref={searchRef}>
-            <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5">
-              <div
-                className="flex items-center gap-2 relative"
-                style={{ flex: searchOpen ? 1 : 'none' }}
-              >
-                {searchOpen ? (
-                  <div className="relative flex-1 w-full">
-                    <Search className="w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={searchOrderNumber}
-                      onChange={(e) => {
-                        setSearchOrderNumber(e.target.value)
-                        setSearchNotFound(false)
-                        setSearchError(false)
-                      }}
-                      onKeyDown={handleSearchKeyDown}
-                      placeholder={t.searchPlaceholder}
-                      className="w-full h-11 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
-                    />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setSearchOpen(true)}
-                    className="w-11 h-11 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:text-[var(--accent)] flex items-center justify-center cursor-pointer flex-shrink-0"
-                    aria-label={t.trackDirect}
-                  >
-                    <Search className="w-4 h-4" />
-                  </button>
-                )}
+        <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)] mb-1.5">
+          {t.badge}
+        </p>
+
+        <h1
+          className="text-2xl sm:text-4xl font-extrabold text-[var(--text-primary)] mb-2 text-balance"
+          style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+        >
+          {t.title}
+        </h1>
+
+        <p className="text-sm text-[var(--text-muted)] max-w-md mx-auto m-0 leading-relaxed">
+          {t.subtitle}
+        </p>
+
+        {isLoggedIn && customer?.name && (
+          <p className="text-sm text-[var(--accent)] mt-2.5 font-bold m-0">
+            {t.welcome} {customer.name}
+          </p>
+        )}
+      </header>
+
+      {/* ── Direct Order Lookup Box ───────────────────────────────── */}
+      <div id="order-lookup" ref={searchRef} className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 mb-6">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          {!searchOpen ? (
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="flex-1 h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-3.5 flex items-center gap-2.5 text-sm text-[var(--text-muted)] hover:border-[var(--accent-ring)] cursor-pointer text-start transition-colors"
+            >
+              <Search className="w-4 h-4 text-[var(--accent)] flex-shrink-0" />
+              <span className="truncate">{t.trackDirect}</span>
+            </button>
+          ) : (
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="relative">
+                <Search className="w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchOrderNumber}
+                  onChange={(e) => {
+                    setSearchOrderNumber(e.target.value)
+                    setSearchNotFound(false)
+                    setSearchError(false)
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder={t.searchPlaceholder}
+                  className="w-full h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] ps-10 pe-3.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
+                />
               </div>
 
-              {searchOpen && !isLoggedIn && (
-                <div className="relative w-full" style={{ flex: '1 1 100%' }}>
+              {!isLoggedIn && (
+                <div className="relative">
                   <Phone className="w-4 h-4 text-[var(--text-muted)] absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none" />
                   <input
                     ref={phoneInputRef}
@@ -517,57 +511,57 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                     }}
                     onKeyDown={handleSearchKeyDown}
                     placeholder={t.trackPhonePlaceholder}
-                    className="tabular-nums w-full h-11 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                    dir="ltr"
+                    className="tabular-nums w-full h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] ps-10 pe-3.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
                   />
                 </div>
               )}
+            </div>
+          )}
 
-              <button
-                type="submit"
-                disabled={searching || (searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim())))}
-                className="btn btn-primary rounded-xl px-5 py-2.5 text-sm font-bold whitespace-nowrap"
-              >
-                {searching ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <span>{t.trackBtn}</span>
-                    <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* ── Search Results ──────────────────────────────────────── */}
-            {searchNotFound && (
-              <div className="mt-4 p-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] text-center flex flex-col items-center">
-                <div className="w-12 h-12 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-3">
-                  <SearchX className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
-                  {t.searchNoResults}
-                </h3>
-                <p className="text-xs text-[var(--text-muted)] max-w-sm leading-relaxed m-0">
-                  {t.searchNoResultsDesc}
-                </p>
-              </div>
+          <button
+            type="submit"
+            disabled={searching || (searchOpen && (!searchOrderNumber.trim() || (!isLoggedIn && !searchPhone.trim())))}
+            className="btn btn-primary h-11 rounded-xl px-5 text-sm font-bold whitespace-nowrap justify-center"
+          >
+            {searching ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <span>{t.trackBtn}</span>
+                <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+              </>
             )}
+          </button>
+        </form>
 
-            {searchError && (
-              <div className="mt-4 p-4 rounded-xl border border-[var(--error-border)] bg-[var(--error-bg)] flex items-center justify-center gap-2.5">
-                <AlertCircle className="w-4 h-4 text-[var(--error)] flex-shrink-0" />
-                <span className="text-xs text-[var(--error)] font-semibold">{t.searchError}</span>
-              </div>
-            )}
+        {searchNotFound && (
+          <div className="mt-4 p-5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-center flex flex-col items-center">
+            <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-2.5">
+              <SearchX className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-[var(--text-primary)] mb-1">
+              {t.searchNoResults}
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] max-w-sm leading-relaxed m-0">
+              {t.searchNoResultsDesc}
+            </p>
           </div>
-        </div>
+        )}
+
+        {searchError && (
+          <div className="mt-4 p-3.5 rounded-xl border border-[var(--error-border)] bg-[var(--error-bg)] flex items-center justify-center gap-2">
+            <AlertCircle className="w-4 h-4 text-[var(--error)] flex-shrink-0" />
+            <span className="text-xs text-[var(--error)] font-semibold">{t.searchError}</span>
+          </div>
+        )}
       </div>
 
-      {/* ── Content ─────────────────────────────────────── */}
+      {/* ── Content ───────────────────────────────────────────────── */}
       {showContent && !isLoggedIn ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center flex flex-col items-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-5">
-            <LogIn className="w-7 h-7" />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-8 sm:p-10 text-center flex flex-col items-center mb-6">
+          <div className="w-14 h-16 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] flex items-center justify-center text-[var(--accent)] mb-4">
+            <LogIn className="w-6 h-6" />
           </div>
 
           <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
@@ -579,21 +573,21 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs">
-            <Link href={`/${locale}/login`} className="btn btn-primary w-full justify-center py-3 rounded-xl">
+            <Link href={`/${locale}/login`} className="btn btn-primary w-full justify-center h-11 rounded-xl text-sm font-bold">
               <LogIn className="w-4 h-4" />
               <span>{t.guestLogin}</span>
             </Link>
 
-            <Link href={`/${locale}/signup`} className="btn btn-outline w-full justify-center py-3 rounded-xl">
+            <Link href={`/${locale}/signup`} className="btn btn-outline w-full justify-center h-11 rounded-xl text-sm font-semibold">
               <UserPlus className="w-4 h-4" />
               <span>{t.guestSignup}</span>
             </Link>
           </div>
         </div>
       ) : showContent && error ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center flex flex-col items-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--error-bg)] border border-[var(--error-border)] flex items-center justify-center text-[var(--error)] mb-5">
-            <AlertCircle className="w-7 h-7" />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-8 sm:p-10 text-center flex flex-col items-center mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--error-bg)] border border-[var(--error-border)] flex items-center justify-center text-[var(--error)] mb-4">
+            <AlertCircle className="w-6 h-6" />
           </div>
 
           <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
@@ -604,15 +598,15 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
             {t.errorDesc}
           </p>
 
-          <button type="button" onClick={() => window.location.reload()} className="btn btn-primary rounded-xl px-6 py-3">
+          <button type="button" onClick={() => window.location.reload()} className="btn btn-primary rounded-xl px-6 h-11">
             <RefreshCw className="w-4 h-4" />
             <span>{t.retry}</span>
           </button>
         </div>
       ) : showContent && orders.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center flex flex-col items-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)] mb-5">
-            <Package className="w-7 h-7" />
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-8 sm:p-10 text-center flex flex-col items-center mb-6">
+          <div className="w-14 h-16 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] flex items-center justify-center text-[var(--accent)] mb-4">
+            <Package className="w-6 h-6" />
           </div>
 
           <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">
@@ -623,7 +617,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
             {t.noOrdersDesc}
           </p>
 
-          <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl px-6 py-3">
+          <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl px-6 h-11">
             <ShoppingBag className="w-4 h-4" />
             <span>{t.browseProducts}</span>
           </Link>
@@ -641,10 +635,9 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                 key={order.id}
                 className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden"
               >
-                {/* Top Info Bar */}
                 <div className="px-5 py-3.5 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex flex-wrap items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[var(--text-muted)]">
                       {t.orderNum}
                     </span>
                     <span className="tabular-nums font-mono text-sm font-extrabold text-[var(--accent)]">
@@ -653,7 +646,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                   </div>
 
                   <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border"
                     style={{
                       color: statusConfig.color,
                       background: statusConfig.background,
@@ -665,8 +658,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                   </div>
                 </div>
 
-                {/* Details Body */}
-                <div className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
                     <span className="text-[11px] text-[var(--text-muted)] inline-flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -687,7 +679,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                     </p>
                   </div>
 
-                  <div>
+                  <div className="col-span-2 sm:col-span-1">
                     <span className="text-[11px] text-[var(--text-muted)] block">
                       {t.total}
                     </span>
@@ -697,7 +689,6 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                   </div>
                 </div>
 
-                {/* Bottom Action */}
                 <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex justify-end">
                   <Link
                     href={`/${locale}/orders/${order.id}`}
@@ -713,31 +704,34 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
         </div>
       ) : null}
 
-      {/* ── Tracking Section ──────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden mb-6">
-        <div className="p-7 text-center border-b border-[var(--border)] bg-[var(--bg-subtle)]">
-          <div className="w-12 h-12 rounded-full bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mx-auto mb-3">
-            <MapPin className="w-6 h-6 text-[var(--accent)]" />
-          </div>
-
-          <h2
-            className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] mb-2"
-            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
-          >
-            {t.trackSectionTitle}
-          </h2>
-
-          <p className="text-sm text-[var(--text-muted)] max-w-lg mx-auto leading-relaxed m-0">
-            {t.trackSectionDesc}
-          </p>
+      {/* ── Tracking Guide Card ───────────────────────────────────── */}
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 text-center flex flex-col items-center gap-3">
+        <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
+          <MapPin className="w-5 h-5" />
         </div>
 
-        <div className="p-5 text-center">
-          <Link href="#order-lookup" className="btn btn-primary btn-round px-6 py-2.5 text-sm">
-            <Truck className="w-4 h-4" />
-            <span>{t.trackSectionBtn}</span>
-          </Link>
-        </div>
+        <h2
+          className="text-lg font-extrabold text-[var(--text-primary)] m-0"
+          style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+        >
+          {t.trackSectionTitle}
+        </h2>
+
+        <p className="text-sm text-[var(--text-muted)] max-w-lg mx-auto leading-relaxed m-0">
+          {t.trackSectionDesc}
+        </p>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSearchOpen(true)
+            document.getElementById('order-lookup')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
+          className="btn btn-outline btn-round px-6 h-10 text-xs font-bold mt-1"
+        >
+          <Truck className="w-4 h-4 text-[var(--accent)]" />
+          <span>{t.trackSectionBtn}</span>
+        </button>
       </div>
     </div>
   )
