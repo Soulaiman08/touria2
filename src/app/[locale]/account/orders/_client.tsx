@@ -203,7 +203,7 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
   }
 
   return (
-    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 740 }}>
+    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: '46.25rem' }}>
       <div className="mb-5">
         <Link href={`/${locale}/account`} className="btn btn-outline btn-sm btn-round">
           <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />

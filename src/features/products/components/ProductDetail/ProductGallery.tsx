@@ -284,7 +284,7 @@ export function ProductGallery({
 
   return (
     <div
-      className="product-gallery-panel space-y-3 sm:space-y-4 w-full max-w-[440px] mx-auto lg:max-w-none lg:sticky lg:top-24 lg:self-start select-none"
+      className="product-gallery-panel space-y-3 sm:space-y-4 w-full max-w-[27.5rem] mx-auto lg:max-w-none lg:sticky lg:top-24 lg:self-start select-none"
       tabIndex={hasMultiple ? 0 : -1}
       onKeyDown={handleKeyDown}
       role="region"

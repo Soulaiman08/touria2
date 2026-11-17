@@ -417,7 +417,7 @@ export default async function HomePage({ params }: HomePageProps) {
           >
             {/* Editorial Copy Column */}
             <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-start space-y-4 sm:space-y-6">
-              <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-[var(--gold)]">
+              <div className="flex items-center gap-2.5 sm:gap-3 text-[0.6875rem] sm:text-xs font-semibold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-[var(--gold)]">
                 <span className="w-5 sm:w-6 h-px bg-[var(--gold)]/60" aria-hidden="true" />
                 <span>{labels.heroEyebrow}</span>
               </div>
@@ -425,7 +425,7 @@ export default async function HomePage({ params }: HomePageProps) {
               <h1
                 className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)]"
                 style={{
-                  fontSize: 'clamp(1.9rem, 4.1vw, 3.65rem)',
+                  fontSize: 'clamp(1.9rem, 3.6vw, 3.65rem)',
                   fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                 }}
               >
@@ -439,11 +439,11 @@ export default async function HomePage({ params }: HomePageProps) {
                 {labels.heroSub}
               </p>
 
-              {/* Action Buttons (Side-by-side 2-col on mobile, inline flex on tablet+) */}
-              <div className="grid grid-cols-2 sm:flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-1 w-full sm:w-auto max-w-md sm:max-w-none">
+              {/* Action Buttons (Side-by-side 2-col on mobile, stack cleanly at extreme zoom-in, inline flex on tablet+) */}
+              <div className="grid grid-cols-1 min-[340px]:grid-cols-2 sm:flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-1 w-full sm:w-auto max-w-md sm:max-w-none">
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary btn-round w-full sm:w-auto sm:min-w-[180px] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
+                  className="btn btn-primary btn-round w-full sm:w-auto sm:min-w-[11.25rem] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
                 >
                   <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
                   <span className="truncate">{labels.heroCta}</span>
@@ -451,7 +451,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
                 <Link
                   href={`/${locale}/about`}
-                  className="btn btn-outline btn-round w-full sm:w-auto sm:min-w-[160px] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
+                  className="btn btn-outline btn-round w-full sm:w-auto sm:min-w-[10rem] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
                 >
                   <span className="truncate">{labels.heroSec}</span>
                   <ArrowRight
@@ -465,7 +465,7 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               {/* Clean Typographic Assurances */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 sm:gap-x-4 gap-y-1.5 pt-3 border-t border-[var(--border-subtle)] text-[11px] sm:text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 sm:gap-x-4 gap-y-1.5 pt-3 border-t border-[var(--border-subtle)] text-[0.6875rem] sm:text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
                 {labels.trustLine.map((item, idx) => (
                   <span key={item} className="inline-flex items-center gap-3 sm:gap-4">
                     {idx > 0 && (
@@ -481,7 +481,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
             {/* Moroccan Architectural Arch Editorial Showcase */}
             <div className="lg:col-span-6 relative flex justify-center lg:justify-end px-3 sm:px-0">
-              <div className="relative w-full max-w-[290px] sm:max-w-[380px] lg:max-w-[410px]">
+              <div className="relative w-full max-w-[18.125rem] sm:max-w-[23.75rem] lg:max-w-[25.625rem]">
                 {heroPrimary ? (
                   <Link
                     href={`/${locale}/products/${heroPrimary.slug}`}
@@ -508,7 +508,7 @@ export default async function HomePage({ params }: HomePageProps) {
                     {/* Subtle Framed Showcase Caption */}
                     <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 flex items-end justify-between gap-3 sm:gap-4 text-white">
                       <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E4C48E] block">
+                        <span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-[#E4C48E] block">
                           {labels.featuredPieceLabel}
                         </span>
                         <p className="text-xs sm:text-base font-bold truncate">
@@ -578,8 +578,8 @@ export default async function HomePage({ params }: HomePageProps) {
               {banners.map((banner) => (
                 <div
                   key={banner.id}
-                  className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-muted)] group"
-                  style={{ minHeight: 240, boxShadow: 'var(--card-shadow)' }}
+                  className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-muted)] group min-h-[15rem]"
+                  style={{ boxShadow: 'var(--card-shadow)' }}
                 >
                   <Image
                     src={banner.imageUrl}
@@ -644,7 +644,7 @@ export default async function HomePage({ params }: HomePageProps) {
           <div className="space-y-4 border-b border-[var(--border-subtle)] pb-5 sm:pb-6" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="flex items-end justify-between gap-3">
               <div className="space-y-1 sm:space-y-1.5 min-w-0">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                   <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
                   <span>{labels.bestEyebrow}</span>
                 </div>
@@ -700,7 +700,7 @@ export default async function HomePage({ params }: HomePageProps) {
             <EmptyState message={labels.empty} />
           ) : (
             <div
-              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
+              className="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {featured.map((p, i) => (
@@ -733,7 +733,7 @@ export default async function HomePage({ params }: HomePageProps) {
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             <div className="space-y-1 sm:space-y-1.5 min-w-0">
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+              <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                 <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
                 <span>{labels.newEyebrow}</span>
               </div>
@@ -765,7 +765,7 @@ export default async function HomePage({ params }: HomePageProps) {
               locale={locale}
               filters={{ sort: 'newest' }}
               isNew
-              gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
+              gridClassName="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
             />
           )}
         </div>
@@ -788,7 +788,7 @@ export default async function HomePage({ params }: HomePageProps) {
             {/* Story Quote + 2x2 Craft Pillars */}
             <div className="lg:col-span-7 space-y-6 sm:space-y-8">
               <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                   <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
                   <span>{labels.heroSec}</span>
                 </div>
@@ -807,7 +807,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 pt-5 sm:pt-6 border-t border-[var(--border)]">
+              <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-3 sm:gap-6 pt-5 sm:pt-6 border-t border-[var(--border)]">
                 {pillars.map((pillar, index) => {
                   const Icon = pillar.icon
                   return (
@@ -822,7 +822,7 @@ export default async function HomePage({ params }: HomePageProps) {
                         <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
                           {pillar.title}
                         </h3>
-                        <p className="text-[11px] sm:text-xs text-[var(--text-muted)] leading-relaxed">
+                        <p className="text-[0.6875rem] sm:text-xs text-[var(--text-muted)] leading-relaxed">
                           {pillar.desc}
                         </p>
                       </div>
@@ -839,7 +839,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 style={{ boxShadow: 'var(--card-shadow)' }}
               >
                 <div className="space-y-1.5 border-b border-[var(--border)] pb-5">
-                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
+                  <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                     <span className="w-4 h-px bg-[var(--gold)]/60" aria-hidden="true" />
                     <span>{labels.contactEyebrow}</span>
                   </div>

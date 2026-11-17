@@ -61,7 +61,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '-100%' : '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-            className={`fixed inset-y-0 z-50 flex flex-col w-[min(92vw,416px)] bg-[var(--card-bg)] shadow-[var(--shadow-modal)] focus:outline-none ${
+            className={`fixed inset-y-0 z-50 flex flex-col w-[min(92vw,26rem)] bg-[var(--card-bg)] shadow-[var(--shadow-modal)] focus:outline-none ${
               isRTL ? 'left-0 border-r border-[var(--border)]' : 'right-0 border-l border-[var(--border)]'
             }`}
             role="dialog"
@@ -143,7 +143,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                       className="flex gap-3 p-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)]/65 relative"
                     >
                       {/* 3:4 Product thumbnail */}
-                      <div className="w-[64px] h-[85px] rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
+                      <div className="w-16 h-[5.3125rem] rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
                         <Image
                           src={item.mainImage || '/images/brand/logo-icon.png'}
                           alt={itemName}
@@ -193,7 +193,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="tabular-nums min-w-[28px] h-9 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] border-x border-[var(--border)]">
+                            <span className="tabular-nums min-w-[1.75rem] h-9 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] border-x border-[var(--border)]">
                               {item.quantity}
                             </span>
                             <button

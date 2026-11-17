@@ -138,7 +138,7 @@ export function CustomerLoginCard({
   }
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-[430px] mx-auto">
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="w-full max-w-[26.875rem] mx-auto">
       <section className="relative w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]/96 shadow-[var(--shadow-modal)] text-[var(--text-primary)]">
         {/* Subtle Moroccan top brass hairline */}
         <div
@@ -185,7 +185,7 @@ export function CustomerLoginCard({
               {isRTL ? 'ثريا المغربي' : 'THURAYA'}
             </h1>
 
-            <p className="text-xs text-[var(--text-muted)] max-w-[300px] leading-relaxed m-0">
+            <p className="text-xs text-[var(--text-muted)] max-w-[18.75rem] leading-relaxed m-0">
               {t('welcomeSubtitle')}
             </p>
           </header>

@@ -141,7 +141,7 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
       <SilkBackground />
 
       {/* Top Auth Toolbar */}
-      <header className="relative z-20 flex flex-wrap items-center justify-between gap-2.5 max-w-[1160px] w-full mx-auto">
+      <header className="relative z-20 flex flex-wrap items-center justify-between gap-2.5 max-w-[72.5rem] w-full mx-auto">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/${locale}`}
@@ -178,7 +178,7 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
 
       {/* Main Centered Signup Card */}
       <main className="relative z-10 w-full my-auto py-3 sm:py-4">
-        <div className="w-full max-w-[430px] mx-auto">
+        <div className="w-full max-w-[26.875rem] mx-auto">
           <section className="relative w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]/96 shadow-[var(--shadow-modal)] text-[var(--text-primary)]">
             {/* Subtle Moroccan top brass hairline */}
             <div
@@ -211,7 +211,7 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
                   {isRTL ? 'ثريا المغربي' : 'THURAYA'}
                 </h1>
 
-                <p className="text-xs text-[var(--text-muted)] max-w-[300px] leading-relaxed m-0">
+                <p className="text-xs text-[var(--text-muted)] max-w-[18.75rem] leading-relaxed m-0">
                   {t('subtitle')}
                 </p>
               </header>

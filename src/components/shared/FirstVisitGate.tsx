@@ -88,7 +88,7 @@ export function FirstVisitGate({ locale, defaultOpen }: FirstVisitGateProps) {
       />
 
       {/* Login Card — same component used by CustomerLoginModal */}
-      <div className="relative z-10 w-full max-w-[480px] my-auto">
+      <div className="relative z-10 w-full max-w-[30rem] my-auto">
         <CustomerLoginCard
           locale={locale}
           isModal={true}

@@ -498,7 +498,7 @@ export default async function ProductsPage({
                 search,
                 sort,
               }}
-              gridClassName="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3"
+              gridClassName="grid grid-cols-1 min-[340px]:grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3"
             />
           )}
         </div>

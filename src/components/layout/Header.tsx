@@ -264,34 +264,34 @@ export function Header({ locale }: HeaderProps) {
         role="banner"
       >
         <div className="container-brand">
-          <div
-            className={cn(
-              'flex items-center justify-between gap-3 sm:gap-5 transition-all duration-300',
-              scrolled ? 'h-14' : 'h-16 md:h-[68px]'
-            )}
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
-            {/* Left / Start Zone: Menu Toggle + Brand Lockup */}
-            <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
-              <button
-                type="button"
-                className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-xl border transition-colors duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-95"
-                onClick={() => setMenuOpen((prev) => !prev)}
-                aria-label={
-                  menuOpen
-                    ? isRTL ? 'إغلاق القائمة' : 'Close menu'
-                    : isRTL ? 'فتح القائمة' : 'Open menu'
-                }
-                aria-expanded={menuOpen}
-                aria-controls="main-side-menu"
-                style={{
-                  color: 'var(--text-primary)',
-                  background: 'var(--bg-subtle)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                {menuOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
-              </button>
+            <div
+              className={cn(
+                'flex items-center justify-between gap-3 sm:gap-5 transition-all duration-300',
+                scrolled ? 'h-14' : 'h-16 md:h-[4.25rem]'
+              )}
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              {/* Left / Start Zone: Menu Toggle + Brand Lockup */}
+              <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                <button
+                  type="button"
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-xl border transition-colors duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-95"
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                  aria-label={
+                    menuOpen
+                      ? isRTL ? 'إغلاق القائمة' : 'Close menu'
+                      : isRTL ? 'فتح القائمة' : 'Open menu'
+                  }
+                  aria-expanded={menuOpen}
+                  aria-controls="main-side-menu"
+                  style={{
+                    color: 'var(--text-primary)',
+                    background: 'var(--bg-subtle)',
+                    borderColor: 'var(--border)',
+                  }}
+                >
+                  {menuOpen ? <X className="h-[1.125rem] w-[1.125rem]" /> : <Menu className="h-[1.125rem] w-[1.125rem]" />}
+                </button>
 
               <Link
                 href={`/${locale}`}
@@ -317,7 +317,7 @@ export function Header({ locale }: HeaderProps) {
                   />
                 </div>
                 <span
-                  className="inline-block truncate max-w-[88px] sm:max-w-none text-[13px] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
+                  className="inline-block truncate max-w-[5.5rem] sm:max-w-none text-[0.8125rem] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
                   style={{
                     color: 'var(--text-primary)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -330,7 +330,7 @@ export function Header({ locale }: HeaderProps) {
 
             {/* Center Zone: Clean Single-Line Navigation */}
             <nav
-              className="hidden lg:flex items-center gap-6"
+              className="hidden lg:flex items-center gap-3 xl:gap-6"
               aria-label={isRTL ? 'التنقل الرئيسي' : 'Main navigation'}
               dir={isRTL ? 'rtl' : 'ltr'}
             >
@@ -358,7 +358,7 @@ export function Header({ locale }: HeaderProps) {
                 onClick={() => setSearchOpen(true)}
                 aria-label={t('search')}
               >
-                <Search className="h-[18px] w-[18px]" />
+                <Search className="h-[1.125rem] w-[1.125rem]" />
               </button>
 
               <ThemeSwitcher />
@@ -372,10 +372,10 @@ export function Header({ locale }: HeaderProps) {
                 className="icon-btn touch-target relative"
                 aria-label={t('cart')}
               >
-                <ShoppingBag className="h-[18px] w-[18px]" />
+                <ShoppingBag className="h-[1.125rem] w-[1.125rem]" />
                 {mounted && totalItems > 0 && (
                   <span
-                    className="absolute -end-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white tabular-nums"
+                    className="absolute -end-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold text-white tabular-nums"
                     style={{ background: 'var(--accent)' }}
                   >
                     {totalItems > 9 ? '9+' : totalItems}
@@ -410,7 +410,7 @@ export function Header({ locale }: HeaderProps) {
         <aside
           id="main-side-menu"
           className={cn(
-            'scrollbar-hidden absolute top-0 h-full w-[280px] overflow-y-auto shadow-2xl transition-transform duration-300 ease-out flex flex-col',
+            'scrollbar-hidden absolute top-0 h-full w-[min(17.5rem,88vw)] overflow-y-auto shadow-2xl transition-transform duration-300 ease-out flex flex-col',
             isRTL ? 'right-0' : 'left-0',
             isRTL
               ? menuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -463,7 +463,7 @@ export function Header({ locale }: HeaderProps) {
                   {brandName}
                 </div>
                 <div
-                  className="mt-0.5 text-[11px] font-medium"
+                  className="mt-0.5 text-[0.6875rem] font-medium"
                   style={{ color: 'var(--gold)' }}
                 >
                   {locale === 'ar' ? 'القائمة الرئيسية' : locale === 'fr' ? 'Menu principal' : 'Main Menu'}
@@ -700,10 +700,10 @@ export function Header({ locale }: HeaderProps) {
           )}
           style={{
             background: 'var(--card-bg)',
-            borderRadius: '20px',
+            borderRadius: '1.25rem',
             boxShadow: 'var(--shadow-xl), 0 0 0 1px var(--border)',
-            marginTop: 'clamp(68px, 12vh, 92px)',
-            width: 'min(660px, calc(100vw - 24px))',
+            marginTop: 'clamp(3.75rem, 11vh, 5.75rem)',
+            width: 'min(41.25rem, calc(100vw - 1.5rem))',
             marginInline: 'auto',
           }}
           dir={isRTL ? 'rtl' : 'ltr'}
@@ -775,7 +775,7 @@ export function Header({ locale }: HeaderProps) {
           </div>
 
           {/* Search Body */}
-          <div className="max-h-[60vh] sm:max-h-[440px] overflow-y-auto">
+          <div className="max-h-[60vh] sm:max-h-[27.5rem] overflow-y-auto">
             {searching ? (
               <div className="flex flex-col items-center justify-center p-10 text-center" style={{ color: 'var(--text-muted)' }}>
                 <div className="h-7 w-7 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent mb-3" />

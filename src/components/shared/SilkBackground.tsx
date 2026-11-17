@@ -126,7 +126,7 @@ export function SilkBackground() {
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.02
-    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.75))
+    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.max(0.25, Math.min(window.devicePixelRatio || 1, 1.75)))
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.shadowMap.enabled = !isSoftwareGl
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -623,8 +623,12 @@ export function SilkBackground() {
       const w = Math.max(1, window.innerWidth)
       const h = Math.max(1, window.innerHeight)
       camera.aspect = w / h
+      // Keep full silk edge-to-edge coverage on ultrawide or zoomed-out aspect ratios
+      const halfTanFov = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5))
+      const maxSafeZ = 5.05 / (halfTanFov * Math.max(0.5, camera.aspect))
+      camera.position.z = Math.min(7.6, maxSafeZ)
       camera.updateProjectionMatrix()
-      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.75))
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.max(0.25, Math.min(window.devicePixelRatio || 1, 1.75)))
       renderer.setSize(w, h)
       if (prefersReduced) {
         renderer.render(scene, camera)

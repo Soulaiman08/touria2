@@ -137,7 +137,7 @@ export function Footer({ locale }: FooterProps) {
                 >
                   {storeName}
                 </h2>
-                <span className="text-[11px] font-medium" style={{ color: 'var(--footer-accent)' }}>
+                <span className="text-[0.6875rem] font-medium" style={{ color: 'var(--footer-accent)' }}>
                   {isRTL ? 'دار الأزياء المغربية الأصيلة' : locale === 'fr' ? 'Maison d’Artisanat Marocain' : 'Moroccan Craft Atelier'}
                 </span>
               </div>

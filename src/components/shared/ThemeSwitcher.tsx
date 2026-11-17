@@ -24,11 +24,11 @@ export function ThemeSwitcher() {
     >
       {/* Render placeholder during SSR to avoid hydration mismatch */}
       {!mounted ? (
-        <span className="w-[18px] h-[18px] block" aria-hidden="true" />
+        <span className="w-[1.125rem] h-[1.125rem] block" aria-hidden="true" />
       ) : isDark ? (
-        <Sun className="w-[18px] h-[18px] transition-transform duration-300" aria-hidden="true" />
+        <Sun className="w-[1.125rem] h-[1.125rem] transition-transform duration-300" aria-hidden="true" />
       ) : (
-        <Moon className="w-[18px] h-[18px] transition-transform duration-300" aria-hidden="true" />
+        <Moon className="w-[1.125rem] h-[1.125rem] transition-transform duration-300" aria-hidden="true" />
       )}
     </button>
   )

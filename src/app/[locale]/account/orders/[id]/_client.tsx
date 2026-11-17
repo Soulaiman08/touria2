@@ -191,7 +191,7 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
   const StatusIcon = st.icon
 
   return (
-    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 740 }}>
+    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: '46.25rem' }}>
       <div className="mb-5">
         <Link href={`/${locale}/account/orders`} className="btn btn-outline btn-sm btn-round">
           <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
@@ -239,13 +239,13 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
                       width={60}
                       height={76}
                       referrerPolicy="no-referrer"
-                      className="w-[60px] h-[76px] rounded-xl object-cover border border-[var(--border)] bg-[var(--bg-muted)] flex-shrink-0"
+                      className="w-[3.75rem] h-[4.75rem] rounded-xl object-cover border border-[var(--border)] bg-[var(--bg-muted)] flex-shrink-0"
                       onError={(e) => {
                         ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
                       }}
                     />
                   ) : (
-                    <div className="flex w-[60px] h-[76px] items-center justify-center rounded-xl bg-[var(--bg-muted)] border border-[var(--border)] flex-shrink-0" />
+                    <div className="flex w-[3.75rem] h-[4.75rem] items-center justify-center rounded-xl bg-[var(--bg-muted)] border border-[var(--border)] flex-shrink-0" />
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm text-[var(--text-primary)] m-0 leading-snug">{snapshotName(snap)}</p>

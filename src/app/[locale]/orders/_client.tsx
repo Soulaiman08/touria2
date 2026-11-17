@@ -426,7 +426,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 860 }}
+      style={{ maxWidth: '53.75rem' }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div className="mb-6">

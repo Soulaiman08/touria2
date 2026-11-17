@@ -184,7 +184,7 @@ export default function FaqPage({ params }: FaqPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 880 }}
+      style={{ maxWidth: '55rem' }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div className="mb-6">

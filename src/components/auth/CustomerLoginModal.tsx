@@ -61,7 +61,7 @@ export function CustomerLoginModal({ locale }: CustomerLoginModalProps) {
       />
 
       {/* Login Card Modal Container */}
-      <div className="relative z-10 w-full max-w-[440px] my-auto animate-fade-in">
+      <div className="relative z-10 w-full max-w-[27.5rem] my-auto animate-fade-in">
         <CustomerLoginCard
           locale={locale}
           isModal={true}

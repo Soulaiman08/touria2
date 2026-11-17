@@ -83,7 +83,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 660 }}
+      style={{ maxWidth: '41.25rem' }}
     >
       {/* ── Back link ─────────────────────────────────────────────── */}
       <div className="mb-5">

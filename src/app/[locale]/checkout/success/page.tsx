@@ -76,7 +76,7 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 560 }}
+      style={{ maxWidth: '35rem' }}
     >
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden shadow-[var(--shadow-sm)]">
         {/* ── Atelier Receipt Header ──────────────────────────────── */}

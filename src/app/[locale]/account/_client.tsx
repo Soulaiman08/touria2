@@ -142,7 +142,7 @@ export function AccountPageClient({ params }: AccountPageProps) {
   }
 
   return (
-    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 560 }}>
+    <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: '35rem' }}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
           <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />

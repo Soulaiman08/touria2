@@ -312,7 +312,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
     <div
       className="container-brand page-shell"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 960 }}
+      style={{ maxWidth: '60rem' }}
     >
       {/* ── Top Navigation ────────────────────────────────────────── */}
       <div className="mb-6">

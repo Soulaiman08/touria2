@@ -31,7 +31,7 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
       <SilkBackground />
 
       {/* Top Auth Toolbar */}
-      <header className="relative z-20 flex flex-wrap items-center justify-between gap-2.5 max-w-[1160px] w-full mx-auto">
+      <header className="relative z-20 flex flex-wrap items-center justify-between gap-2.5 max-w-[72.5rem] w-full mx-auto">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/${locale}`}

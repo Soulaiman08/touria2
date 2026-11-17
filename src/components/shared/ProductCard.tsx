@@ -229,7 +229,7 @@ export function ProductCard({
           <div className="product-card-badge pointer-events-none z-10">
             <span
               className={cn(
-                'badge text-[10px] sm:text-[11px] font-bold tracking-wide shadow-xs',
+                'badge text-[0.625rem] sm:text-[0.6875rem] font-bold tracking-wide shadow-xs',
                 singleBadge.variant === 'accent' && 'badge-accent',
                 singleBadge.variant === 'gold' && 'badge-gold'
               )}
@@ -297,7 +297,7 @@ export function ProductCard({
         <div className="space-y-1">
           {categoryName && (
             <p
-              className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider truncate"
+              className="text-[0.625rem] sm:text-[0.6875rem] font-semibold uppercase tracking-wider truncate"
               style={{ color: 'var(--gold)' }}
             >
               {categoryName}
@@ -305,14 +305,14 @@ export function ProductCard({
           )}
 
           <h3
-            className="font-semibold text-[13px] sm:text-sm leading-snug line-clamp-2 min-h-[2.35rem] transition-colors group-hover:text-[var(--accent)]"
+            className="font-semibold text-[0.8125rem] sm:text-sm leading-snug line-clamp-2 min-h-[2.35rem] transition-colors group-hover:text-[var(--accent)]"
             style={{ color: 'var(--text-primary)' }}
           >
             {name}
           </h3>
 
           {product.availableColors && product.availableColors.length > 0 && (
-            <div className="flex items-center gap-1 sm:gap-1.5 pt-1 min-h-[18px]">
+            <div className="flex items-center gap-1 sm:gap-1.5 pt-1 min-h-[1.125rem]">
               {product.availableColors.slice(0, 4).map((c) => (
                 <span
                   key={c.code}
@@ -333,7 +333,7 @@ export function ProductCard({
 
               {product.availableColors.length > 4 && (
                 <span
-                  className="text-[10px] font-medium tabular-nums"
+                  className="text-[0.625rem] font-medium tabular-nums"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   +{product.availableColors.length - 4}
@@ -358,7 +358,7 @@ export function ProductCard({
                   {formatPrice(product.salePrice, locale)}
                 </span>
                 <span
-                  className="text-[11px] sm:text-xs whitespace-nowrap line-through"
+                  className="text-[0.6875rem] sm:text-xs whitespace-nowrap line-through"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   {formatPrice(product.basePrice, locale)}

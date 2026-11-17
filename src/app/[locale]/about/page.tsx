@@ -47,7 +47,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
     <div
       className="container-brand page-shell flex flex-col gap-10 sm:gap-12"
       dir={isRTL ? 'rtl' : 'ltr'}
-      style={{ maxWidth: 1160 }}
+      style={{ maxWidth: '72.5rem' }}
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div>
@@ -97,7 +97,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
           {/* Architectural Moroccan Arch Showcase */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center" dir="ltr">
-            <div className="relative w-full max-w-[270px] sm:max-w-[310px] aspect-[4/5] rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)] p-2.5 shadow-[var(--shadow-md)]">
+            <div className="relative w-full max-w-[16.875rem] sm:max-w-[19.375rem] aspect-[4/5] rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)] p-2.5 shadow-[var(--shadow-md)]">
               <div className="relative w-full h-full rounded-t-[999px] rounded-b-xl overflow-hidden border border-[var(--border)] bg-[var(--card-bg)]">
                 <Image
                   src="/images/brand/logo-full.png"
