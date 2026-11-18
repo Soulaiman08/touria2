@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -208,7 +209,7 @@ export function MobileFullscreenGallery({
     }
   }, [isOpen, hasMultiple, move])
 
-  if (!isOpen || images.length === 0) return null
+  if (!isOpen || images.length === 0 || typeof document === 'undefined') return null
 
   const displayIndex = index
   const prevIndex = (index - 1 + n) % n
@@ -232,19 +233,19 @@ export function MobileFullscreenGallery({
   const closeAriaLabel =
     locale === 'ar' ? 'إغلاق المعرض' : locale === 'fr' ? 'Fermer la galerie' : 'Close gallery'
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label={productName}
-      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm select-none flex flex-col"
+      className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md select-none flex flex-col"
       dir={isRTL ? 'rtl' : 'ltr'}
       style={{ animation: 'fadeIn 0.15s ease-out' }}
     >
       {/* ── Header: Counter + Close ────────────────────────────────── */}
-      <div className="relative z-40 flex-shrink-0 h-16">
-        <div className="absolute top-8 start-6 inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/40">
-          <span className="text-sm text-white/90 tabular-nums">
+      <div className="relative z-40 flex-shrink-0 flex items-center justify-between px-4 sm:px-6 pt-3 sm:pt-5 pb-1">
+        <div className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/35 bg-black/30">
+          <span className="text-xs sm:text-sm text-white/95 tabular-nums">
             {displayIndex + 1} / {n}
           </span>
         </div>
@@ -252,7 +253,7 @@ export function MobileFullscreenGallery({
           type="button"
           onClick={onClose}
           aria-label={closeAriaLabel}
-          className="absolute top-8 end-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/40 hover:bg-white/10 text-white/90 transition-all active:scale-90 cursor-pointer"
+          className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/35 bg-black/30 hover:bg-white/15 text-white/95 transition-all active:scale-90 cursor-pointer"
         >
           <X className="h-5 w-5" strokeWidth={1.8} />
         </button>
@@ -340,6 +341,7 @@ export function MobileFullscreenGallery({
 
       {/* ── Bottom Safe Area ──────────────────────────────────────── */}
       <div className="flex-shrink-0" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
-    </div>
+    </div>,
+    document.body
   )
 }

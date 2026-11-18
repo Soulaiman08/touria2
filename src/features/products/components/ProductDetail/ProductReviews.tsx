@@ -205,7 +205,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   if (loading) {
     return (
       <div
-        className="mt-10 rounded-2xl border p-6 text-center"
+        className="mt-6 sm:mt-8 lg:mt-10 rounded-2xl border p-5 sm:p-6 text-center"
         style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
@@ -221,7 +221,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   const avgScore = average !== null ? average.toFixed(1) : count > 0 ? '5.0' : null
 
   return (
-    <section className="mt-10" dir={isRTL ? 'rtl' : 'ltr'}>
+    <section className="mt-6 sm:mt-8 lg:mt-10" dir={isRTL ? 'rtl' : 'ltr'}>
       <div
         className="rounded-2xl border overflow-hidden"
         style={{
@@ -231,15 +231,15 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       >
         {/* Header */}
         <div
-          className="px-5 py-4 sm:px-6 border-b flex items-center justify-between gap-3 flex-wrap"
+          className="px-4 py-3.5 sm:px-6 sm:py-4 border-b flex items-center justify-between gap-3 flex-wrap"
           style={{
             borderColor: 'var(--border)',
             background: 'var(--bg-subtle)',
           }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <span
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{
                 background: 'var(--accent-light)',
                 color: 'var(--accent)',
@@ -248,10 +248,10 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <Star className="w-4 h-4 fill-current" />
             </span>
 
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2
-                  className="text-base sm:text-lg font-bold"
+                  className="text-sm sm:text-lg font-bold"
                   style={{
                     color: 'var(--text-primary)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -262,7 +262,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
                 {count > 0 && avgScore && (
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums whitespace-nowrap"
                     style={{
                       background: 'var(--accent-light)',
                       color: 'var(--accent)',
@@ -273,7 +273,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 )}
               </div>
 
-              <p className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-[11px] sm:text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
                 {count > 0
                   ? t('basedOnCount').replace('{count}', count.toString())
                   : t('noReviewsTitle')}
@@ -282,11 +282,11 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
           </div>
 
           {count > 0 && (
-            <div>
+            <div className="flex-shrink-0">
               {authState === 'guest' ? (
                 <Link
                   href={`/${locale}/login`}
-                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5"
+                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>{t('signInToReview')}</span>
@@ -295,7 +295,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 <button
                   type="button"
                   onClick={() => setShowForm(true)}
-                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 cursor-pointer"
+                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap cursor-pointer"
                 >
                   <MessageSquarePlus className="w-4 h-4" />
                   <span>{t('writeReview')}</span>
@@ -410,9 +410,9 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
         {/* Empty State */}
         {count === 0 && !showForm && (
-          <div className="py-10 px-6 text-center flex flex-col items-center gap-3">
+          <div className="py-7 sm:py-10 px-4 sm:px-6 text-center flex flex-col items-center gap-2.5 sm:gap-3">
             <span
-              className="w-11 h-11 rounded-full flex items-center justify-center"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center"
               style={{
                 background: 'var(--accent-light)',
                 color: 'var(--gold)',
@@ -433,7 +433,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
             {authState === 'guest' ? (
               <Link
                 href={`/${locale}/login`}
-                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-6 mt-1"
+                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap"
               >
                 <LogIn className="w-4 h-4" />
                 <span>{t('signInToReview')}</span>
@@ -442,7 +442,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-6 mt-1 cursor-pointer"
+                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap cursor-pointer"
               >
                 <MessageSquarePlus className="w-4 h-4" />
                 <span>{t('writeReview')}</span>
@@ -453,11 +453,11 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
         {/* Reviews List */}
         {reviews.length > 0 && (
-          <div className="p-4 sm:p-5 space-y-3">
+          <div className="p-3 sm:p-5 space-y-2.5 sm:space-y-3">
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="rounded-xl border p-4 space-y-2.5"
+                className="rounded-xl border p-3.5 sm:p-4 space-y-2.5"
                 style={{
                   borderColor: 'var(--border)',
                   background: 'var(--bg-subtle)',

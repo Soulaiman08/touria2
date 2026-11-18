@@ -592,7 +592,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   return (
     <>
       <div
-        className="product-detail-grid grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:gap-8 xl:gap-10"
+        className="product-detail-grid grid grid-cols-1 gap-3.5 sm:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] sm:gap-5 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] md:gap-6 lg:grid-cols-[minmax(0,1.04fr)_minmax(360px,0.96fr)] lg:gap-8 xl:gap-10"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         {/* ── Gallery Column ─────────────────────────────────────────── */}
@@ -606,12 +606,12 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         />
 
         {/* ── Purchase Atelier Column ────────────────────────────────── */}
-        <div className="product-purchase-panel space-y-5">
+        <div className="product-purchase-panel min-w-0">
           {/* Header */}
-          <div className="product-title-block space-y-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <div className="product-title-block space-y-1.5 sm:space-y-2 pb-3 sm:pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
             {product.category && (
               <span
-                className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                className="text-[11px] font-semibold uppercase tracking-[0.14em] block"
                 style={{ color: 'var(--gold)' }}
               >
                 {locale === 'ar'
@@ -623,7 +623,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             )}
 
             <h1
-              className="text-2xl sm:text-3xl font-bold leading-tight"
+              className="text-xl min-[400px]:text-2xl lg:text-3xl font-bold leading-tight text-balance"
               style={{
                 color: 'var(--text-primary)',
                 fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -632,13 +632,13 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               {productName}
             </h1>
 
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <p className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+              <p className="text-[11px] sm:text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
                 {t('sku')}: {product.sku}
               </p>
               {hasStock ? (
                 <span
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold"
+                  className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap"
                   style={{ color: 'var(--success)' }}
                 >
                   <Check className="h-3.5 w-3.5" />
@@ -646,7 +646,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 </span>
               ) : (
                 <span
-                  className="inline-flex items-center gap-1 text-xs font-semibold"
+                  className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap"
                   style={{ color: 'var(--error)' }}
                 >
                   <ShieldAlert className="h-3.5 w-3.5" />
@@ -662,13 +662,13 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               {product.salePrice ? (
                 <>
                   <span
-                    className="text-2xl sm:text-3xl font-bold"
+                    className="text-xl min-[400px]:text-2xl lg:text-3xl font-bold"
                     style={{ color: 'var(--accent)' }}
                   >
                     {formatPrice(basePriceVal, locale)}
                   </span>
                   <span
-                    className="text-sm line-through"
+                    className="text-xs sm:text-sm line-through"
                     style={{ color: 'var(--text-muted)' }}
                   >
                     {formatPrice(Number(product.basePrice), locale)}
@@ -676,7 +676,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 </>
               ) : (
                 <span
-                  className="text-2xl sm:text-3xl font-bold"
+                  className="text-xl min-[400px]:text-2xl lg:text-3xl font-bold"
                   style={{ color: 'var(--text-primary)' }}
                 >
                   {formatPrice(basePriceVal, locale)}
@@ -696,14 +696,14 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           </div>
 
           {/* Description */}
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-[13px] sm:text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             {productDesc}
           </p>
 
           {/* Jellaba Variant Builder */}
           {!product.isNiqab && colors.length > 0 && (
             <div
-              className="rounded-xl border p-4 space-y-3"
+              className="rounded-xl border p-3 sm:p-4 space-y-2.5 sm:space-y-3"
               style={{
                 borderColor: 'var(--border)',
                 background: 'var(--bg-subtle)',
@@ -738,9 +738,9 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   return (
                     <div
                       key={selection.id}
-                      className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3"
+                      className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-2.5"
                     >
-                      <div className="w-full sm:flex-1 min-w-0">
+                      <div className="w-full xl:flex-1 min-w-0">
                         <NiqabColorDropdown
                           selectionId={selection.id}
                           currentColorCode={selection.colorCode}
@@ -750,12 +750,12 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                         />
                       </div>
 
-                      <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0">
+                      <div className="flex items-center justify-between xl:justify-end gap-2 flex-shrink-0">
                         <select
                           value={selection.size}
                           onChange={(e) => changeJellabaSize(selection.id, e.target.value)}
                           aria-label={locale === 'ar' ? 'المقاس' : 'Size'}
-                          className="h-10 flex-1 sm:flex-initial sm:w-20 rounded-xl border px-2.5 text-xs font-bold cursor-pointer"
+                          className="h-10 flex-1 min-w-[5rem] xl:flex-initial xl:w-20 rounded-xl border px-2.5 text-xs font-bold cursor-pointer"
                           style={{
                             borderColor: 'var(--border)',
                             background: 'var(--card-bg)',
@@ -864,7 +864,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           {((product.canAddNiqab && !product.isNiqab) || product.isNiqab) &&
             niqabColors.length > 0 && (
               <div
-                className="rounded-xl border p-4 space-y-3 transition-colors"
+                className="rounded-xl border p-3 sm:p-4 space-y-2.5 sm:space-y-3 transition-colors"
                 style={{
                   borderColor: includeNiqab ? 'var(--accent)' : 'var(--border)',
                   background: includeNiqab ? 'var(--accent-light)' : 'var(--bg-subtle)',
@@ -919,7 +919,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       return (
                         <div
                           key={selection.id}
-                          className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3"
+                          className="flex flex-wrap lg:flex-nowrap items-center gap-2 lg:gap-2.5"
                         >
                           <div className="flex-1 min-w-[140px]">
                             <NiqabColorDropdown
@@ -1091,10 +1091,10 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
             {/* Trust Micro-Row */}
             <div
-              className="flex items-center justify-center gap-5 pt-1 text-[11px] font-medium"
+              className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-5 gap-y-1.5 pt-1 text-[11px] font-medium"
               style={{ color: 'var(--text-muted)' }}
             >
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                 <Banknote className="w-3.5 h-3.5 text-[var(--accent)]" />
                 {locale === 'ar'
                   ? 'الدفع عند الاستلام'
@@ -1102,7 +1102,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                     ? 'Paiement à la livraison'
                     : 'Cash on delivery'}
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                 <Truck className="w-3.5 h-3.5 text-[var(--accent)]" />
                 {locale === 'ar'
                   ? 'توصيل لجميع المدن'

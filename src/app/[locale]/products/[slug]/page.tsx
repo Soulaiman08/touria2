@@ -221,28 +221,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <div className="container-brand page-shell product-page-shell" dir={isRTL ? 'rtl' : 'ltr'}>
       <ProductStructuredData product={product} locale={locale} slug={slug} />
 
-      {/* ── Breadcrumbs ────────────────────────────────────────── */}
-      <nav
-        aria-label={locale === 'ar' ? 'مسار التنقل' : locale === 'fr' ? 'Fil d\'Ariane' : 'Breadcrumb'}
-        className="product-breadcrumb flex items-center gap-2 text-xs"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        <Link href={`/${locale}`} className="hover:text-[var(--accent)] transition-colors">
-          {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
-        </Link>
-        <ChevronRight className="w-3 h-3 rtl-flip" />
-        <Link href={`/${locale}/products`} className="hover:text-[var(--accent)] transition-colors">
-          {locale === 'ar' ? 'المنتجات' : locale === 'fr' ? 'Produits' : 'Products'}
-        </Link>
-        <ChevronRight className="w-3 h-3 rtl-flip" />
-        <span className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{productName}</span>
-      </nav>
+      {/* ── Compact Top Utility Bar (Breadcrumbs + Back Link) ─── */}
+      <div className="product-breadcrumb flex items-center justify-between gap-3">
+        <nav
+          aria-label={locale === 'ar' ? 'مسار التنقل' : locale === 'fr' ? 'Fil d\'Ariane' : 'Breadcrumb'}
+          className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs whitespace-nowrap"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <Link href={`/${locale}`} className="flex-shrink-0 hover:text-[var(--accent)] transition-colors">
+            {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
+          </Link>
+          <ChevronRight className="w-3 h-3 flex-shrink-0 rtl-flip" />
+          <Link href={`/${locale}/products`} className="flex-shrink-0 hover:text-[var(--accent)] transition-colors">
+            {locale === 'ar' ? 'المنتجات' : locale === 'fr' ? 'Produits' : 'Products'}
+          </Link>
+          <ChevronRight className="w-3 h-3 flex-shrink-0 rtl-flip" />
+          <span className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{productName}</span>
+        </nav>
 
-      {/* ── Back to catalog link (desktop / tablet) ───────────────── */}
-      <div className="hidden sm:block">
         <Link
           href={`/${locale}/products`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold hover:text-[var(--accent)] transition-colors"
+          className="hidden sm:inline-flex flex-shrink-0 items-center gap-1.5 text-xs font-semibold whitespace-nowrap hover:text-[var(--accent)] transition-colors"
           style={{ color: 'var(--text-muted)' }}
         >
           <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />

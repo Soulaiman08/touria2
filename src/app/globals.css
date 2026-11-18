@@ -646,14 +646,15 @@ h6 {
 /* Product detail: clean contiguous purchase module & warm neutral gallery */
 .product-page-shell {
   display: grid;
-  gap: 1.25rem;
+  gap: 0.75rem;
+  padding-block: 0.625rem 2rem;
 }
 
 .product-breadcrumb {
-  min-height: 2.5rem;
-  padding-inline: 0.25rem;
+  min-height: 2rem;
+  padding-inline: 0.125rem;
+  padding-bottom: 0.5rem;
   overflow: hidden;
-  white-space: nowrap;
   border: 0;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
@@ -673,7 +674,7 @@ h6 {
 }
 
 .product-gallery-panel {
-  padding: 0.875rem;
+  padding: 0.625rem;
 }
 
 .product-main-image {
@@ -683,7 +684,7 @@ h6 {
 }
 
 .product-thumbnails {
-  padding-inline: 0.25rem;
+  padding-inline: 0.125rem;
 }
 
 .product-thumbnails button {
@@ -694,8 +695,8 @@ h6 {
 .product-purchase-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  padding: clamp(1.25rem, 3vw, 2.25rem);
+  gap: 0.875rem;
+  padding: 1rem;
   border-top: 2px solid var(--gold);
 }
 
@@ -704,7 +705,7 @@ h6 {
 }
 
 .product-title-block {
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.625rem;
   border-bottom: 0;
 }
 
@@ -714,7 +715,7 @@ h6 {
 }
 
 .product-price-row {
-  padding: 1rem 1.25rem;
+  padding: 0.6875rem 0.9375rem;
   border: 1px solid var(--accent-ring);
   border-radius: var(--radius-xl);
   background: var(--accent-light);
@@ -733,7 +734,7 @@ h6 {
 }
 
 .product-option-group {
-  padding: 1.125rem;
+  padding: 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--bg-subtle);
@@ -752,17 +753,49 @@ h6 {
 }
 
 .product-actions {
-  padding-top: 1.5rem;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border);
 }
 
 .product-actions .btn {
-  min-height: 3.25rem;
+  min-height: 3rem;
+}
+
+@media (max-width: 639px) {
+  .product-page-shell {
+    padding-inline: 0.875rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .product-page-shell {
+    gap: 1rem;
+    padding-block: 0.875rem 2.5rem;
+  }
+
+  .product-gallery-panel {
+    padding: 0.75rem;
+  }
+
+  .product-main-image {
+    width: min(100%, max(13rem, calc((100dvh - 13rem) * 0.8))) !important;
+    margin-inline: auto;
+  }
+
+  .product-purchase-panel {
+    gap: 1rem;
+    padding: 1.125rem 1.25rem;
+  }
+
+  .product-price-row {
+    padding: 0.875rem 1.125rem;
+  }
 }
 
 @media (min-width: 1024px) {
   .product-page-shell {
-    gap: 1.75rem;
+    gap: 1.375rem;
+    padding-block: 1.25rem 3rem;
   }
 
   .product-gallery-panel {
@@ -770,7 +803,8 @@ h6 {
   }
 
   .product-purchase-panel {
-    gap: 1.5rem;
+    gap: 1.35rem;
+    padding: clamp(1.5rem, 2.5vw, 2.125rem);
   }
 
   .product-option-group {

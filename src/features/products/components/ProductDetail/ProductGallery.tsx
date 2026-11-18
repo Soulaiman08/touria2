@@ -86,6 +86,7 @@ export function ProductGallery({
   const touchIsHorizontal = useRef(false)
   const mouseStartX = useRef<number | null>(null)
   const isMouseDown = useRef(false)
+  const didDragRef = useRef(false)
 
   const isFirstThumbRender = useRef(true)
 
@@ -98,18 +99,24 @@ export function ProductGallery({
     const container = thumbnailsRef.current
     const thumb = activeThumbRef.current
     if (!container || !thumb) return
-    if (container.scrollWidth <= container.clientWidth) return
 
     const containerRect = container.getBoundingClientRect()
     const thumbRect = thumb.getBoundingClientRect()
-    const delta =
-      thumbRect.left + thumbRect.width / 2 - (containerRect.left + containerRect.width / 2)
 
-    if (Math.abs(delta) > 1) {
-      container.scrollBy({
-        left: delta,
-        behavior: 'smooth',
-      })
+    if (container.scrollWidth > container.clientWidth) {
+      const deltaX =
+        thumbRect.left + thumbRect.width / 2 - (containerRect.left + containerRect.width / 2)
+      if (Math.abs(deltaX) > 1) {
+        container.scrollBy({ left: deltaX, behavior: 'smooth' })
+      }
+    }
+
+    if (container.scrollHeight > container.clientHeight) {
+      const deltaY =
+        thumbRect.top + thumbRect.height / 2 - (containerRect.top + containerRect.height / 2)
+      if (Math.abs(deltaY) > 1) {
+        container.scrollBy({ top: deltaY, behavior: 'smooth' })
+      }
     }
   }, [displayIndex])
 
@@ -188,6 +195,7 @@ export function ProductGallery({
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
     touchIsHorizontal.current = false
+    didDragRef.current = false
     setIsDragging(true)
   }
 
@@ -203,6 +211,9 @@ export function ProductGallery({
       return
     }
 
+    if (Math.abs(dx) > 6) {
+      didDragRef.current = true
+    }
     touchIsHorizontal.current = true
     e.preventDefault()
     setDragOffset(dx)
@@ -237,12 +248,17 @@ export function ProductGallery({
     if (!hasMultiple) return
     isMouseDown.current = true
     mouseStartX.current = e.clientX
+    didDragRef.current = false
     setIsDragging(true)
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!hasMultiple || !isMouseDown.current || mouseStartX.current === null) return
-    setDragOffset(e.clientX - mouseStartX.current)
+    const dx = e.clientX - mouseStartX.current
+    if (Math.abs(dx) > 6) {
+      didDragRef.current = true
+    }
+    setDragOffset(dx)
   }
 
   const finishMouseDrag = (clientX: number) => {
@@ -300,167 +316,181 @@ export function ProductGallery({
 
   return (
     <div
-      className="product-gallery-panel space-y-3 sm:space-y-4 w-full max-w-[27.5rem] mx-auto lg:max-w-none lg:sticky lg:top-24 lg:self-start select-none"
+      className="product-gallery-panel w-full sm:sticky sm:top-[4.5rem] lg:top-24 sm:self-start select-none"
       tabIndex={hasMultiple ? 0 : -1}
       onKeyDown={handleKeyDown}
       role="region"
       aria-roledescription={hasMultiple ? 'carousel' : undefined}
       aria-label={productName}
     >
-      {/* ── Main Viewer ──────────────────────────────────────────────────── */}
       <div
-        ref={containerRef}
-        dir={isRTL ? 'rtl' : 'ltr'}
-        className="product-main-image relative aspect-[4/5] w-full overflow-hidden rounded-2xl border"
-        style={{
-          borderColor: 'var(--border)',
-          background: 'var(--bg-muted)',
-          cursor: hasMultiple ? (isDragging ? 'grabbing' : 'grab') : 'default',
-          touchAction: hasMultiple ? 'pan-y' : 'auto',
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={() => {
-          if (isMobile) {
-            setIsFullscreenOpen(true)
-          }
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        className={
+          hasMultiple
+            ? 'flex items-start justify-center gap-2 sm:flex-col sm:items-stretch sm:gap-2.5 lg:gap-3.5'
+            : 'flex justify-center sm:block'
+        }
       >
-        {hasMultiple ? (
-          <div
-            dir="ltr"
-            className="absolute inset-y-0 left-0 flex h-full"
-            style={{
-              width: `${totalSlides * 100}%`,
-              transform: trackTransform,
-              transition: trackTransition,
-              willChange: 'transform',
-            }}
-          >
-            {trackImages.map((img, idx) => (
-              <div
-                key={`track-img-${idx}`}
-                className="relative h-full flex-shrink-0"
-                style={{ width: `${slideWidthPercent}%` }}
-              >
-                <Image
-                  src={failedSrcs[img] ? FALLBACK_IMAGE : img}
-                  alt={`${productName} ${idx + 1}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                  onError={() => handleImgError(img)}
-                  {...(idx === displayIndex + 1 ? { priority: true } : { loading: 'lazy' as const })}
-                  draggable={false}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="relative h-full w-full">
-            <Image
-              src={failedSrcs[imageList[0]] ? FALLBACK_IMAGE : imageList[0]}
-              alt={productName}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-              onError={() => handleImgError(imageList[0])}
-              priority
-              draggable={false}
-            />
-          </div>
-        )}
-
-        {hasMultiple && (
-          <>
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                handlePrevious()
-              }}
-              aria-label={prevLabel}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card-bg)]/90 text-[var(--text-primary)] shadow-md backdrop-blur-sm transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-95 cursor-pointer"
-            >
-              <ChevronLeft className="h-5 w-5" strokeWidth={2.2} />
-            </button>
-
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                handleNext()
-              }}
-              aria-label={nextLabel}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card-bg)]/90 text-[var(--text-primary)] shadow-md backdrop-blur-sm transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-95 cursor-pointer"
-            >
-              <ChevronRight className="h-5 w-5" strokeWidth={2.2} />
-            </button>
-
+        {/* ── Main Viewer ──────────────────────────────────────────────────── */}
+        <div
+          ref={containerRef}
+          dir={isRTL ? 'rtl' : 'ltr'}
+          className={`product-main-image relative aspect-[4/5] overflow-hidden rounded-2xl border ${
+            hasMultiple
+              ? 'flex-1 min-w-0 max-w-[240px] min-[420px]:max-w-[265px] sm:w-full sm:max-w-none'
+              : 'w-full max-w-[245px] min-[420px]:max-w-[270px] sm:max-w-none'
+          }`}
+          style={{
+            borderColor: 'var(--border)',
+            background: 'var(--bg-muted)',
+            cursor: hasMultiple ? (isDragging ? 'grabbing' : 'grab') : 'default',
+            touchAction: hasMultiple ? 'pan-y' : 'auto',
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={() => {
+            if (didDragRef.current) {
+              didDragRef.current = false
+              return
+            }
+            if (isMobile) {
+              setIsFullscreenOpen(true)
+            }
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+        >
+          {hasMultiple ? (
             <div
               dir="ltr"
-              className="absolute bottom-3 end-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none tabular-nums bg-black/70 text-white border border-white/15 backdrop-blur-sm"
+              className="absolute inset-y-0 left-0 flex h-full"
+              style={{
+                width: `${totalSlides * 100}%`,
+                transform: trackTransform,
+                transition: trackTransition,
+                willChange: 'transform',
+              }}
             >
-              {displayIndex + 1}&thinsp;/&thinsp;{n}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* ── Thumbnails ──────────────────────────────────────────────────── */}
-      {hasMultiple && (
-        <div
-          ref={thumbnailsRef}
-          className="w-full overflow-x-auto pb-1 pt-0.5 scrollbar-hidden"
-        >
-          <div className="mx-auto flex w-max gap-2 sm:gap-2.5 flex-nowrap">
-            {imageList.map((img, idx) => {
-              const isSelected = idx === displayIndex
-              return (
-                <button
-                  key={`thumb-${idx}`}
-                  ref={isSelected ? activeThumbRef : null}
-                  type="button"
-                  onClick={() => goToThumbnail(idx)}
-                  aria-label={`${productName} ${idx + 1}`}
-                  aria-current={isSelected ? 'true' : undefined}
-                  className="relative flex-shrink-0 overflow-hidden rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer"
-                  style={{
-                    width: '54px',
-                    height: '64px',
-                    border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                    opacity: isSelected ? 1 : 0.65,
-                    boxShadow: isSelected ? '0 0 0 2px var(--accent-ring)' : 'none',
-                  }}
+              {trackImages.map((img, idx) => (
+                <div
+                  key={`track-img-${idx}`}
+                  className="relative h-full flex-shrink-0"
+                  style={{ width: `${slideWidthPercent}%` }}
                 >
                   <Image
                     src={failedSrcs[img] ? FALLBACK_IMAGE : img}
                     alt={`${productName} ${idx + 1}`}
                     fill
-                    sizes="56px"
+                    sizes="(max-width: 639px) 265px, 45vw"
                     className="object-cover"
                     onError={() => handleImgError(img)}
+                    {...(idx === displayIndex + 1 ? { priority: true } : { loading: 'lazy' as const })}
                     draggable={false}
                   />
-                </button>
-              )
-            })}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="relative h-full w-full">
+              <Image
+                src={failedSrcs[imageList[0]] ? FALLBACK_IMAGE : imageList[0]}
+                alt={productName}
+                fill
+                sizes="(max-width: 639px) 270px, 45vw"
+                className="object-cover"
+                onError={() => handleImgError(imageList[0])}
+                priority
+                draggable={false}
+              />
+            </div>
+          )}
+
+          {hasMultiple && (
+            <>
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  handlePrevious()
+                }}
+                aria-label={prevLabel}
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 flex h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card-bg)]/90 text-[var(--text-primary)] shadow-md backdrop-blur-sm transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2.2} />
+              </button>
+
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  handleNext()
+                }}
+                aria-label={nextLabel}
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 flex h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card-bg)]/90 text-[var(--text-primary)] shadow-md backdrop-blur-sm transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-95 cursor-pointer"
+              >
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2.2} />
+              </button>
+
+              <div
+                dir="ltr"
+                className="absolute bottom-2 sm:bottom-3 end-2 sm:end-3 z-20 rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-semibold leading-none tabular-nums bg-black/70 text-white border border-white/15 backdrop-blur-sm"
+              >
+                {displayIndex + 1}&thinsp;/&thinsp;{n}
+              </div>
+            </>
+          )}
         </div>
-      )}
+
+        {/* ── Thumbnails (vertical rail on <640px, horizontal row on sm+) ─── */}
+        {hasMultiple && (
+          <div
+            ref={thumbnailsRef}
+            className="product-thumbnails w-12 max-h-[296px] overflow-y-auto sm:w-full sm:max-h-none sm:overflow-y-visible sm:overflow-x-auto pb-0.5 sm:pb-1 pt-0.5 scrollbar-hidden flex-shrink-0"
+          >
+            <div className="flex flex-col gap-1.5 sm:mx-auto sm:w-max sm:flex-row sm:gap-2.5 flex-nowrap">
+              {imageList.map((img, idx) => {
+                const isSelected = idx === displayIndex
+                return (
+                  <button
+                    key={`thumb-${idx}`}
+                    ref={isSelected ? activeThumbRef : null}
+                    type="button"
+                    onClick={() => goToThumbnail(idx)}
+                    aria-label={`${productName} ${idx + 1}`}
+                    aria-current={isSelected ? 'true' : undefined}
+                    className="relative flex-shrink-0 w-11 h-[54px] sm:w-[50px] sm:h-[60px] lg:w-[54px] lg:h-[64px] overflow-hidden rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer"
+                    style={{
+                      border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      opacity: isSelected ? 1 : 0.65,
+                      boxShadow: isSelected ? '0 0 0 2px var(--accent-ring)' : 'none',
+                    }}
+                  >
+                    <Image
+                      src={failedSrcs[img] ? FALLBACK_IMAGE : img}
+                      alt={`${productName} ${idx + 1}`}
+                      fill
+                      sizes="56px"
+                      className="object-cover"
+                      onError={() => handleImgError(img)}
+                      draggable={false}
+                    />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
       {isMobile && (
         <MobileFullscreenGallery
