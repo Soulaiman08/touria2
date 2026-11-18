@@ -75,7 +75,7 @@ export function LanguageSwitcher({ locale, align = 'end' }: LanguageSwitcherProp
   }
 
   return (
-    <div ref={containerRef} className="relative" dir="ltr">
+    <div ref={containerRef} className="relative">
       <button
         id="language-switcher-btn"
         type="button"

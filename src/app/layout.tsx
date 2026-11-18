@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { DM_Sans, Cormorant_Garamond, Cairo } from 'next/font/google'
 import './globals.css'
 
@@ -68,9 +69,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headerStore = await headers()
+  const localeHeader = headerStore.get('x-next-intl-locale')
+  const lang =
+    localeHeader === 'ar' || localeHeader === 'fr' || localeHeader === 'en'
+      ? localeHeader
+      : 'en'
+  const dir = lang === 'ar' ? 'rtl' : 'ltr'
+
   return (
-    <html suppressHydrationWarning>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <head />
       <body
         className={`${dmSans.variable} ${cormorant.variable} ${cairo.variable}`}

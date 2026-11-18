@@ -64,6 +64,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             className={`fixed inset-y-0 z-50 flex flex-col w-[min(92vw,26rem)] bg-[var(--card-bg)] shadow-[var(--shadow-modal)] focus:outline-none ${
               isRTL ? 'left-0 border-r border-[var(--border)]' : 'right-0 border-l border-[var(--border)]'
             }`}
+            dir={isRTL ? 'rtl' : 'ltr'}
             role="dialog"
             aria-modal="true"
             aria-label={t('title')}

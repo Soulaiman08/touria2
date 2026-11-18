@@ -13,6 +13,7 @@ import { WhatsAppButton } from '@/components/shared/WhatsAppButton'
 import { VisitorTracker } from '@/components/shared/VisitorTracker'
 
 import { CustomerAuthProvider } from '@/components/providers/CustomerAuthProvider'
+import { LocaleDocumentSync } from '@/components/shared/LocaleDocumentSync'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -173,19 +174,25 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages()
+  const isRTL = locale === 'ar'
 
   return (
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider>
         <CartProvider>
           <CustomerAuthProvider locale={locale}>
-            <div className="storefront-shell flex min-h-screen flex-col relative w-full">
+            <LocaleDocumentSync locale={locale} />
+            <div
+              className="storefront-shell flex min-h-screen flex-col relative w-full"
+              dir={isRTL ? 'rtl' : 'ltr'}
+              lang={locale}
+            >
               {/* Skip to content for accessibility */}
               <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg"
               >
-                {locale === 'ar' ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
+                {isRTL ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
               </a>
 
               <OrganizationSchema locale={locale} />

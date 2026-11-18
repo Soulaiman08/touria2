@@ -224,7 +224,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                   dir="ltr"
                   {...register('customerPhone')}
                   placeholder={t('personal.phonePlaceholder')}
-                  className="tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                  className={`tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] ${isRTL ? 'text-right' : 'text-left'}`}
                   style={{
                     borderColor: errors.customerPhone ? 'var(--error)' : 'var(--border)',
                   }}
@@ -244,7 +244,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                   dir="ltr"
                   {...register('customerPhone2')}
                   placeholder={t('personal.phone2Placeholder')}
-                  className="tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                  className={`tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] ${isRTL ? 'text-right' : 'text-left'}`}
                   style={{
                     borderColor: errors.customerPhone2 ? 'var(--error)' : 'var(--border)',
                   }}
@@ -265,7 +265,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 dir="ltr"
                 {...register('customerEmail')}
                 placeholder={t('personal.emailPlaceholder')}
-                className="w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                className={`w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] ${isRTL ? 'text-right' : 'text-left'}`}
                 style={{
                   borderColor: errors.customerEmail ? 'var(--error)' : 'var(--border)',
                 }}
@@ -391,7 +391,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 dir="ltr"
                 {...register('postalCode')}
                 placeholder={t('address.postalCodePlaceholder')}
-                className="tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                className={`tabular-nums w-full h-11 px-4 rounded-xl border text-sm font-medium transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] ${isRTL ? 'text-right' : 'text-left'}`}
                 style={{
                   borderColor: errors.postalCode ? 'var(--error)' : 'var(--border)',
                 }}

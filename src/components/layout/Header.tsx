@@ -351,7 +351,7 @@ export function Header({ locale }: HeaderProps) {
             </nav>
 
             {/* End Zone: Action Controls */}
-            <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0" dir="ltr">
+            <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0" dir={isRTL ? 'rtl' : 'ltr'}>
               <button
                 type="button"
                 className="icon-btn touch-target"

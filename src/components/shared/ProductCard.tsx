@@ -265,10 +265,7 @@ export function ProductCard({
             </button>
 
             {/* Sleek Bottom Autoscroll Indicator */}
-            <div
-              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-black/35 backdrop-blur-xs"
-              dir="ltr"
-            >
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-black/35 backdrop-blur-xs">
               {allImages.map((_, idx) => {
                 const active = idx === safeIndex
                 return (

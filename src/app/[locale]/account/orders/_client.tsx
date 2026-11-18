@@ -258,7 +258,7 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
                 onChange={(e) => setClaimPhone(e.target.value)}
                 placeholder={claimT('phone')}
                 dir="ltr"
-                className="tabular-nums h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-3.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                className={`tabular-nums h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-3.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] ${isRTL ? 'text-right' : 'text-left'}`}
               />
             </div>
             {claimMsg && (

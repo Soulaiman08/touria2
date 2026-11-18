@@ -275,7 +275,9 @@ export function AccountPageClient({ params }: AccountPageProps) {
                     disabled
                     dir="ltr"
                     value={user.email}
-                    className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] ps-10 pe-4 text-sm font-medium text-[var(--text-muted)] opacity-75 cursor-not-allowed outline-none text-start"
+                    className={`h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-sm font-medium text-[var(--text-muted)] opacity-75 cursor-not-allowed outline-none ${
+                      isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'
+                    }`}
                   />
                 </div>
               </div>
@@ -292,7 +294,9 @@ export function AccountPageClient({ params }: AccountPageProps) {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder={t('phonePlaceholder')}
                     dir="ltr"
-                    className="tabular-nums h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] ps-10 pe-4 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start transition-colors"
+                    className={`tabular-nums h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors ${
+                      isRTL ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'
+                    }`}
                   />
                 </div>
               </div>

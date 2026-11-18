@@ -75,6 +75,7 @@ export function FirstVisitGate({ locale, defaultOpen }: FirstVisitGateProps) {
     <div
       role="dialog"
       aria-modal="true"
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
       aria-label={
         locale === 'ar' ? 'تسجيل الدخول' : locale === 'fr' ? 'Connexion' : 'Sign in'
       }

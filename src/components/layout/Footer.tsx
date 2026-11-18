@@ -81,6 +81,12 @@ export function Footer({ locale }: FooterProps) {
   const isAuthPage = pathname?.includes('/login') || pathname?.includes('/signup')
   if (isAuthPage) return null
 
+  const linkClass =
+    'inline-flex items-center py-0.5 text-[0.75rem] sm:text-[0.8125rem] leading-4 sm:leading-5 transition-colors duration-150 hover:text-[var(--footer-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded no-underline truncate max-w-full'
+
+  const socialLinkClass =
+    'w-[1.625rem] h-[1.625rem] sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center border transition-colors duration-150 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)] hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)]'
+
   return (
     <footer
       dir={isRTL ? 'rtl' : 'ltr'}
@@ -94,24 +100,24 @@ export function Footer({ locale }: FooterProps) {
     >
       {/* Subtle Brass Hairline Accent */}
       <div
-        className="h-[1.5px] w-full"
+        className="h-px w-full"
         style={{
           background:
             'linear-gradient(90deg, transparent 0%, rgba(212,174,120,0.35) 25%, #D4AE78 50%, rgba(212,174,120,0.35) 75%, transparent 100%)',
         }}
       />
 
-      <div className="container-brand py-8 sm:py-10 lg:py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-7 lg:gap-8">
-          {/* Column 1: Framed Medallion Brand + Description + Restrained Social */}
-          <div className="sm:col-span-2 lg:col-span-4 flex flex-col items-start text-start">
+      <div className="container-brand py-3.5 sm:py-5 lg:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 lg:gap-8 items-start">
+          {/* Column 1: Brand + Socials (inline header on mobile, vertical stack on desktop) */}
+          <div className="lg:col-span-4 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 lg:flex-col lg:items-start lg:justify-start lg:gap-0 text-start min-w-0">
             <Link
               href={`/${locale}`}
-              className="inline-flex items-center gap-3 mb-3.5 group focus:outline-none no-underline"
+              className="order-1 inline-flex items-center gap-2 sm:gap-2.5 group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded-lg no-underline min-w-0"
               aria-label={storeName}
             >
               <div
-                className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border transition-transform duration-200 group-hover:scale-105"
+                className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 overflow-hidden rounded-full border transition-transform duration-200 group-hover:scale-105"
                 style={{
                   borderColor: 'rgba(212, 174, 120, 0.45)',
                   background: '#FAF6F0',
@@ -121,15 +127,16 @@ export function Footer({ locale }: FooterProps) {
                   src={storeLogo}
                   alt={storeName}
                   fill
-                  sizes="48px"
+                  sizes="40px"
+                  referrerPolicy="no-referrer"
                   className="object-cover"
                   onError={() => setLogoError(true)}
                 />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <h2
-                  className="text-base sm:text-lg font-bold tracking-wide leading-tight"
+                  className="text-[0.8125rem] sm:text-base font-bold tracking-wide leading-tight truncate"
                   style={{
                     color: 'var(--footer-heading)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -137,35 +144,28 @@ export function Footer({ locale }: FooterProps) {
                 >
                   {storeName}
                 </h2>
-                <span className="text-[0.6875rem] font-medium" style={{ color: 'var(--footer-accent)' }}>
+                <span className="block text-[0.625rem] sm:text-[0.6875rem] font-medium leading-tight mt-0.5 truncate" style={{ color: 'var(--footer-accent)' }}>
                   {isRTL ? 'دار الأزياء المغربية الأصيلة' : locale === 'fr' ? 'Maison d’Artisanat Marocain' : 'Moroccan Craft Atelier'}
                 </span>
               </div>
             </Link>
 
-            <p
-              className="text-xs sm:text-sm leading-relaxed max-w-sm"
-              style={{ color: 'var(--footer-muted)', textAlign: 'start' }}
-            >
-              {t('description')}
-            </p>
-
-            {/* Restrained Warm-Brass Social Controls */}
-            <div className="flex flex-wrap gap-2 mt-4">
+            {/* Compact Warm-Brass Social Controls */}
+            <div className="order-2 lg:order-3 flex items-center gap-1 sm:gap-1.5 lg:mt-3 flex-shrink-0">
               {whatsappUrl && (
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
-                  className="w-9 h-9 rounded-lg flex items-center justify-center border transition-colors duration-200 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)]"
+                  className={socialLinkClass}
                   style={{
                     borderColor: 'var(--footer-border)',
                     background: 'rgba(255,255,255,0.04)',
                     color: 'var(--footer-text)',
                   }}
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-3.5 h-3.5" />
                 </a>
               )}
               {instagramUrl && (
@@ -174,14 +174,14 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="w-9 h-9 rounded-lg flex items-center justify-center border transition-colors duration-200 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)]"
+                  className={socialLinkClass}
                   style={{
                     borderColor: 'var(--footer-border)',
                     background: 'rgba(255,255,255,0.04)',
                     color: 'var(--footer-text)',
                   }}
                 >
-                  <Camera className="w-4 h-4" />
+                  <Camera className="w-3.5 h-3.5" />
                 </a>
               )}
               {tiktokUrl && (
@@ -190,14 +190,14 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="TikTok"
-                  className="w-9 h-9 rounded-lg flex items-center justify-center border transition-colors duration-200 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)]"
+                  className={socialLinkClass}
                   style={{
                     borderColor: 'var(--footer-border)',
                     background: 'rgba(255,255,255,0.04)',
                     color: 'var(--footer-text)',
                   }}
                 >
-                  <Music2 className="w-4 h-4" />
+                  <Music2 className="w-3.5 h-3.5" />
                 </a>
               )}
               {facebookUrl && (
@@ -206,14 +206,14 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="w-9 h-9 rounded-lg flex items-center justify-center border transition-colors duration-200 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)]"
+                  className={socialLinkClass}
                   style={{
                     borderColor: 'var(--footer-border)',
                     background: 'rgba(255,255,255,0.04)',
                     color: 'var(--footer-text)',
                   }}
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-3.5 h-3.5" />
                 </a>
               )}
               {youtubeUrl && (
@@ -222,35 +222,42 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube"
-                  className="w-9 h-9 rounded-lg flex items-center justify-center border transition-colors duration-200 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)]"
+                  className={socialLinkClass}
                   style={{
                     borderColor: 'var(--footer-border)',
                     background: 'rgba(255,255,255,0.04)',
                     color: 'var(--footer-text)',
                   }}
                 >
-                  <PlayCircle className="w-4 h-4" />
+                  <PlayCircle className="w-3.5 h-3.5" />
                 </a>
               )}
             </div>
+
+            <p
+              className="order-3 w-full lg:order-2 lg:mt-2 text-[0.6875rem] sm:text-xs leading-snug sm:leading-relaxed max-w-sm"
+              style={{ color: 'var(--footer-muted)', textAlign: 'start' }}
+            >
+              {t('description')}
+            </p>
           </div>
 
-          {/* Columns 2 & 3: Quick Links & Information */}
-          <div className="grid grid-cols-2 gap-6 sm:contents lg:contents">
-            <div className="lg:col-span-2">
+          {/* Columns 2 & 3: Quick Links (3-col on mobile = 2 rows, 2x3 on desktop) & Information (2-col on mobile = 2 rows, 1-col on desktop) */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-12 sm:gap-5 lg:contents">
+            <div className="sm:col-span-6 lg:col-span-3 min-w-0">
               <h3
-                className="text-xs sm:text-sm font-bold mb-3"
-                style={{ color: 'var(--footer-heading)' }}
+                className="text-[0.6875rem] sm:text-xs font-semibold tracking-wide mb-1 sm:mb-2 pb-1 border-b"
+                style={{ color: 'var(--footer-heading)', borderColor: 'var(--footer-border)' }}
               >
                 {isRTL ? 'روابط سريعة' : locale === 'fr' ? 'Liens rapides' : 'Quick Links'}
               </h3>
-              <ul className="space-y-2 text-xs sm:text-sm">
+              <ul className="grid grid-cols-3 gap-x-2 gap-y-0.5 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1">
                 {quickLinks.map((l) => (
-                  <li key={l.href}>
+                  <li key={l.href} className="min-w-0">
                     <Link
                       href={l.href}
                       onClick={l.isContact ? handleContactClick : undefined}
-                      className="transition-colors duration-150 hover:text-[var(--footer-accent)] inline-block py-0.5 no-underline"
+                      className={linkClass}
                       style={{ color: 'var(--footer-text)' }}
                     >
                       {l.label}
@@ -260,19 +267,19 @@ export function Footer({ locale }: FooterProps) {
               </ul>
             </div>
 
-            <div className="lg:col-span-3">
+            <div className="sm:col-span-6 lg:col-span-2 min-w-0">
               <h3
-                className="text-xs sm:text-sm font-bold mb-3"
-                style={{ color: 'var(--footer-heading)' }}
+                className="text-[0.6875rem] sm:text-xs font-semibold tracking-wide mb-1 sm:mb-2 pb-1 border-b"
+                style={{ color: 'var(--footer-heading)', borderColor: 'var(--footer-border)' }}
               >
                 {isRTL ? 'المعلومات والسياسات' : locale === 'fr' ? 'Informations' : 'Information'}
               </h3>
-              <ul className="space-y-2 text-xs sm:text-sm">
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 lg:grid-cols-1 lg:gap-y-1">
                 {infoLinks.map((l) => (
-                  <li key={l.href}>
+                  <li key={l.href} className="min-w-0">
                     <Link
                       href={l.href}
-                      className="transition-colors duration-150 hover:text-[var(--footer-accent)] inline-block py-0.5 no-underline"
+                      className={linkClass}
                       style={{ color: 'var(--footer-text)' }}
                     >
                       {l.label}
@@ -283,82 +290,69 @@ export function Footer({ locale }: FooterProps) {
             </div>
           </div>
 
-          {/* Column 4: Contact Details */}
-          <div className="lg:col-span-3">
+          {/* Column 4: Compact Contact Details (2x2 on mobile/tablet, aligned vertical stack on desktop) */}
+          <div className="lg:col-span-3 min-w-0">
             <h3
-              className="text-xs sm:text-sm font-bold mb-3"
-              style={{ color: 'var(--footer-heading)' }}
+              className="text-[0.6875rem] sm:text-xs font-semibold tracking-wide mb-1 sm:mb-2 pb-1 border-b"
+              style={{ color: 'var(--footer-heading)', borderColor: 'var(--footer-border)' }}
             >
               {isRTL ? 'تواصل معنا' : locale === 'fr' ? 'Contact' : 'Contact'}
             </h3>
 
-            <ul className="space-y-2.5 text-xs sm:text-sm">
+            <ul className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-y-1.5 lg:grid-cols-1 text-[0.75rem] sm:text-[0.8125rem]">
               {phone && (
-                <li>
+                <li className="min-w-0">
                   <a
                     href={`tel:${phone.replace(/\s+/g, '')}`}
-                    className="flex items-center gap-2.5 transition-colors hover:text-[var(--footer-accent)] no-underline"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 max-w-full py-0.5 transition-colors hover:text-[var(--footer-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded no-underline"
                     style={{ color: 'var(--footer-text)' }}
-                    dir="ltr"
+                    title={phone}
                   >
-                    <span
-                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border"
-                      style={{ borderColor: 'var(--footer-border)', background: 'rgba(255,255,255,0.04)' }}
-                    >
-                      <Phone className="w-3.5 h-3.5" style={{ color: 'var(--footer-accent)' }} />
+                    <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: 'var(--footer-accent)' }} />
+                    <span className="tabular-nums truncate" dir="ltr">
+                      {phone}
                     </span>
-                    <span className="tabular-nums">{phone}</span>
                   </a>
                 </li>
               )}
 
               {whatsappUrl && (
-                <li>
+                <li className="min-w-0">
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 transition-colors hover:text-[var(--footer-accent)] no-underline"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 max-w-full py-0.5 transition-colors hover:text-[var(--footer-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded no-underline"
                     style={{ color: 'var(--footer-text)' }}
                   >
-                    <span
-                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border"
-                      style={{ borderColor: 'var(--footer-border)', background: 'rgba(255,255,255,0.04)' }}
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" style={{ color: 'var(--footer-accent)' }} />
-                    </span>
-                    <span>WhatsApp</span>
+                    <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: 'var(--footer-accent)' }} />
+                    <span className="truncate">WhatsApp</span>
                   </a>
                 </li>
               )}
 
               {email && (
-                <li>
+                <li className="min-w-0">
                   <a
                     href={`mailto:${email}`}
-                    className="flex items-center gap-2.5 transition-colors hover:text-[var(--footer-accent)] break-all no-underline"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 max-w-full py-0.5 transition-colors hover:text-[var(--footer-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded no-underline"
                     style={{ color: 'var(--footer-text)' }}
+                    title={email}
                   >
-                    <span
-                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border"
-                      style={{ borderColor: 'var(--footer-border)', background: 'rgba(255,255,255,0.04)' }}
-                    >
-                      <Mail className="w-3.5 h-3.5" style={{ color: 'var(--footer-accent)' }} />
-                    </span>
+                    <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: 'var(--footer-accent)' }} />
                     <span className="truncate">{email}</span>
                   </a>
                 </li>
               )}
 
               {address && (
-                <li className="flex items-center gap-2.5" style={{ color: 'var(--footer-muted)' }}>
-                  <span
-                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border"
-                    style={{ borderColor: 'var(--footer-border)', background: 'rgba(255,255,255,0.04)' }}
-                  >
-                    <MapPin className="w-3.5 h-3.5" style={{ color: 'var(--footer-accent)' }} />
-                  </span>
-                  <span>{address}</span>
+                <li
+                  className="inline-flex items-center gap-1.5 sm:gap-2 min-w-0 py-0.5"
+                  style={{ color: 'var(--footer-muted)' }}
+                  title={address}
+                >
+                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: 'var(--footer-accent)' }} />
+                  <span className="truncate">{address}</span>
                 </li>
               )}
             </ul>
@@ -367,7 +361,7 @@ export function Footer({ locale }: FooterProps) {
 
         {/* Bottom Copyright Bar */}
         <div
-          className="mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          className="mt-2.5 sm:mt-4 pt-2 sm:pt-3 flex flex-col sm:flex-row items-center justify-between gap-0.5 sm:gap-4 text-[0.6875rem] sm:text-xs"
           style={{
             borderTop: '1px solid var(--footer-border)',
             color: 'var(--footer-muted)',

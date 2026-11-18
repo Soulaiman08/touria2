@@ -281,7 +281,9 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t('emailPlaceholder')}
                       dir="ltr"
-                      className="w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm ps-10 pe-3.5 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors text-start"
+                      className={`w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors ${
+                        isRTL ? 'pr-10 pl-3.5 text-right' : 'pl-10 pr-3.5 text-left'
+                      }`}
                     />
                   </div>
                 </div>

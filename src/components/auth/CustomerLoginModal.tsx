@@ -51,6 +51,7 @@ export function CustomerLoginModal({ locale }: CustomerLoginModalProps) {
     <div
       role="dialog"
       aria-modal="true"
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
       className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
     >
       {/* Backdrop */}

@@ -396,7 +396,7 @@ export function ProductGallery({
 
             <div
               dir="ltr"
-              className="absolute bottom-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none tabular-nums bg-black/70 text-white border border-white/15 backdrop-blur-sm"
+              className="absolute bottom-3 end-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none tabular-nums bg-black/70 text-white border border-white/15 backdrop-blur-sm"
             >
               {displayIndex + 1}&thinsp;/&thinsp;{n}
             </div>
