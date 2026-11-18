@@ -5,12 +5,12 @@ import Link from 'next/link'
 import {
   HelpCircle,
   ChevronDown,
-  MessageCircle,
   ArrowLeft,
   Truck,
   CreditCard,
   Sparkles,
 } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa6'
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 
@@ -295,8 +295,8 @@ export default function FaqPage({ params }: FaqPageProps) {
 
       {/* ── Concierge Direct Support Card ─────────────────────────── */}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 text-center flex flex-col items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
-          <MessageCircle className="w-5 h-5" />
+        <div className="w-11 h-11 rounded-xl bg-[#25D366]/12 border border-[#25D366]/30 flex items-center justify-center text-[#25D366]">
+          <FaWhatsapp className="w-5 h-5" />
         </div>
 
         <div>
@@ -319,7 +319,7 @@ export default function FaqPage({ params }: FaqPageProps) {
             rel="noopener noreferrer"
             className="btn btn-primary btn-round px-6 h-11 text-sm mt-1"
           >
-            <MessageCircle className="w-4 h-4" />
+            <FaWhatsapp className="w-4 h-4" />
             <span>{isRTL ? 'تواصلي معنا عبر واتساب' : locale === 'fr' ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
           </a>
         )}

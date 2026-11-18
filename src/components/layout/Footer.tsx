@@ -5,7 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Phone, Mail, MapPin, MessageCircle, Camera, Share2, Music2, PlayCircle } from 'lucide-react'
+import { Phone, Mail, MapPin } from 'lucide-react'
+import { FaWhatsapp, FaInstagram, FaTiktok, FaFacebookF, FaYoutube } from 'react-icons/fa6'
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 
@@ -85,7 +86,7 @@ export function Footer({ locale }: FooterProps) {
     'inline-flex items-center py-0.5 text-[0.75rem] sm:text-[0.8125rem] leading-4 sm:leading-5 transition-colors duration-150 hover:text-[var(--footer-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded no-underline truncate max-w-full'
 
   const socialLinkClass =
-    'w-[1.625rem] h-[1.625rem] sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center border transition-colors duration-150 hover:border-[var(--footer-accent)] hover:text-[var(--footer-accent)] hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)]'
+    'footer-social-btn w-[1.625rem] h-[1.625rem] sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)]'
 
   return (
     <footer
@@ -150,7 +151,7 @@ export function Footer({ locale }: FooterProps) {
               </div>
             </Link>
 
-            {/* Compact Warm-Brass Social Controls */}
+            {/* Compact Brand Social Controls */}
             <div className="order-2 lg:order-3 flex items-center gap-1 sm:gap-1.5 lg:mt-3 flex-shrink-0">
               {whatsappUrl && (
                 <a
@@ -158,14 +159,10 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
-                  className={socialLinkClass}
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: 'var(--footer-text)',
-                  }}
+                  title="WhatsApp"
+                  className={`${socialLinkClass} footer-social-whatsapp`}
                 >
-                  <MessageCircle className="w-3.5 h-3.5" />
+                  <FaWhatsapp className="w-3.5 h-3.5" />
                 </a>
               )}
               {instagramUrl && (
@@ -174,14 +171,10 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className={socialLinkClass}
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: 'var(--footer-text)',
-                  }}
+                  title="Instagram"
+                  className={`${socialLinkClass} footer-social-instagram`}
                 >
-                  <Camera className="w-3.5 h-3.5" />
+                  <FaInstagram className="w-3.5 h-3.5" />
                 </a>
               )}
               {tiktokUrl && (
@@ -190,14 +183,10 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="TikTok"
-                  className={socialLinkClass}
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: 'var(--footer-text)',
-                  }}
+                  title="TikTok"
+                  className={`${socialLinkClass} footer-social-tiktok`}
                 >
-                  <Music2 className="w-3.5 h-3.5" />
+                  <FaTiktok className="w-3.5 h-3.5" />
                 </a>
               )}
               {facebookUrl && (
@@ -206,14 +195,10 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className={socialLinkClass}
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: 'var(--footer-text)',
-                  }}
+                  title="Facebook"
+                  className={`${socialLinkClass} footer-social-facebook`}
                 >
-                  <Share2 className="w-3.5 h-3.5" />
+                  <FaFacebookF className="w-3.5 h-3.5" />
                 </a>
               )}
               {youtubeUrl && (
@@ -222,14 +207,10 @@ export function Footer({ locale }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube"
-                  className={socialLinkClass}
-                  style={{
-                    borderColor: 'var(--footer-border)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: 'var(--footer-text)',
-                  }}
+                  title="YouTube"
+                  className={`${socialLinkClass} footer-social-youtube`}
                 >
-                  <PlayCircle className="w-3.5 h-3.5" />
+                  <FaYoutube className="w-3.5 h-3.5" />
                 </a>
               )}
             </div>
@@ -325,7 +306,7 @@ export function Footer({ locale }: FooterProps) {
                     className="inline-flex items-center gap-1.5 sm:gap-2 max-w-full py-0.5 transition-colors hover:text-[var(--footer-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--footer-accent)] rounded no-underline"
                     style={{ color: 'var(--footer-text)' }}
                   >
-                    <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: 'var(--footer-accent)' }} />
+                    <FaWhatsapp className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: '#25D366' }} />
                     <span className="truncate">WhatsApp</span>
                   </a>
                 </li>

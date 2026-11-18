@@ -10,11 +10,11 @@ import {
   FileText,
   Cookie,
   Mail,
-  MessageCircle,
   ArrowLeft,
   Sparkles,
   ShoppingBag,
 } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa6'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
 
@@ -481,8 +481,8 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
 
       {/* ── Direct Privacy Concierge Banner ──────────────────────── */}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 text-center flex flex-col items-center gap-3.5 mb-7">
-        <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
-          <MessageCircle className="w-5 h-5" />
+        <div className="w-11 h-11 rounded-xl bg-[#25D366]/12 border border-[#25D366]/30 flex items-center justify-center text-[#25D366]">
+          <FaWhatsapp className="w-5 h-5" />
         </div>
 
         <div>
@@ -510,7 +510,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               rel="noopener noreferrer"
               className="btn btn-primary btn-round px-6 h-11 text-sm"
             >
-              <MessageCircle className="w-4 h-4" />
+              <FaWhatsapp className="w-4 h-4" />
               <span>{isRTL ? 'تواصلي معنا عبر واتساب' : isFR ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
             </a>
           )}

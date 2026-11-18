@@ -164,31 +164,37 @@ export function InfiniteProductGrid({
       </div>
 
       {/* ── Sentinel & Infinite Scroll Feedback ─────────────────────── */}
-      <div
-        ref={sentinelRef}
-        className="w-full flex flex-col items-center justify-center py-8 min-h-[60px]"
-      >
-        {loading && (
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--bg-subtle)] border border-[var(--border)] text-xs font-semibold text-[var(--accent)] shadow-xs animate-in fade-in duration-200">
-            <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)]" />
-            <span>{tLoading}</span>
-          </div>
-        )}
+      {(hasMore || loading || error) && (
+        <div
+          ref={sentinelRef}
+          className={
+            loading || error
+              ? 'w-full flex flex-col items-center justify-center py-5'
+              : 'w-full h-px'
+          }
+        >
+          {loading && (
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--bg-subtle)] border border-[var(--border)] text-xs font-semibold text-[var(--accent)] shadow-xs animate-in fade-in duration-200">
+              <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)]" />
+              <span>{tLoading}</span>
+            </div>
+          )}
 
-        {error && (
-          <div className="flex flex-col items-center gap-3 py-2 animate-in fade-in duration-200">
-            <p className="text-xs font-medium text-[var(--muted-foreground)]">{tError}</p>
-            <button
-              type="button"
-              onClick={loadMore}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-light)] transition-all active:scale-95"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>{tRetry}</span>
-            </button>
-          </div>
-        )}
-      </div>
+          {error && (
+            <div className="flex flex-col items-center gap-3 py-2 animate-in fade-in duration-200">
+              <p className="text-xs font-medium text-[var(--muted-foreground)]">{tError}</p>
+              <button
+                type="button"
+                onClick={loadMore}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-light)] transition-all active:scale-95"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>{tRetry}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

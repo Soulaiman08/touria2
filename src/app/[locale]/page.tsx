@@ -9,13 +9,15 @@ import {
   Sparkles,
   Truck,
   Heart,
-  MessageCircle,
   Phone,
-  Camera,
-  Music2,
-  Share2,
-  PlayCircle,
 } from 'lucide-react'
+import {
+  FaWhatsapp,
+  FaInstagram,
+  FaTiktok,
+  FaFacebookF,
+  FaYoutube,
+} from 'react-icons/fa6'
 import { productService } from '@/services/product.service'
 import { categoryService } from '@/services/category.service'
 import { bannerService } from '@/services/banner.service'
@@ -371,10 +373,34 @@ export default async function HomePage({ params }: HomePageProps) {
     : '#'
 
   const socialLinks = [
-    { href: settings.instagram || '', icon: Camera, label: 'Instagram' },
-    { href: settings.tiktok || '', icon: Music2, label: 'TikTok' },
-    { href: settings.facebook || '', icon: Share2, label: 'Facebook' },
-    { href: settings.youtube || '', icon: PlayCircle, label: 'YouTube' },
+    {
+      href: settings.instagram || '',
+      icon: FaInstagram,
+      label: 'Instagram',
+      colorClass: 'social-brand-instagram',
+      surfaceClass: '',
+    },
+    {
+      href: settings.tiktok || '',
+      icon: FaTiktok,
+      label: 'TikTok',
+      colorClass: 'social-brand-tiktok',
+      surfaceClass: '',
+    },
+    {
+      href: settings.facebook || '',
+      icon: FaFacebookF,
+      label: 'Facebook',
+      colorClass: 'social-brand-facebook',
+      surfaceClass: '',
+    },
+    {
+      href: settings.youtube || '',
+      icon: FaYoutube,
+      label: 'YouTube',
+      colorClass: 'social-brand-youtube',
+      surfaceClass: '',
+    },
   ].filter((s) => Boolean(s.href && s.href !== '#'))
 
   const heroPrimaryName = heroPrimary
@@ -399,7 +425,7 @@ export default async function HomePage({ params }: HomePageProps) {
           1. ARCHITECTURAL MOROCCAN ARCH HERO
       =================================================== */}
       <section
-        className="home-hero relative overflow-hidden py-6 sm:py-12 lg:py-20"
+        className="home-hero relative overflow-hidden pt-3 pb-4 sm:py-6 md:py-7 lg:py-8"
         aria-label={isRTL ? 'الرئيسية' : 'Hero'}
       >
         <div
@@ -412,50 +438,49 @@ export default async function HomePage({ params }: HomePageProps) {
 
         <div className="container-brand relative z-10">
           <div
-            className="grid grid-cols-1 lg:grid-cols-12 items-center gap-7 sm:gap-10 lg:gap-12 xl:gap-16"
+            className="grid grid-cols-1 min-[340px]:grid-cols-12 items-center gap-x-3 gap-y-4 min-[340px]:gap-x-3.5 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Editorial Copy Column */}
-            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-start space-y-4 sm:space-y-6">
-              <div className="flex items-center gap-2.5 sm:gap-3 text-[0.6875rem] sm:text-xs font-semibold uppercase tracking-[0.12em] sm:tracking-[0.14em] text-[var(--gold)]">
-                <span className="w-5 sm:w-6 h-px bg-[var(--gold)]/60" aria-hidden="true" />
-                <span>{labels.heroEyebrow}</span>
+            <div className="min-[340px]:col-span-7 lg:col-span-6 flex flex-col items-center min-[340px]:items-start text-center min-[340px]:text-start space-y-2 sm:space-y-4 lg:space-y-5 min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-3 text-[0.5625rem] sm:text-xs font-semibold uppercase tracking-[0.06em] sm:tracking-[0.14em] text-[var(--gold)] max-w-full">
+                <span className="w-3 sm:w-6 h-px bg-[var(--gold)]/60 flex-shrink-0" aria-hidden="true" />
+                <span className="truncate">{labels.heroEyebrow}</span>
               </div>
 
               <h1
-                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)]"
+                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)] text-[clamp(1.15rem,5vw,1.7rem)] sm:text-[clamp(1.65rem,3.3vw,3.65rem)]"
                 style={{
-                  fontSize: 'clamp(1.9rem, 3.6vw, 3.65rem)',
                   fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                 }}
               >
                 {labels.heroTitle1}
-                <span className="block mt-1 gradient-text">
+                <span className="block mt-0.5 sm:mt-1 gradient-text">
                   {labels.heroTitle2}
                 </span>
               </h1>
 
-              <p className="text-xs sm:text-base max-w-md sm:max-w-lg leading-relaxed text-[var(--text-muted)]">
+              <p className="text-[0.6875rem] sm:text-sm lg:text-base max-w-md lg:max-w-lg leading-[1.45] sm:leading-relaxed text-[var(--text-muted)] line-clamp-3 sm:line-clamp-none">
                 {labels.heroSub}
               </p>
 
-              {/* Action Buttons (Side-by-side 2-col on mobile, stack cleanly at extreme zoom-in, inline flex on tablet+) */}
-              <div className="grid grid-cols-1 min-[340px]:grid-cols-2 sm:flex items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-1 w-full sm:w-auto max-w-md sm:max-w-none">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-center min-[340px]:justify-start gap-1.5 sm:gap-2.5 lg:gap-3.5 pt-0.5 sm:pt-1 w-full">
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary btn-round w-full sm:w-auto sm:min-w-[11.25rem] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
+                  className="btn btn-primary btn-round w-auto lg:min-w-[11.25rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
-                  <span className="truncate">{labels.heroCta}</span>
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
+                  <span>{labels.heroCta}</span>
                 </Link>
 
                 <Link
                   href={`/${locale}/about`}
-                  className="btn btn-outline btn-round w-full sm:w-auto sm:min-w-[10rem] !px-3 sm:!px-7 text-xs sm:text-sm justify-center group"
+                  className="btn btn-outline btn-round w-auto lg:min-w-[10rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
                 >
-                  <span className="truncate">{labels.heroSec}</span>
+                  <span>{labels.heroSec}</span>
                   <ArrowRight
-                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${
                       isRTL
                         ? 'rotate-180 group-hover:-translate-x-0.5'
                         : 'group-hover:translate-x-0.5'
@@ -464,10 +489,10 @@ export default async function HomePage({ params }: HomePageProps) {
                 </Link>
               </div>
 
-              {/* Clean Typographic Assurances */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 sm:gap-x-4 gap-y-1.5 pt-3 border-t border-[var(--border-subtle)] text-[0.6875rem] sm:text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
+              {/* Clean Typographic Assurances (Desktop & Tablet inside copy column) */}
+              <div className="hidden sm:flex flex-wrap items-center justify-start gap-x-3 lg:gap-x-4 gap-y-1 pt-3 border-t border-[var(--border-subtle)] text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
                 {labels.trustLine.map((item, idx) => (
-                  <span key={item} className="inline-flex items-center gap-3 sm:gap-4">
+                  <span key={item} className="inline-flex items-center gap-3 lg:gap-4">
                     {idx > 0 && (
                       <span className="text-[var(--gold)]/60" aria-hidden="true">
                         ·
@@ -480,12 +505,12 @@ export default async function HomePage({ params }: HomePageProps) {
             </div>
 
             {/* Moroccan Architectural Arch Editorial Showcase */}
-            <div className="lg:col-span-6 relative flex justify-center lg:justify-end px-3 sm:px-0">
-              <div className="relative w-full max-w-[18.125rem] sm:max-w-[23.75rem] lg:max-w-[25.625rem]">
+            <div className="min-[340px]:col-span-5 lg:col-span-6 relative flex justify-center min-[340px]:justify-end ps-1.5 sm:ps-0">
+              <div className="relative w-full max-w-[12.5rem] min-[340px]:max-w-[11.5rem] sm:max-w-[16rem] md:max-w-[18.75rem] lg:max-w-[24.5rem] xl:max-w-[25.625rem]">
                 {heroPrimary ? (
                   <Link
                     href={`/${locale}/products/${heroPrimary.slug}`}
-                    className="block relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--bg-muted)] group no-underline"
+                    className="block relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--bg-muted)] group no-underline"
                     style={{ boxShadow: 'var(--card-shadow-hover)' }}
                   >
                     <Image
@@ -494,40 +519,46 @@ export default async function HomePage({ params }: HomePageProps) {
                       fill
                       priority
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 290px, (max-width: 1024px) 380px, 410px"
+                      sizes="(max-width: 640px) 180px, (max-width: 1024px) 300px, 410px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
                         background:
-                          'linear-gradient(to top, rgba(20, 13, 9, 0.78) 0%, rgba(20, 13, 9, 0.12) 45%, transparent 100%)',
+                          'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.16) 50%, transparent 100%)',
                       }}
                     />
 
                     {/* Subtle Framed Showcase Caption */}
-                    <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 flex items-end justify-between gap-3 sm:gap-4 text-white">
-                      <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                        <span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-[#E4C48E] block">
+                    <div
+                      className={`absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-0.5 sm:gap-1 lg:gap-3 text-white ${
+                        heroSecondary
+                          ? 'ps-10 pe-2 pb-2 min-[420px]:ps-12 min-[420px]:pe-2.5 min-[420px]:pb-2.5 sm:ps-20 sm:pe-4 sm:pb-3.5 md:ps-24 md:pe-4 md:pb-4 lg:ps-28 lg:pe-6 lg:pb-6'
+                          : 'p-2.5 sm:p-4 lg:p-6'
+                      }`}
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <span className="hidden min-[420px]:block text-[0.5rem] sm:text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-[#E4C48E] whitespace-nowrap">
                           {labels.featuredPieceLabel}
                         </span>
-                        <p className="text-xs sm:text-base font-bold truncate">
+                        <p className="text-[0.625rem] min-[420px]:text-[0.6875rem] sm:text-xs lg:text-base font-bold truncate">
                           {heroPrimaryName}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                        <span className="text-xs sm:text-sm font-bold tabular-nums text-[#F6EFE6]">
+                      <div className="flex items-center justify-between lg:justify-end gap-1 sm:gap-2 flex-shrink-0">
+                        <span className="text-[0.625rem] min-[420px]:text-[0.6875rem] sm:text-xs lg:text-sm font-bold tabular-nums text-[#F6EFE6]">
                           {formatPrice(heroPrimary.salePrice ?? heroPrimary.basePrice, locale)}
                         </span>
-                        <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                          <ArrowUpRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? '-scale-x-100' : ''}`} />
+                        <span className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+                          <ArrowUpRight className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 ${isRTL ? '-scale-x-100' : ''}`} />
                         </span>
                       </div>
                     </div>
                   </Link>
                 ) : (
                   <div
-                    className="relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--card-bg)]"
+                    className="relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--card-bg)]"
                     style={{ boxShadow: 'var(--card-shadow-hover)' }}
                   >
                     <Image
@@ -536,7 +567,7 @@ export default async function HomePage({ params }: HomePageProps) {
                       fill
                       priority
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 290px, (max-width: 1024px) 380px, 410px"
+                      sizes="(max-width: 640px) 180px, (max-width: 1024px) 300px, 410px"
                       className="object-cover"
                     />
                   </div>
@@ -547,19 +578,33 @@ export default async function HomePage({ params }: HomePageProps) {
                   <Link
                     href={`/${locale}/products/${heroSecondary.slug}`}
                     aria-label={heroSecondaryName}
-                    className="block absolute -bottom-3 -start-3 w-20 sm:-bottom-5 sm:-start-6 sm:w-32 aspect-[3/4] rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
+                    className="block absolute -bottom-1.5 -start-1.5 w-10 min-[420px]:-bottom-2 min-[420px]:-start-2 min-[420px]:w-12 sm:-bottom-3 sm:-start-3 sm:w-20 md:-bottom-4 md:-start-4 md:w-24 lg:-bottom-5 lg:-start-5 lg:w-28 aspect-[3/4] rounded-md sm:rounded-xl overflow-hidden border-[1.5px] sm:border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
                   >
                     <Image
                       src={heroSecondary.mainImage || '/images/brand/logo-icon.png'}
                       alt={heroSecondaryName}
                       fill
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 80px, 140px"
+                      sizes="(max-width: 640px) 48px, (max-width: 1024px) 96px, 128px"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </Link>
                 )}
               </div>
+            </div>
+
+            {/* Clean Typographic Assurances (Mobile full-width single compact row below columns) */}
+            <div className="flex sm:hidden min-[340px]:col-span-12 flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-2.5 border-t border-[var(--border-subtle)] text-[0.625rem] font-medium text-[var(--text-muted)] w-full">
+              {labels.trustLine.map((item, idx) => (
+                <span key={item} className="inline-flex items-center gap-2">
+                  {idx > 0 && (
+                    <span className="text-[var(--gold)]/60" aria-hidden="true">
+                      ·
+                    </span>
+                  )}
+                  <span>{item}</span>
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -640,8 +685,8 @@ export default async function HomePage({ params }: HomePageProps) {
           3. COLLECTIONS & BEST SELLERS
       =================================================== */}
       <section className="home-section" aria-label={labels.bestSellers}>
-        <div className="container-brand space-y-6 sm:space-y-8">
-          <div className="space-y-4 border-b border-[var(--border-subtle)] pb-5 sm:pb-6" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="container-brand space-y-4 sm:space-y-6">
+          <div className="space-y-3 sm:space-y-4 border-b border-[var(--border-subtle)] pb-4 sm:pb-5" dir={isRTL ? 'rtl' : 'ltr'}>
             <div className="flex items-end justify-between gap-3">
               <div className="space-y-1 sm:space-y-1.5 min-w-0">
                 <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
@@ -727,9 +772,9 @@ export default async function HomePage({ params }: HomePageProps) {
         className="home-section home-section-muted"
         aria-label={labels.newCol}
       >
-        <div className="container-brand space-y-6 sm:space-y-8">
+        <div className="container-brand space-y-4 sm:space-y-6">
           <div
-            className="flex flex-row items-end justify-between gap-3 border-b border-[var(--border)] pb-5 sm:pb-6"
+            className="flex flex-row items-end justify-between gap-3 border-b border-[var(--border)] pb-4 sm:pb-5"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             <div className="space-y-1 sm:space-y-1.5 min-w-0">
@@ -782,11 +827,11 @@ export default async function HomePage({ params }: HomePageProps) {
       >
         <div className="container-brand">
           <div
-            className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 items-start"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-start"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Story Quote + 2x2 Craft Pillars */}
-            <div className="lg:col-span-7 space-y-6 sm:space-y-8">
+            <div className="lg:col-span-7 space-y-5 sm:space-y-6">
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                   <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
@@ -859,8 +904,8 @@ export default async function HomePage({ params }: HomePageProps) {
                     className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[var(--accent-ring)] bg-[var(--accent-light)] hover:border-[var(--accent)] transition-colors no-underline group"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <span className="w-10 h-10 rounded-xl bg-[var(--accent)] text-white flex items-center justify-center flex-shrink-0">
-                        <MessageCircle className="w-5 h-5" />
+                      <span className="w-10 h-10 rounded-xl bg-[#25D366] text-white flex items-center justify-center flex-shrink-0 shadow-xs transition-transform duration-200 group-hover:scale-105">
+                        <FaWhatsapp className="w-5 h-5" />
                       </span>
                       <div className="min-w-0">
                         <span className="block text-sm font-bold text-[var(--text-primary)]">
@@ -916,7 +961,8 @@ export default async function HomePage({ params }: HomePageProps) {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={item.label}
-                            className="w-10 h-10 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center transition-colors"
+                            title={item.label}
+                            className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 ${item.surfaceClass} ${item.colorClass}`}
                           >
                             <Icon className="w-4 h-4" />
                           </a>

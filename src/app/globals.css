@@ -499,17 +499,17 @@ h6 {
 
 @media (min-width: 768px) {
   :root {
-    --page-block: 4rem;
-    --content-gap: 2.5rem;
-    --card-padding: 2rem;
+    --page-block: 2rem;
+    --content-gap: 1.5rem;
+    --card-padding: 1.75rem;
   }
 }
 
 @media (min-width: 1024px) {
   :root {
-    --page-block: 5rem;
-    --content-gap: 3rem;
-    --card-padding: 2.25rem;
+    --page-block: 2.5rem;
+    --content-gap: 2rem;
+    --card-padding: 2rem;
   }
 }
 
@@ -585,7 +585,12 @@ h6 {
 }
 
 .home-section {
-  padding-block: clamp(3rem, 5vw, 5rem);
+  padding-block: clamp(1.5rem, 2.5vw, 2.5rem);
+}
+
+.home-hero + .home-section:not(.home-section-muted),
+.home-section:not(.home-section-muted) + .home-section:not(.home-section-muted) {
+  padding-top: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
 .home-section-muted {
@@ -607,7 +612,7 @@ h6 {
   }
 
   .home-section {
-    padding-block: 2.5rem;
+    padding-block: 1.25rem;
   }
 }
 
@@ -1943,3 +1948,128 @@ select option {
   color: #E4C48E !important;
   font-weight: 600 !important;
 }
+
+/* ═══════════════════════════════════════════════
+   SOCIAL ICONS — BRAND COLORS (LIGHT) / MONOCHROME (DARK)
+═══════════════════════════════════════════════ */
+.social-brand-whatsapp {
+  color: #1FAF54;
+  background-color: rgba(37, 211, 102, 0.08);
+  border-color: rgba(37, 211, 102, 0.30);
+}
+.social-brand-whatsapp:hover {
+  background-color: rgba(37, 211, 102, 0.16);
+  border-color: rgba(37, 211, 102, 0.55);
+}
+
+.social-brand-instagram {
+  color: #E4405F;
+  background-color: rgba(228, 64, 95, 0.08);
+  border-color: rgba(228, 64, 95, 0.30);
+}
+.social-brand-instagram:hover {
+  background-color: rgba(228, 64, 95, 0.16);
+  border-color: rgba(228, 64, 95, 0.55);
+}
+
+.social-brand-tiktok {
+  color: #111111;
+  background-color: rgba(17, 17, 17, 0.05);
+  border-color: rgba(17, 17, 17, 0.18);
+}
+.social-brand-tiktok:hover {
+  background-color: rgba(17, 17, 17, 0.10);
+  border-color: rgba(17, 17, 17, 0.36);
+}
+
+.social-brand-facebook {
+  color: #1877F2;
+  background-color: rgba(24, 119, 242, 0.08);
+  border-color: rgba(24, 119, 242, 0.30);
+}
+.social-brand-facebook:hover {
+  background-color: rgba(24, 119, 242, 0.16);
+  border-color: rgba(24, 119, 242, 0.55);
+}
+
+.social-brand-youtube {
+  color: #FF0000;
+  background-color: rgba(255, 0, 0, 0.08);
+  border-color: rgba(255, 0, 0, 0.30);
+}
+.social-brand-youtube:hover {
+  background-color: rgba(255, 0, 0, 0.16);
+  border-color: rgba(255, 0, 0, 0.55);
+}
+
+.dark .social-brand-whatsapp,
+.dark .social-brand-instagram,
+.dark .social-brand-tiktok,
+.dark .social-brand-facebook,
+.dark .social-brand-youtube {
+  color: var(--text-secondary);
+  background-color: var(--bg-subtle);
+  border-color: var(--border);
+}
+
+.dark .social-brand-whatsapp:hover,
+.dark .social-brand-instagram:hover,
+.dark .social-brand-tiktok:hover,
+.dark .social-brand-facebook:hover,
+.dark .social-brand-youtube:hover {
+  color: var(--accent);
+  background-color: var(--accent-light);
+  border-color: var(--accent);
+}
+
+/* Footer Social Buttons (Brand-colored in Light mode, warm monochrome in Dark mode) */
+.footer-social-btn {
+  border-color: var(--footer-border);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.footer-social-whatsapp { color: #25D366; }
+.footer-social-whatsapp:hover { border-color: rgba(37, 211, 102, 0.60); background-color: rgba(37, 211, 102, 0.15); }
+.footer-social-instagram { color: #E4405F; }
+.footer-social-instagram:hover { border-color: rgba(228, 64, 95, 0.60); background-color: rgba(228, 64, 95, 0.15); }
+.footer-social-tiktok { color: #FAF6F0; }
+.footer-social-tiktok:hover { border-color: rgba(250, 246, 240, 0.45); background-color: rgba(255, 255, 255, 0.12); }
+.footer-social-facebook { color: #4C9AFF; }
+.footer-social-facebook:hover { border-color: rgba(76, 154, 255, 0.60); background-color: rgba(24, 119, 242, 0.20); }
+.footer-social-youtube { color: #FF4444; }
+.footer-social-youtube:hover { border-color: rgba(255, 68, 68, 0.60); background-color: rgba(255, 0, 0, 0.15); }
+
+.dark .footer-social-btn {
+  color: var(--footer-text);
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: var(--footer-border);
+}
+.dark .footer-social-btn:hover {
+  color: var(--footer-accent);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--footer-accent);
+}
+
+/* Stacked Drawer Social Icon Colors (Brand in Light / Monochrome in Dark) */
+.social-icon-whatsapp { color: #1FAF54; }
+.social-icon-instagram { color: #E4405F; }
+.social-icon-facebook { color: #1877F2; }
+.social-icon-tiktok { color: #111111; }
+.social-icon-youtube { color: #FF0000; }
+
+.dark .social-icon-whatsapp,
+.dark .social-icon-instagram,
+.dark .social-icon-facebook,
+.dark .social-icon-tiktok,
+.dark .social-icon-youtube {
+  color: var(--text-muted);
+}
+
+.dark a:hover > .social-icon-whatsapp,
+.dark a:hover > .social-icon-instagram,
+.dark a:hover > .social-icon-facebook,
+.dark a:hover > .social-icon-tiktok,
+.dark a:hover > .social-icon-youtube {
+  color: var(--accent);
+}
+
+

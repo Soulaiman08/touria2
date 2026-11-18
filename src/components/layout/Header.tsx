@@ -16,13 +16,10 @@ import {
   Info,
   Phone,
   Globe,
-  MessageCircle,
   ArrowRight,
   User,
-  Camera,
-  Share2,
-  Music2,
 } from 'lucide-react'
+import { FaWhatsapp, FaInstagram, FaTiktok, FaFacebookF, FaYoutube } from 'react-icons/fa6'
 
 import { useCartStore } from '@/store/cart.store'
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
@@ -53,6 +50,7 @@ interface StoreSettings {
   instagram?: string
   facebook?: string
   tiktok?: string
+  youtube?: string
   whatsapp?: string
 }
 
@@ -229,6 +227,7 @@ export function Header({ locale }: HeaderProps) {
   const instagramUrl = storeSettings?.instagram?.trim() || ''
   const facebookUrl = storeSettings?.facebook?.trim() || ''
   const tiktokUrl = storeSettings?.tiktok?.trim() || ''
+  const youtubeUrl = storeSettings?.youtube?.trim() || ''
   const whatsappValue = storeSettings?.whatsapp?.trim() || ''
 
   const whatsappUrl = whatsappValue
@@ -236,6 +235,52 @@ export function Header({ locale }: HeaderProps) {
       ? whatsappValue
       : `https://wa.me/${whatsappValue.replace(/[^0-9]/g, '')}`
     : ''
+
+  const drawerSocials = [
+    whatsappUrl
+      ? {
+          href: whatsappUrl,
+          label: locale === 'ar' ? 'واتساب' : 'WhatsApp',
+          icon: FaWhatsapp,
+          iconClass: 'social-icon-whatsapp',
+        }
+      : null,
+    instagramUrl
+      ? {
+          href: instagramUrl,
+          label: locale === 'ar' ? 'إنستغرام' : 'Instagram',
+          icon: FaInstagram,
+          iconClass: 'social-icon-instagram',
+        }
+      : null,
+    facebookUrl
+      ? {
+          href: facebookUrl,
+          label: locale === 'ar' ? 'فيسبوك' : 'Facebook',
+          icon: FaFacebookF,
+          iconClass: 'social-icon-facebook',
+        }
+      : null,
+    tiktokUrl
+      ? {
+          href: tiktokUrl,
+          label: 'TikTok',
+          icon: FaTiktok,
+          iconClass: 'social-icon-tiktok',
+        }
+      : null,
+    youtubeUrl
+      ? {
+          href: youtubeUrl,
+          label: locale === 'ar' ? 'يوتيوب' : 'YouTube',
+          icon: FaYoutube,
+          iconClass: 'social-icon-youtube',
+        }
+      : null,
+  ].filter(
+    (item): item is { href: string; label: string; icon: typeof FaWhatsapp; iconClass: string } =>
+      Boolean(item)
+  )
 
   const brandName =
     storeSettings?.storeName?.trim() ||
@@ -410,7 +455,7 @@ export function Header({ locale }: HeaderProps) {
         <aside
           id="main-side-menu"
           className={cn(
-            'scrollbar-hidden absolute top-0 h-full w-[min(17.5rem,88vw)] overflow-y-auto shadow-2xl transition-transform duration-300 ease-out flex flex-col',
+            'absolute top-0 h-full w-[min(17.5rem,88vw)] overflow-hidden shadow-2xl transition-transform duration-300 ease-out flex flex-col',
             isRTL ? 'right-0' : 'left-0',
             isRTL
               ? menuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -425,9 +470,9 @@ export function Header({ locale }: HeaderProps) {
           dir={isRTL ? 'rtl' : 'ltr'}
           onClick={(event) => event.stopPropagation()}
         >
-          {/* Drawer Header */}
+          {/* Fixed Drawer Header */}
           <div
-            className="flex items-center justify-between px-4 py-4 mx-3 mt-2 mb-3 border-b"
+            className="flex-shrink-0 flex items-center justify-between px-3 py-2.5 mx-3 mt-1 border-b"
             style={{ borderColor: 'var(--border)' }}
           >
             <Link
@@ -436,7 +481,7 @@ export function Header({ locale }: HeaderProps) {
               className="flex items-center gap-2.5 min-w-0 no-underline"
             >
               <div
-                className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-xl border"
+                className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-xl border"
                 style={{
                   background: 'var(--bg-subtle)',
                   borderColor: 'var(--border)',
@@ -446,7 +491,7 @@ export function Header({ locale }: HeaderProps) {
                   src={resolvedLogo}
                   alt={brandName}
                   fill
-                  sizes="40px"
+                  sizes="32px"
                   className="object-cover"
                   onError={() => setLogoError(true)}
                 />
@@ -482,193 +527,163 @@ export function Header({ locale }: HeaderProps) {
             </button>
           </div>
 
-          {/* Drawer Navigation */}
-          <nav className="flex flex-col gap-1 px-3">
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              const isActive =
-                pathname === item.href ||
-                (item.href !== `/${locale}` && !item.href.includes('?') && !item.href.includes('#') && pathname?.startsWith(item.href))
+          {/* Scrollable Drawer Body (block flow preserves bottom padding cleanly under zoom/short windows) */}
+          <div className="scrollbar-hidden flex-1 min-h-0 overflow-y-auto px-3 pt-2 pb-4">
+            {/* Drawer Navigation */}
+            <nav className="flex flex-col gap-0.5">
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== `/${locale}` && !item.href.includes('?') && !item.href.includes('#') && pathname?.startsWith(item.href))
 
-              return (
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeMenu}
+                    className="flex items-center gap-3 rounded-xl px-3 py-1.5 min-h-[34px] text-[13px] font-semibold no-underline transition-colors"
+                    style={{
+                      background: isActive ? 'var(--accent)' : 'transparent',
+                      color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                    }}
+                  >
+                    <Icon
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: isActive ? '#FFFFFF' : 'var(--text-muted)' }}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+
+            {/* Customer Account / Sign In */}
+            <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: 'var(--border)' }}>
+              {customer ? (
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  href={`/${locale}/account`}
                   onClick={closeMenu}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 min-h-[42px] text-[13px] font-semibold no-underline transition-colors"
+                  className="flex items-center gap-3 rounded-xl px-3 py-1.5 min-h-[38px] text-[13px] font-semibold no-underline border transition-colors hover:border-[var(--accent)]"
                   style={{
-                    background: isActive ? 'var(--accent)' : 'transparent',
-                    color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                    background: 'var(--accent-light)',
+                    borderColor: 'var(--accent-ring)',
+                    color: 'var(--text-primary)',
                   }}
                 >
-                  <Icon
-                    className="h-4 w-4 flex-shrink-0"
-                    style={{ color: isActive ? '#FFFFFF' : 'var(--text-muted)' }}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Customer Account / Sign In */}
-          <div className="mx-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-            {customer ? (
-              <Link
-                href={`/${locale}/account`}
-                onClick={closeMenu}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 min-h-[46px] text-[13px] font-semibold no-underline border transition-colors hover:border-[var(--accent)]"
-                style={{
-                  background: 'var(--accent-light)',
-                  borderColor: 'var(--accent-ring)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {customer.avatarUrl ? (
-                  <Image
-                    src={customer.avatarUrl}
-                    alt={customer.name || 'Avatar'}
-                    width={28}
-                    height={28}
-                    className="h-7 w-7 rounded-full object-cover border flex-shrink-0"
-                    style={{ borderColor: 'var(--gold)' }}
-                  />
-                ) : (
-                  <div
-                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                    style={{ background: 'var(--accent)' }}
-                  >
-                    {customer.name ? customer.name.charAt(0).toUpperCase() : <User className="h-3.5 w-3.5" />}
+                  {customer.avatarUrl ? (
+                    <Image
+                      src={customer.avatarUrl}
+                      alt={customer.name || 'Avatar'}
+                      width={26}
+                      height={26}
+                      className="h-[26px] w-[26px] rounded-full object-cover border flex-shrink-0"
+                      style={{ borderColor: 'var(--gold)' }}
+                    />
+                  ) : (
+                    <div
+                      className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                      style={{ background: 'var(--accent)' }}
+                    >
+                      {customer.name ? customer.name.charAt(0).toUpperCase() : <User className="h-3.5 w-3.5" />}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate font-bold" style={{ color: 'var(--text-primary)' }}>
+                      {locale === 'ar' ? 'حسابي' : locale === 'fr' ? 'Mon compte' : 'My account'}
+                    </span>
                   </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <span className="block truncate font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {locale === 'ar' ? 'حسابي' : locale === 'fr' ? 'Mon compte' : 'My account'}
-                  </span>
-                </div>
-              </Link>
-            ) : (
-              <Link
-                href={`/${locale}/login`}
-                onClick={closeMenu}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 min-h-[46px] text-[13px] font-semibold no-underline border transition-colors hover:border-[var(--accent)]"
-                style={{
-                  background: 'var(--bg-subtle)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                <div
-                  className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}
+                </Link>
+              ) : (
+                <Link
+                  href={`/${locale}/login`}
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 rounded-xl px-3 py-1.5 min-h-[38px] text-[13px] font-semibold no-underline border transition-colors hover:border-[var(--accent)]"
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--text-primary)',
+                  }}
                 >
-                  <User className="h-3.5 w-3.5" />
+                  <div
+                    className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}
+                  >
+                    <User className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="font-bold">
+                    {locale === 'ar' ? 'تسجيل الدخول' : locale === 'fr' ? 'Se connecter' : 'Sign in'}
+                  </span>
+                </Link>
+              )}
+            </div>
+
+            {/* Inline Language Selector */}
+            <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-2 mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                <Globe className="h-3.5 w-3.5" />
+                <span>{locale === 'ar' ? 'اللغة' : locale === 'fr' ? 'Langue' : 'Language'}</span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { code: 'ar', label: 'العربية' },
+                  { code: 'fr', label: 'Français' },
+                  { code: 'en', label: 'English' },
+                ].map((lang) => {
+                  const isActive = locale === lang.code
+                  return (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false)
+                        const segments = window.location.pathname.split('/')
+                        segments[1] = lang.code
+                        window.location.href = segments.join('/')
+                      }}
+                      className="flex items-center justify-center rounded-lg px-2 py-1 min-h-[32px] text-xs transition-colors whitespace-nowrap"
+                      style={{
+                        border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                        background: isActive ? 'var(--accent-light)' : 'var(--bg-subtle)',
+                        color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                        fontWeight: isActive ? 700 : 500,
+                      }}
+                    >
+                      {lang.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Social Links (Stacked vertical list with authentic icons: brand-colored in Light, monochrome in Dark) */}
+            {drawerSocials.length > 0 && (
+              <div className="mt-2.5 pt-2.5 pb-1 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex flex-col gap-0.5">
+                  {drawerSocials.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 min-h-[36px] text-[13px] font-medium no-underline transition-colors text-[var(--text-secondary)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
+                      >
+                        <Icon className={cn('h-4 w-4 flex-shrink-0 transition-colors', item.iconClass)} />
+                        <span className="truncate">{item.label}</span>
+                      </a>
+                    )
+                  })}
                 </div>
-                <span className="font-bold">
-                  {locale === 'ar' ? 'تسجيل الدخول' : locale === 'fr' ? 'Se connecter' : 'Sign in'}
-                </span>
-              </Link>
+              </div>
             )}
           </div>
 
-          {/* Inline Language Selector */}
-          <div className="mx-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-            <div className="flex items-center gap-2 mb-2.5 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-              <Globe className="h-3.5 w-3.5" />
-              <span>{locale === 'ar' ? 'اللغة' : locale === 'fr' ? 'Langue' : 'Language'}</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-1.5">
-              {[
-                { code: 'ar', label: 'العربية' },
-                { code: 'fr', label: 'Français' },
-                { code: 'en', label: 'English' },
-              ].map((lang) => {
-                const isActive = locale === lang.code
-                return (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false)
-                      const segments = window.location.pathname.split('/')
-                      segments[1] = lang.code
-                      window.location.href = segments.join('/')
-                    }}
-                    className="flex items-center justify-center rounded-lg px-2 py-2 min-h-[38px] text-xs transition-colors whitespace-nowrap"
-                    style={{
-                      border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
-                      background: isActive ? 'var(--accent-light)' : 'var(--bg-subtle)',
-                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      fontWeight: isActive ? 700 : 500,
-                    }}
-                  >
-                    {lang.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Social Links */}
-          {(whatsappUrl || instagramUrl || facebookUrl || tiktokUrl) && (
-            <div className="mx-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-              <div className="flex flex-col gap-1">
-                {whatsappUrl && (
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium no-underline transition-colors hover:bg-[var(--bg-subtle)]"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <MessageCircle className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    <span>{locale === 'ar' ? 'واتساب' : 'WhatsApp'}</span>
-                  </a>
-                )}
-                {instagramUrl && (
-                  <a
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium no-underline transition-colors hover:bg-[var(--bg-subtle)]"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <Camera className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    <span>{locale === 'ar' ? 'إنستغرام' : 'Instagram'}</span>
-                  </a>
-                )}
-                {facebookUrl && (
-                  <a
-                    href={facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium no-underline transition-colors hover:bg-[var(--bg-subtle)]"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <Share2 className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    <span>{locale === 'ar' ? 'فيسبوك' : 'Facebook'}</span>
-                  </a>
-                )}
-                {tiktokUrl && (
-                  <a
-                    href={tiktokUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium no-underline transition-colors hover:bg-[var(--bg-subtle)]"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <Music2 className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    <span>TikTok</span>
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Drawer Footer */}
+          {/* Fixed Drawer Footer */}
           <div
-            className="mt-auto mx-3 py-4 border-t text-center text-[11px]"
+            className="flex-shrink-0 mx-3 py-2 border-t text-center text-[11px]"
             style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
           >
             © {new Date().getFullYear()} {brandName}
