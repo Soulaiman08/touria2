@@ -87,12 +87,28 @@ export function ProductGallery({
   const mouseStartX = useRef<number | null>(null)
   const isMouseDown = useRef(false)
 
+  const isFirstThumbRender = useRef(true)
+
   useEffect(() => {
-    if (activeThumbRef.current) {
-      activeThumbRef.current.scrollIntoView({
+    if (isFirstThumbRender.current) {
+      isFirstThumbRender.current = false
+      return
+    }
+
+    const container = thumbnailsRef.current
+    const thumb = activeThumbRef.current
+    if (!container || !thumb) return
+    if (container.scrollWidth <= container.clientWidth) return
+
+    const containerRect = container.getBoundingClientRect()
+    const thumbRect = thumb.getBoundingClientRect()
+    const delta =
+      thumbRect.left + thumbRect.width / 2 - (containerRect.left + containerRect.width / 2)
+
+    if (Math.abs(delta) > 1) {
+      container.scrollBy({
+        left: delta,
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
       })
     }
   }, [displayIndex])
@@ -408,9 +424,9 @@ export function ProductGallery({
       {hasMultiple && (
         <div
           ref={thumbnailsRef}
-          className="w-full flex justify-center overflow-x-auto pb-1 pt-0.5 scrollbar-hidden"
+          className="w-full overflow-x-auto pb-1 pt-0.5 scrollbar-hidden"
         >
-          <div className="inline-flex gap-2 sm:gap-2.5 flex-nowrap">
+          <div className="mx-auto flex w-max gap-2 sm:gap-2.5 flex-nowrap">
             {imageList.map((img, idx) => {
               const isSelected = idx === displayIndex
               return (
