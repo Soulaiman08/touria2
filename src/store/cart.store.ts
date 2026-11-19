@@ -4,12 +4,48 @@ import { create } from 'zustand'
 import {
   persist,
   createJSONStorage,
+  type StateStorage,
 } from 'zustand/middleware'
 import { v4 as uuidv4 } from 'uuid'
 
 import type { CartState } from '@/types/cart'
 
 const CART_VERSION = 2
+
+const memoryFallbackStorage = new Map<string, string>()
+
+const safeCartStorage: StateStorage = {
+  getItem: (name) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(name)
+      }
+    } catch {
+      // ignore SecurityError in restricted mobile browsers
+    }
+    return memoryFallbackStorage.get(name) ?? null
+  },
+  setItem: (name, value) => {
+    memoryFallbackStorage.set(name, value)
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(name, value)
+      }
+    } catch {
+      // ignore SecurityError / QuotaExceededError
+    }
+  },
+  removeItem: (name) => {
+    memoryFallbackStorage.delete(name)
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(name)
+      }
+    } catch {
+      // ignore SecurityError
+    }
+  },
+}
 
 export const useCartStore =
   create<CartState>()(
@@ -165,7 +201,7 @@ export const useCartStore =
 
         storage:
           createJSONStorage(
-            () => localStorage,
+            () => safeCartStorage,
           ),
 
         // ==========================================

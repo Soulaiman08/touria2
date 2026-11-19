@@ -12,7 +12,8 @@ import { MOROCCAN_CITIES, DEFAULT_SHIPPING_PRICE, getCitiesByRegion } from '@/co
 import { MOROCCAN_REGIONS } from '@/config/moroccan-regions'
 import { formatPrice } from '@/lib/utils'
 import { computeCartSubtotal, aggregateNiqabs } from '@/lib/cart-math'
-import { ShieldCheck, MapPin, User, ChevronDown, ShoppingBag, Loader2, Truck } from 'lucide-react'
+import { CustomSelect } from '@/components/shared/CustomSelect'
+import { ShieldCheck, MapPin, User, ShoppingBag, Loader2, Truck } from 'lucide-react'
 
 interface CheckoutFormProps {
   locale: string
@@ -63,8 +64,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
   // Cities available for the currently selected region
   const availableCities = selectedRegion ? getCitiesByRegion(selectedRegion) : MOROCCAN_CITIES
 
-  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const regionId = e.target.value
+  const handleRegionChange = (regionId: string) => {
     setSelectedRegion(regionId)
     setSelectedCity('')
     setShippingPrice(null)
@@ -72,8 +72,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
     setValue('city', '', { shouldValidate: false })
   }
 
-  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
+  const handleCityChange = async (val: string) => {
     setSelectedCity(val)
     setValue('city', val, { shouldValidate: true })
     if (!val) {
@@ -296,24 +295,30 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                   {t('address.region')} <span className="text-[var(--error)]">*</span>
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedRegion}
-                    onChange={handleRegionChange}
-                    className="w-full h-11 rounded-xl border text-sm font-medium appearance-none transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer ps-4 pe-10"
-                    style={{
-                      borderColor: errors.region ? 'var(--error)' : 'var(--border)',
-                    }}
-                  >
-                    <option value="">{t('address.regionPlaceholder')}</option>
-                    {MOROCCAN_REGIONS.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {locale === 'ar' ? r.ar : locale === 'fr' ? r.fr : r.en}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-75" />
-                </div>
+                <CustomSelect
+                  value={selectedRegion}
+                  onChange={handleRegionChange}
+                  options={MOROCCAN_REGIONS.map((r) => ({
+                    value: r.id,
+                    label: locale === 'ar' ? r.ar : locale === 'fr' ? r.fr : r.en,
+                    keywords: `${r.ar} ${r.fr} ${r.en}`,
+                  }))}
+                  placeholder={t('address.regionPlaceholder')}
+                  hasError={Boolean(errors.region)}
+                  searchable
+                  searchPlaceholder={
+                    locale === 'ar'
+                      ? 'ابحثي عن الجهة...'
+                      : locale === 'fr'
+                        ? 'Rechercher une région...'
+                        : 'Search region...'
+                  }
+                  noResultsText={
+                    locale === 'ar' ? 'لا توجد نتائج' : locale === 'fr' ? 'Aucun résultat' : 'No results'
+                  }
+                  ariaLabel={t('address.region')}
+                  variant="input"
+                />
                 {errors.region && (
                   <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.region.message}</p>
                 )}
@@ -324,25 +329,31 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                 <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] mb-2">
                   {t('address.city')} <span className="text-[var(--error)]">*</span>
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedCity}
-                    onChange={handleCityChange}
-                    disabled={!selectedRegion}
-                    className="w-full h-11 rounded-xl border text-sm font-medium appearance-none transition-colors outline-none bg-[var(--input-bg)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ps-4 pe-10"
-                    style={{
-                      borderColor: errors.city ? 'var(--error)' : 'var(--border)',
-                    }}
-                  >
-                    <option value="">{t('address.cityPlaceholder')}</option>
-                    {availableCities.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {locale === 'ar' ? c.ar : locale === 'fr' ? c.fr : c.en}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute inset-y-0 end-3.5 my-auto pointer-events-none text-[var(--text-muted)] opacity-75" />
-                </div>
+                <CustomSelect
+                  value={selectedCity}
+                  onChange={handleCityChange}
+                  disabled={!selectedRegion}
+                  options={availableCities.map((c) => ({
+                    value: c.value,
+                    label: locale === 'ar' ? c.ar : locale === 'fr' ? c.fr : c.en,
+                    keywords: `${c.ar} ${c.fr} ${c.en}`,
+                  }))}
+                  placeholder={t('address.cityPlaceholder')}
+                  hasError={Boolean(errors.city)}
+                  searchable
+                  searchPlaceholder={
+                    locale === 'ar'
+                      ? 'ابحثي عن المدينة...'
+                      : locale === 'fr'
+                        ? 'Rechercher une ville...'
+                        : 'Search city...'
+                  }
+                  noResultsText={
+                    locale === 'ar' ? 'لا توجد نتائج' : locale === 'fr' ? 'Aucun résultat' : 'No results'
+                  }
+                  ariaLabel={t('address.city')}
+                  variant="input"
+                />
                 {errors.city && (
                   <p className="text-xs text-[var(--error)] font-medium mt-1.5">{errors.city.message}</p>
                 )}

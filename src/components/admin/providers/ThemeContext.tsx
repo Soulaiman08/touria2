@@ -15,7 +15,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark')
 
   useEffect(() => {
-    const saved = localStorage.getItem('admin_theme') as Theme | null
+    let saved: Theme | null = null
+    try {
+      saved = window.localStorage.getItem('admin_theme') as Theme | null
+    } catch {
+      saved = null
+    }
     const id = requestAnimationFrame(() => {
       if (saved) {
         setTheme(saved)
@@ -34,7 +39,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
-    localStorage.setItem('admin_theme', next)
+    try {
+      window.localStorage.setItem('admin_theme', next)
+    } catch {
+      // ignore storage write errors
+    }
     if (next === 'dark') {
       document.documentElement.classList.add('dark')
     } else {

@@ -15,8 +15,12 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function getStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'system'
-  const stored = localStorage.getItem('thuraya-theme')
-  if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+  try {
+    const stored = window.localStorage.getItem('thuraya-theme')
+    if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+  } catch {
+    // ignore storage access errors in restricted mobile browsers
+  }
   return 'system'
 }
 
@@ -54,13 +58,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     updateResolved()
-    mediaQuery.addEventListener('change', updateResolved)
-    return () => mediaQuery.removeEventListener('change', updateResolved)
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateResolved)
+      return () => mediaQuery.removeEventListener('change', updateResolved)
+    }
+    mediaQuery.addListener(updateResolved)
+    return () => mediaQuery.removeListener(updateResolved)
   }, [theme, mounted])
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)
-    localStorage.setItem('thuraya-theme', newTheme)
+    try {
+      window.localStorage.setItem('thuraya-theme', newTheme)
+    } catch {
+      // ignore storage write errors in restricted mobile browsers
+    }
   }
 
   return (

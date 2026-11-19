@@ -111,70 +111,82 @@ export function SilkBackground() {
     let themeBlend = isDark ? 1 : 0
 
     const isSoftwareGl = detectSoftwareWebGL()
+    const isCompactMobile = window.innerWidth < 768
+    const skipHeavyEffects = isSoftwareGl || isCompactMobile
 
     let renderer: THREE.WebGLRenderer
     try {
       renderer = new THREE.WebGLRenderer({
-        antialias: !isSoftwareGl,
+        antialias: !skipHeavyEffects,
         alpha: false,
-        powerPreference: 'high-performance',
+        powerPreference: isCompactMobile ? 'low-power' : 'high-performance',
       })
     } catch {
       return
     }
 
-    renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.02
-    renderer.setPixelRatio(isSoftwareGl ? 1 : Math.max(0.25, Math.min(window.devicePixelRatio || 1, 1.75)))
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.shadowMap.enabled = !isSoftwareGl
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap
-    renderer.domElement.style.display = 'block'
-    renderer.domElement.style.width = '100%'
-    renderer.domElement.style.height = '100%'
-    container.appendChild(renderer.domElement)
+    let envTarget: THREE.WebGLRenderTarget | null = null
+    let cleanupFns: (() => void) | null = null
 
-    const scene = new THREE.Scene()
-    scene.background = (isDark ? NIGHT_BG_COLOR : DAY_BG_COLOR).clone()
+    try {
+      renderer.outputColorSpace = THREE.SRGBColorSpace
+      renderer.toneMapping = THREE.ACESFilmicToneMapping
+      renderer.toneMappingExposure = 1.02
+      renderer.setPixelRatio(
+        isSoftwareGl
+          ? 1
+          : Math.max(0.25, Math.min(window.devicePixelRatio || 1, isCompactMobile ? 1.25 : 1.75))
+      )
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      renderer.shadowMap.enabled = !skipHeavyEffects
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap
+      renderer.domElement.style.display = 'block'
+      renderer.domElement.style.width = '100%'
+      renderer.domElement.style.height = '100%'
+      container.appendChild(renderer.domElement)
 
-    // Studio environment reflection (kept very restrained in Day mode so shadows stay crisp)
-    const pmremGenerator = new THREE.PMREMGenerator(renderer)
-    const envTarget = pmremGenerator.fromScene(new RoomEnvironment(), 0.04)
-    scene.environment = envTarget.texture
-    pmremGenerator.dispose()
+      const scene = new THREE.Scene()
+      scene.background = (isDark ? NIGHT_BG_COLOR : DAY_BG_COLOR).clone()
 
-    const camera = new THREE.PerspectiveCamera(
-      34,
-      Math.max(1, window.innerWidth) / Math.max(1, window.innerHeight),
-      0.1,
-      50
-    )
-    camera.position.set(0, 0, 7.6)
+      // Studio environment reflection (skipped on compact mobile / software WebGL for stability)
+      if (!skipHeavyEffects) {
+        const pmremGenerator = new THREE.PMREMGenerator(renderer)
+        envTarget = pmremGenerator.fromScene(new RoomEnvironment(), 0.04)
+        scene.environment = envTarget.texture
+        pmremGenerator.dispose()
+      }
 
-    // Calibrated raking studio lighting: crisp folds & soft self-shadows in Day and Night
-    const hemiLight = new THREE.HemisphereLight(
-      isDark ? NIGHT_HEMI_SKY : DAY_HEMI_SKY,
-      isDark ? NIGHT_HEMI_GROUND : DAY_HEMI_GROUND,
-      isDark ? 0.50 : 0.24
-    )
-    scene.add(hemiLight)
+      const camera = new THREE.PerspectiveCamera(
+        34,
+        Math.max(1, window.innerWidth) / Math.max(1, window.innerHeight),
+        0.1,
+        50
+      )
+      camera.position.set(0, 0, 7.6)
 
-    const keyLight = new THREE.DirectionalLight('#fff2df', isDark ? 2.85 : 2.35)
-    keyLight.position.set(6.8, 3.0, 2.5)
-    if (!isSoftwareGl) {
-      keyLight.castShadow = true
-      keyLight.shadow.mapSize.set(1024, 1024)
-      keyLight.shadow.camera.near = 1
-      keyLight.shadow.camera.far = 22
-      keyLight.shadow.camera.left = -7.5
-      keyLight.shadow.camera.right = 7.5
-      keyLight.shadow.camera.top = 5.0
-      keyLight.shadow.camera.bottom = -5.0
-      keyLight.shadow.bias = -0.0008
-      keyLight.shadow.normalBias = 0.035
-    }
-    scene.add(keyLight)
+      // Calibrated raking studio lighting: crisp folds & soft self-shadows in Day and Night
+      const hemiLight = new THREE.HemisphereLight(
+        isDark ? NIGHT_HEMI_SKY : DAY_HEMI_SKY,
+        isDark ? NIGHT_HEMI_GROUND : DAY_HEMI_GROUND,
+        isDark ? 0.50 : 0.24
+      )
+      scene.add(hemiLight)
+
+      const keyLight = new THREE.DirectionalLight('#fff2df', isDark ? 2.85 : 2.35)
+      keyLight.position.set(6.8, 3.0, 2.5)
+      if (!skipHeavyEffects) {
+        keyLight.castShadow = true
+        keyLight.shadow.mapSize.set(1024, 1024)
+        keyLight.shadow.camera.near = 1
+        keyLight.shadow.camera.far = 22
+        keyLight.shadow.camera.left = -7.5
+        keyLight.shadow.camera.right = 7.5
+        keyLight.shadow.camera.top = 5.0
+        keyLight.shadow.camera.bottom = -5.0
+        keyLight.shadow.bias = -0.0008
+        keyLight.shadow.normalBias = 0.035
+      }
+      scene.add(keyLight)
 
     const rimLight = new THREE.DirectionalLight(
       isDark ? '#d98a4e' : '#dfcab0',
@@ -321,8 +333,8 @@ export function SilkBackground() {
     })
 
     const clothMesh = new THREE.Mesh(geometry, material)
-    clothMesh.castShadow = !isSoftwareGl
-    clothMesh.receiveShadow = !isSoftwareGl
+    clothMesh.castShadow = !skipHeavyEffects
+    clothMesh.receiveShadow = !skipHeavyEffects
     scene.add(clothMesh)
 
     const raycaster = new THREE.Raycaster()
@@ -510,20 +522,24 @@ export function SilkBackground() {
         return
       }
 
-      const dt = lastTime === 0 ? 0.016 : Math.min(0.025, (now - lastTime) / 1000)
-      lastTime = now
-      elapsed += dt
+      try {
+        const dt = lastTime === 0 ? 0.016 : Math.min(0.025, (now - lastTime) / 1000)
+        lastTime = now
+        elapsed += dt
 
-      updateThemePalette(dt)
-      stepClothPhysics(dt, elapsed)
-      renderer.render(scene, camera)
+        updateThemePalette(dt)
+        stepClothPhysics(dt, elapsed)
+        renderer.render(scene, camera)
 
-      if (isSoftwareGl) {
-        afterDraw(() => {
-          tick(performance.now())
-        })
-      } else {
-        rafId = window.requestAnimationFrame(tick)
+        if (isSoftwareGl) {
+          afterDraw(() => {
+            tick(performance.now())
+          })
+        } else {
+          rafId = window.requestAnimationFrame(tick)
+        }
+      } catch {
+        rafId = 0
       }
     }
 
@@ -628,11 +644,20 @@ export function SilkBackground() {
       const maxSafeZ = 5.05 / (halfTanFov * Math.max(0.5, camera.aspect))
       camera.position.z = Math.min(7.6, maxSafeZ)
       camera.updateProjectionMatrix()
-      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.max(0.25, Math.min(window.devicePixelRatio || 1, 1.75)))
+      renderer.setPixelRatio(
+        isSoftwareGl
+          ? 1
+          : Math.max(0.25, Math.min(window.devicePixelRatio || 1, w < 768 ? 1.25 : 1.75))
+      )
       renderer.setSize(w, h)
       if (prefersReduced) {
         renderer.render(scene, camera)
       }
+    }
+
+    const handleContextLost = (e: Event) => {
+      e.preventDefault()
+      stopLoop()
     }
 
     const handleVisibility = () => {
@@ -670,6 +695,7 @@ export function SilkBackground() {
     renderer.render(scene, camera)
     startLoop()
 
+    renderer.domElement.addEventListener('webglcontextlost', handleContextLost, false)
     window.addEventListener('resize', handleResize, { passive: true })
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
@@ -680,11 +706,16 @@ export function SilkBackground() {
     window.addEventListener('touchmove', handleTouchMove, { passive: true })
     window.addEventListener('touchend', handleTouchEnd, { passive: true })
     document.addEventListener('visibilitychange', handleVisibility)
-    motionQuery.addEventListener('change', handleMotionChange)
+    if (typeof motionQuery.addEventListener === 'function') {
+      motionQuery.addEventListener('change', handleMotionChange)
+    } else {
+      motionQuery.addListener(handleMotionChange)
+    }
 
-    return () => {
+    cleanupFns = () => {
       stopLoop()
       themeObserver.disconnect()
+      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost)
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('pointermove', handlePointerMove)
       window.removeEventListener('mousemove', handleMouseMove)
@@ -695,17 +726,37 @@ export function SilkBackground() {
       window.removeEventListener('touchmove', handleTouchMove)
       window.removeEventListener('touchend', handleTouchEnd)
       document.removeEventListener('visibilitychange', handleVisibility)
-      motionQuery.removeEventListener('change', handleMotionChange)
+      if (typeof motionQuery.removeEventListener === 'function') {
+        motionQuery.removeEventListener('change', handleMotionChange)
+      } else {
+        motionQuery.removeListener(handleMotionChange)
+      }
 
       geometry.dispose()
       normalMap.dispose()
       roughnessMap.dispose()
       material.dispose()
-      envTarget.dispose()
+      envTarget?.dispose()
       renderer.dispose()
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
       }
+    }
+    } catch {
+      envTarget?.dispose()
+      try {
+        renderer.dispose()
+      } catch {
+        // ignore dispose error
+      }
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement)
+      }
+      return
+    }
+
+    return () => {
+      cleanupFns?.()
     }
   }, [])
 

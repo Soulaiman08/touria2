@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   ShoppingBag,
@@ -8,7 +8,6 @@ import {
   Plus,
   Minus,
   Trash2,
-  ChevronDown,
   Check,
   Truck,
   Banknote,
@@ -17,6 +16,7 @@ import {
 import { useCartStore } from '@/store/cart.store'
 import { formatPrice } from '@/lib/utils'
 import type { Product } from '@/types/product'
+import { CustomSelect } from '@/components/shared/CustomSelect'
 import { ProductGallery } from './ProductGallery'
 import { ProductReviews } from './ProductReviews'
 
@@ -46,118 +46,6 @@ interface JellabaSelection {
 }
 
 const NIQAB_PRICE = 20
-
-interface NiqabColorDropdownProps {
-  selectionId: string
-  currentColorCode: string
-  availableColors: Array<{
-    code: string
-    nameAr: string
-    nameFr: string
-    nameEn: string
-    variantId?: string
-  }>
-  getDisplayColorName: (color: { code: string; nameAr: string; nameFr: string; nameEn: string }) => string
-  onSelectColor: (id: string, colorCode: string) => void
-}
-
-function NiqabColorDropdown({
-  selectionId,
-  currentColorCode,
-  availableColors,
-  getDisplayColorName,
-  onSelectColor,
-}: NiqabColorDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const selectedColor = availableColors.find((c) => c.code === currentColorCode) || {
-    code: currentColorCode,
-    nameAr: '',
-    nameFr: '',
-    nameEn: '',
-  }
-
-  const selectedLabel = getDisplayColorName(selectedColor)
-
-  return (
-    <div className="relative w-full" ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-10 px-3 flex items-center justify-between gap-2 rounded-xl border text-xs sm:text-sm font-semibold transition-colors outline-none cursor-pointer"
-        style={{
-          background: 'var(--card-bg)',
-          borderColor: isOpen ? 'var(--accent)' : 'var(--border)',
-          color: 'var(--text-primary)',
-        }}
-      >
-        <span className="flex items-center gap-2 min-w-0 truncate">
-          <span
-            className="w-4 h-4 rounded-full border flex-shrink-0"
-            style={{ background: selectedColor.code, borderColor: 'var(--border)' }}
-          />
-          <span className="truncate">{selectedLabel}</span>
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 flex-shrink-0 text-[var(--text-muted)] transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-[var(--accent)]' : ''
-          }`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          className="absolute z-50 top-[calc(100%+4px)] start-0 w-full max-h-56 overflow-y-auto border shadow-lg rounded-xl py-1"
-          style={{
-            background: 'var(--card-bg)',
-            borderColor: 'var(--border)',
-          }}
-        >
-          {availableColors.map((color) => {
-            const label = getDisplayColorName(color)
-            const isSelected = color.code === currentColorCode
-
-            return (
-              <button
-                key={color.code}
-                type="button"
-                onClick={() => {
-                  onSelectColor(selectionId, color.code)
-                  setIsOpen(false)
-                }}
-                className="w-full flex items-center justify-between gap-2.5 text-xs sm:text-sm font-semibold transition-colors px-3 py-2 cursor-pointer"
-                style={{
-                  background: isSelected ? 'var(--accent-light)' : 'transparent',
-                  color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
-                }}
-              >
-                <span className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="w-4 h-4 rounded-full border flex-shrink-0"
-                    style={{ background: color.code, borderColor: 'var(--border)' }}
-                  />
-                  <span className="truncate">{label}</span>
-                </span>
-                {isSelected && <Check className="h-4 w-4 text-[var(--accent)] flex-shrink-0" />}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
 
 export function ProductDetail({ product, locale }: ProductDetailProps) {
   const t = useTranslations('products')
@@ -225,11 +113,16 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   const [includeNiqab, setIncludeNiqab] = useState(false)
   const [addedFeedback, setAddedFeedback] = useState(false)
 
+  const safeId = () =>
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+
   const [niqabSelections, setNiqabSelections] = useState<NiqabSelection[]>(() =>
     product.isNiqab && niqabColors[0]
       ? [
           {
-            id: crypto.randomUUID(),
+            id: safeId(),
             colorCode: niqabColors[0].code,
             colorNameAr: niqabColors[0].nameAr,
             colorNameFr: niqabColors[0].nameFr,
@@ -245,7 +138,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
     if (product.isNiqab || colors.length === 0) return []
     return [
       {
-        id: crypto.randomUUID(),
+        id: safeId(),
         colorCode: colors[0].code,
         colorNameAr: colors[0].nameAr,
         colorNameFr: colors[0].nameFr,
@@ -379,7 +272,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
     setNiqabSelections([
       {
-        id: crypto.randomUUID(),
+        id: safeId(),
         colorCode: defaultColor.code,
         colorNameAr: defaultColor.nameAr,
         colorNameFr: defaultColor.nameFr,
@@ -401,7 +294,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
     setNiqabSelections((current) => [
       ...current,
       {
-        id: crypto.randomUUID(),
+        id: safeId(),
         colorCode: nextColor.code,
         colorNameAr: nextColor.nameAr,
         colorNameFr: nextColor.nameFr,
@@ -454,7 +347,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
     setSelectedJellabas((current) => [
       ...current,
       {
-        id: crypto.randomUUID(),
+        id: safeId(),
         colorCode: nextColor.code,
         colorNameAr: nextColor.nameAr,
         colorNameFr: nextColor.nameFr,
@@ -741,33 +634,31 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-2.5"
                     >
                       <div className="w-full xl:flex-1 min-w-0">
-                        <NiqabColorDropdown
-                          selectionId={selection.id}
-                          currentColorCode={selection.colorCode}
-                          availableColors={rowAvailableColors}
-                          getDisplayColorName={getDisplayColorName}
-                          onSelectColor={changeJellabaColor}
+                        <CustomSelect
+                          value={selection.colorCode}
+                          onChange={(val) => changeJellabaColor(selection.id, val)}
+                          options={rowAvailableColors.map((c) => ({
+                            value: c.code,
+                            label: getDisplayColorName(c),
+                            swatch: c.code,
+                          }))}
+                          ariaLabel={locale === 'ar' ? 'اللون' : locale === 'fr' ? 'Couleur' : 'Color'}
+                          size="sm"
+                          variant="card"
                         />
                       </div>
 
                       <div className="flex items-center justify-between xl:justify-end gap-2 flex-shrink-0">
-                        <select
-                          value={selection.size}
-                          onChange={(e) => changeJellabaSize(selection.id, e.target.value)}
-                          aria-label={locale === 'ar' ? 'المقاس' : 'Size'}
-                          className="h-10 flex-1 min-w-[5rem] xl:flex-initial xl:w-20 rounded-xl border px-2.5 text-xs font-bold cursor-pointer"
-                          style={{
-                            borderColor: 'var(--border)',
-                            background: 'var(--card-bg)',
-                            color: 'var(--text-primary)',
-                          }}
-                        >
-                          {sizes.map((size) => (
-                            <option key={size} value={size}>
-                              {size}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex-1 min-w-[5.5rem] xl:flex-initial xl:w-28">
+                          <CustomSelect
+                            value={selection.size}
+                            onChange={(val) => changeJellabaSize(selection.id, val)}
+                            options={sizes.map((size) => ({ value: size, label: size }))}
+                            ariaLabel={locale === 'ar' ? 'المقاس' : locale === 'fr' ? 'Taille' : 'Size'}
+                            size="sm"
+                            variant="card"
+                          />
+                        </div>
 
                         <div className="flex items-center gap-1.5 flex-shrink-0">
                           <div
@@ -922,12 +813,17 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                           className="flex flex-wrap lg:flex-nowrap items-center gap-2 lg:gap-2.5"
                         >
                           <div className="flex-1 min-w-[140px]">
-                            <NiqabColorDropdown
-                              selectionId={selection.id}
-                              currentColorCode={selection.colorCode}
-                              availableColors={rowAvailableColors}
-                              getDisplayColorName={getDisplayColorName}
-                              onSelectColor={changeNiqabColor}
+                            <CustomSelect
+                              value={selection.colorCode}
+                              onChange={(val) => changeNiqabColor(selection.id, val)}
+                              options={rowAvailableColors.map((c) => ({
+                                value: c.code,
+                                label: getDisplayColorName(c),
+                                swatch: c.code,
+                              }))}
+                              ariaLabel={locale === 'ar' ? 'لون النقاب' : locale === 'fr' ? 'Couleur du niqab' : 'Niqab color'}
+                              size="sm"
+                              variant="card"
                             />
                           </div>
 

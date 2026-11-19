@@ -81,12 +81,22 @@ export function CustomerAuthProvider({
         checkedFirstVisitRef.current = true
 
         // Check if visitor previously dismissed login as guest
-        const dismissed =
-          typeof window !== 'undefined' &&
-          localStorage.getItem(GUEST_STORAGE_KEY) === 'true'
-        const hasOnboardedCookie =
-          typeof document !== 'undefined' &&
-          document.cookie.split('; ').some((c) => c.startsWith('thuraya_onboarded='))
+        let dismissed = false
+        let hasOnboardedCookie = false
+        try {
+          dismissed =
+            typeof window !== 'undefined' &&
+            window.localStorage.getItem(GUEST_STORAGE_KEY) === 'true'
+        } catch {
+          dismissed = false
+        }
+        try {
+          hasOnboardedCookie =
+            typeof document !== 'undefined' &&
+            document.cookie.split('; ').some((c) => c.startsWith('thuraya_onboarded='))
+        } catch {
+          hasOnboardedCookie = false
+        }
 
         if (dismissed || hasOnboardedCookie) {
           setIsGuest(true)
