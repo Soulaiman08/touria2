@@ -441,7 +441,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
           </div>
 
           {/* Cart Item List — djellabas and niqabs shown as independent items */}
-          <div className="divide-y divide-[var(--border)] max-h-[380px] overflow-y-auto pe-1 mb-5">
+          <div className="divide-y divide-[var(--border)] max-h-[380px] overflow-y-auto no-scrollbar pe-1 mb-5">
             {cartStore.items.filter((i) => !i.isNiqab).map((item) => {
               const itemName = locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn
               const colorLabel = locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn
@@ -527,11 +527,14 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                       {n.quantity > 1 && (
                         <>
                           <span className="opacity-60">·</span>
-                          <span className="tabular-nums">
+                          <span dir="ltr" className="tabular-nums inline-block">
                             × <span className="font-semibold text-[var(--text-primary)]">{n.quantity}</span>
                           </span>
                           <span className="opacity-60">·</span>
-                          <span className="tabular-nums opacity-75 text-[11px]">{formatPrice(n.unitPrice, locale)}/each</span>
+                          <span className="tabular-nums opacity-75 text-[11px]">
+                            {formatPrice(n.unitPrice, locale)}{' '}
+                            {locale === 'ar' ? 'للقطعة' : locale === 'fr' ? '/ unité' : '/ each'}
+                          </span>
                         </>
                       )}
                     </div>

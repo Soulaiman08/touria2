@@ -321,7 +321,9 @@ export function Footer({ locale }: FooterProps) {
                     title={email}
                   >
                     <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" style={{ color: 'var(--footer-accent)' }} />
-                    <span className="truncate">{email}</span>
+                    <span className="truncate" dir="ltr">
+                      {email}
+                    </span>
                   </a>
                 </li>
               )}

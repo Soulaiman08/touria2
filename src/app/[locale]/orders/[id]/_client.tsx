@@ -5,8 +5,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
-import { Truck, Check, Package, ShoppingBag, Clock, ArrowLeft, XCircle, type LucideIcon } from 'lucide-react'
+import { Truck, Check, Package, ShoppingBag, Clock, XCircle, type LucideIcon } from 'lucide-react'
 import type { Order, OrderStatus, ProductSnapshot } from '@/types/order'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface TrackingPageProps {
   params: Promise<{ locale: string; id: string }>
@@ -70,9 +71,11 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
         <h2 className="font-bold text-lg text-[var(--text-primary)]">
           {t('notFound')}
         </h2>
-        <Link href={`/${locale}`} className="btn btn-primary btn-round">
-          {locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
-        </Link>
+        <BackButton
+          href={`/${locale}`}
+          locale={locale}
+          label={locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+        />
       </div>
     )
   }
@@ -87,10 +90,11 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
     >
       {/* ── Back link ─────────────────────────────────────────────── */}
       <div className="mb-5">
-        <Link href={`/${locale}/orders`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{locale === 'ar' ? 'طلباتي' : locale === 'fr' ? 'Mes commandes' : 'My Orders'}</span>
-        </Link>
+        <BackButton
+          href={`/${locale}/orders`}
+          locale={locale}
+          label={locale === 'ar' ? 'طلباتي' : locale === 'fr' ? 'Mes commandes' : 'My Orders'}
+        />
       </div>
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden">
@@ -105,7 +109,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
             </h1>
             <p className="text-xs sm:text-sm text-[var(--text-muted)] m-0">
               {t('orderNumber')}:{' '}
-              <span className="tabular-nums font-mono text-[var(--accent)] font-extrabold">
+              <span dir="ltr" className="inline-block tabular-nums font-mono text-[var(--accent)] font-extrabold">
                 #{order.orderNumber}
               </span>
             </p>
@@ -294,7 +298,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                                   <span>{niqabColor}</span>
                                 </>
                               )}
-                              <span className="tabular-nums">×{niqab.quantity}</span>
+                              <span dir="ltr" className="tabular-nums inline-block">×{niqab.quantity}</span>
                             </div>
                           )
                         })}

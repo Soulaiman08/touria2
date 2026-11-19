@@ -101,7 +101,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
 
             {/* ── Item List ─────────────────────────────────────── */}
             <div
-              className="flex-1 overflow-y-auto p-4 flex flex-col gap-3"
+              className="flex-1 overflow-y-auto no-scrollbar p-4 flex flex-col gap-3"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {cartStore.items.length === 0 ? (
@@ -277,7 +277,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                         <span className="font-bold text-[var(--gold)]">
                           {locale === 'ar' ? 'نقاب' : locale === 'fr' ? 'Niqab' : 'Niqab'}
                         </span>
-                        <span className="tabular-nums">× {niqab.quantity}</span>
+                        <span dir="ltr" className="tabular-nums inline-block">× {niqab.quantity}</span>
                       </div>
                     </div>
 

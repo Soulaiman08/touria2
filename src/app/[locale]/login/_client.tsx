@@ -4,11 +4,11 @@ import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { ArrowLeft } from 'lucide-react'
 import { CustomerLoginCard } from '@/components/auth/CustomerLoginCard'
 import { SilkBackground } from '@/components/shared/SilkBackground'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface LoginPageProps {
   params: Promise<{ locale: string }>
@@ -33,13 +33,7 @@ export function CustomerLoginPageClient({ params }: LoginPageProps) {
       {/* Top Auth Toolbar */}
       <header className="relative z-20 flex flex-wrap items-center justify-between gap-2.5 max-w-[72.5rem] w-full mx-auto">
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/${locale}`}
-            className="inline-flex items-center gap-1.5 h-10 px-3 sm:px-3.5 rounded-xl border border-[var(--border)] bg-[var(--card-bg)]/95 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent-ring)] hover:text-[var(--accent)] transition-colors whitespace-nowrap shrink-0"
-          >
-            <ArrowLeft className={`w-4 h-4 text-[var(--accent)] ${isRTL ? 'rotate-180' : ''}`} />
-            <span>{homeLabel}</span>
-          </Link>
+          <BackButton href={`/${locale}`} locale={locale} label={homeLabel} className="!h-10" />
 
           <nav
             aria-label="Auth mode switcher"

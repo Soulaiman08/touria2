@@ -1,8 +1,9 @@
 import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Target, Eye, ShieldCheck, HeartHandshake, ShoppingBag } from 'lucide-react'
+import { Sparkles, Target, Eye, ShieldCheck, HeartHandshake, ShoppingBag } from 'lucide-react'
 import { siteConfig } from '@/config/site'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface AboutPageProps {
   params: Promise<{ locale: string }>
@@ -51,10 +52,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div>
-        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round !min-h-[2rem] !px-3.5 text-xs">
-          <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
-        </Link>
+        <BackButton
+          href={`/${locale}`}
+          locale={locale}
+          label={isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+        />
       </div>
 
       {/* ── 1. Hero Story Section (Moroccan Arch) ─────────────────── */}

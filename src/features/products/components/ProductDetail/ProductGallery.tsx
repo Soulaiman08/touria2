@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { MobileFullscreenGallery } from './MobileFullscreenGallery'
 
 interface ProductGalleryProps {
@@ -15,6 +15,7 @@ interface ProductGalleryProps {
 }
 
 const FALLBACK_IMAGE = '/images/brand/logo-icon.png'
+const INLINE_LOUPE_SCALE = 2.05
 
 export function ProductGallery({
   images,
@@ -25,18 +26,12 @@ export function ProductGallery({
   locale,
 }: ProductGalleryProps) {
   const isRTL = locale === 'ar'
-  const [isMobile, setIsMobile] = useState(false)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [failedSrcs, setFailedSrcs] = useState<Record<string, boolean>>({})
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Desktop inline cursor loupe state
+  const [loupeActive, setLoupeActive] = useState(false)
+  const [loupeOrigin, setLoupeOrigin] = useState({ x: 50, y: 50 })
 
   const imageList = useMemo(() => {
     const combined = [mainImage, ...(images || [])].filter(Boolean)
@@ -58,19 +53,17 @@ export function ProductGallery({
     return idx >= 0 ? idx : 0
   }, [imageList, activeImage])
 
+  const [syncedActiveImage, setSyncedActiveImage] = useState(activeImage)
   const [trackIndex, setTrackIndex] = useState(realIndex + 1)
   const [animating, setAnimating] = useState(false)
   const [dragOffset, setDragOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
 
-  const lastNotifiedImageRef = useRef(activeImage)
-
-  useEffect(() => {
-    if (activeImage !== lastNotifiedImageRef.current) {
-      lastNotifiedImageRef.current = activeImage
-      setTrackIndex(realIndex + 1)
-    }
-  }, [activeImage, realIndex])
+  // Keep trackIndex synced when activeImage changes externally without effect setState
+  if (activeImage !== syncedActiveImage) {
+    setSyncedActiveImage(activeImage)
+    setTrackIndex(realIndex + 1)
+  }
 
   const displayIndex = useMemo(() => {
     if (!hasMultiple) return 0
@@ -103,14 +96,6 @@ export function ProductGallery({
     const containerRect = container.getBoundingClientRect()
     const thumbRect = thumb.getBoundingClientRect()
 
-    if (container.scrollWidth > container.clientWidth) {
-      const deltaX =
-        thumbRect.left + thumbRect.width / 2 - (containerRect.left + containerRect.width / 2)
-      if (Math.abs(deltaX) > 1) {
-        container.scrollBy({ left: deltaX, behavior: 'smooth' })
-      }
-    }
-
     if (container.scrollHeight > container.clientHeight) {
       const deltaY =
         thumbRect.top + thumbRect.height / 2 - (containerRect.top + containerRect.height / 2)
@@ -122,22 +107,23 @@ export function ProductGallery({
 
   const handleNext = useCallback(() => {
     if (!hasMultiple || animating) return
+    setLoupeActive(false)
     setAnimating(true)
     setDragOffset(0)
 
     const nextTrackIndex = trackIndex + 1
     setTrackIndex(nextTrackIndex)
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       if (nextTrackIndex >= n + 1) {
         setAnimating(false)
         setTrackIndex(1)
-        lastNotifiedImageRef.current = imageList[0]
+        setSyncedActiveImage(imageList[0])
         onSelectImage(imageList[0])
       } else {
         setAnimating(false)
         const targetIdx = (nextTrackIndex - 1 + n) % n
-        lastNotifiedImageRef.current = imageList[targetIdx]
+        setSyncedActiveImage(imageList[targetIdx])
         onSelectImage(imageList[targetIdx])
       }
     }, 280)
@@ -145,22 +131,23 @@ export function ProductGallery({
 
   const handlePrevious = useCallback(() => {
     if (!hasMultiple || animating) return
+    setLoupeActive(false)
     setAnimating(true)
     setDragOffset(0)
 
     const prevTrackIndex = trackIndex - 1
     setTrackIndex(prevTrackIndex)
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       if (prevTrackIndex <= 0) {
         setAnimating(false)
         setTrackIndex(n)
-        lastNotifiedImageRef.current = imageList[n - 1]
+        setSyncedActiveImage(imageList[n - 1])
         onSelectImage(imageList[n - 1])
       } else {
         setAnimating(false)
         const targetIdx = (prevTrackIndex - 1 + n) % n
-        lastNotifiedImageRef.current = imageList[targetIdx]
+        setSyncedActiveImage(imageList[targetIdx])
         onSelectImage(imageList[targetIdx])
       }
     }, 280)
@@ -169,14 +156,15 @@ export function ProductGallery({
   const goToThumbnail = useCallback(
     (idx: number) => {
       if (!hasMultiple || idx === displayIndex || animating) return
+      setLoupeActive(false)
       setAnimating(true)
       setDragOffset(0)
       setTrackIndex(idx + 1)
-      lastNotifiedImageRef.current = imageList[idx]
+      setSyncedActiveImage(imageList[idx])
       onSelectImage(imageList[idx])
-      setTimeout(() => setAnimating(false), 280)
+      window.setTimeout(() => setAnimating(false), 280)
     },
-    [hasMultiple, displayIndex, animating, onSelectImage, imageList]
+    [hasMultiple, displayIndex, animating, onSelectImage, imageList],
   )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -188,6 +176,14 @@ export function ProductGallery({
       e.preventDefault()
       handleNext()
     }
+  }
+
+  const updateLoupeCoords = (clientX: number, clientY: number) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect || rect.width === 0 || rect.height === 0) return
+    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100))
+    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100))
+    setLoupeOrigin({ x, y })
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -240,12 +236,12 @@ export function ProductGallery({
     } else {
       setAnimating(true)
       setDragOffset(0)
-      setTimeout(() => setAnimating(false), 200)
+      window.setTimeout(() => setAnimating(false), 200)
     }
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!hasMultiple) return
+    if (!hasMultiple || loupeActive) return
     isMouseDown.current = true
     mouseStartX.current = e.clientX
     didDragRef.current = false
@@ -253,6 +249,10 @@ export function ProductGallery({
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (loupeActive) {
+      updateLoupeCoords(e.clientX, e.clientY)
+      return
+    }
     if (!hasMultiple || !isMouseDown.current || mouseStartX.current === null) return
     const dx = e.clientX - mouseStartX.current
     if (Math.abs(dx) > 6) {
@@ -282,12 +282,19 @@ export function ProductGallery({
     } else {
       setAnimating(true)
       setDragOffset(0)
-      setTimeout(() => setAnimating(false), 200)
+      window.setTimeout(() => setAnimating(false), 200)
     }
   }
 
-  const handleMouseUp = (e: React.MouseEvent) => finishMouseDrag(e.clientX)
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (loupeActive) return
+    finishMouseDrag(e.clientX)
+  }
+
   const handleMouseLeave = (e: React.MouseEvent) => {
+    if (loupeActive) {
+      setLoupeOrigin({ x: 50, y: 50 })
+    }
     if (isMouseDown.current) finishMouseDrag(e.clientX)
   }
 
@@ -307,6 +314,19 @@ export function ProductGallery({
     locale === 'ar' ? 'الصورة السابقة' : locale === 'fr' ? 'Image précédente' : 'Previous image'
   const nextLabel =
     locale === 'ar' ? 'الصورة التالية' : locale === 'fr' ? 'Image suivante' : 'Next image'
+  const zoomLightboxLabel =
+    locale === 'ar' ? 'تكبير الصورة بملء الشاشة' : locale === 'fr' ? 'Plein écran et zoom' : 'Fullscreen zoom'
+  const loupeLabel = loupeActive
+    ? locale === 'ar'
+      ? 'إلغاء عدسة التكبير'
+      : locale === 'fr'
+        ? 'Quitter la loupe'
+        : 'Exit magnifier'
+    : locale === 'ar'
+      ? 'تكبير التفاصيل بالمؤشر'
+      : locale === 'fr'
+        ? 'Loupe de détail'
+        : 'Inspect detail'
 
   const handleImgError = (src: string) => {
     setFailedSrcs((prev) => (prev[src] ? prev : { ...prev, [src]: true }))
@@ -316,33 +336,65 @@ export function ProductGallery({
 
   return (
     <div
-      className="product-gallery-panel w-full sm:sticky sm:top-[4.5rem] lg:top-24 sm:self-start select-none"
+      className="product-gallery-panel w-full md:w-fit md:sticky md:top-[4.5rem] lg:top-24 md:self-start select-none"
       tabIndex={hasMultiple ? 0 : -1}
       onKeyDown={handleKeyDown}
       role="region"
       aria-roledescription={hasMultiple ? 'carousel' : undefined}
       aria-label={productName}
     >
-      <div
-        className={
-          hasMultiple
-            ? 'flex items-start justify-center gap-2 sm:flex-col sm:items-stretch sm:gap-2.5 lg:gap-3.5'
-            : 'flex justify-center sm:block'
-        }
-      >
-        {/* ── Main Viewer ──────────────────────────────────────────────────── */}
+      <div className="flex items-start justify-center gap-2 sm:gap-2.5 lg:gap-3">
+        {/* ── Vertical Thumbnails Rail (all viewports, zero bottom height theft) ── */}
+        {hasMultiple && (
+          <div
+            ref={thumbnailsRef}
+            className="product-thumbnails w-11 sm:w-14 lg:w-15 overflow-y-auto no-scrollbar flex-shrink-0 py-0.5"
+          >
+            <div className="flex flex-col gap-1.5 sm:gap-2 flex-nowrap">
+              {imageList.map((img, idx) => {
+                const isSelected = idx === displayIndex
+                return (
+                  <button
+                    key={`thumb-${idx}`}
+                    ref={isSelected ? activeThumbRef : null}
+                    type="button"
+                    onClick={() => goToThumbnail(idx)}
+                    aria-label={`${productName} ${idx + 1}`}
+                    aria-current={isSelected ? 'true' : undefined}
+                    className="relative flex-shrink-0 w-11 h-[54px] sm:w-13 sm:h-[64px] lg:w-14 lg:h-[70px] overflow-hidden rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer"
+                    style={{
+                      border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      opacity: isSelected ? 1 : 0.65,
+                      boxShadow: isSelected ? '0 0 0 2px var(--accent-ring)' : 'none',
+                    }}
+                  >
+                    <Image
+                      src={failedSrcs[img] ? FALLBACK_IMAGE : img}
+                      alt={`${productName} ${idx + 1}`}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      onError={() => handleImgError(img)}
+                      draggable={false}
+                    />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Main Viewer (4:5 dynamically viewport-adaptive) ──────────────── */}
         <div
           ref={containerRef}
           dir={isRTL ? 'rtl' : 'ltr'}
-          className={`product-main-image relative aspect-[4/5] overflow-hidden rounded-2xl border ${
-            hasMultiple
-              ? 'flex-1 min-w-0 max-w-[240px] min-[420px]:max-w-[265px] sm:w-full sm:max-w-none'
-              : 'w-full max-w-[245px] min-[420px]:max-w-[270px] sm:max-w-none'
+          className={`product-main-image group relative aspect-[4/5] overflow-hidden rounded-2xl border ${
+            hasMultiple ? 'flex-1 min-w-0 max-w-[380px] md:max-w-none md:flex-initial' : 'w-full max-w-[390px] md:max-w-none'
           }`}
           style={{
             borderColor: 'var(--border)',
             background: 'var(--bg-muted)',
-            cursor: hasMultiple ? (isDragging ? 'grabbing' : 'grab') : 'default',
+            cursor: loupeActive ? 'zoom-out' : isDragging ? 'grabbing' : 'zoom-in',
             touchAction: hasMultiple ? 'pan-y' : 'auto',
           }}
           onTouchStart={handleTouchStart}
@@ -353,65 +405,126 @@ export function ProductGallery({
               didDragRef.current = false
               return
             }
-            if (isMobile) {
-              setIsFullscreenOpen(true)
+            if (loupeActive) {
+              setLoupeActive(false)
+              return
             }
+            setIsFullscreenOpen(true)
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
         >
-          {hasMultiple ? (
-            <div
-              dir="ltr"
-              className="absolute inset-y-0 left-0 flex h-full"
-              style={{
-                width: `${totalSlides * 100}%`,
-                transform: trackTransform,
-                transition: trackTransition,
-                willChange: 'transform',
-              }}
-            >
-              {trackImages.map((img, idx) => (
-                <div
-                  key={`track-img-${idx}`}
-                  className="relative h-full flex-shrink-0"
-                  style={{ width: `${slideWidthPercent}%` }}
-                >
-                  <Image
-                    src={failedSrcs[img] ? FALLBACK_IMAGE : img}
-                    alt={`${productName} ${idx + 1}`}
-                    fill
-                    sizes="(max-width: 639px) 265px, 45vw"
-                    className="object-cover"
-                    onError={() => handleImgError(img)}
-                    {...(idx === displayIndex + 1 ? { priority: true } : { loading: 'lazy' as const })}
-                    draggable={false}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="relative h-full w-full">
-              <Image
-                src={failedSrcs[imageList[0]] ? FALLBACK_IMAGE : imageList[0]}
-                alt={productName}
-                fill
-                sizes="(max-width: 639px) 270px, 45vw"
-                className="object-cover"
-                onError={() => handleImgError(imageList[0])}
-                priority
-                draggable={false}
-              />
-            </div>
-          )}
+          {/* Active Slide Track (scaled when desktop loupe is active) */}
+          <div
+            className="w-full h-full transition-transform duration-200 ease-out will-change-transform"
+            style={
+              loupeActive
+                ? {
+                    transform: `scale(${INLINE_LOUPE_SCALE})`,
+                    transformOrigin: `${loupeOrigin.x}% ${loupeOrigin.y}%`,
+                  }
+                : undefined
+            }
+          >
+            {hasMultiple ? (
+              <div
+                dir="ltr"
+                className="absolute inset-y-0 left-0 flex h-full"
+                style={{
+                  width: `${totalSlides * 100}%`,
+                  transform: trackTransform,
+                  transition: trackTransition,
+                  willChange: 'transform',
+                }}
+              >
+                {trackImages.map((img, idx) => (
+                  <div
+                    key={`track-img-${idx}`}
+                    className="relative h-full flex-shrink-0"
+                    style={{ width: `${slideWidthPercent}%` }}
+                  >
+                    <Image
+                      src={failedSrcs[img] ? FALLBACK_IMAGE : img}
+                      alt={`${productName} ${idx + 1}`}
+                      fill
+                      sizes="(max-width: 767px) 82vw, 45vw"
+                      className="object-cover"
+                      onError={() => handleImgError(img)}
+                      {...(idx === displayIndex + 1 ? { priority: true } : { loading: 'lazy' as const })}
+                      draggable={false}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="relative h-full w-full">
+                <Image
+                  src={failedSrcs[imageList[0]] ? FALLBACK_IMAGE : imageList[0]}
+                  alt={productName}
+                  fill
+                  sizes="(max-width: 767px) 85vw, 45vw"
+                  className="object-cover"
+                  onError={() => handleImgError(imageList[0])}
+                  priority
+                  draggable={false}
+                />
+              </div>
+            )}
+          </div>
 
-          {hasMultiple && (
+          {/* ── Top-End Zoom & Fullscreen Action Controls ───────────────── */}
+          <div className="absolute top-2.5 end-2.5 z-30 flex items-center gap-1.5">
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                const rect = containerRef.current?.getBoundingClientRect()
+                if (rect) {
+                  setLoupeOrigin({ x: 50, y: 50 })
+                }
+                setLoupeActive((prev) => !prev)
+              }}
+              aria-label={loupeLabel}
+              aria-pressed={loupeActive}
+              title={loupeLabel}
+              className={`hidden md:inline-flex h-8 w-8 lg:h-9 lg:w-9 items-center justify-center rounded-full border backdrop-blur-sm transition-all cursor-pointer ${
+                loupeActive
+                  ? 'border-[var(--accent)] bg-[var(--accent)] text-white shadow-md'
+                  : 'border-[var(--border)] bg-[var(--card-bg)]/85 text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] opacity-85 group-hover:opacity-100'
+              }`}
+            >
+              {loupeActive ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+            </button>
+
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                setLoupeActive(false)
+                setIsFullscreenOpen(true)
+              }}
+              aria-label={zoomLightboxLabel}
+              title={zoomLightboxLabel}
+              className="flex h-8 w-8 lg:h-9 lg:w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card-bg)]/85 text-[var(--text-primary)] shadow-sm backdrop-blur-sm transition-all hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-95 cursor-pointer"
+            >
+              <Maximize2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+            </button>
+          </div>
+
+          {hasMultiple && !loupeActive && (
             <>
               <button
                 type="button"
                 onMouseDown={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
                 onTouchEnd={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -428,6 +541,7 @@ export function ProductGallery({
               <button
                 type="button"
                 onMouseDown={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
                 onTouchEnd={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -443,65 +557,24 @@ export function ProductGallery({
 
               <div
                 dir="ltr"
-                className="absolute bottom-2 sm:bottom-3 end-2 sm:end-3 z-20 rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-semibold leading-none tabular-nums bg-black/70 text-white border border-white/15 backdrop-blur-sm"
+                className="absolute bottom-2.5 end-2.5 z-20 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold leading-none tabular-nums bg-black/70 text-white border border-white/15 backdrop-blur-sm"
               >
                 {displayIndex + 1}&thinsp;/&thinsp;{n}
               </div>
             </>
           )}
         </div>
-
-        {/* ── Thumbnails (vertical rail on <640px, horizontal row on sm+) ─── */}
-        {hasMultiple && (
-          <div
-            ref={thumbnailsRef}
-            className="product-thumbnails w-12 max-h-[296px] overflow-y-auto sm:w-full sm:max-h-none sm:overflow-y-visible sm:overflow-x-auto pb-0.5 sm:pb-1 pt-0.5 scrollbar-hidden flex-shrink-0"
-          >
-            <div className="flex flex-col gap-1.5 sm:mx-auto sm:w-max sm:flex-row sm:gap-2.5 flex-nowrap">
-              {imageList.map((img, idx) => {
-                const isSelected = idx === displayIndex
-                return (
-                  <button
-                    key={`thumb-${idx}`}
-                    ref={isSelected ? activeThumbRef : null}
-                    type="button"
-                    onClick={() => goToThumbnail(idx)}
-                    aria-label={`${productName} ${idx + 1}`}
-                    aria-current={isSelected ? 'true' : undefined}
-                    className="relative flex-shrink-0 w-11 h-[54px] sm:w-[50px] sm:h-[60px] lg:w-[54px] lg:h-[64px] overflow-hidden rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer"
-                    style={{
-                      border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      opacity: isSelected ? 1 : 0.65,
-                      boxShadow: isSelected ? '0 0 0 2px var(--accent-ring)' : 'none',
-                    }}
-                  >
-                    <Image
-                      src={failedSrcs[img] ? FALLBACK_IMAGE : img}
-                      alt={`${productName} ${idx + 1}`}
-                      fill
-                      sizes="56px"
-                      className="object-cover"
-                      onError={() => handleImgError(img)}
-                      draggable={false}
-                    />
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
-      {isMobile && (
-        <MobileFullscreenGallery
-          images={imageList}
-          initialIndex={displayIndex}
-          isOpen={isFullscreenOpen}
-          onClose={() => setIsFullscreenOpen(false)}
-          productName={productName}
-          locale={locale}
-        />
-      )}
+      {/* ── Fullscreen Lightbox + Zoom (enabled on all screen sizes) ── */}
+      <MobileFullscreenGallery
+        images={imageList}
+        initialIndex={displayIndex}
+        isOpen={isFullscreenOpen}
+        onClose={() => setIsFullscreenOpen(false)}
+        productName={productName}
+        locale={locale}
+      />
     </div>
   )
 }

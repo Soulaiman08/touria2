@@ -1,11 +1,9 @@
 'use client'
 
 import { use, useState } from 'react'
-import Link from 'next/link'
 import {
   HelpCircle,
   ChevronDown,
-  ArrowLeft,
   Truck,
   CreditCard,
   Sparkles,
@@ -13,6 +11,7 @@ import {
 import { FaWhatsapp } from 'react-icons/fa6'
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface FaqPageProps {
   params: Promise<{ locale: string }>
@@ -188,10 +187,11 @@ export default function FaqPage({ params }: FaqPageProps) {
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div className="mb-6">
-        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}</span>
-        </Link>
+        <BackButton
+          href={`/${locale}`}
+          locale={locale}
+          label={isRTL ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+        />
       </div>
 
       {/* ── Editorial Page Header ─────────────────────────────────── */}

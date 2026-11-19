@@ -262,6 +262,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
                 {count > 0 && avgScore && (
                   <span
+                    dir="ltr"
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums whitespace-nowrap"
                     style={{
                       background: 'var(--accent-light)',
@@ -377,7 +378,9 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 }}
               />
               <div className="text-end text-[11px] tabular-nums mt-1" style={{ color: 'var(--text-muted)' }}>
-                {comment.length}/500
+                <span dir="ltr" className="inline-block">
+                  {comment.length}/500
+                </span>
               </div>
             </div>
 

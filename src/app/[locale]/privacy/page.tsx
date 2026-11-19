@@ -10,13 +10,13 @@ import {
   FileText,
   Cookie,
   Mail,
-  ArrowLeft,
   Sparkles,
   ShoppingBag,
 } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa6'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
@@ -316,10 +316,11 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
     >
       {/* ── Top Navigation ────────────────────────────────────────── */}
       <div className="mb-6">
-        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}</span>
-        </Link>
+        <BackButton
+          href={`/${locale}`}
+          locale={locale}
+          label={isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}
+        />
       </div>
 
       {/* ── Editorial Hero Header ─────────────────────────────────── */}
@@ -529,17 +530,16 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
 
       {/* ── Bottom Navigation CTA ─────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        <Link
+        <BackButton
           href={`/${locale}`}
-          className="btn btn-outline btn-sm btn-round inline-flex w-full sm:w-auto justify-center"
-        >
-          <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}</span>
-        </Link>
+          locale={locale}
+          label={isRTL ? 'العودة للرئيسية' : isFR ? 'Retour à l\'accueil' : 'Back to Home'}
+          className="w-full sm:w-auto justify-center"
+        />
 
         <Link
           href={`/${locale}/products`}
-          className="btn btn-primary btn-sm btn-round inline-flex w-full sm:w-auto justify-center"
+          className="btn btn-primary btn-sm rounded-xl inline-flex w-full sm:w-auto justify-center"
         >
           <ShoppingBag className="w-4 h-4" />
           <span>{isRTL ? 'اكتشفي تشكيلة المنتجات' : isFR ? 'Découvrir nos créations' : 'Explore Collections'}</span>

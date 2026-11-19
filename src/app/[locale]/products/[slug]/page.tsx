@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ChevronRight, ArrowLeft } from 'lucide-react'
 import { productService } from '@/services/product.service'
 import { siteConfig } from '@/config/site'
+import { BreadcrumbBar } from '@/components/shared/PageNavigation'
 import { ProductDetail } from '@/features/products/components/ProductDetail/ProductDetail'
 
 interface ProductPageProps {
@@ -221,33 +220,30 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <div className="container-brand page-shell product-page-shell" dir={isRTL ? 'rtl' : 'ltr'}>
       <ProductStructuredData product={product} locale={locale} slug={slug} />
 
-      {/* ── Compact Top Utility Bar (Breadcrumbs + Back Link) ─── */}
-      <div className="product-breadcrumb flex items-center justify-between gap-3">
-        <nav
-          aria-label={locale === 'ar' ? 'مسار التنقل' : locale === 'fr' ? 'Fil d\'Ariane' : 'Breadcrumb'}
-          className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs whitespace-nowrap"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          <Link href={`/${locale}`} className="flex-shrink-0 hover:text-[var(--accent)] transition-colors">
-            {locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home'}
-          </Link>
-          <ChevronRight className="w-3 h-3 flex-shrink-0 rtl-flip" />
-          <Link href={`/${locale}/products`} className="flex-shrink-0 hover:text-[var(--accent)] transition-colors">
-            {locale === 'ar' ? 'المنتجات' : locale === 'fr' ? 'Produits' : 'Products'}
-          </Link>
-          <ChevronRight className="w-3 h-3 flex-shrink-0 rtl-flip" />
-          <span className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{productName}</span>
-        </nav>
-
-        <Link
-          href={`/${locale}/products`}
-          className="hidden sm:inline-flex flex-shrink-0 items-center gap-1.5 text-xs font-semibold whitespace-nowrap hover:text-[var(--accent)] transition-colors"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-          {locale === 'ar' ? 'العودة لجميع المنتجات' : locale === 'fr' ? 'Retour aux produits' : 'Back to products'}
-        </Link>
-      </div>
+      {/* ── Top Navigation Bar (Breadcrumbs + Back Button) ──────── */}
+      <BreadcrumbBar
+        className="product-breadcrumb"
+        locale={locale}
+        items={[
+          {
+            label: locale === 'ar' ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home',
+            href: `/${locale}`,
+          },
+          {
+            label: locale === 'ar' ? 'المنتجات' : locale === 'fr' ? 'Produits' : 'Products',
+            href: `/${locale}/products`,
+          },
+          { label: productName },
+        ]}
+        backHref={`/${locale}/products`}
+        backLabel={
+          locale === 'ar'
+            ? 'العودة لجميع المنتجات'
+            : locale === 'fr'
+              ? 'Retour aux produits'
+              : 'Back to products'
+        }
+      />
 
       {/* ── Product Info Section ───────────────────────────────── */}
       <ProductDetail product={product} locale={locale} />

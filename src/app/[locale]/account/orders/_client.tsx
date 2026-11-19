@@ -4,7 +4,6 @@ import { useEffect, useState, use, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -17,6 +16,7 @@ import {
   Truck,
   XCircle,
 } from 'lucide-react'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface AccountOrdersPageProps {
   params: Promise<{ locale: string }>
@@ -205,10 +205,7 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
   return (
     <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: '46.25rem' }}>
       <div className="mb-5">
-        <Link href={`/${locale}/account`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{t('back')}</span>
-        </Link>
+        <BackButton href={`/${locale}/account`} locale={locale} label={t('back')} />
       </div>
 
       <div className="flex items-center gap-3 mb-6">
@@ -302,8 +299,11 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="tabular-nums font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                        {t('order')} #{order.orderNumber}
+                      <span className="tabular-nums font-bold text-sm text-[var(--text-primary)]">
+                        {t('order')}{' '}
+                        <span dir="ltr" className="inline-block font-mono">
+                          #{order.orderNumber}
+                        </span>
                       </span>
                       <span
                         className="inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-bold border"

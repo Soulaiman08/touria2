@@ -13,7 +13,6 @@ import {
   RefreshCw,
   Search,
   ArrowRight,
-  ArrowLeft,
   Calendar,
   Layers,
   LogIn,
@@ -25,6 +24,7 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface OrdersPageProps {
   params: Promise<{
@@ -430,10 +430,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
     >
       {/* ── Back Navigation ───────────────────────────────────────── */}
       <div className="mb-6">
-        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{t.back}</span>
-        </Link>
+        <BackButton href={`/${locale}`} locale={locale} label={t.back} />
       </div>
 
       {/* ── Editorial Page Header ─────────────────────────────────── */}
@@ -512,7 +509,9 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                     onKeyDown={handleSearchKeyDown}
                     placeholder={t.trackPhonePlaceholder}
                     dir="ltr"
-                    className="tabular-nums w-full h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] ps-10 pe-3.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] text-start"
+                    className={`tabular-nums w-full h-11 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] ${
+                      isRTL ? 'pr-10 pl-3.5 text-right' : 'pl-10 pr-3.5 text-left'
+                    }`}
                   />
                 </div>
               )}
@@ -640,7 +639,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                     <span className="text-xs font-bold text-[var(--text-muted)]">
                       {t.orderNum}
                     </span>
-                    <span className="tabular-nums font-mono text-sm font-extrabold text-[var(--accent)]">
+                    <span dir="ltr" className="tabular-nums font-mono text-sm font-extrabold text-[var(--accent)]">
                       #{orderNum}
                     </span>
                   </div>

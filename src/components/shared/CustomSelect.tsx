@@ -87,12 +87,12 @@ export function CustomSelect({
       const spaceBelow = Math.max(0, viewportHeight - rect.bottom - 12)
       const spaceAbove = Math.max(0, rect.top - 12)
       const searchChrome = searchable ? 54 : 8
-      const desiredTotal = Math.min(options.length * 44 + searchChrome + 8, 296)
+      const desiredTotal = Math.min(options.length * 44 + searchChrome + 8, 340)
       const upward = spaceBelow < desiredTotal && spaceAbove > spaceBelow
       const available = upward ? spaceAbove : spaceBelow
 
       setOpenUpward(upward)
-      setMenuMaxHeight(Math.max(132, Math.min(240, available - searchChrome)))
+      setMenuMaxHeight(Math.max(132, Math.min(304, available - searchChrome)))
     }
 
     const currentIdx = options.findIndex((opt) => opt.value === value)
@@ -326,7 +326,7 @@ export function CustomSelect({
           )}
 
           <div
-            className="overflow-y-auto overscroll-contain py-1"
+            className="overflow-y-auto overscroll-contain no-scrollbar py-1"
             style={{ maxHeight: `${menuMaxHeight}px` }}
           >
             {filteredOptions.length === 0 ? (

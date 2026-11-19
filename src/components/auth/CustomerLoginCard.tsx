@@ -258,7 +258,10 @@ export function CustomerLoginCard({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('passwordPlaceholder')}
-                  className="w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm ps-10 pe-10 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors"
+                  dir="ltr"
+                  className={`w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm px-10 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors ${
+                    isRTL ? 'text-right' : 'text-left'
+                  }`}
                   style={{ letterSpacing: showPassword ? 'normal' : '0.1em' }}
                 />
                 <button

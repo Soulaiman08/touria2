@@ -18,12 +18,15 @@ import {
   Globe,
   ArrowRight,
   User,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { FaWhatsapp, FaInstagram, FaTiktok, FaFacebookF, FaYoutube } from 'react-icons/fa6'
 
 import { useCartStore } from '@/store/cart.store'
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
+import { useTheme } from '@/components/providers/ThemeProvider'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 import { siteConfig } from '@/config/site'
 import { cn, formatPrice } from '@/lib/utils'
@@ -62,9 +65,11 @@ export function Header({ locale }: HeaderProps) {
   const cartItems = useCartStore((state) => state.items)
   const toggleCart = useCartStore((state) => state.toggleCart)
   const { customer } = useCustomerAuth()
+  const { resolvedTheme, setTheme } = useTheme()
   const pathname = usePathname()
 
   const isRTL = locale === 'ar'
+  const isDark = resolvedTheme === 'dark'
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
   const mounted = useSyncExternalStore(
@@ -362,7 +367,7 @@ export function Header({ locale }: HeaderProps) {
                   />
                 </div>
                 <span
-                  className="inline-block truncate max-w-[5.5rem] sm:max-w-none text-[0.8125rem] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
+                  className="inline-block truncate max-w-[11rem] min-[400px]:max-w-[13rem] sm:max-w-none text-[0.875rem] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
                   style={{
                     color: 'var(--text-primary)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -395,8 +400,8 @@ export function Header({ locale }: HeaderProps) {
               })}
             </nav>
 
-            {/* End Zone: Action Controls */}
-            <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0" dir={isRTL ? 'rtl' : 'ltr'}>
+            {/* End Zone: Action Controls (clean Search + Cart on mobile; Theme + Language also on sm+) */}
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0" dir={isRTL ? 'rtl' : 'ltr'}>
               <button
                 type="button"
                 className="icon-btn touch-target"
@@ -406,9 +411,10 @@ export function Header({ locale }: HeaderProps) {
                 <Search className="h-[1.125rem] w-[1.125rem]" />
               </button>
 
-              <ThemeSwitcher />
-
-              <LanguageSwitcher locale={locale} />
+              <div className="hidden sm:flex items-center gap-2">
+                <ThemeSwitcher />
+                <LanguageSwitcher locale={locale} />
+              </div>
 
               <button
                 id="cart-toggle-btn"
@@ -618,6 +624,45 @@ export function Header({ locale }: HeaderProps) {
               )}
             </div>
 
+            {/* Inline Theme Selector (for mobile convenience cleanly inside drawer) */}
+            <div className="mt-2.5 pt-2.5 border-t sm:hidden" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-2 mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                {isDark ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+                <span>{locale === 'ar' ? 'المظهر' : locale === 'fr' ? 'Apparence' : 'Theme'}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1 min-h-[34px] text-xs transition-colors whitespace-nowrap"
+                  style={{
+                    border: `1px solid ${mounted && !isDark ? 'var(--accent)' : 'var(--border)'}`,
+                    background: mounted && !isDark ? 'var(--accent-light)' : 'var(--bg-subtle)',
+                    color: mounted && !isDark ? 'var(--accent)' : 'var(--text-secondary)',
+                    fontWeight: mounted && !isDark ? 700 : 500,
+                  }}
+                >
+                  <Sun className="h-3.5 w-3.5" />
+                  <span>{locale === 'ar' ? 'فاتح' : locale === 'fr' ? 'Clair' : 'Light'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1 min-h-[34px] text-xs transition-colors whitespace-nowrap"
+                  style={{
+                    border: `1px solid ${mounted && isDark ? 'var(--accent)' : 'var(--border)'}`,
+                    background: mounted && isDark ? 'var(--accent-light)' : 'var(--bg-subtle)',
+                    color: mounted && isDark ? 'var(--accent)' : 'var(--text-secondary)',
+                    fontWeight: mounted && isDark ? 700 : 500,
+                  }}
+                >
+                  <Moon className="h-3.5 w-3.5" />
+                  <span>{locale === 'ar' ? 'داكن' : locale === 'fr' ? 'Sombre' : 'Dark'}</span>
+                </button>
+              </div>
+            </div>
+
             {/* Inline Language Selector */}
             <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-center gap-2 mb-1.5 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
@@ -790,7 +835,7 @@ export function Header({ locale }: HeaderProps) {
           </div>
 
           {/* Search Body */}
-          <div className="max-h-[60vh] sm:max-h-[27.5rem] overflow-y-auto">
+          <div className="max-h-[60vh] sm:max-h-[27.5rem] overflow-y-auto no-scrollbar">
             {searching ? (
               <div className="flex flex-col items-center justify-center p-10 text-center" style={{ color: 'var(--text-muted)' }}>
                 <div className="h-7 w-7 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent mb-3" />

@@ -4,8 +4,9 @@ import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, CheckCircle2, Clock, RefreshCw, Truck, XCircle } from 'lucide-react'
+import { CheckCircle2, Clock, RefreshCw, Truck, XCircle } from 'lucide-react'
 import type { ProductSnapshot } from '@/types/order'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface AccountOrderDetailPageProps {
   params: Promise<{ locale: string; id: string }>
@@ -193,10 +194,7 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
   return (
     <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: '46.25rem' }}>
       <div className="mb-5">
-        <Link href={`/${locale}/account/orders`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{t('backOrders')}</span>
-        </Link>
+        <BackButton href={`/${locale}/account/orders`} locale={locale} label={t('backOrders')} />
       </div>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -204,7 +202,10 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
           className="tabular-nums text-2xl font-extrabold text-[var(--text-primary)] m-0"
           style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
         >
-          {t('title')} <span className="font-mono text-[var(--accent)]">#{order.orderNumber}</span>
+          {t('title')}{' '}
+          <span dir="ltr" className="inline-block font-mono text-[var(--accent)]">
+            #{order.orderNumber}
+          </span>
         </h1>
         <span
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border"

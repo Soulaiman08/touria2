@@ -11,6 +11,9 @@ import {
   Check,
   Truck,
   Banknote,
+  Ruler,
+  Share2,
+  ShieldCheck,
 } from 'lucide-react'
 
 import { useCartStore } from '@/store/cart.store'
@@ -19,6 +22,7 @@ import type { Product } from '@/types/product'
 import { CustomSelect } from '@/components/shared/CustomSelect'
 import { ProductGallery } from './ProductGallery'
 import { ProductReviews } from './ProductReviews'
+import { SizeGuideModal } from './SizeGuideModal'
 
 interface ProductDetailProps {
   product: Product
@@ -150,6 +154,29 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   })
 
   const [activeImage, setActiveImage] = useState(product.mainImage)
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+
+  const handleCopyProductLink = async () => {
+    try {
+      const url = typeof window !== 'undefined' ? window.location.href : ''
+      if (!url) return
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        const input = document.createElement('input')
+        input.value = url
+        document.body.appendChild(input)
+        input.select()
+        document.execCommand('copy')
+        document.body.removeChild(input)
+      }
+      setCopiedLink(true)
+      window.setTimeout(() => setCopiedLink(false), 1800)
+    } catch {
+      // Clipboard blocked cleanly ignored
+    }
+  }
 
   const currentVariant = product.variants?.find((variant) => {
     if (product.isNiqab) return true
@@ -482,10 +509,17 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         ? product.descriptionFr
         : product.descriptionEn
 
+  const discountPercent =
+    product.salePrice && Number(product.basePrice) > Number(product.salePrice)
+      ? Math.round(
+          ((Number(product.basePrice) - Number(product.salePrice)) / Number(product.basePrice)) * 100
+        )
+      : 0
+
   return (
     <>
       <div
-        className="product-detail-grid grid grid-cols-1 gap-3.5 sm:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] sm:gap-5 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] md:gap-6 lg:grid-cols-[minmax(0,1.04fr)_minmax(360px,0.96fr)] lg:gap-8 xl:gap-10"
+        className="product-detail-grid grid grid-cols-1 gap-4 md:grid-cols-[auto_minmax(320px,1fr)] md:gap-5 lg:grid-cols-[auto_minmax(400px,1fr)] lg:gap-7 xl:gap-9"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         {/* ── Gallery Column ─────────────────────────────────────────── */}
@@ -501,7 +535,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         {/* ── Purchase Atelier Column ────────────────────────────────── */}
         <div className="product-purchase-panel min-w-0">
           {/* Header */}
-          <div className="product-title-block space-y-1.5 sm:space-y-2 pb-3 sm:pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <div className="product-title-block space-y-1.5 pb-2.5">
             {product.category && (
               <span
                 className="text-[11px] font-semibold uppercase tracking-[0.14em] block"
@@ -516,7 +550,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             )}
 
             <h1
-              className="text-xl min-[400px]:text-2xl lg:text-3xl font-bold leading-tight text-balance"
+              className="text-xl min-[400px]:text-2xl lg:text-[1.75rem] font-bold leading-tight text-balance"
               style={{
                 color: 'var(--text-primary)',
                 fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -526,36 +560,71 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             </h1>
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-              <p className="text-[11px] sm:text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                {t('sku')}: {product.sku}
-              </p>
-              {hasStock ? (
-                <span
-                  className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap"
-                  style={{ color: 'var(--success)' }}
-                >
-                  <Check className="h-3.5 w-3.5" />
-                  {locale === 'ar' ? 'متوفر' : locale === 'fr' ? 'En stock' : 'In stock'}
+              <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
+                <span className="tabular-nums" style={{ color: 'var(--text-muted)' }}>
+                  {t('sku')}:{' '}
+                  <span dir="ltr" className="inline-block font-mono">
+                    {product.sku}
+                  </span>
                 </span>
-              ) : (
-                <span
-                  className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap"
-                  style={{ color: 'var(--error)' }}
-                >
-                  <ShieldAlert className="h-3.5 w-3.5" />
-                  {t('outOfStock')}
+                <span aria-hidden="true" style={{ color: 'var(--border)' }}>·</span>
+                {hasStock ? (
+                  <span
+                    className="inline-flex items-center gap-1 font-semibold whitespace-nowrap"
+                    style={{ color: 'var(--success)' }}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    {locale === 'ar' ? 'متوفر' : locale === 'fr' ? 'En stock' : 'In stock'}
+                  </span>
+                ) : (
+                  <span
+                    className="inline-flex items-center gap-1 font-semibold whitespace-nowrap"
+                    style={{ color: 'var(--error)' }}
+                  >
+                    <ShieldAlert className="h-3.5 w-3.5" />
+                    {t('outOfStock')}
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCopyProductLink}
+                aria-label={
+                  locale === 'ar'
+                    ? 'نسخ رابط المنتج'
+                    : locale === 'fr'
+                      ? 'Copier le lien du produit'
+                      : 'Copy product link'
+                }
+                className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium transition-colors hover:text-[var(--accent)] cursor-pointer whitespace-nowrap"
+                style={{ color: copiedLink ? 'var(--success)' : 'var(--text-muted)' }}
+              >
+                {copiedLink ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                <span>
+                  {copiedLink
+                    ? locale === 'ar'
+                      ? 'تم النسخ'
+                      : locale === 'fr'
+                        ? 'Lien copié'
+                        : 'Link copied'
+                    : locale === 'ar'
+                      ? 'مشاركة'
+                      : locale === 'fr'
+                        ? 'Partager'
+                        : 'Share'}
                 </span>
-              )}
+              </button>
             </div>
           </div>
 
-          {/* Price */}
-          <div className="product-price-row">
+          {/* Architectural Price Strip (unboxed, clean hierarchy) */}
+          <div className="product-price-row flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <div className="flex flex-wrap items-baseline gap-2.5 tabular-nums">
               {product.salePrice ? (
                 <>
                   <span
-                    className="text-xl min-[400px]:text-2xl lg:text-3xl font-bold"
+                    className="text-2xl lg:text-[1.75rem] font-bold tracking-tight"
                     style={{ color: 'var(--accent)' }}
                   >
                     {formatPrice(basePriceVal, locale)}
@@ -566,10 +635,22 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   >
                     {formatPrice(Number(product.basePrice), locale)}
                   </span>
+                  {discountPercent > 0 && (
+                    <span
+                      dir="ltr"
+                      className="text-[11px] font-bold px-2 py-0.5 rounded-md tabular-nums"
+                      style={{
+                        background: 'var(--accent-light)',
+                        color: 'var(--accent)',
+                      }}
+                    >
+                      -{discountPercent}%
+                    </span>
+                  )}
                 </>
               ) : (
                 <span
-                  className="text-xl min-[400px]:text-2xl lg:text-3xl font-bold"
+                  className="text-2xl lg:text-[1.75rem] font-bold tracking-tight"
                   style={{ color: 'var(--text-primary)' }}
                 >
                   {formatPrice(basePriceVal, locale)}
@@ -586,6 +667,14 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 </span>
               )}
             </div>
+
+            <span className="text-[11px] sm:text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+              {locale === 'ar'
+                ? 'الدفع عند الاستلام'
+                : locale === 'fr'
+                  ? 'Paiement à la livraison'
+                  : 'Cash on delivery'}
+            </span>
           </div>
 
           {/* Description */}
@@ -596,27 +685,49 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           {/* Jellaba Variant Builder */}
           {!product.isNiqab && colors.length > 0 && (
             <div
-              className="rounded-xl border p-3 sm:p-4 space-y-2.5 sm:space-y-3"
+              className="rounded-xl border p-3 sm:p-3.5 space-y-2.5"
               style={{
                 borderColor: 'var(--border)',
                 background: 'var(--bg-subtle)',
               }}
             >
-              <div>
-                <span className="font-bold text-sm block" style={{ color: 'var(--text-primary)' }}>
-                  {locale === 'ar'
-                    ? 'اختاري الألوان والمقاسات'
-                    : locale === 'fr'
-                      ? 'Choisissez les couleurs et tailles'
-                      : 'Choose colors and sizes'}
-                </span>
-                <span className="text-xs block mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  {locale === 'ar'
-                    ? 'أضيفي جلابات بألوان ومقاسات مختلفة في طلب واحد'
-                    : locale === 'fr'
-                      ? 'Ajoutez des djellabas en différentes couleurs et tailles'
-                      : 'Add djellabas in different colors and sizes'}
-                </span>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="font-bold text-sm block" style={{ color: 'var(--text-primary)' }}>
+                    {locale === 'ar'
+                      ? 'اختاري الألوان والمقاسات'
+                      : locale === 'fr'
+                        ? 'Choisissez les couleurs et tailles'
+                        : 'Choose colors and sizes'}
+                  </span>
+                  <span className="text-xs block mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    {locale === 'ar'
+                      ? 'أضيفي جلابات بألوان ومقاسات مختلفة في طلب واحد'
+                      : locale === 'fr'
+                        ? 'Ajoutez des djellabas en différentes couleurs et tailles'
+                        : 'Add djellabas in different colors and sizes'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSizeGuideOpen(true)}
+                  className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer whitespace-nowrap"
+                  style={{
+                    borderColor: 'var(--border)',
+                    background: 'var(--card-bg)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <Ruler className="h-3.5 w-3.5" style={{ color: 'var(--accent)' }} />
+                  <span>
+                    {locale === 'ar'
+                      ? 'دليل المقاسات'
+                      : locale === 'fr'
+                        ? 'Guide des tailles'
+                        : 'Size guide'}
+                  </span>
+                </button>
               </div>
 
               <div className="space-y-2.5">
@@ -788,11 +899,15 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                             : 'Add a matching niqab'}
                     </span>
                     <span className="text-xs block" style={{ color: 'var(--text-muted)' }}>
-                      {locale === 'ar'
-                        ? 'نقاب متناسق مع جلابتك (+20 د.م)'
-                        : locale === 'fr'
-                          ? 'Niqab assorti à votre djellaba (+20 DH)'
-                          : 'Matching niqab for your djellaba (+20 DH)'}
+                      {locale === 'ar' ? (
+                        <>
+                          نقاب متناسق مع جلابتك (<span dir="ltr" className="inline-block">+20</span> د.م.)
+                        </>
+                      ) : locale === 'fr' ? (
+                        'Niqab assorti à votre djellaba (+20 DH)'
+                      ) : (
+                        'Matching niqab for your djellaba (+20 DH)'
+                      )}
                     </span>
                   </div>
                 </label>
@@ -913,10 +1028,11 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                             : `Total niqabs (${selectedNiqabQuantity})`}
                       </span>
                       <span
-                        className="text-sm sm:text-base font-bold"
+                        className="inline-flex items-baseline gap-0.5 text-sm sm:text-base font-bold"
                         style={{ color: 'var(--accent)' }}
                       >
-                        +{formatPrice(niqabTotal, locale)}
+                        <span dir="ltr">+</span>
+                        <span>{formatPrice(niqabTotal, locale)}</span>
                       </span>
                     </div>
                   </div>
@@ -1006,10 +1122,24 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                     ? 'Livraison nationale'
                     : 'Nationwide shipping'}
               </span>
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                <ShieldCheck className="w-3.5 h-3.5 text-[var(--accent)]" />
+                {locale === 'ar'
+                  ? 'خياطة مغربية متقنة'
+                  : locale === 'fr'
+                    ? 'Finition artisanale'
+                    : 'Artisanal finish'}
+              </span>
             </div>
           </div>
         </div>
       </div>
+
+      <SizeGuideModal
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+        locale={locale}
+      />
 
       <ProductReviews productId={product.id} locale={locale} />
     </>

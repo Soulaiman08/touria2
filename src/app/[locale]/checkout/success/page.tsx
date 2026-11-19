@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { formatPrice } from '@/lib/utils'
 import { CheckCircle2, Truck, ShoppingBag, ArrowRight, XCircle } from 'lucide-react'
 import type { Order } from '@/types/order'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface SuccessPageProps {
   params: Promise<{ locale: string }>
@@ -65,9 +66,13 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
         <h2 className="font-bold text-lg text-[var(--text-primary)]">
           {locale === 'ar' ? 'لم يتم العثور على الطلب' : locale === 'fr' ? 'Commande introuvable' : 'Order not found'}
         </h2>
-        <Link href={`/${locale}`} className="btn btn-primary btn-round">
-          {locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
-        </Link>
+        <div className="pt-1 flex justify-center">
+          <BackButton
+            href={`/${locale}`}
+            locale={locale}
+            label={locale === 'ar' ? 'العودة للرئيسية' : locale === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+          />
+        </div>
       </div>
     )
   }
@@ -100,7 +105,7 @@ export default function CheckoutSuccessPage({ params, searchParams }: SuccessPag
           <span className="text-xs font-bold text-[var(--text-secondary)]">
             {t('orderNumber')}
           </span>
-          <span className="tabular-nums font-mono text-base font-extrabold text-[var(--accent)]">
+          <span dir="ltr" className="inline-block tabular-nums font-mono text-base font-extrabold text-[var(--accent)]">
             #{order.orderNumber}
           </span>
         </div>

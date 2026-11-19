@@ -4,8 +4,9 @@ import { useEffect, useRef, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Camera, Loader2, LogOut, Save, UserRound, Mail, Phone, User, Package } from 'lucide-react'
+import { Camera, Loader2, LogOut, Save, UserRound, Mail, Phone, User, Package } from 'lucide-react'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
+import { BackButton } from '@/components/shared/PageNavigation'
 
 interface AccountPageProps {
   params: Promise<{ locale: string }>
@@ -143,15 +144,17 @@ export function AccountPageClient({ params }: AccountPageProps) {
 
   return (
     <div className="container-brand page-shell" dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: '35rem' }}>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <Link href={`/${locale}`} className="btn btn-outline btn-sm btn-round">
-          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          <span>{t('back')}</span>
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-6">
+        <BackButton href={`/${locale}`} locale={locale} label={t('back')} />
 
         {user && (
-          <Link href={`/${locale}/account/orders`} className="btn btn-outline btn-sm btn-round">
-            <Package className="w-4 h-4 text-[var(--accent)]" />
+          <Link
+            href={`/${locale}/account/orders`}
+            className="group inline-flex items-center gap-2 h-9 sm:h-10 ps-2 pe-3.5 rounded-xl border border-[var(--border)] bg-[var(--card-bg)]/95 text-xs sm:text-[13px] font-semibold text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 whitespace-nowrap no-underline"
+          >
+            <span className="flex h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 items-center justify-center rounded-lg border border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] transition-colors duration-200 group-hover:bg-[var(--accent)] group-hover:border-[var(--accent)] group-hover:text-white">
+              <Package className="w-3.5 h-3.5" aria-hidden="true" />
+            </span>
             <span>{t('myOrders')}</span>
           </Link>
         )}

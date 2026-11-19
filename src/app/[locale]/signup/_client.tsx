@@ -22,6 +22,7 @@ import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 import { SilkBackground } from '@/components/shared/SilkBackground'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
+import { BackButton } from '@/components/shared/PageNavigation'
 import { useTranslations } from 'next-intl'
 
 interface SignupPageProps {
@@ -143,13 +144,7 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
       {/* Top Auth Toolbar */}
       <header className="relative z-20 flex flex-wrap items-center justify-between gap-2.5 max-w-[72.5rem] w-full mx-auto">
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/${locale}`}
-            className="inline-flex items-center gap-1.5 h-10 px-3 sm:px-3.5 rounded-xl border border-[var(--border)] bg-[var(--card-bg)]/95 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent-ring)] hover:text-[var(--accent)] transition-colors whitespace-nowrap shrink-0"
-          >
-            <ArrowLeft className={`w-4 h-4 text-[var(--accent)] ${isRTL ? 'rotate-180' : ''}`} />
-            <span>{homeLabel}</span>
-          </Link>
+          <BackButton href={`/${locale}`} locale={locale} label={homeLabel} className="!h-10" />
 
           <nav
             aria-label="Auth mode switcher"
@@ -310,7 +305,10 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t('passwordPlaceholder')}
-                      className="w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm ps-10 pe-10 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors"
+                      dir="ltr"
+                      className={`w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm px-10 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
                       style={{ letterSpacing: showPassword ? 'normal' : '0.1em' }}
                     />
                     <button
@@ -346,7 +344,10 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder={t('passwordPlaceholder')}
-                      className="w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm ps-10 pe-10 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors"
+                      dir="ltr"
+                      className={`w-full h-10 rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] placeholder:text-[var(--text-placeholder)] text-sm px-10 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)] transition-colors ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
                       style={{ letterSpacing: showConfirmPassword ? 'normal' : '0.1em' }}
                     />
                     <button
