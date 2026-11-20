@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const colorCode = searchParams.get('colorCode') || undefined
     const search = searchParams.get('search') || undefined
     const sortParam = searchParams.get('sort')
-    const sort = sortParam === 'newest' || sortParam === 'priceAsc' || sortParam === 'priceDesc' || sortParam === 'featured'
+    const sort = sortParam === 'newest' || sortParam === 'priceAsc' || sortParam === 'priceDesc' || sortParam === 'featured' || sortParam === 'sale'
       ? sortParam
       : undefined
     const page = parsePagination(searchParams.get('page'), 1, 1, 10000)

@@ -76,7 +76,8 @@
       "newest": "الأحدث",
       "priceAsc": "السعر: الأقل أولاً",
       "priceDesc": "السعر: الأعلى أولاً",
-      "featured": "المميزة"
+      "featured": "المميزة",
+      "sale": "العروض"
     },
     "filters": {
       "category": "الفئة",

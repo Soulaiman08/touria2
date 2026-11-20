@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { cookies } from 'next/headers'
 import { signOrderAccessToken } from '@/lib/auth'
 import { isValidMoroccanPhone } from '@/lib/utils'
 
@@ -50,8 +49,8 @@ function getClientIp(request: Request): string {
 }
 
 export async function POST(request: Request) {
-  let status = 404
-  let payload: { error: string } = { error: 'ORDER_NOT_FOUND' }
+  const status = 404
+  const payload: { error: string } = { error: 'ORDER_NOT_FOUND' }
 
   try {
     let body: { orderNumber?: unknown; phone?: unknown }
@@ -103,7 +102,6 @@ export async function POST(request: Request) {
 
     // Grant a short-lived access session bound to this exact order only.
     const token = signOrderAccessToken(order.id, TRACKING_SESSION_SECONDS)
-    const cookieStore = await cookies()
     const isProduction = process.env.NODE_ENV === 'production'
     const response = NextResponse.json({ order })
     response.cookies.set(`order_access_${order.id}`, token, {

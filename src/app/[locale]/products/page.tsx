@@ -128,9 +128,17 @@ export default async function ProductsPage({
       ? resolvedSearchParams.q
       : undefined
 
-  const sort =
+  const rawSort =
     typeof resolvedSearchParams.sort === 'string'
-      ? (resolvedSearchParams.sort as ProductFilters['sort'])
+      ? resolvedSearchParams.sort
+      : undefined
+  const sort: ProductFilters['sort'] =
+    rawSort === 'newest' ||
+    rawSort === 'priceAsc' ||
+    rawSort === 'priceDesc' ||
+    rawSort === 'featured' ||
+    rawSort === 'sale'
+      ? rawSort
       : undefined
 
   const pt = await getTranslations({
@@ -200,6 +208,7 @@ export default async function ProductsPage({
   }> = [
     { key: 'featured', label: pt('sortBy.featured') },
     { key: 'newest', label: pt('sortBy.newest') },
+    { key: 'sale', label: pt('sortBy.sale') },
     { key: 'priceAsc', label: pt('sortBy.priceAsc') },
     { key: 'priceDesc', label: pt('sortBy.priceDesc') },
   ]

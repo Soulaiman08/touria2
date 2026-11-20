@@ -21,7 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/about',     priority: 0.6, freq: 'monthly' },
     { path: '/faq',       priority: 0.5, freq: 'monthly' },
     { path: '/privacy',   priority: 0.3, freq: 'yearly'  },
-    { path: '/returns',   priority: 0.4, freq: 'monthly' },
   ]
 
   const staticEntries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>

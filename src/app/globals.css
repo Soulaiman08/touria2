@@ -992,10 +992,6 @@ h6 {
   min-height: 3rem;
 }
 
-.btn-round {
-  border-radius: var(--radius-full) !important;
-}
-
 /* ═══════════════════════════════════════════════
    INPUT SYSTEM
 ═══════════════════════════════════════════════ */

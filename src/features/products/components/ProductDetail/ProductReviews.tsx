@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -15,6 +15,7 @@ import {
   X,
   Send,
 } from 'lucide-react'
+import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
 
 interface ProductReviewsProps {
   productId: string
@@ -27,7 +28,7 @@ interface ReviewItem {
   comment: string
   createdAt: string
   updatedAt: string
-  customer: { id: string; name: string; avatarUrl: string | null }
+  customer?: { id: string; name: string; avatarUrl: string | null } | null
 }
 
 const RATING_LABELS: Record<number, [string, string, string]> = {
@@ -87,19 +88,25 @@ function StarRow({
 }
 
 export function ProductReviews({ productId, locale }: ProductReviewsProps) {
+  const { customer, loading: authLoading } = useCustomerAuth()
   const [loading, setLoading] = useState(true)
   const [reviews, setReviews] = useState<ReviewItem[]>([])
   const [average, setAverage] = useState<number | null>(null)
   const [count, setCount] = useState(0)
 
-  const [authState, setAuthState] = useState<'loading' | 'guest' | 'user'>('loading')
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [rating, setRating] = useState(5)
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [showForm, setShowForm] = useState(false)
+
+  const authState: 'loading' | 'guest' | 'user' = authLoading
+    ? 'loading'
+    : customer
+      ? 'user'
+      : 'guest'
+  const currentUserId = customer?.id ?? null
 
   const isRTL = locale === 'ar'
   const isFR = locale === 'fr'
@@ -131,6 +138,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       publishReview: ['نشر التقييم', "Publier l'avis", 'Submit Review'],
       cancel: ['إلغاء', 'Annuler', 'Cancel'],
       verifiedBuyer: ['مشتري موثق', 'Acheteur vérifié', 'Verified Buyer'],
+      anonymousReviewer: ['زبونة ثريا', 'Client Thuraya', 'Thuraya Customer'],
       loading: ['جاري تحميل التقييمات...', 'Chargement des avis...', 'Loading reviews...'],
       failed: ['تعذر إرسال التقييم، يرجى المحاولة ثانية', "Échec de l'envoi de l'avis", 'Failed to submit review'],
     }
@@ -139,46 +147,58 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
     return isRTL ? entry[0] : isFR ? entry[1] : entry[2]
   }
 
-  const loadReviews = () => {
-    fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`, { cache: 'no-store' })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('failed'))))
-      .then((data) => {
-        setReviews(data.reviews || [])
-        setAverage(data.averageRating)
-        setCount(data.count || 0)
-      })
-      .catch(() => setReviews([]))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    loadReviews()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchReviews = useCallback(async (signal?: AbortSignal) => {
+    const res = await fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`, {
+      cache: 'no-store',
+      signal,
+    })
+    if (!res.ok) throw new Error('failed')
+    return res.json() as Promise<{
+      reviews?: ReviewItem[]
+      averageRating?: number | null
+      count?: number
+    }>
   }, [productId])
 
   useEffect(() => {
+    const controller = new AbortController()
     let isMounted = true
-    fetch('/api/customer/me', { cache: 'no-store' })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('guest'))))
+
+    fetchReviews(controller.signal)
       .then((data) => {
-        if (isMounted) {
-          setAuthState('user')
-          setCurrentUserId(data.user.id)
-          const mine = reviews.find((r) => r.customer.id === data.user.id)
-          if (mine) {
-            setRating(mine.rating)
-            setComment(mine.comment)
-          }
-        }
+        if (!isMounted) return
+        setReviews(data.reviews || [])
+        setAverage(data.averageRating ?? null)
+        setCount(data.count || 0)
       })
-      .catch(() => {
-        if (isMounted) setAuthState('guest')
+      .catch((err: unknown) => {
+        if (!isMounted || (err instanceof Error && err.name === 'AbortError')) return
+        setReviews([])
       })
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+
     return () => {
       isMounted = false
+      controller.abort()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reviews.length])
+  }, [fetchReviews])
+
+  const openReviewForm = () => {
+    const existing = currentUserId
+      ? reviews.find((r) => r.customer?.id === currentUserId)
+      : undefined
+    if (existing) {
+      setRating(existing.rating)
+      setComment(existing.comment)
+    } else {
+      setRating(5)
+      setComment('')
+    }
+    setErrorMsg('')
+    setShowForm(true)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -194,7 +214,10 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'failed')
       setShowForm(false)
-      loadReviews()
+      const fresh = await fetchReviews()
+      setReviews(fresh.reviews || [])
+      setAverage(fresh.averageRating ?? null)
+      setCount(fresh.count || 0)
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error && err.message !== 'failed' ? err.message : t('failed'))
     } finally {
@@ -292,10 +315,10 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                   <LogIn className="w-4 h-4" />
                   <span>{t('signInToReview')}</span>
                 </Link>
-              ) : !showForm ? (
+              ) : authState === 'user' && !showForm ? (
                 <button
                   type="button"
-                  onClick={() => setShowForm(true)}
+                  onClick={openReviewForm}
                   className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap cursor-pointer"
                 >
                   <MessageSquarePlus className="w-4 h-4" />
@@ -444,7 +467,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
             ) : authState === 'user' ? (
               <button
                 type="button"
-                onClick={() => setShowForm(true)}
+                onClick={openReviewForm}
                 className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap cursor-pointer"
               >
                 <MessageSquarePlus className="w-4 h-4" />
@@ -468,10 +491,10 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    {review.customer.avatarUrl ? (
+                    {review.customer?.avatarUrl ? (
                       <Image
                         src={review.customer.avatarUrl}
-                        alt={review.customer.name}
+                        alt={review.customer.name || t('anonymousReviewer')}
                         width={30}
                         height={30}
                         className="rounded-full object-cover border"
@@ -482,7 +505,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                         className="flex h-7 w-7 items-center justify-center rounded-full text-white font-bold text-xs"
                         style={{ background: 'var(--accent)' }}
                       >
-                        {review.customer.name ? (
+                        {review.customer?.name ? (
                           review.customer.name.charAt(0).toUpperCase()
                         ) : (
                           <UserRound className="w-3.5 h-3.5" />
@@ -492,7 +515,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
-                        {review.customer.name}
+                        {review.customer?.name || t('anonymousReviewer')}
                       </span>
 
                       <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
@@ -519,7 +542,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                   </p>
                 )}
 
-                {currentUserId === review.customer.id && (
+                {Boolean(currentUserId && review.customer?.id === currentUserId) && (
                   <div>
                     <button
                       type="button"

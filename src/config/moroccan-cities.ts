@@ -207,7 +207,7 @@ export const MOROCCAN_CITIES: MoroccanCity[] = [
  * Client-side static fallback: returns DEFAULT_SHIPPING_PRICE for any city.
  * For server-side order creation, always use the DB lookup via the API.
  */
-export function getShippingCost(_cityValue: string): number {
+export function getShippingCost(): number {
   return DEFAULT_SHIPPING_PRICE
 }
 

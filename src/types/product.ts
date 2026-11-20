@@ -144,7 +144,7 @@ export interface ProductFilters {
   isNiqab?: boolean
   isFeatured?: boolean
   search?: string
-  sort?: 'newest' | 'priceAsc' | 'priceDesc' | 'featured'
+  sort?: 'newest' | 'priceAsc' | 'priceDesc' | 'featured' | 'sale'
   page?: number
   limit?: number
 }

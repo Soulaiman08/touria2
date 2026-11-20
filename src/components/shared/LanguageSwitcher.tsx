@@ -71,7 +71,8 @@ export function LanguageSwitcher({ locale, align = 'end' }: LanguageSwitcherProp
     setIsOpen(false)
     const segments = pathname.split('/')
     segments[1] = newLocale
-    router.push(segments.join('/'))
+    const search = typeof window !== 'undefined' ? window.location.search : ''
+    router.push(`${segments.join('/')}${search}`)
   }
 
   return (

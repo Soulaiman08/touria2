@@ -68,10 +68,39 @@ type MockProduct = {
   updatedAt: Date
 }
 
-type MockOrder = Record<string, unknown> & { id: string; orderNumber: string; createdAt: Date; updatedAt: Date }
+type MockOrder = Record<string, unknown> & { id: string; orderNumber: string; customerId?: string | null; status?: string; createdAt: Date; updatedAt: Date }
 type MockOrderItem = Record<string, unknown> & { id: string; orderId: string; createdAt: Date }
 type MockOrderHistory = Record<string, unknown> & { id: string; orderId: string; createdAt: Date }
 type MockReview = Record<string, unknown> & { id: string; productId: string; customerId: string; rating: number; comment: string; createdAt: Date; updatedAt: Date }
+type MockCustomer = Record<string, unknown> & {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  passwordHash: string | null
+  avatarUrl: string | null
+  address: string | null
+  city: string | null
+  notes: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export const isDatabaseConfigured = Boolean(process.env.DATABASE_URL)
+
+function applySelect<T extends Record<string, unknown>>(
+  record: T,
+  select?: Record<string, unknown>
+): Record<string, unknown> {
+  if (!select) return record
+  const projected: Record<string, unknown> = {}
+  for (const [key, enabled] of Object.entries(select)) {
+    if (enabled === true && key in record) {
+      projected[key] = record[key]
+    }
+  }
+  return projected
+}
 
 function createMockSeedData() {
   const now = new Date('2026-08-20T10:00:00.000Z')
@@ -386,10 +415,15 @@ function sortRecords<T extends Record<string, unknown>>(
   })
 }
 
+/**
+ * In-memory Prisma mock used ONLY when DATABASE_URL is absent (local dev / preview).
+ * Note: Does NOT emulate PostgreSQL ACID concurrency, isolation, or persistence across restarts.
+ */
 function createMockPrismaClient(): PrismaClient {
   console.warn('[AI Studio] Database not connected — using in-memory mock with sample test products')
   const { categories, products, variants } = createMockSeedData()
   const siteSettingsStore = new Map<string, string>()
+  const customersStore: MockCustomer[] = []
   const ordersStore: MockOrder[] = []
   const orderItemsStore: MockOrderItem[] = []
   const orderHistoryStore: MockOrderHistory[] = []
@@ -426,6 +460,11 @@ function createMockPrismaClient(): PrismaClient {
       const pf = where.basePrice as { gte?: number; lte?: number }
       if (pf.gte !== undefined && prod.basePrice < pf.gte) return false
       if (pf.lte !== undefined && prod.basePrice > pf.lte) return false
+    }
+
+    if (where.salePrice && typeof where.salePrice === 'object') {
+      const sf = where.salePrice as { not?: number | null }
+      if (sf.not === null && prod.salePrice === null) return false
     }
 
     if (where.variants && typeof where.variants === 'object') {
@@ -472,22 +511,92 @@ function createMockPrismaClient(): PrismaClient {
     return result
   }
 
+  const matchCustomerWhere = (cust: MockCustomer, where?: Record<string, unknown>): boolean => {
+    if (!where) return true
+    if (where.id !== undefined && cust.id !== where.id) return false
+    if (where.email !== undefined) {
+      if (where.email === null && cust.email !== null) return false
+      if (typeof where.email === 'string' && cust.email?.toLowerCase() !== where.email.toLowerCase()) return false
+    }
+    if (where.phone !== undefined) {
+      if (where.phone === null && cust.phone !== null) return false
+      if (typeof where.phone === 'string' && cust.phone !== where.phone) return false
+    }
+    if (Array.isArray(where.OR)) {
+      return where.OR.some((sub) => matchCustomerWhere(cust, sub as Record<string, unknown>))
+    }
+    return true
+  }
+
+  const matchOrderWhere = (order: MockOrder, where?: Record<string, unknown>): boolean => {
+    if (!where) return true
+    if (where.id !== undefined && order.id !== where.id) return false
+    if (where.orderNumber !== undefined && order.orderNumber !== where.orderNumber) return false
+    if (where.status !== undefined && order.status !== where.status) return false
+    if ('customerId' in where) {
+      if (where.customerId === null && (order.customerId ?? null) !== null) return false
+      if (typeof where.customerId === 'string' && order.customerId !== where.customerId) return false
+    }
+    if (Array.isArray(where.OR)) {
+      const matchedOr = where.OR.some((sub) => matchOrderWhere(order, sub as Record<string, unknown>))
+      if (!matchedOr) return false
+    }
+    return true
+  }
+
+  const hydrateReview = (rev: MockReview, include?: Record<string, unknown>) => {
+    const result: Record<string, unknown> = { ...rev }
+    if (include?.customer) {
+      const cust = customersStore.find((c) => c.id === rev.customerId)
+      const fallbackCust = {
+        id: rev.customerId,
+        name: 'Client Thuraya',
+        avatarUrl: null as string | null,
+      }
+      const customerRecord = cust ?? fallbackCust
+      const custInclude = include.customer as { select?: Record<string, unknown> } | true
+      result.customer =
+        typeof custInclude === 'object' && custInclude !== null && custInclude.select
+          ? applySelect(customerRecord as Record<string, unknown>, custInclude.select)
+          : customerRecord
+    }
+    return result
+  }
+
+  const hydrateOrder = (order: MockOrder) => ({
+    ...order,
+    items: orderItemsStore.filter((i) => i.orderId === order.id),
+    statusHistory: sortRecords(
+      orderHistoryStore.filter((h) => h.orderId === order.id),
+      { createdAt: 'desc' }
+    ),
+  })
+
   const createModelMock = (modelName: string) => {
     const noOp = {
       findMany: async (args?: {
         where?: Record<string, unknown>
         include?: Record<string, unknown>
+        select?: Record<string, unknown>
         orderBy?: Record<string, 'asc' | 'desc'> | Array<Record<string, 'asc' | 'desc'>>
         skip?: number
         take?: number
       }) => {
         if (modelName === 'siteSetting') {
-          return Array.from(siteSettingsStore.entries()).map(([key, value]) => ({
+          const all = Array.from(siteSettingsStore.entries()).map(([key, value]) => ({
             id: key,
             key,
             value,
             updatedAt: new Date(),
           }))
+          const keyFilter = args?.where?.key as { in?: string[] } | string | undefined
+          if (typeof keyFilter === 'string') {
+            return all.filter((s) => s.key === keyFilter)
+          }
+          if (keyFilter && typeof keyFilter === 'object' && Array.isArray(keyFilter.in)) {
+            return all.filter((s) => keyFilter.in!.includes(s.key))
+          }
+          return all
         }
         if (modelName === 'category') {
           const filtered = categories.filter((c) => matchCategoryWhere(c, args?.where))
@@ -501,7 +610,10 @@ function createMockPrismaClient(): PrismaClient {
           const sorted = sortRecords(filtered as unknown as Array<Record<string, unknown>>, args?.orderBy) as unknown as MockProduct[]
           const start = args?.skip ?? 0
           const end = args?.take !== undefined ? start + args.take : undefined
-          return sorted.slice(start, end).map((p) => hydrateProduct(p, args?.include))
+          return sorted.slice(start, end).map((p) => {
+            const hydrated = hydrateProduct(p, args?.include)
+            return args?.select ? applySelect(hydrated, args.select) : hydrated
+          })
         }
         if (modelName === 'productVariant') {
           let filtered = [...variants]
@@ -518,16 +630,22 @@ function createMockPrismaClient(): PrismaClient {
               : v
           )
         }
+        if (modelName === 'customer') {
+          const filtered = customersStore.filter((c) => matchCustomerWhere(c, args?.where))
+          const sorted = sortRecords(filtered, args?.orderBy)
+          return sorted.map((c) => applySelect(c, args?.select))
+        }
         if (modelName === 'review') {
-          const pid = args?.where?.productId
-          return pid ? reviewsStore.filter((r) => r.productId === pid) : reviewsStore
+          let filtered = [...reviewsStore]
+          if (args?.where?.productId) filtered = filtered.filter((r) => r.productId === args.where?.productId)
+          if (args?.where?.customerId) filtered = filtered.filter((r) => r.customerId === args.where?.customerId)
+          const sorted = sortRecords(filtered, args?.orderBy) as MockReview[]
+          return sorted.map((r) => hydrateReview(r, args?.include))
         }
         if (modelName === 'order') {
-          return ordersStore.map((o) => ({
-            ...o,
-            items: orderItemsStore.filter((i) => i.orderId === o.id),
-            statusHistory: orderHistoryStore.filter((h) => h.orderId === o.id),
-          }))
+          const filtered = ordersStore.filter((o) => matchOrderWhere(o, args?.where))
+          const sorted = sortRecords(filtered, args?.orderBy) as MockOrder[]
+          return sorted.map(hydrateOrder)
         }
         return []
       },
@@ -535,6 +653,7 @@ function createMockPrismaClient(): PrismaClient {
       findFirst: async (args?: {
         where?: Record<string, unknown>
         include?: Record<string, unknown>
+        select?: Record<string, unknown>
         orderBy?: Record<string, 'asc' | 'desc'> | Array<Record<string, 'asc' | 'desc'>>
       }) => {
         if (modelName === 'category') {
@@ -546,26 +665,15 @@ function createMockPrismaClient(): PrismaClient {
           const sorted = sortRecords(filtered as unknown as Array<Record<string, unknown>>, args?.orderBy) as unknown as MockProduct[]
           return sorted[0] ? hydrateProduct(sorted[0], args?.include) : null
         }
+        if (modelName === 'customer') {
+          const found = customersStore.find((c) => matchCustomerWhere(c, args?.where))
+          return found ? applySelect(found, args?.select) : null
+        }
         if (modelName === 'order') {
-          const w = args?.where
-          const found = ordersStore.find((o) => {
-            if (!w) return true
-            if (Array.isArray(w.OR)) {
-              return w.OR.some((sub) => {
-                const s = sub as Record<string, unknown>
-                return (s.id && o.id === s.id) || (s.orderNumber && o.orderNumber === s.orderNumber)
-              })
-            }
-            if (w.id && o.id !== w.id) return false
-            if (w.orderNumber && o.orderNumber !== w.orderNumber) return false
-            return true
-          })
+          const found = ordersStore.find((o) => matchOrderWhere(o, args?.where))
           if (!found) return null
-          return {
-            ...found,
-            items: orderItemsStore.filter((i) => i.orderId === found.id),
-            statusHistory: orderHistoryStore.filter((h) => h.orderId === found.id),
-          }
+          const hydrated = hydrateOrder(found)
+          return args?.select ? applySelect(hydrated, args.select) : hydrated
         }
         return null
       },
@@ -577,6 +685,7 @@ function createMockPrismaClient(): PrismaClient {
       findUnique: async (args?: {
         where?: Record<string, unknown>
         include?: Record<string, unknown>
+        select?: Record<string, unknown>
       }) => {
         if (modelName === 'siteSetting' && typeof args?.where?.key === 'string') {
           const val = siteSettingsStore.get(args.where.key)
@@ -588,11 +697,24 @@ function createMockPrismaClient(): PrismaClient {
         }
         if (modelName === 'product' && args?.where) {
           const found = products.find((p) => matchProductWhere(p, args.where))
-          return found ? hydrateProduct(found, args.include) : null
+          if (!found) return null
+          const hydrated = hydrateProduct(found, args.include)
+          return args.select ? applySelect(hydrated, args.select) : hydrated
         }
-        if (modelName === 'review' && args?.where?.customerId_productId) {
-          const comp = args.where.customerId_productId as { customerId: string; productId: string }
-          return reviewsStore.find((r) => r.customerId === comp.customerId && r.productId === comp.productId) ?? null
+        if (modelName === 'customer' && args?.where) {
+          const found = customersStore.find((c) => matchCustomerWhere(c, args.where))
+          return found ? applySelect(found, args.select) : null
+        }
+        if (modelName === 'review' && args?.where) {
+          if (args.where.customerId_productId) {
+            const comp = args.where.customerId_productId as { customerId: string; productId: string }
+            const found = reviewsStore.find((r) => r.customerId === comp.customerId && r.productId === comp.productId)
+            return found ? hydrateReview(found, args.include) : null
+          }
+          if (typeof args.where.id === 'string') {
+            const found = reviewsStore.find((r) => r.id === args.where?.id)
+            return found ? hydrateReview(found, args.include) : null
+          }
         }
         return null
       },
@@ -636,7 +758,7 @@ function createMockPrismaClient(): PrismaClient {
 
       groupBy: async () => [],
 
-      create: async (args?: { data?: Record<string, unknown> }) => {
+      create: async (args?: { data?: Record<string, unknown>; select?: Record<string, unknown> }) => {
         const data = args?.data ?? {}
         const id = typeof data.id === 'string' ? data.id : `mock-${++idCounter}`
         const createdAt = new Date()
@@ -644,6 +766,34 @@ function createMockPrismaClient(): PrismaClient {
 
         if (modelName === 'siteSetting' && typeof data.key === 'string' && typeof data.value === 'string') {
           siteSettingsStore.set(data.key, data.value)
+        } else if (modelName === 'customer') {
+          const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : null
+          const phone = typeof data.phone === 'string' ? data.phone.trim() : null
+          if (email && customersStore.some((c) => c.email?.toLowerCase() === email)) {
+            const err = new Error('Unique constraint failed') as Error & { code?: string }
+            err.code = 'P2002'
+            throw err
+          }
+          if (phone && customersStore.some((c) => c.phone === phone)) {
+            const err = new Error('Unique constraint failed') as Error & { code?: string }
+            err.code = 'P2002'
+            throw err
+          }
+          const cust: MockCustomer = {
+            id,
+            name: String(data.name ?? ''),
+            email,
+            phone,
+            passwordHash: typeof data.passwordHash === 'string' ? data.passwordHash : null,
+            avatarUrl: typeof data.avatarUrl === 'string' ? data.avatarUrl : null,
+            address: typeof data.address === 'string' ? data.address : null,
+            city: typeof data.city === 'string' ? data.city : null,
+            notes: typeof data.notes === 'string' ? data.notes : null,
+            createdAt,
+            updatedAt,
+          }
+          customersStore.unshift(cust)
+          return applySelect(cust, args?.select)
         } else if (modelName === 'product') {
           const newProduct: MockProduct = {
             id,
@@ -729,7 +879,7 @@ function createMockPrismaClient(): PrismaClient {
             updatedAt,
           }
           reviewsStore.unshift(rev)
-          return rev
+          return applySelect(rev, args?.select)
         }
 
         return { id, ...data, createdAt, updatedAt }
@@ -737,11 +887,41 @@ function createMockPrismaClient(): PrismaClient {
 
       createMany: async () => ({ count: 0 }),
 
-      update: async (args?: { data?: Record<string, unknown> }) => ({
-        id: 'mock-id',
-        ...(args?.data ?? {}),
-        updatedAt: new Date(),
-      }),
+      update: async (args?: {
+        where?: Record<string, unknown>
+        data?: Record<string, unknown>
+        select?: Record<string, unknown>
+      }) => {
+        const nowUpdate = new Date()
+        if (modelName === 'customer' && args?.where) {
+          const cust = customersStore.find((c) => matchCustomerWhere(c, args.where))
+          if (!cust) throw new Error('Mock DB: customer record not found')
+          Object.assign(cust, args.data ?? {}, { updatedAt: nowUpdate })
+          return applySelect(cust, args.select)
+        }
+        if (modelName === 'review' && args?.where) {
+          const rev = reviewsStore.find((r) => r.id === args.where?.id)
+          if (!rev) throw new Error('Mock DB: review record not found')
+          Object.assign(rev, args.data ?? {}, { updatedAt: nowUpdate })
+          return applySelect(rev, args.select)
+        }
+        if (modelName === 'order' && args?.where) {
+          const order = ordersStore.find((o) => matchOrderWhere(o, args.where))
+          if (!order) throw new Error('Mock DB: order record not found')
+          Object.assign(order, args.data ?? {}, { updatedAt: nowUpdate })
+          return order
+        }
+        if (modelName === 'siteSetting' && typeof args?.where?.key === 'string') {
+          const nextVal = String(args.data?.value ?? '')
+          siteSettingsStore.set(args.where.key, nextVal)
+          return { id: args.where.key, key: args.where.key, value: nextVal, updatedAt: nowUpdate }
+        }
+        return {
+          id: 'mock-id',
+          ...(args?.data ?? {}),
+          updatedAt: nowUpdate,
+        }
+      },
 
       updateMany: async (args?: {
         where?: { id?: string; stockQuantity?: { gte?: number } }
@@ -761,11 +941,28 @@ function createMockPrismaClient(): PrismaClient {
         return { count: 0 }
       },
 
-      upsert: async (args?: { create?: Record<string, unknown>; update?: Record<string, unknown> }) => ({
-        id: 'mock-id',
-        ...(args?.create ?? args?.update ?? {}),
-        updatedAt: new Date(),
-      }),
+      upsert: async (args?: {
+        where?: Record<string, unknown>
+        create?: Record<string, unknown>
+        update?: Record<string, unknown>
+      }) => {
+        const nowUpsert = new Date()
+        if (modelName === 'siteSetting' && typeof args?.where?.key === 'string') {
+          const key = args.where.key
+          const existing = siteSettingsStore.get(key)
+          const value =
+            existing !== undefined
+              ? String(args.update?.value ?? existing)
+              : String(args.create?.value ?? '')
+          siteSettingsStore.set(key, value)
+          return { id: key, key, value, updatedAt: nowUpsert }
+        }
+        return {
+          id: 'mock-id',
+          ...(args?.create ?? args?.update ?? {}),
+          updatedAt: nowUpsert,
+        }
+      },
 
       delete: async () => ({}),
       deleteMany: async () => ({ count: 0 }),

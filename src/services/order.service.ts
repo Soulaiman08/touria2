@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { generateOrderNumber } from '@/lib/utils'
 import { DEFAULT_SHIPPING_PRICE, getCityByValue, MOROCCAN_CITIES } from '@/config/moroccan-cities'
-import type { CreateOrderRequest, CreateOrderResponse, Order, OrderStatusHistory, ProductSnapshot } from '@/types/order'
+import type { CreateOrderRequest, CreateOrderResponse, Order, ProductSnapshot } from '@/types/order'
 
 const asNumber = (value: Prisma.Decimal | number) => Number(value)
 

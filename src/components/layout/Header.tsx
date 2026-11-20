@@ -28,6 +28,7 @@ import { ThemeSwitcher } from '@/components/shared/ThemeSwitcher'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 import { siteConfig } from '@/config/site'
 import { cn, formatPrice } from '@/lib/utils'
 import type { ProductCard } from '@/types/product'
@@ -40,21 +41,6 @@ interface MenuItem {
   href: string
   label: string
   icon: React.ElementType
-}
-
-interface StoreSettings {
-  storeName?: string
-  logo?: string
-  currency?: string
-  shippingCost?: string
-  contactEmail?: string
-  contactPhone?: string
-  address?: string
-  instagram?: string
-  facebook?: string
-  tiktok?: string
-  youtube?: string
-  whatsapp?: string
 }
 
 const emptySubscribe = () => () => {}
@@ -87,30 +73,7 @@ export function Header({ locale }: HeaderProps) {
   const [logoError, setLogoError] = useState(false)
 
   const searchRef = useRef<HTMLInputElement | null>(null)
-  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-    async function loadStoreSettings() {
-      try {
-        const response = await fetch('/api/settings', {
-          method: 'GET',
-          cache: 'no-store',
-        })
-        if (!response.ok) return
-        const data = await response.json()
-        if (isMounted && data?.settings) {
-          setStoreSettings(data.settings)
-        }
-      } catch {
-        // Fallback cleanly to siteConfig
-      }
-    }
-    loadStoreSettings()
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  const { settings: storeSettings } = useSiteSettings()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 16)
@@ -229,11 +192,11 @@ export function Header({ locale }: HeaderProps) {
     setSearchQ('')
   }
 
-  const instagramUrl = storeSettings?.instagram?.trim() || ''
-  const facebookUrl = storeSettings?.facebook?.trim() || ''
-  const tiktokUrl = storeSettings?.tiktok?.trim() || ''
-  const youtubeUrl = storeSettings?.youtube?.trim() || ''
-  const whatsappValue = storeSettings?.whatsapp?.trim() || ''
+  const instagramUrl = storeSettings?.instagram?.trim() || siteConfig.social.instagram || ''
+  const facebookUrl = storeSettings?.facebook?.trim() || siteConfig.social.facebook || ''
+  const tiktokUrl = storeSettings?.tiktok?.trim() || siteConfig.social.tiktok || ''
+  const youtubeUrl = storeSettings?.youtube?.trim() || siteConfig.social.youtube || ''
+  const whatsappValue = storeSettings?.whatsapp?.trim() || siteConfig.contact.whatsapp || ''
 
   const whatsappUrl = whatsappValue
     ? whatsappValue.startsWith('http')
@@ -685,7 +648,7 @@ export function Header({ locale }: HeaderProps) {
                         setMenuOpen(false)
                         const segments = window.location.pathname.split('/')
                         segments[1] = lang.code
-                        window.location.href = segments.join('/')
+                        window.location.href = `${segments.join('/')}${window.location.search}`
                       }}
                       className="flex items-center justify-center rounded-lg px-2 py-1 min-h-[32px] text-xs transition-colors whitespace-nowrap"
                       style={{

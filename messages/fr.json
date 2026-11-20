@@ -76,7 +76,8 @@
       "newest": "Plus récent",
       "priceAsc": "Prix : croissant",
       "priceDesc": "Prix : décroissant",
-      "featured": "En vedette"
+      "featured": "En vedette",
+      "sale": "Offres"
     },
     "filters": {
       "category": "Catégorie",

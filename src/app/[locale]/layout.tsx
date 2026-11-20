@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages, getTranslations } from 'next-intl/server'
+import { getMessages } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import { siteConfig } from '@/config/site'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
@@ -28,8 +28,6 @@ export async function generateMetadata({
   params,
 }: LocaleLayoutProps): Promise<Metadata> {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'site' })
-
   const baseUrl = siteConfig.url
 
   const titles: Record<string, string> = {

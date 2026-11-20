@@ -76,7 +76,8 @@
       "newest": "Newest",
       "priceAsc": "Price: Low to High",
       "priceDesc": "Price: High to Low",
-      "featured": "Featured"
+      "featured": "Featured",
+      "sale": "Offers"
     },
     "filters": {
       "category": "Category",

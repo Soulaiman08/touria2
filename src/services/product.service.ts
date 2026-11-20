@@ -195,6 +195,13 @@ export const productService = {
       orderBy = {
         isFeatured: 'desc',
       }
+    } else if (filters.sort === 'sale') {
+      whereClause.salePrice = {
+        not: null,
+      }
+      orderBy = {
+        salePrice: 'asc',
+      }
     }
 
     // -----------------------------------------------

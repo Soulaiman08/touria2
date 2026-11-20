@@ -15,7 +15,24 @@ interface InfiniteProductGridProps {
   gridClassName?: string
 }
 
-export function InfiniteProductGrid({
+export function InfiniteProductGrid(props: InfiniteProductGridProps) {
+  const resetKey = [
+    props.locale,
+    props.filters?.category ?? '',
+    props.filters?.size ?? '',
+    props.filters?.colorCode ?? '',
+    props.filters?.search ?? '',
+    props.filters?.sort ?? '',
+    props.filters?.isFeatured ?? '',
+    props.filters?.isNiqab ?? '',
+    props.initialTotal,
+    props.initialProducts.map((p) => p.id).join(','),
+  ].join('|')
+
+  return <InfiniteProductGridInner key={resetKey} {...props} />
+}
+
+function InfiniteProductGridInner({
   initialProducts,
   initialTotal,
   locale,
@@ -25,34 +42,12 @@ export function InfiniteProductGrid({
 }: InfiniteProductGridProps) {
   const [products, setProducts] = useState<ProductCardType[]>(initialProducts)
   const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(initialTotal)
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(initialProducts.length < initialTotal)
   const [error, setError] = useState(false)
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
-  // Reset state when server-provided initial props / filters change
-  useEffect(() => {
-    setProducts(initialProducts)
-    setPage(1)
-    setTotal(initialTotal)
-    setHasMore(initialProducts.length < initialTotal)
-    setError(false)
-    setLoading(false)
-  }, [
-    initialProducts,
-    initialTotal,
-    filters?.category,
-    filters?.size,
-    filters?.colorCode,
-    filters?.search,
-    filters?.sort,
-    filters?.isFeatured,
-    filters?.isNiqab,
-  ])
-
-  // Fetch next batch of products
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return
     setLoading(true)
@@ -89,7 +84,6 @@ export function InfiniteProductGrid({
         return combined
       })
 
-      setTotal(data.total || 0)
       setPage(nextPage)
     } catch {
       setError(true)
@@ -98,7 +92,6 @@ export function InfiniteProductGrid({
     }
   }, [loading, hasMore, page, filters])
 
-  // IntersectionObserver to trigger loading when reaching near bottom
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel || !hasMore || loading) return
@@ -139,7 +132,6 @@ export function InfiniteProductGrid({
 
   return (
     <div className="w-full">
-      {/* ── Products Grid ───────────────────────────────────────────── */}
       <div
         className={cn(
           gridClassName || 'grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3'
@@ -163,7 +155,6 @@ export function InfiniteProductGrid({
         ))}
       </div>
 
-      {/* ── Sentinel & Infinite Scroll Feedback ─────────────────────── */}
       {(hasMore || loading || error) && (
         <div
           ref={sentinelRef}
