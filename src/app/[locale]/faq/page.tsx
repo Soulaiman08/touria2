@@ -317,7 +317,7 @@ export default function FaqPage({ params }: FaqPageProps) {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-primary btn-round px-6 h-11 text-sm mt-1"
+            className="btn btn-primary rounded-xl px-6 h-11 text-sm mt-1"
           >
             <FaWhatsapp className="w-4 h-4" />
             <span>{isRTL ? 'تواصلي معنا عبر واتساب' : locale === 'fr' ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>

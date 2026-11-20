@@ -90,7 +90,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
             <Link
               href={`/${locale}/products`}
-              className="btn btn-primary btn-round !min-h-[2.125rem] sm:!min-h-[2.75rem] !px-3.5 sm:!px-6 text-[0.6875rem] sm:text-sm whitespace-nowrap"
+              className="btn btn-primary rounded-xl !min-h-[2.125rem] sm:!min-h-[2.75rem] !px-3.5 sm:!px-6 text-[0.6875rem] sm:text-sm whitespace-nowrap"
             >
               <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="font-semibold">
@@ -196,7 +196,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
               : 'Refined designs handcrafted by master Moroccan artisans to elevate your style.'}
         </p>
 
-        <Link href={`/${locale}/products`} className="btn btn-primary btn-round px-6 sm:px-7 h-10 sm:h-11 mt-1 text-xs sm:text-sm">
+        <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl px-6 sm:px-7 h-10 sm:h-11 mt-1 text-xs sm:text-sm">
           <ShoppingBag className="w-4 h-4" />
           <span>{isRTL ? 'تصفحي المجموعة' : locale === 'fr' ? 'Voir la collection' : 'Shop Collection'}</span>
         </Link>

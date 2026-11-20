@@ -281,7 +281,7 @@ export function AccountOrdersPageClient({ params }: AccountOrdersPageProps) {
           </div>
           <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('empty')}</h2>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-[var(--text-muted)]">{t('emptyDesc')}</p>
-          <Link href={`/${locale}/products`} className="btn btn-primary btn-round mt-6 px-6 h-11">
+          <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl mt-6 px-6 h-11">
             {t('shop')}
           </Link>
         </div>

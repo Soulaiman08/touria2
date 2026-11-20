@@ -287,7 +287,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               {authState === 'guest' ? (
                 <Link
                   href={`/${locale}/login`}
-                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap"
+                  className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>{t('signInToReview')}</span>
@@ -296,7 +296,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                 <button
                   type="button"
                   onClick={() => setShowForm(true)}
-                  className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap cursor-pointer"
+                  className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-3.5 sm:px-5 whitespace-nowrap cursor-pointer"
                 >
                   <MessageSquarePlus className="w-4 h-4" />
                   <span>{t('writeReview')}</span>
@@ -390,7 +390,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="submit"
                 disabled={submitting || rating === 0}
-                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 cursor-pointer disabled:opacity-60"
+                className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-5 cursor-pointer disabled:opacity-60"
               >
                 {submitting ? (
                   <Loader2 className="animate-spin w-3.5 h-3.5" />
@@ -403,7 +403,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="btn btn-outline btn-sm btn-round px-4 cursor-pointer"
+                className="btn btn-outline btn-sm rounded-xl px-4 cursor-pointer"
               >
                 {t('cancel')}
               </button>
@@ -436,7 +436,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
             {authState === 'guest' ? (
               <Link
                 href={`/${locale}/login`}
-                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap"
+                className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap"
               >
                 <LogIn className="w-4 h-4" />
                 <span>{t('signInToReview')}</span>
@@ -445,7 +445,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="btn btn-primary btn-sm btn-round inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap cursor-pointer"
+                className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 px-5 sm:px-6 mt-1 whitespace-nowrap cursor-pointer"
               >
                 <MessageSquarePlus className="w-4 h-4" />
                 <span>{t('writeReview')}</span>

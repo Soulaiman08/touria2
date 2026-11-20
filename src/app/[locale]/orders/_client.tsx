@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { useCustomerAuth } from '@/components/providers/CustomerAuthProvider'
-import { BackButton } from '@/components/shared/PageNavigation'
+import { BackButton, ForwardButton } from '@/components/shared/PageNavigation'
 
 interface OrdersPageProps {
   params: Promise<{
@@ -689,13 +689,13 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                 </div>
 
                 <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex justify-end">
-                  <Link
+                  <ForwardButton
                     href={`/${locale}/orders/${order.id}`}
-                    className="btn btn-outline btn-sm rounded-xl text-xs font-bold text-[var(--accent)] border-[var(--accent-ring)]"
-                  >
-                    <span>{t.details}</span>
-                    <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-                  </Link>
+                    label={t.details}
+                    locale={locale}
+                    size="sm"
+                    variant="accent"
+                  />
                 </div>
               </div>
             )
@@ -726,7 +726,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
             setSearchOpen(true)
             document.getElementById('order-lookup')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
           }}
-          className="btn btn-outline btn-round px-6 h-10 text-xs font-bold mt-1"
+          className="btn btn-outline rounded-xl px-6 h-10 text-xs font-bold mt-1 border-[var(--border)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
         >
           <Truck className="w-4 h-4 text-[var(--accent)]" />
           <span>{t.trackSectionBtn}</span>

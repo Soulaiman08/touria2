@@ -9,14 +9,26 @@ export interface StoreCategory {
   image: string | null
   sortOrder: number
   isActive: boolean
+  productCount?: number
 }
 
 export const categoryService = {
   async getCategories(): Promise<StoreCategory[]> {
-    const dbCategories = await prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: 'asc' },
-    })
+    const [dbCategories, activeProducts] = await Promise.all([
+      prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
+      }),
+      prisma.product.findMany({
+        where: { isActive: true },
+        select: { categoryId: true },
+      }),
+    ])
+
+    const countsByCategory = new Map<string, number>()
+    for (const p of activeProducts) {
+      countsByCategory.set(p.categoryId, (countsByCategory.get(p.categoryId) ?? 0) + 1)
+    }
 
     return dbCategories.map((c) => ({
       id: c.id,
@@ -27,6 +39,7 @@ export const categoryService = {
       image: c.image,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
+      productCount: countsByCategory.get(c.id) ?? 0,
     }))
   },
 

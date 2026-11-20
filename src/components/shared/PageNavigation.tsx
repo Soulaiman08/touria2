@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ChevronRight, Home } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronRight, Home } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface BackButtonProps {
@@ -17,20 +17,63 @@ export function BackButton({ href, label, locale, className }: BackButtonProps) 
     <Link
       href={href}
       className={cn(
-        'group inline-flex items-center gap-2 h-9 sm:h-10 ps-1.5 pe-3 sm:pe-3.5 rounded-xl border border-[var(--border)] bg-[var(--card-bg)]/95 text-xs sm:text-[13px] font-semibold text-[var(--text-primary)] shadow-[var(--shadow-sm)] transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 active:scale-[0.98] whitespace-nowrap shrink-0 no-underline',
+        'group inline-flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-lg border border-[var(--border)] bg-[var(--card-bg)]/90 text-xs font-semibold text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)]/50 active:scale-[0.98] whitespace-nowrap shrink-0 no-underline',
         className
       )}
     >
-      <span className="flex h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 items-center justify-center rounded-lg border border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] transition-colors duration-200 group-hover:bg-[var(--accent)] group-hover:border-[var(--accent)] group-hover:text-white">
-        <ArrowLeft
-          aria-hidden="true"
-          className={cn(
-            'w-3.5 h-3.5 transition-transform duration-200',
-            isRTL ? 'rotate-180 group-hover:translate-x-0.5' : 'group-hover:-translate-x-0.5'
-          )}
-        />
-      </span>
+      <ArrowLeft
+        aria-hidden="true"
+        className={cn(
+          'w-3.5 h-3.5 text-[var(--accent)] transition-transform duration-200 flex-shrink-0',
+          isRTL ? 'rotate-180 group-hover:translate-x-0.5' : 'group-hover:-translate-x-0.5'
+        )}
+      />
       <span>{label}</span>
+    </Link>
+  )
+}
+
+interface ForwardButtonProps {
+  href: string
+  label: string
+  locale: string
+  className?: string
+  size?: 'sm' | 'md'
+  variant?: 'default' | 'accent'
+}
+
+export function ForwardButton({
+  href,
+  label,
+  locale,
+  className,
+  size = 'md',
+  variant = 'default',
+}: ForwardButtonProps) {
+  const isRTL = locale === 'ar'
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        'group inline-flex items-center gap-1.5 rounded-lg border bg-[var(--card-bg)]/90 font-semibold transition-all duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)]/50 active:scale-[0.98] whitespace-nowrap shrink-0 no-underline',
+        size === 'sm'
+          ? 'h-8 px-2.5 sm:px-3 text-[11px] sm:text-xs'
+          : 'h-8 sm:h-9 px-3 sm:px-3.5 text-xs',
+        variant === 'accent'
+          ? 'border-[var(--accent-ring)] text-[var(--accent)]'
+          : 'border-[var(--border)] text-[var(--text-secondary)]',
+        className
+      )}
+    >
+      <span>{label}</span>
+      <ArrowRight
+        aria-hidden="true"
+        className={cn(
+          'w-3.5 h-3.5 text-[var(--accent)] transition-transform duration-200 flex-shrink-0',
+          isRTL ? 'rotate-180 group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'
+        )}
+      />
     </Link>
   )
 }
@@ -60,11 +103,14 @@ export function BreadcrumbBar({
   return (
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
-      className={cn('flex flex-wrap items-center justify-between gap-2 sm:gap-3', className)}
+      className={cn(
+        'flex items-center justify-between gap-2 sm:gap-4 pb-2.5 sm:pb-3 border-b border-[var(--border-subtle)]',
+        className
+      )}
     >
       <nav
         aria-label={isRTL ? 'مسار التنقل' : locale === 'fr' ? "Fil d'Ariane" : 'Breadcrumb'}
-        className="inline-flex items-center gap-0.5 sm:gap-1 px-2 sm:px-2.5 h-9 sm:h-10 rounded-xl border border-[var(--border)] bg-[var(--card-bg)]/95 shadow-[var(--shadow-sm)] text-[11px] sm:text-xs min-w-0 max-w-full overflow-hidden"
+        className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-[13px] min-w-0 flex-1 overflow-hidden"
       >
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1
@@ -75,7 +121,7 @@ export function BreadcrumbBar({
                 <ChevronRight
                   aria-hidden="true"
                   className={cn(
-                    'w-3.5 h-3.5 flex-shrink-0 text-[var(--gold)]/75',
+                    'w-3.5 h-3.5 flex-shrink-0 text-[var(--text-muted)]/60',
                     isRTL && 'rotate-180'
                   )}
                 />
@@ -83,12 +129,12 @@ export function BreadcrumbBar({
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="inline-flex items-center gap-1.5 px-1.5 sm:px-2 py-1 rounded-lg font-medium text-[var(--text-secondary)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)] transition-colors whitespace-nowrap flex-shrink-0 no-underline"
+                  className="inline-flex items-center gap-1.5 py-1 font-medium text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors whitespace-nowrap flex-shrink-0 no-underline"
                 >
                   {isFirst && (
                     <Home
                       aria-hidden="true"
-                      className="w-3.5 h-3.5 text-[var(--accent)] flex-shrink-0"
+                      className="w-3.5 h-3.5 text-[var(--gold)] flex-shrink-0"
                     />
                   )}
                   <span>{item.label}</span>
@@ -96,7 +142,7 @@ export function BreadcrumbBar({
               ) : (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className="px-1.5 sm:px-2 py-1 font-bold text-[var(--text-primary)] truncate"
+                  className="py-1 font-semibold text-[var(--text-primary)] truncate"
                 >
                   {item.label}
                 </span>
@@ -107,7 +153,7 @@ export function BreadcrumbBar({
       </nav>
 
       {backHref && backLabel && (
-        <BackButton href={backHref} label={backLabel} locale={locale} className="max-sm:ms-auto" />
+        <BackButton href={backHref} label={backLabel} locale={locale} />
       )}
     </div>
   )

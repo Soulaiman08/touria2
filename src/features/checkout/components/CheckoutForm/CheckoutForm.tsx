@@ -163,7 +163,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
           <button
             type="button"
             onClick={() => router.push(`/${locale}/products`)}
-            className="btn btn-primary btn-round px-7 py-3 text-sm font-bold"
+            className="btn btn-primary rounded-xl px-7 py-3 text-sm font-bold"
           >
             {cartT('startShopping')}
           </button>

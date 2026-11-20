@@ -120,25 +120,14 @@ export const productService = {
     }
 
     // -----------------------------------------------
-    // SIZE
+    // SIZE & COLOR (Combined variant query so neither overwrites the other)
     // -----------------------------------------------
-    if (filters.size) {
+    if (filters.size || filters.colorCode) {
       whereClause.variants = {
         some: {
-          size: filters.size,
           isActive: true,
-        },
-      }
-    }
-
-    // -----------------------------------------------
-    // COLOR
-    // -----------------------------------------------
-    if (filters.colorCode) {
-      whereClause.variants = {
-        some: {
-          colorCode: filters.colorCode,
-          isActive: true,
+          ...(filters.size ? { size: filters.size } : {}),
+          ...(filters.colorCode ? { colorCode: filters.colorCode } : {}),
         },
       }
     }
@@ -257,6 +246,53 @@ export const productService = {
       limit,
       totalPages: Math.ceil(total / limit),
     }
+  },
+
+  async getAvailableColors(): Promise<
+    Array<{
+      code: string
+      nameAr: string
+      nameFr: string
+      nameEn: string
+    }>
+  > {
+    const [variants, activeProducts] = await Promise.all([
+      prisma.productVariant.findMany({
+        where: { isActive: true },
+        select: {
+          productId: true,
+          colorCode: true,
+          colorNameAr: true,
+          colorNameFr: true,
+          colorNameEn: true,
+        },
+      }),
+      prisma.product.findMany({
+        where: { isActive: true },
+        select: { id: true },
+      }),
+    ])
+
+    const activeProductIds = new Set(activeProducts.map((p) => p.id))
+    const byColor = new Map<
+      string,
+      { code: string; nameAr: string; nameFr: string; nameEn: string }
+    >()
+
+    for (const v of variants) {
+      if (!v.colorCode || !activeProductIds.has(v.productId)) continue
+      const key = v.colorCode.toUpperCase()
+      if (!byColor.has(key)) {
+        byColor.set(key, {
+          code: v.colorCode,
+          nameAr: v.colorNameAr,
+          nameFr: v.colorNameFr,
+          nameEn: v.colorNameEn,
+        })
+      }
+    }
+
+    return Array.from(byColor.values())
   },
 
   // ====================================================

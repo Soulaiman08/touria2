@@ -229,7 +229,7 @@ export function ProductCard({
           <div className="product-card-badge pointer-events-none z-10">
             <span
               className={cn(
-                'badge text-[0.625rem] sm:text-[0.6875rem] font-bold tracking-wide shadow-xs',
+                'badge !rounded-md text-[0.625rem] sm:text-[0.6875rem] font-bold tracking-wide shadow-xs',
                 singleBadge.variant === 'accent' && 'badge-accent',
                 singleBadge.variant === 'gold' && 'badge-gold'
               )}

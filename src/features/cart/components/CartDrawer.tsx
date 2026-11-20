@@ -123,7 +123,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                       cartStore.closeCart()
                       router.push(`/${locale}/products`)
                     }}
-                    className="btn btn-primary btn-round px-6 h-11 text-sm font-bold"
+                    className="btn btn-primary rounded-xl px-6 h-11 text-sm font-bold"
                   >
                     {t('startShopping')}
                   </button>

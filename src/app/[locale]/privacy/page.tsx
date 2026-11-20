@@ -509,7 +509,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary btn-round px-6 h-11 text-sm"
+              className="btn btn-primary rounded-xl px-6 h-11 text-sm"
             >
               <FaWhatsapp className="w-4 h-4" />
               <span>{isRTL ? 'تواصلي معنا عبر واتساب' : isFR ? 'Discuter sur WhatsApp' : 'Chat on WhatsApp'}</span>
@@ -520,7 +520,7 @@ export default async function PrivacyPage({ params }: PrivacyPageProps) {
             href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.contactEmail?.trim() || siteConfig.contact.email)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-outline btn-round px-6 h-11 text-sm"
+            className="btn btn-outline rounded-xl px-6 h-11 text-sm"
           >
             <Mail className="w-4 h-4 text-[var(--accent)]" />
             <span>{isRTL ? 'البريد الإلكتروني' : isFR ? 'Envoyer un Email' : 'Email Us'}</span>

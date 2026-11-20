@@ -43,7 +43,7 @@ export default function NotFoundPage() {
 
         <Link
           href={`/${locale}`}
-          className="btn btn-primary btn-round px-7 h-11 inline-flex items-center justify-center gap-2 text-sm font-bold"
+          className="btn btn-primary rounded-xl px-7 h-11 inline-flex items-center justify-center gap-2 text-sm font-bold"
         >
           <ShoppingBag className="w-4 h-4" />
           <span>{t('back')}</span>

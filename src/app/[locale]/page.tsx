@@ -24,8 +24,9 @@ import { bannerService } from '@/services/banner.service'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
 import { formatPrice } from '@/lib/utils'
-import { ProductCard } from '@/components/shared/ProductCard'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
+import { FeaturedCollectionShowcase } from '@/components/home/FeaturedCollectionShowcase'
+import { ForwardButton } from '@/components/shared/PageNavigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -116,8 +117,9 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   const isRTL = locale === 'ar'
 
-  const [featured, newestResponse, categories, banners, settings] = await Promise.all([
+  const [featured, catalogPreviewResponse, newestResponse, categories, banners, settings] = await Promise.all([
     productService.getFeaturedProducts(),
+    productService.getProducts({ limit: 24 }),
     productService.getProducts({ sort: 'newest', limit: 8 }),
     categoryService.getCategories(),
     bannerService.getActiveBanners(),
@@ -125,6 +127,7 @@ export default async function HomePage({ params }: HomePageProps) {
   ])
 
   const whatsappNumber = (settings.whatsapp || '').replace(/[^0-9]/g, '')
+  const allCatalogCount = categories.reduce((sum, c) => sum + (c.productCount ?? 0), 0)
 
   const heroPrimary = featured[0] ?? newestResponse.items[0] ?? null
   const heroSecondary = featured[1] ?? newestResponse.items[1] ?? null
@@ -468,7 +471,7 @@ export default async function HomePage({ params }: HomePageProps) {
               <div className="flex flex-wrap items-center justify-center min-[340px]:justify-start gap-1.5 sm:gap-2.5 lg:gap-3.5 pt-0.5 sm:pt-1 w-full">
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary btn-round w-auto lg:min-w-[11.25rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
+                  className="btn btn-primary rounded-xl w-auto lg:min-w-[11.25rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
                 >
                   <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
                   <span>{labels.heroCta}</span>
@@ -476,7 +479,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
                 <Link
                   href={`/${locale}/about`}
-                  className="btn btn-outline btn-round w-auto lg:min-w-[10rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
+                  className="btn btn-outline rounded-xl w-auto lg:min-w-[10rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
                 >
                   <span>{labels.heroSec}</span>
                   <ArrowRight
@@ -682,88 +685,23 @@ export default async function HomePage({ params }: HomePageProps) {
       )}
 
       {/* ===================================================
-          3. COLLECTIONS & BEST SELLERS
+          3. COLLECTIONS & BEST SELLERS (In-page category filter tabs)
       =================================================== */}
-      <section className="home-section" aria-label={labels.bestSellers}>
-        <div className="container-brand space-y-4 sm:space-y-6">
-          <div className="space-y-3 sm:space-y-4 border-b border-[var(--border-subtle)] pb-4 sm:pb-5" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="flex items-end justify-between gap-3">
-              <div className="space-y-1 sm:space-y-1.5 min-w-0">
-                <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
-                  <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
-                  <span>{labels.bestEyebrow}</span>
-                </div>
-
-                <h2 className="text-xl sm:text-3xl font-bold text-[var(--text-primary)] truncate">
-                  {labels.bestSellers}
-                </h2>
-
-                <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-1">
-                  {labels.bestSub}
-                </p>
-              </div>
-
-              <Link
-                href={`/${locale}/products`}
-                className="btn btn-outline btn-sm btn-round flex-shrink-0 !px-3.5 sm:!px-5 text-xs sm:text-sm"
-              >
-                <span>{labels.viewAll}</span>
-                <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Link>
-            </div>
-
-            {categories.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hidden pt-1">
-                <Link
-                  href={`/${locale}/products`}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-[var(--accent-ring)] bg-[var(--accent-light)] text-[var(--accent)] whitespace-nowrap flex-shrink-0 transition-colors"
-                >
-                  {labels.allCatalog}
-                </Link>
-                {categories.map((cat) => {
-                  const catLabel =
-                    locale === 'ar'
-                      ? cat.nameAr
-                      : locale === 'fr'
-                        ? cat.nameFr
-                        : cat.nameEn
-                  return (
-                    <Link
-                      key={cat.id}
-                      href={`/${locale}/products?category=${cat.slug}`}
-                      className="px-3.5 py-2 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] whitespace-nowrap flex-shrink-0 transition-colors"
-                    >
-                      {catLabel}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {featured.length === 0 ? (
-            <EmptyState message={labels.empty} />
-          ) : (
-            <div
-              className="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              {featured.map((p, i) => (
-                <div
-                  key={p.id}
-                  className="animate-fade-in-up"
-                  style={{
-                    animationDelay: `${i * 50}ms`,
-                    animationFillMode: 'both',
-                  }}
-                >
-                  <ProductCard product={p} locale={locale} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <FeaturedCollectionShowcase
+        locale={locale}
+        initialFeatured={featured}
+        initialCatalogProducts={catalogPreviewResponse.items}
+        categories={categories}
+        allCatalogCount={allCatalogCount}
+        labels={{
+          eyebrow: labels.bestEyebrow,
+          title: labels.bestSellers,
+          subtitle: labels.bestSub,
+          allCatalog: labels.allCatalog,
+          viewAll: labels.viewAll,
+          empty: labels.empty,
+        }}
+      />
 
       {/* ===================================================
           4. NEW ARRIVALS COLLECTION
@@ -774,31 +712,42 @@ export default async function HomePage({ params }: HomePageProps) {
       >
         <div className="container-brand space-y-4 sm:space-y-6">
           <div
-            className="flex flex-row items-end justify-between gap-3 border-b border-[var(--border)] pb-4 sm:pb-5"
+            className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4 border-b border-[var(--border)] pb-3.5 sm:pb-5"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
-            <div className="space-y-1 sm:space-y-1.5 min-w-0">
+            <div className="space-y-1 min-w-0">
               <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                 <span className="w-5 h-px bg-[var(--gold)]/60" aria-hidden="true" />
                 <span>{labels.newEyebrow}</span>
               </div>
 
-              <h2 className="text-xl sm:text-3xl font-bold text-[var(--text-primary)] truncate">
-                {labels.newCol}
-              </h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl sm:text-3xl font-bold text-[var(--text-primary)] truncate m-0">
+                  {labels.newCol}
+                </h2>
 
-              <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-1">
+                <div className="sm:hidden flex-shrink-0">
+                  <ForwardButton
+                    href={`/${locale}/products?sort=newest`}
+                    label={labels.viewAll}
+                    locale={locale}
+                    size="sm"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed m-0">
                 {labels.newSub}
               </p>
             </div>
 
-            <Link
-              href={`/${locale}/products?sort=newest`}
-              className="btn btn-outline btn-sm btn-round flex-shrink-0 !px-3.5 sm:!px-5 text-xs sm:text-sm"
-            >
-              <span>{labels.viewAll}</span>
-              <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`} />
-            </Link>
+            <div className="hidden sm:block flex-shrink-0">
+              <ForwardButton
+                href={`/${locale}/products?sort=newest`}
+                label={labels.viewAll}
+                locale={locale}
+              />
+            </div>
           </div>
 
           {newestResponse.items.length === 0 ? (

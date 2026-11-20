@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import Image from 'next/image'
 import { CheckCircle2, Clock, RefreshCw, Truck, XCircle } from 'lucide-react'
 import type { ProductSnapshot } from '@/types/order'
@@ -170,9 +169,9 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
         </div>
         <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('notFound')}</h2>
         <p className="text-sm text-[var(--text-muted)]">{t('notFoundDesc')}</p>
-        <Link href={`/${locale}/account/orders`} className="btn btn-primary btn-round">
-          {t('backOrders')}
-        </Link>
+        <div className="flex justify-center pt-1">
+          <BackButton href={`/${locale}/account/orders`} locale={locale} label={t('backOrders')} />
+        </div>
       </div>
     )
   }

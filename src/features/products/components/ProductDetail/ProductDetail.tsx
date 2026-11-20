@@ -597,10 +597,14 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       ? 'Copier le lien du produit'
                       : 'Copy product link'
                 }
-                className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-medium transition-colors hover:text-[var(--accent)] cursor-pointer whitespace-nowrap"
-                style={{ color: copiedLink ? 'var(--success)' : 'var(--text-muted)' }}
+                className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] sm:text-xs font-semibold transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer whitespace-nowrap"
+                style={{
+                  borderColor: copiedLink ? 'var(--success)' : 'var(--border)',
+                  background: copiedLink ? 'var(--success-bg)' : 'var(--bg-subtle)',
+                  color: copiedLink ? 'var(--success)' : 'var(--text-secondary)',
+                }}
               >
-                {copiedLink ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                {copiedLink ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5 text-[var(--accent)]" />}
                 <span>
                   {copiedLink
                     ? locale === 'ar'
@@ -1080,7 +1084,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 (!product.isNiqab && (selectedJellabas.length === 0 || !hasStock)) ||
                 (product.isNiqab && selectedNiqabQuantity < 5)
               }
-              className="btn btn-primary btn-round flex h-12 w-full items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
+              className="btn btn-primary rounded-xl flex h-12 w-full items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
             >
               {addedFeedback ? (
                 <>
