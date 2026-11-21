@@ -428,6 +428,9 @@ function createMockPrismaClient(): PrismaClient {
   const orderItemsStore: MockOrderItem[] = []
   const orderHistoryStore: MockOrderHistory[] = []
   const reviewsStore: MockReview[] = []
+  const bannersStore: Array<Record<string, unknown> & { id: string; sortOrder: number; isActive: boolean; createdAt: Date; updatedAt: Date }> = []
+  const notificationsStore: Array<Record<string, unknown> & { id: string; isRead: boolean; readAt: Date | null; createdAt: Date }> = []
+  const adminUsersStore: Array<Record<string, unknown> & { id: string; email: string }> = []
   let idCounter = 100
 
   const matchCategoryWhere = (cat: MockCategory, where?: Record<string, unknown>): boolean => {
@@ -435,6 +438,9 @@ function createMockPrismaClient(): PrismaClient {
     if (typeof where.isActive === 'boolean' && cat.isActive !== where.isActive) return false
     if (where.id !== undefined && !matchStringFilter(cat.id, where.id)) return false
     if (where.slug !== undefined && !matchStringFilter(cat.slug, where.slug)) return false
+    if (where.nameAr !== undefined && !matchStringFilter(cat.nameAr, where.nameAr)) return false
+    if (where.nameFr !== undefined && !matchStringFilter(cat.nameFr, where.nameFr)) return false
+    if (where.nameEn !== undefined && !matchStringFilter(cat.nameEn, where.nameEn)) return false
     if (Array.isArray(where.OR)) {
       return where.OR.some((sub) => matchCategoryWhere(cat, sub as Record<string, unknown>))
     }
@@ -513,14 +519,17 @@ function createMockPrismaClient(): PrismaClient {
 
   const matchCustomerWhere = (cust: MockCustomer, where?: Record<string, unknown>): boolean => {
     if (!where) return true
-    if (where.id !== undefined && cust.id !== where.id) return false
+    if (where.id !== undefined && !matchStringFilter(cust.id, where.id)) return false
+    if (where.name !== undefined && !matchStringFilter(cust.name, where.name)) return false
     if (where.email !== undefined) {
       if (where.email === null && cust.email !== null) return false
       if (typeof where.email === 'string' && cust.email?.toLowerCase() !== where.email.toLowerCase()) return false
+      if (typeof where.email === 'object' && where.email !== null && !matchStringFilter(cust.email, where.email)) return false
     }
     if (where.phone !== undefined) {
       if (where.phone === null && cust.phone !== null) return false
       if (typeof where.phone === 'string' && cust.phone !== where.phone) return false
+      if (typeof where.phone === 'object' && where.phone !== null && !matchStringFilter(cust.phone, where.phone)) return false
     }
     if (Array.isArray(where.OR)) {
       return where.OR.some((sub) => matchCustomerWhere(cust, sub as Record<string, unknown>))
@@ -531,7 +540,10 @@ function createMockPrismaClient(): PrismaClient {
   const matchOrderWhere = (order: MockOrder, where?: Record<string, unknown>): boolean => {
     if (!where) return true
     if (where.id !== undefined && order.id !== where.id) return false
-    if (where.orderNumber !== undefined && order.orderNumber !== where.orderNumber) return false
+    if (where.orderNumber !== undefined && !matchStringFilter(order.orderNumber, where.orderNumber)) return false
+    if (where.customerName !== undefined && !matchStringFilter(order.customerName, where.customerName)) return false
+    if (where.customerPhone !== undefined && !matchStringFilter(order.customerPhone, where.customerPhone)) return false
+    if (where.city !== undefined && !matchStringFilter(order.city, where.city)) return false
     if (where.status !== undefined && order.status !== where.status) return false
     if ('customerId' in where) {
       if (where.customerId === null && (order.customerId ?? null) !== null) return false
@@ -560,17 +572,44 @@ function createMockPrismaClient(): PrismaClient {
           ? applySelect(customerRecord as Record<string, unknown>, custInclude.select)
           : customerRecord
     }
+    if (include?.product) {
+      const prod = products.find((p) => p.id === rev.productId) ?? null
+      const prodInclude = include.product as { select?: Record<string, unknown> } | true
+      result.product =
+        prod && typeof prodInclude === 'object' && prodInclude !== null && prodInclude.select
+          ? applySelect(prod as unknown as Record<string, unknown>, prodInclude.select)
+          : prod
+    }
     return result
   }
 
-  const hydrateOrder = (order: MockOrder) => ({
-    ...order,
-    items: orderItemsStore.filter((i) => i.orderId === order.id),
-    statusHistory: sortRecords(
-      orderHistoryStore.filter((h) => h.orderId === order.id),
-      { createdAt: 'desc' }
-    ),
-  })
+  const hydrateOrder = (order: MockOrder, include?: Record<string, unknown>) => {
+    const items = orderItemsStore
+      .filter((i) => i.orderId === order.id)
+      .map((item) => {
+        const itemsInc = (include?.items as { include?: Record<string, unknown> } | undefined)?.include
+        if (!itemsInc) return item
+        return {
+          ...item,
+          ...(itemsInc.product
+            ? { product: products.find((p) => p.id === item.productId) ?? null }
+            : {}),
+          ...(itemsInc.variant
+            ? { variant: variants.find((v) => v.id === item.variantId) ?? null }
+            : {}),
+        }
+      })
+
+    return {
+      ...order,
+      items,
+      statusHistory: sortRecords(
+        orderHistoryStore.filter((h) => h.orderId === order.id),
+        { createdAt: 'desc' }
+      ),
+      _count: { items: items.length },
+    }
+  }
 
   const createModelMock = (modelName: string) => {
     const noOp = {
@@ -589,21 +628,50 @@ function createMockPrismaClient(): PrismaClient {
             value,
             updatedAt: new Date(),
           }))
-          const keyFilter = args?.where?.key as { in?: string[] } | string | undefined
+          const keyFilter = args?.where?.key as { in?: string[]; startsWith?: string } | string | undefined
           if (typeof keyFilter === 'string') {
             return all.filter((s) => s.key === keyFilter)
           }
-          if (keyFilter && typeof keyFilter === 'object' && Array.isArray(keyFilter.in)) {
-            return all.filter((s) => keyFilter.in!.includes(s.key))
+          if (keyFilter && typeof keyFilter === 'object') {
+            if (Array.isArray(keyFilter.in)) {
+              return all.filter((s) => keyFilter.in!.includes(s.key))
+            }
+            if (typeof keyFilter.startsWith === 'string') {
+              return all.filter((s) => s.key.startsWith(keyFilter.startsWith!))
+            }
           }
           return all
+        }
+        if (modelName === 'banner') {
+          let filtered = [...bannersStore]
+          if (typeof args?.where?.isActive === 'boolean') {
+            filtered = filtered.filter((b) => b.isActive === args.where?.isActive)
+          }
+          const sorted = sortRecords(filtered, args?.orderBy)
+          const start = args?.skip ?? 0
+          const end = args?.take !== undefined ? start + args.take : undefined
+          return sorted.slice(start, end)
+        }
+        if (modelName === 'adminNotification') {
+          let filtered = [...notificationsStore]
+          if (typeof args?.where?.isRead === 'boolean') {
+            filtered = filtered.filter((n) => n.isRead === args.where?.isRead)
+          }
+          const sorted = sortRecords(filtered, args?.orderBy)
+          const start = args?.skip ?? 0
+          const end = args?.take !== undefined ? start + args.take : undefined
+          return sorted.slice(start, end)
         }
         if (modelName === 'category') {
           const filtered = categories.filter((c) => matchCategoryWhere(c, args?.where))
           const sorted = sortRecords(filtered as unknown as Array<Record<string, unknown>>, args?.orderBy)
           const start = args?.skip ?? 0
           const end = args?.take !== undefined ? start + args.take : undefined
-          return sorted.slice(start, end)
+          return sorted.slice(start, end).map((cat) =>
+            args?.include?._count
+              ? { ...cat, _count: { products: products.filter((p) => p.categoryId === cat.id).length } }
+              : cat
+          )
         }
         if (modelName === 'product') {
           const filtered = products.filter((p) => matchProductWhere(p, args?.where))
@@ -611,8 +679,17 @@ function createMockPrismaClient(): PrismaClient {
           const start = args?.skip ?? 0
           const end = args?.take !== undefined ? start + args.take : undefined
           return sorted.slice(start, end).map((p) => {
-            const hydrated = hydrateProduct(p, args?.include)
-            return args?.select ? applySelect(hydrated, args.select) : hydrated
+            const effectiveInclude = {
+              ...(args?.include ?? {}),
+              ...(args?.select?.variants ? { variants: args.select.variants } : {}),
+              ...(args?.select?.category ? { category: args.select.category } : {}),
+            }
+            const hydrated = hydrateProduct(p, effectiveInclude)
+            if (!args?.select) return hydrated
+            const projected = applySelect(hydrated, args.select)
+            if (args.select.variants) projected.variants = hydrated.variants
+            if (args.select.category) projected.category = hydrated.category
+            return projected
           })
         }
         if (modelName === 'productVariant') {
@@ -633,19 +710,39 @@ function createMockPrismaClient(): PrismaClient {
         if (modelName === 'customer') {
           const filtered = customersStore.filter((c) => matchCustomerWhere(c, args?.where))
           const sorted = sortRecords(filtered, args?.orderBy)
-          return sorted.map((c) => applySelect(c, args?.select))
+          const start = args?.skip ?? 0
+          const end = args?.take !== undefined ? start + args.take : undefined
+          return sorted.slice(start, end).map((c) => {
+            const base = args?.select ? applySelect(c, args.select) : { ...c }
+            if (args?.include?.orders) {
+              const custOrders = ordersStore.filter((o) => o.customerId === c.id || (c.phone && o.customerPhone === c.phone))
+              return { ...base, orders: custOrders.map((o) => hydrateOrder(o)) }
+            }
+            return base
+          })
         }
         if (modelName === 'review') {
           let filtered = [...reviewsStore]
           if (args?.where?.productId) filtered = filtered.filter((r) => r.productId === args.where?.productId)
           if (args?.where?.customerId) filtered = filtered.filter((r) => r.customerId === args.where?.customerId)
           const sorted = sortRecords(filtered, args?.orderBy) as MockReview[]
-          return sorted.map((r) => hydrateReview(r, args?.include))
+          const start = args?.skip ?? 0
+          const end = args?.take !== undefined ? start + args.take : undefined
+          return sorted.slice(start, end).map((r) => hydrateReview(r, args?.include))
         }
         if (modelName === 'order') {
           const filtered = ordersStore.filter((o) => matchOrderWhere(o, args?.where))
           const sorted = sortRecords(filtered, args?.orderBy) as MockOrder[]
-          return sorted.map(hydrateOrder)
+          const start = args?.skip ?? 0
+          const end = args?.take !== undefined ? start + args.take : undefined
+          return sorted.slice(start, end).map((o) => hydrateOrder(o, args?.include))
+        }
+        if (modelName === 'orderItem') {
+          let filtered = [...orderItemsStore]
+          if (typeof args?.where?.orderId === 'string') {
+            filtered = filtered.filter((i) => i.orderId === args.where?.orderId)
+          }
+          return filtered
         }
         return []
       },
@@ -660,6 +757,18 @@ function createMockPrismaClient(): PrismaClient {
           const found = categories.find((c) => matchCategoryWhere(c, args?.where))
           return found ?? null
         }
+        if (modelName === 'adminUser' && args?.where) {
+          const found = adminUsersStore.find(
+            (u) => (args.where?.id && u.id === args.where.id) || (args.where?.email && u.email === args.where.email)
+          )
+          return found ? (args.select ? applySelect(found, args.select) : found) : null
+        }
+        if (modelName === 'adminNotification' && args?.where) {
+          const found = notificationsStore.find(
+            (n) => (args.where?.type ? n.type === args.where.type : true) && (args.where?.referenceId ? n.referenceId === args.where.referenceId : true) && (typeof args.where?.isRead === 'boolean' ? n.isRead === args.where.isRead : true)
+          )
+          return found ?? null
+        }
         if (modelName === 'product') {
           const filtered = products.filter((p) => matchProductWhere(p, args?.where))
           const sorted = sortRecords(filtered as unknown as Array<Record<string, unknown>>, args?.orderBy) as unknown as MockProduct[]
@@ -672,7 +781,7 @@ function createMockPrismaClient(): PrismaClient {
         if (modelName === 'order') {
           const found = ordersStore.find((o) => matchOrderWhere(o, args?.where))
           if (!found) return null
-          const hydrated = hydrateOrder(found)
+          const hydrated = hydrateOrder(found, args?.include)
           return args?.select ? applySelect(hydrated, args.select) : hydrated
         }
         return null
@@ -691,6 +800,15 @@ function createMockPrismaClient(): PrismaClient {
           const val = siteSettingsStore.get(args.where.key)
           return val !== undefined ? { id: args.where.key, key: args.where.key, value: val, updatedAt: new Date() } : null
         }
+        if (modelName === 'adminUser' && args?.where) {
+          const found = adminUsersStore.find(
+            (u) => (args.where?.id && u.id === args.where.id) || (args.where?.email && u.email === args.where.email)
+          )
+          return found ? (args.select ? applySelect(found, args.select) : found) : null
+        }
+        if (modelName === 'banner' && typeof args?.where?.id === 'string') {
+          return bannersStore.find((b) => b.id === args.where?.id) ?? null
+        }
         if (modelName === 'category' && args?.where) {
           const found = categories.find((c) => matchCategoryWhere(c, args.where))
           return found ?? null
@@ -704,6 +822,12 @@ function createMockPrismaClient(): PrismaClient {
         if (modelName === 'customer' && args?.where) {
           const found = customersStore.find((c) => matchCustomerWhere(c, args.where))
           return found ? applySelect(found, args.select) : null
+        }
+        if (modelName === 'order' && args?.where) {
+          const found = ordersStore.find((o) => matchOrderWhere(o, args.where))
+          if (!found) return null
+          const hydrated = hydrateOrder(found, args.include)
+          return args.select ? applySelect(hydrated, args.select) : hydrated
         }
         if (modelName === 'review' && args?.where) {
           if (args.where.customerId_productId) {
@@ -731,7 +855,20 @@ function createMockPrismaClient(): PrismaClient {
           return products.filter((p) => matchProductWhere(p, args?.where)).length
         }
         if (modelName === 'order') {
-          return ordersStore.length
+          return ordersStore.filter((o) => matchOrderWhere(o, args?.where)).length
+        }
+        if (modelName === 'customer') {
+          return customersStore.filter((c) => matchCustomerWhere(c, args?.where)).length
+        }
+        if (modelName === 'review') {
+          return args?.where?.productId
+            ? reviewsStore.filter((r) => r.productId === args.where?.productId).length
+            : reviewsStore.length
+        }
+        if (modelName === 'adminNotification') {
+          return typeof args?.where?.isRead === 'boolean'
+            ? notificationsStore.filter((n) => n.isRead === args.where?.isRead).length
+            : notificationsStore.length
         }
         return 0
       },
@@ -766,6 +903,54 @@ function createMockPrismaClient(): PrismaClient {
 
         if (modelName === 'siteSetting' && typeof data.key === 'string' && typeof data.value === 'string') {
           siteSettingsStore.set(data.key, data.value)
+        } else if (modelName === 'banner') {
+          const b = {
+            id,
+            title: String(data.title ?? ''),
+            subtitle: typeof data.subtitle === 'string' ? data.subtitle : null,
+            buttonText: typeof data.buttonText === 'string' ? data.buttonText : null,
+            buttonUrl: typeof data.buttonUrl === 'string' ? data.buttonUrl : null,
+            imageUrl: String(data.imageUrl ?? ''),
+            sortOrder: Number(data.sortOrder ?? 0),
+            isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
+            createdAt,
+            updatedAt,
+          }
+          bannersStore.push(b)
+          return b
+        } else if (modelName === 'adminNotification') {
+          const n = {
+            id,
+            type: String(data.type ?? 'ORDER'),
+            title: String(data.title ?? ''),
+            description: typeof data.description === 'string' ? data.description : null,
+            targetUrl: String(data.targetUrl ?? '/control-panel-ss7'),
+            referenceId: typeof data.referenceId === 'string' ? data.referenceId : null,
+            isRead: Boolean(data.isRead ?? false),
+            readAt: null as Date | null,
+            createdAt,
+          }
+          notificationsStore.unshift(n)
+          return n
+        } else if (modelName === 'category') {
+          const cat: MockCategory = {
+            id,
+            slug: String(data.slug ?? id),
+            nameAr: String(data.nameAr ?? ''),
+            nameFr: String(data.nameFr ?? ''),
+            nameEn: String(data.nameEn ?? ''),
+            descriptionAr: typeof data.descriptionAr === 'string' ? data.descriptionAr : null,
+            descriptionFr: typeof data.descriptionFr === 'string' ? data.descriptionFr : null,
+            descriptionEn: typeof data.descriptionEn === 'string' ? data.descriptionEn : null,
+            image: typeof data.image === 'string' ? data.image : null,
+            sortOrder: Number(data.sortOrder ?? 0),
+            isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
+            parentId: typeof data.parentId === 'string' ? data.parentId : null,
+            createdAt,
+            updatedAt,
+          }
+          categories.push(cat)
+          return cat
         } else if (modelName === 'customer') {
           const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : null
           const phone = typeof data.phone === 'string' ? data.phone.trim() : null
@@ -893,6 +1078,61 @@ function createMockPrismaClient(): PrismaClient {
         select?: Record<string, unknown>
       }) => {
         const nowUpdate = new Date()
+        if (modelName === 'category' && args?.where?.id) {
+          const cat = categories.find((c) => c.id === args.where?.id)
+          if (!cat) {
+            const err = new Error('Mock DB: category record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          Object.assign(cat, args.data ?? {}, { updatedAt: nowUpdate })
+          return cat
+        }
+        if (modelName === 'banner' && args?.where?.id) {
+          const b = bannersStore.find((item) => item.id === args.where?.id)
+          if (!b) {
+            const err = new Error('Mock DB: banner record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          Object.assign(b, args.data ?? {}, { updatedAt: nowUpdate })
+          return b
+        }
+        if (modelName === 'product' && args?.where?.id) {
+          const prod = products.find((p) => p.id === args.where?.id)
+          if (!prod) {
+            const err = new Error('Mock DB: product record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          Object.assign(prod, args.data ?? {}, { updatedAt: nowUpdate })
+          return hydrateProduct(prod)
+        }
+        if (modelName === 'productVariant' && args?.where?.id) {
+          const v = variants.find((item) => item.id === args.where?.id)
+          if (!v) throw new Error('Mock DB: variant record not found')
+          const nextData = { ...(args.data ?? {}) }
+          if (typeof nextData.stockQuantity === 'object' && nextData.stockQuantity !== null) {
+            const op = nextData.stockQuantity as { increment?: number; decrement?: number }
+            if (typeof op.increment === 'number') v.stockQuantity += op.increment
+            if (typeof op.decrement === 'number') v.stockQuantity = Math.max(0, v.stockQuantity - op.decrement)
+            delete nextData.stockQuantity
+          }
+          Object.assign(v, nextData, { updatedAt: nowUpdate })
+          return v
+        }
+        if (modelName === 'adminNotification' && args?.where?.id) {
+          const n = notificationsStore.find((item) => item.id === args.where?.id)
+          if (!n) throw new Error('Mock DB: notification record not found')
+          Object.assign(n, args.data ?? {})
+          return n
+        }
+        if (modelName === 'adminUser' && args?.where?.id) {
+          const u = adminUsersStore.find((item) => item.id === args.where?.id)
+          if (!u) throw new Error('Mock DB: adminUser record not found')
+          Object.assign(u, args.data ?? {}, { updatedAt: nowUpdate })
+          return args.select ? applySelect(u, args.select) : u
+        }
         if (modelName === 'customer' && args?.where) {
           const cust = customersStore.find((c) => matchCustomerWhere(c, args.where))
           if (!cust) throw new Error('Mock DB: customer record not found')
@@ -909,7 +1149,7 @@ function createMockPrismaClient(): PrismaClient {
           const order = ordersStore.find((o) => matchOrderWhere(o, args.where))
           if (!order) throw new Error('Mock DB: order record not found')
           Object.assign(order, args.data ?? {}, { updatedAt: nowUpdate })
-          return order
+          return hydrateOrder(order)
         }
         if (modelName === 'siteSetting' && typeof args?.where?.key === 'string') {
           const nextVal = String(args.data?.value ?? '')
@@ -924,19 +1164,30 @@ function createMockPrismaClient(): PrismaClient {
       },
 
       updateMany: async (args?: {
-        where?: { id?: string; stockQuantity?: { gte?: number } }
-        data?: { stockQuantity?: { decrement?: number } }
+        where?: Record<string, unknown>
+        data?: Record<string, unknown>
       }) => {
         if (modelName === 'productVariant' && args?.where?.id) {
           const v = variants.find((item) => item.id === args.where?.id)
           if (!v) return { count: 0 }
-          const minStock = args.where.stockQuantity?.gte
+          const minStock = (args.where.stockQuantity as { gte?: number } | undefined)?.gte
           if (minStock !== undefined && v.stockQuantity < minStock) {
             return { count: 0 }
           }
-          const dec = args.data?.stockQuantity?.decrement ?? 0
-          v.stockQuantity = Math.max(0, v.stockQuantity - dec)
+          const stockOp = args.data?.stockQuantity as { decrement?: number; increment?: number } | undefined
+          if (stockOp?.decrement) v.stockQuantity = Math.max(0, v.stockQuantity - stockOp.decrement)
+          if (stockOp?.increment) v.stockQuantity += stockOp.increment
           return { count: 1 }
+        }
+        if (modelName === 'adminNotification') {
+          let count = 0
+          for (const n of notificationsStore) {
+            if (args?.where?.isRead === undefined || n.isRead === args.where.isRead) {
+              Object.assign(n, args?.data ?? {})
+              count++
+            }
+          }
+          return { count }
         }
         return { count: 0 }
       },
@@ -957,6 +1208,33 @@ function createMockPrismaClient(): PrismaClient {
           siteSettingsStore.set(key, value)
           return { id: key, key, value, updatedAt: nowUpsert }
         }
+        if (modelName === 'productVariant' && args?.where?.productId_size_colorCode) {
+          const key = args.where.productId_size_colorCode as { productId: string; size: string; colorCode: string }
+          const existing = variants.find(
+            (v) => v.productId === key.productId && v.size === key.size && v.colorCode === key.colorCode
+          )
+          if (existing) {
+            Object.assign(existing, args.update ?? {}, { updatedAt: nowUpsert })
+            return existing
+          }
+          const created: MockVariant = {
+            id: `var-mock-${++idCounter}`,
+            productId: String(args.create?.productId ?? key.productId),
+            size: String(args.create?.size ?? key.size),
+            colorCode: String(args.create?.colorCode ?? key.colorCode),
+            colorNameAr: String(args.create?.colorNameAr ?? ''),
+            colorNameFr: String(args.create?.colorNameFr ?? ''),
+            colorNameEn: String(args.create?.colorNameEn ?? ''),
+            stockQuantity: Number(args.create?.stockQuantity ?? 10),
+            priceModifier: Number(args.create?.priceModifier ?? 0),
+            images: Array.isArray(args.create?.images) ? (args.create.images as string[]) : [],
+            isActive: args.create?.isActive !== undefined ? Boolean(args.create.isActive) : true,
+            createdAt: nowUpsert,
+            updatedAt: nowUpsert,
+          }
+          variants.push(created)
+          return created
+        }
         return {
           id: 'mock-id',
           ...(args?.create ?? args?.update ?? {}),
@@ -964,8 +1242,62 @@ function createMockPrismaClient(): PrismaClient {
         }
       },
 
-      delete: async () => ({}),
-      deleteMany: async () => ({ count: 0 }),
+      delete: async (args?: { where?: Record<string, unknown> }) => {
+        const id = args?.where?.id
+        if (modelName === 'category' && typeof id === 'string') {
+          const idx = categories.findIndex((c) => c.id === id)
+          if (idx === -1) {
+            const err = new Error('Mock DB: category record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          return categories.splice(idx, 1)[0]
+        }
+        if (modelName === 'banner' && typeof id === 'string') {
+          const idx = bannersStore.findIndex((b) => b.id === id)
+          if (idx === -1) {
+            const err = new Error('Mock DB: banner record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          return bannersStore.splice(idx, 1)[0]
+        }
+        if (modelName === 'product' && typeof id === 'string') {
+          const idx = products.findIndex((p) => p.id === id)
+          if (idx === -1) {
+            const err = new Error('Mock DB: product record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          for (let i = variants.length - 1; i >= 0; i--) {
+            if (variants[i].productId === id) variants.splice(i, 1)
+          }
+          return products.splice(idx, 1)[0]
+        }
+        if (modelName === 'review' && typeof id === 'string') {
+          const idx = reviewsStore.findIndex((r) => r.id === id)
+          if (idx === -1) {
+            const err = new Error('Mock DB: review record not found') as Error & { code?: string }
+            err.code = 'P2025'
+            throw err
+          }
+          return reviewsStore.splice(idx, 1)[0]
+        }
+        return {}
+      },
+      deleteMany: async (args?: { where?: Record<string, unknown> }) => {
+        if (modelName === 'productVariant' && typeof args?.where?.productId === 'string') {
+          let count = 0
+          for (let i = variants.length - 1; i >= 0; i--) {
+            if (variants[i].productId === args.where.productId) {
+              variants.splice(i, 1)
+              count++
+            }
+          }
+          return { count }
+        }
+        return { count: 0 }
+      },
     }
     return new Proxy(noOp, {
       get(target, prop) {

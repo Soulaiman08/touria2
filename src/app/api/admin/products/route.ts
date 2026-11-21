@@ -114,7 +114,13 @@ export async function POST(request: Request) {
   const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
   if (!auth.ok) return auth.response
   try {
-    const body = await request.json()
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
+
     const {
       name,
       nameAr,
@@ -137,7 +143,29 @@ export async function POST(request: Request) {
       isActive = true,
       isNiqab = false,
       canAddNiqab = true,
-    } = body
+    } = body as {
+      name?: string
+      nameAr?: string
+      nameFr?: string
+      nameEn?: string
+      description?: string
+      descriptionAr?: string
+      descriptionFr?: string
+      descriptionEn?: string
+      basePrice?: unknown
+      salePrice?: unknown
+      sku?: string
+      categoryId?: string
+      mainImage?: string
+      images?: string[]
+      colors?: Array<{ code?: string; nameAr?: string; nameFr?: string; nameEn?: string }>
+      sizes?: string[]
+      stock?: unknown
+      isFeatured?: boolean
+      isActive?: boolean
+      isNiqab?: boolean
+      canAddNiqab?: boolean
+    }
 
     if (!categoryId) {
       return NextResponse.json({ error: 'A category is required' }, { status: 400 })
@@ -148,20 +176,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Selected category does not exist' }, { status: 400 })
     }
 
-    const finalNameAr = nameAr || name || 'منتج جديد'
-    const finalNameFr = nameFr || name || 'Nouveau Produit'
-    const finalNameEn = nameEn || name || 'New Product'
+    const rawAr = typeof nameAr === 'string' ? nameAr.trim() : ''
+    const rawFr = typeof nameFr === 'string' ? nameFr.trim() : ''
+    const rawEn = typeof nameEn === 'string' ? nameEn.trim() : ''
+    const rawFallback = typeof name === 'string' ? name.trim() : ''
+    const primaryName = rawFr || rawAr || rawEn || rawFallback
 
-    const finalDescAr = descriptionAr || description || finalNameAr
-    const finalDescFr = descriptionFr || description || finalNameFr
-    const finalDescEn = descriptionEn || description || finalNameEn
+    if (!primaryName) {
+      return NextResponse.json({ error: 'At least one product name is required' }, { status: 400 })
+    }
 
-    const generatedSku = sku || `SKU-${Date.now().toString().slice(-6)}`
-    const generatedSlug = slugify(finalNameFr) || `product-${Date.now()}`
+    const finalNameAr = rawAr || rawFallback || primaryName
+    const finalNameFr = rawFr || rawFallback || primaryName
+    const finalNameEn = rawEn || rawFallback || primaryName
 
-    // Validate money fields: must be a finite number >= 0 (valid "0" stays 0).
+    const finalDescAr = (typeof descriptionAr === 'string' && descriptionAr.trim()) || (typeof description === 'string' && description.trim()) || finalNameAr
+    const finalDescFr = (typeof descriptionFr === 'string' && descriptionFr.trim()) || (typeof description === 'string' && description.trim()) || finalNameFr
+    const finalDescEn = (typeof descriptionEn === 'string' && descriptionEn.trim()) || (typeof description === 'string' && description.trim()) || finalNameEn
+
+    const generatedSku = (typeof sku === 'string' && sku.trim()) || `SKU-${Date.now().toString().slice(-6)}`
+    const generatedSlug = slugify(finalNameFr) || slugify(finalNameEn) || `product-${Date.now()}`
+
     const parseMoney = (value: unknown): number => {
-      if (value === undefined || value === null || String(value).trim() === '') return 0
+      if (value === undefined || value === null || String(value).trim() === '') {
+        throw new ValidationError('Base price is required')
+      }
       const parsed = Number(value)
       if (!Number.isFinite(parsed) || parsed < 0) throw new ValidationError('Price must be a valid number')
       return parsed
@@ -172,10 +211,10 @@ export async function POST(request: Request) {
       if (salePrice === undefined || salePrice === null || String(salePrice).trim() === '') return null
       const parsed = Number(salePrice)
       if (!Number.isFinite(parsed) || parsed < 0) throw new ValidationError('Sale price must be a valid number')
+      if (parsed >= parsedBasePrice) throw new ValidationError('Sale price must be lower than base price')
       return parsed
     })()
 
-    // Reject duplicate slugs/SKUs with a clear 400 instead of a DB unique error.
     const [slugTaken, skuTaken] = await Promise.all([
       prisma.product.findUnique({ where: { slug: generatedSlug }, select: { id: true } }),
       prisma.product.findUnique({ where: { sku: generatedSku }, select: { id: true } }),
@@ -187,14 +226,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'This SKU is already in use' }, { status: 400 })
     }
 
-    const productImages = images.length > 0 ? images : [mainImage || '/images/brand/logo-full.png']
-    const primaryImage = mainImage || productImages[0]
+    const cleanImages = Array.isArray(images) ? images.filter((img): img is string => typeof img === 'string' && img.trim().length > 0) : []
+    const cleanMain = typeof mainImage === 'string' && mainImage.trim() ? mainImage.trim() : ''
+    const productImages = cleanImages.length > 0 ? cleanImages : [cleanMain || '/images/brand/logo-full.png']
+    const primaryImage = cleanMain || productImages[0]
 
-    // Product + variants are created in a single transaction so a failure
-    // mid-way can never leave a product without its variants.
-    // A djellaba (5 colors x 9 sizes) creates 45 variants sequentially, which
-    // exceeds Prisma's default interactive-transaction timeout (5s) and would
-    // abort the transaction with P2028. Raise the timeout to accommodate it.
     const product = await prisma.$transaction(
       async (tx) => {
         const created = await tx.product.create({
@@ -219,43 +255,58 @@ export async function POST(request: Request) {
           },
         })
 
-        if ((colors.length > 0 || sizes.length > 0) && created.id) {
-          const variantColors = colors.length > 0
-            ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
-            : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
-          const variantSizes = sizes.length > 0 ? sizes as string[] : ['Standard']
+        // Deduplicate colors & sizes so composite unique key never fails
+        const rawColors = Array.isArray(colors) && colors.length > 0
+          ? colors
+          : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
+        const uniqueColorMap = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
+        for (const c of rawColors) {
+          const code = (c.code || '#000000').trim().toUpperCase()
+          if (!uniqueColorMap.has(code)) {
+            uniqueColorMap.set(code, {
+              code,
+              nameAr: c.nameAr?.trim() || 'لون',
+              nameFr: c.nameFr?.trim() || 'Couleur',
+              nameEn: c.nameEn?.trim() || 'Color',
+            })
+          }
+        }
+        const variantColors = Array.from(uniqueColorMap.values())
 
-          // Distribute the total stock across the variant grid exactly, keeping
-          // valid "0" as 0 (no || default, no Math.max(1, ...) inflation).
-          const parsedStock = (() => {
-            if (stock === undefined || stock === null || String(stock).trim() === '') return 10
-            const parsed = Number(String(stock).trim())
-            return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 10
-          })()
-          const totalSlots = variantColors.length * variantSizes.length
-          const baseStock = Math.floor(parsedStock / totalSlots)
-          const remainder = parsedStock % totalSlots
+        const rawSizes = Array.isArray(sizes) && sizes.length > 0 ? sizes : ['Standard']
+        const variantSizes = Array.from(new Set(rawSizes.map((s) => String(s).trim()).filter(Boolean)))
+        if (variantSizes.length === 0) variantSizes.push('Standard')
 
-          let slotIndex = 0
-          for (const color of variantColors) {
-            for (const size of variantSizes) {
-              const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
-              await tx.productVariant.create({
-                data: {
-                  productId: created.id,
-                  size,
-                  colorCode: color.code || '#000000',
-                  colorNameAr: color.nameAr || 'لون',
-                  colorNameFr: color.nameFr || 'Couleur',
-                  colorNameEn: color.nameEn || 'Color',
-                  stockQuantity: slotStock,
-                  priceModifier: 0,
-                  images: [],
-                  isActive: true,
-                },
-              })
-              slotIndex += 1
-            }
+        const parsedStock = (() => {
+          if (stock === undefined || stock === null || String(stock).trim() === '') return 10
+          const parsed = Number(String(stock).trim())
+          if (!Number.isFinite(parsed) || parsed < 0) throw new ValidationError('Stock quantity must be a non-negative number')
+          return Math.floor(parsed)
+        })()
+
+        const totalSlots = variantColors.length * variantSizes.length
+        const baseStock = Math.floor(parsedStock / totalSlots)
+        const remainder = parsedStock % totalSlots
+
+        let slotIndex = 0
+        for (const color of variantColors) {
+          for (const size of variantSizes) {
+            const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+            await tx.productVariant.create({
+              data: {
+                productId: created.id,
+                size,
+                colorCode: color.code,
+                colorNameAr: color.nameAr,
+                colorNameFr: color.nameFr,
+                colorNameEn: color.nameEn,
+                stockQuantity: slotStock,
+                priceModifier: 0,
+                images: [],
+                isActive: true,
+              },
+            })
+            slotIndex += 1
           }
         }
 
@@ -264,16 +315,18 @@ export async function POST(request: Request) {
       { timeout: 30000, maxWait: 5000 }
     )
 
-    // Revalidate storefront pages so product appears immediately
     revalidatePath('/[locale]/products', 'layout')
     revalidatePath('/[locale]', 'page')
     revalidatePath('/api/products')
 
     return NextResponse.json({ success: true, product })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to create product:', error)
     if (error instanceof ValidationError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json({ error: 'Duplicate SKU or slug' }, { status: 400 })
     }
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
   }

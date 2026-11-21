@@ -21,12 +21,22 @@ export function ImageUploader({ images, mainImage, onChange, multiple = true }: 
   const handleUpload = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return
 
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
+    const maxBytes = 5 * 1024 * 1024
+
     setUploading(true)
     const newUrls: string[] = []
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
+        if (!allowedTypes.has(file.type)) {
+          throw new Error(`Unsupported format (${file.name}). Please upload JPEG, PNG, or WebP.`)
+        }
+        if (file.size > maxBytes) {
+          throw new Error(`File "${file.name}" exceeds the 5 MB limit.`)
+        }
+
         const formData = new FormData()
         formData.append('file', file)
 
@@ -35,11 +45,11 @@ export function ImageUploader({ images, mainImage, onChange, multiple = true }: 
           body: formData,
         })
 
+        const data = await res.json().catch(() => ({})) as { url?: string; error?: string }
         if (!res.ok) {
-          throw new Error('Failed to upload image')
+          throw new Error(data.error || 'Failed to upload image')
         }
 
-        const data = await res.json()
         if (data.url) {
           newUrls.push(data.url)
         }
@@ -54,6 +64,7 @@ export function ImageUploader({ images, mainImage, onChange, multiple = true }: 
       error(message)
     } finally {
       setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -102,7 +113,7 @@ export function ImageUploader({ images, mainImage, onChange, multiple = true }: 
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           multiple={multiple}
           onChange={(e) => e.target.files && handleUpload(e.target.files)}
           className="hidden"
@@ -122,7 +133,7 @@ export function ImageUploader({ images, mainImage, onChange, multiple = true }: 
               <p className="text-sm font-semibold text-zinc-200">
                 <span className="text-emerald-400">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-zinc-400 mt-1">PNG, JPG, WEBP, GIF up to 10MB</p>
+              <p className="text-xs text-zinc-400 mt-1">JPEG, PNG, WEBP up to 5MB</p>
             </div>
           </div>
         )}
@@ -140,7 +151,7 @@ export function ImageUploader({ images, mainImage, onChange, multiple = true }: 
                 }`}
               >
                 <div className="relative w-full h-full">
-                  <NextImage src={imgUrl} alt={`Upload ${idx}`} fill className="object-cover" sizes="128px" />
+                  <NextImage src={imgUrl} alt={`Upload ${idx}`} fill referrerPolicy="no-referrer" className="object-cover" sizes="128px" />
                 </div>
 
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">

@@ -122,6 +122,7 @@ model Order {
   customer       Customer?            @relation(fields: [customerId], references: [id])
 
   @@index([customerId, createdAt])
+  @@index([status, createdAt])
   @@map("orders")
 }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useRef } from 'react'
-import { Check, Copy } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { generateWhatsAppOrderMessage, WhatsAppOrderData } from '@/lib/whatsapp/orderMessage'
 import { useToast } from '@/components/admin/providers/ToastContext'
 
@@ -97,7 +97,7 @@ export function CopyWhatsAppButton({
       if (toastContext?.error) {
         toastContext.error(errorMessage)
       } else {
-        alert(errorMessage)
+        console.error('WhatsApp copy error:', errorMessage)
       }
     }
   }, [order, toastContext])

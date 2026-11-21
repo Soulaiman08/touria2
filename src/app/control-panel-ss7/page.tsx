@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   DollarSign,
   ShoppingBag,
@@ -17,7 +18,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { formatPrice } from '@/lib/utils'
 
 interface MetricData {
@@ -250,10 +250,10 @@ function DashboardContent() {
       </div>
 
       {/* ── Chart + Top Products ──────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Sales chart — 2/3 width */}
-        <div style={{ gridColumn: 'span 2', background: 'rgb(24,24,27)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="lg:col-span-2" style={{ background: 'rgb(24,24,27)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
           {/* Card header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '24px 24px 20px', borderBottom: '1px solid rgba(63,63,70,0.5)' }}>
@@ -329,8 +329,15 @@ function DashboardContent() {
             ) : (
               topProducts.map((prod, idx) => (
                 <div key={prod.id || idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: 'rgba(9,9,11,0.6)', border: '1px solid rgba(63,63,70,0.6)' }}>
-                  <div style={{ width: 42, height: 42, borderRadius: 12, overflow: 'hidden', background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', flexShrink: 0 }}>
-                    <img src={prod.image || '/images/brand/logo-full.png'} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'relative', width: 42, height: 42, borderRadius: 12, overflow: 'hidden', background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', flexShrink: 0 }}>
+                    <Image
+                      src={prod.image || '/images/brand/logo-full.png'}
+                      alt={prod.name}
+                      fill
+                      sizes="42px"
+                      referrerPolicy="no-referrer"
+                      className="object-cover"
+                    />
                   </div>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: '#f4f4f5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prod.name}</span>
@@ -413,12 +420,10 @@ function DashboardContent() {
 /* ─── page export ───────────────────────────────────────────────────── */
 export default function AdminDashboardPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <DashboardContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <DashboardContent />
+      </AdminLayout>
+    </ToastProvider>
   )
 }

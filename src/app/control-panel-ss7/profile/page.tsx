@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 
 /* ─── tiny keyframe spinner injected once ─── */
 const spinCSS = `@keyframes spin{to{transform:rotate(360deg)}}`
@@ -115,7 +114,6 @@ function ProfileContent() {
     background: 'rgb(24,24,27)',
     border: '1px solid rgba(63,63,70,0.7)',
     borderRadius: 20,
-    padding: 28,
     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
   }
 
@@ -143,12 +141,12 @@ function ProfileContent() {
       </div>
 
       {/* ── Avatar Banner Card ── */}
-      <div style={{ ...card, background: 'linear-gradient(135deg, rgba(24,24,27,1) 60%, rgba(245,158,11,0.07))', borderColor: 'rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', gap: 22 }}>
+      <div className="p-5 sm:p-7 flex flex-wrap items-center gap-5" style={{ ...card, background: 'linear-gradient(135deg, rgba(24,24,27,1) 60%, rgba(245,158,11,0.07))', borderColor: 'rgba(245,158,11,0.2)' }}>
         {/* Avatar */}
         <div style={{ flexShrink: 0, width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#09090b', fontWeight: 900, fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 24px rgba(245,158,11,0.35)' }}>
           {name ? name.charAt(0).toUpperCase() : 'A'}
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 180 }}>
           <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: 0 }}>{name || 'Admin User'}</h2>
           <p style={{ fontSize: 12, color: '#71717a', marginTop: 4 }}>{email || '—'}</p>
           <span style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#fbbf24', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -161,13 +159,13 @@ function ProfileContent() {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* ── Account Info Card ── */}
-        <div style={card}>
+        <div className="p-5 sm:p-7" style={card}>
           <h3 style={{ fontSize: 14, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8, margin: 0, marginBottom: 20 }}>
             <User style={{ width: 15, height: 15, color: '#fbbf24' }} />
             Account Information
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Name */}
             <div>
               <label style={labelStyle}>Full Name</label>
@@ -203,7 +201,7 @@ function ProfileContent() {
         </div>
 
         {/* ── Security Card ── */}
-        <div style={card}>
+        <div className="p-5 sm:p-7" style={card}>
           <h3 style={{ fontSize: 14, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8, margin: 0, marginBottom: 6 }}>
             <KeyRound style={{ width: 15, height: 15, color: '#fbbf24' }} />
             Change Password
@@ -229,7 +227,7 @@ function ProfileContent() {
           </div>
 
           {/* New + Confirm */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label style={labelStyle}>New Password</label>
               <div style={{ position: 'relative' }}>
@@ -308,12 +306,10 @@ function ProfileContent() {
 
 export default function AdminProfilePage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <ProfileContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <ProfileContent />
+      </AdminLayout>
+    </ToastProvider>
   )
 }

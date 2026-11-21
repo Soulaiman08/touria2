@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
+import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import {
   Users,
   Search,
@@ -10,7 +12,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { formatPrice } from '@/lib/utils'
 
 interface CustomerItem {
@@ -34,46 +35,44 @@ interface CustomerItem {
   }[]
 }
 
-function guestLabel(): string {
-  const lang = typeof navigator !== 'undefined' ? (navigator.language || '').toLowerCase() : ''
-  if (lang.startsWith('ar')) return '(ضيف)'
-  if (lang.startsWith('fr')) return '(Invité)'
-  return '(Guest)'
-}
-
-function CustomersContent() {
+function CustomersContent({ initialSearch }: { initialSearch: string }) {
   const [customers, setCustomers] = useState<CustomerItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch)
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerItem | null>(null)
 
-  const fetchCustomers = useCallback(async () => {
-    setLoading(true)
-    setSelectedCustomer(null)
-    try {
-      const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(search)}`)
-      if (!res.ok) {
-        setCustomers([])
-        return
-      }
-      const data = await res.json()
-      if (Array.isArray(data.customers)) {
-        setCustomers(data.customers)
-      } else {
-        setCustomers([])
-      }
-    } catch (err) {
-      console.error('Error fetching customers:', err)
-      setCustomers([])
-    } finally {
-      setLoading(false)
-    }
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => window.clearTimeout(timer)
   }, [search])
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(fetchCustomers, 0)
-    return () => window.clearTimeout(timeoutId)
-  }, [fetchCustomers])
+    let active = true
+    async function loadCustomers() {
+      try {
+        const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(debouncedSearch)}`)
+        if (!res.ok) {
+          if (active) setCustomers([])
+          return
+        }
+        const data = await res.json()
+        if (active) {
+          setSelectedCustomer(null)
+          setCustomers(Array.isArray(data.customers) ? data.customers : [])
+        }
+      } catch (err) {
+        console.error('Error fetching customers:', err)
+        if (active) setCustomers([])
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadCustomers()
+    return () => { active = false }
+  }, [debouncedSearch])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
@@ -164,6 +163,7 @@ function CustomersContent() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div
                           style={{
+                            position: 'relative',
                             width: 36, height: 36, borderRadius: '50%',
                             background: cust.avatarUrl ? 'transparent' : 'rgba(245,158,11,0.15)',
                             color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)',
@@ -172,10 +172,13 @@ function CustomersContent() {
                           }}
                         >
                           {cust.avatarUrl ? (
-                            <img
+                            <Image
                               src={cust.avatarUrl}
                               alt={cust.name}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                              fill
+                              sizes="36px"
+                              referrerPolicy="no-referrer"
+                              className="object-cover"
                             />
                           ) : (
                             cust.name.charAt(0).toUpperCase()
@@ -192,7 +195,7 @@ function CustomersContent() {
                                   border: '1px solid rgba(113,113,122,0.4)', whiteSpace: 'nowrap',
                                 }}
                               >
-                                {guestLabel()}
+                                (Guest)
                               </span>
                             )}
                           </div>
@@ -240,7 +243,7 @@ function CustomersContent() {
       {/* Customer Account Details Modal */}
       {selectedCustomer && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
-          <div style={{ position: 'relative', width: '100%', maxWidth: 640, maxHeight: '85vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, padding: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
+          <div className="p-5 sm:p-8" style={{ position: 'relative', width: '100%', maxWidth: 640, maxHeight: '85vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
             <button
               onClick={() => setSelectedCustomer(null)}
               style={{ position: 'absolute', top: 24, right: 24, padding: 8, borderRadius: 10, background: 'none', border: 'none', color: '#71717a', cursor: 'pointer' }}
@@ -251,6 +254,7 @@ function CustomersContent() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
               <div
                 style={{
+                  position: 'relative',
                   width: 56, height: 56, borderRadius: 18,
                   background: selectedCustomer.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #f59e0b, #d97706)',
                   color: '#09090b', fontWeight: 900, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -258,21 +262,24 @@ function CustomersContent() {
                 }}
               >
                 {selectedCustomer.avatarUrl ? (
-                  <img
+                  <Image
                     src={selectedCustomer.avatarUrl}
                     alt={selectedCustomer.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    fill
+                    sizes="56px"
+                    referrerPolicy="no-referrer"
+                    className="object-cover"
                   />
                 ) : (
                   selectedCustomer.name.charAt(0).toUpperCase()
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   {selectedCustomer.name}
                   {selectedCustomer.isGuest && (
                     <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 8, background: 'rgba(113,113,122,0.25)', color: '#a1a1aa', border: '1px solid rgba(113,113,122,0.4)' }}>
-                      {guestLabel()}
+                      (Guest)
                     </span>
                   )}
                 </h2>
@@ -280,7 +287,7 @@ function CustomersContent() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, padding: 16, borderRadius: 16, background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', marginBottom: 24 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ padding: 16, borderRadius: 16, background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', marginBottom: 24 }}>
               <div>
                 <span style={{ color: '#71717a', display: 'block', fontSize: 10, textTransform: 'uppercase', fontWeight: 700 }}>Total Orders</span>
                 <span style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginTop: 2, display: 'block' }}>{selectedCustomer.ordersCount}</span>
@@ -338,14 +345,20 @@ function CustomersContent() {
   )
 }
 
+function CustomersWithSearchParams() {
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams.get('search') || ''
+  return <CustomersContent key={initialSearch} initialSearch={initialSearch} />
+}
+
 export default function AdminCustomersPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <CustomersContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <Suspense fallback={null}>
+          <CustomersWithSearchParams />
+        </Suspense>
+      </AdminLayout>
+    </ToastProvider>
   )
 }

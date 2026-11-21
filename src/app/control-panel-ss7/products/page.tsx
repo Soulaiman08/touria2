@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { Suspense, useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import {
   Package,
   Plus,
@@ -23,7 +25,6 @@ import {
   ToastProvider,
   useToast,
 } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 import { formatPrice } from '@/lib/utils'
@@ -72,6 +73,7 @@ interface ProductItem {
 
   isFeatured: boolean
   isActive: boolean
+  canAddNiqab?: boolean
 }
 
 /*
@@ -142,16 +144,31 @@ const isNiqabCategory = (
   )
 }
 
-function ProductContent() {
+interface ApiProductsResponse {
+  items?: ProductItem[]
+  products?: ProductItem[]
+  totalPages?: number
+  error?: string
+  message?: string
+}
+
+interface ApiMessageResponse {
+  error?: string
+  message?: string
+}
+
+function ProductContent({ initialSearch }: { initialSearch: string }) {
   const [products, setProducts] = useState<ProductItem[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
 
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch)
   const [selectedCategory, setSelectedCategory] = useState('all')
 
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -180,7 +197,9 @@ function ProductContent() {
     nameAr: '',
     nameFr: '',
     nameEn: '',
+    descriptionAr: '',
     descriptionFr: '',
+    descriptionEn: '',
 
     sku: '',
 
@@ -199,6 +218,7 @@ function ProductContent() {
 
     isFeatured: false,
     isActive: true,
+    canAddNiqab: true,
   })
 
   const { success, error } = useToast()
@@ -231,182 +251,97 @@ function ProductContent() {
    * =========================================================
    */
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      const res = await fetch(
-        '/api/admin/categories',
-        {
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
+
+  useEffect(() => {
+    let active = true
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/admin/categories', {
           method: 'GET',
           cache: 'no-store',
-          headers: {
-            Accept: 'application/json',
-          },
+          headers: { Accept: 'application/json' },
+        })
+        if (!res.ok) {
+          throw new Error(`Failed to fetch categories (${res.status})`)
         }
-      )
-
-      if (!res.ok) {
-        throw new Error(
-          `Failed to fetch categories (${res.status})`
-        )
+        const data = (await res.json()) as { items?: CategoryOption[]; categories?: CategoryOption[] }
+        const items = Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.categories)
+            ? data.categories
+            : []
+        if (active) setCategories(items)
+      } catch (err) {
+        console.error('Error fetching categories:', err)
+        if (active) setCategories([])
       }
-
-      const data = await res.json()
-
-      const items = Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data?.categories)
-          ? data.categories
-          : []
-
-      setCategories(items)
-    } catch (err) {
-      console.error(
-        'Error fetching categories:',
-        err
-      )
-
-      setCategories([])
     }
+    loadCategories()
+    return () => { active = false }
   }, [])
 
-  /*
-   * =========================================================
-   * Fetch Products
-   * =========================================================
-   */
-
-  const fetchProducts = useCallback(async () => {
-    setLoading(true)
-
-    try {
-      const params = new URLSearchParams()
-
-      if (search.trim()) {
-        params.set(
-          'search',
-          search.trim()
-        )
-      }
-
-      if (selectedCategory !== 'all') {
-        params.set(
-          'category',
-          selectedCategory
-        )
-      }
-
-      params.set(
-        'page',
-        String(page)
-      )
-
-      params.set(
-        'limit',
-        '8'
-      )
-
-      const url =
-        `/api/admin/products?${params.toString()}`
-
-      console.log(
-        'Fetching products:',
-        url
-      )
-
-      const res = await fetch(url, {
-        method: 'GET',
-        credentials: 'same-origin',
-        cache: 'no-store',
-        headers: {
-          Accept: 'application/json',
-        },
-      })
-
-      const contentType =
-        res.headers.get(
-          'content-type'
-        ) || ''
-
-      let data: any = null
-
-      if (
-        contentType.includes(
-          'application/json'
-        )
-      ) {
-        data = await res.json()
-      } else {
-        const text = await res.text()
-
-        data = {
-          error: text,
+  useEffect(() => {
+    let active = true
+    async function loadProducts() {
+      try {
+        const params = new URLSearchParams()
+        if (debouncedSearch.trim()) {
+          params.set('search', debouncedSearch.trim())
         }
-      }
+        if (selectedCategory !== 'all') {
+          params.set('category', selectedCategory)
+        }
+        params.set('page', String(page))
+        params.set('limit', '8')
 
-      console.log(
-        'Products API status:',
-        res.status
-      )
+        const res = await fetch(`/api/admin/products?${params.toString()}`, {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        })
 
-      console.log(
-        'Products API response:',
-        data
-      )
+        const contentType = res.headers.get('content-type') || ''
+        let data: ApiProductsResponse | null = null
+        if (contentType.includes('application/json')) {
+          data = (await res.json()) as ApiProductsResponse
+        } else {
+          data = { error: await res.text() }
+        }
 
-      if (!res.ok) {
-        throw new Error(
-          data?.error ||
-          data?.message ||
-          `Products API returned HTTP ${res.status}`
-        )
-      }
+        if (!res.ok) {
+          throw new Error(data?.error || data?.message || `Products API returned HTTP ${res.status}`)
+        }
 
-      const items =
-        Array.isArray(data?.items)
+        const items = Array.isArray(data?.items)
           ? data.items
-          : Array.isArray(
-            data?.products
-          )
+          : Array.isArray(data?.products)
             ? data.products
             : []
 
-      setProducts(items)
-
-      setTotalPages(
-        Number(data?.totalPages) > 0
-          ? Number(data.totalPages)
-          : 1
-      )
-    } catch (err) {
-      console.error(
-        'Error fetching products:',
-        err
-      )
-
-      setProducts([])
-      setTotalPages(1)
-    } finally {
-      setLoading(false)
+        if (active) {
+          setProducts(items)
+          setTotalPages(Number(data?.totalPages) > 0 ? Number(data?.totalPages) : 1)
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err)
+        if (active) {
+          setProducts([])
+          setTotalPages(1)
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
     }
-  }, [
-    search,
-    selectedCategory,
-    page,
-  ])
-
-  useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
-
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
-
-  /*
-   * =========================================================
-   * Create Modal
-   * =========================================================
-   */
+    loadProducts()
+    return () => { active = false }
+  }, [debouncedSearch, selectedCategory, page, refreshTick])
 
   const openCreateModal = () => {
     setEditingProduct(null)
@@ -415,31 +350,28 @@ function ProductContent() {
       nameAr: '',
       nameFr: '',
       nameEn: '',
+      descriptionAr: '',
       descriptionFr: '',
+      descriptionEn: '',
 
-      sku: `SKU-${Math.floor(
-        100000 +
-        Math.random() * 900000
-      )}`,
+      sku: `SKU-${Math.floor(100000 + Math.random() * 900000)}`,
 
       basePrice: '',
       salePrice: '',
       stock: '20',
 
-      categoryId:
-        categories[0]?.id || '',
+      categoryId: categories[0]?.id || '',
 
       mainImage: '',
       images: [],
 
-      colors:
-        '#C4622D, #F2E4CE, #000000',
+      colors: '#C4622D, #F2E4CE, #000000',
 
-      sizes:
-        'S, M, L, XL',
+      sizes: 'S, M, L, XL',
 
       isFeatured: false,
       isActive: true,
+      canAddNiqab: true,
     })
 
     setIsModalOpen(true)
@@ -451,125 +383,50 @@ function ProductContent() {
    * =========================================================
    */
 
-  const openEditModal = async (
-    product: ProductItem
-  ) => {
+  const openEditModal = async (product: ProductItem) => {
     setEditingProduct(product)
 
-    // Fetch the authoritative product detail so colors/sizes/stock always come
-    // from the current active variants in the DB, never from the (possibly
-    // stale) list row. This guarantees Admin reopens match the Storefront.
-    let fresh: any = null
+    let fresh: ProductItem | null = null
     try {
-      const res = await fetch(
-        `/api/admin/products/${product.id}`,
-        {
-          method: 'GET',
-          credentials: 'same-origin',
-          cache: 'no-store',
-          headers: {
-            Accept: 'application/json',
-          },
-        }
-      )
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+      })
       if (res.ok) {
-        const data = await res.json()
+        const data = (await res.json()) as { product?: ProductItem | null }
         fresh = data?.product ?? null
       }
     } catch (err) {
       console.error('Error fetching product detail:', err)
     }
 
-    const resolved =
-      fresh ||
-      product
-
-    const category =
-      categories.find(
-        (cat) =>
-          cat.id ===
-          resolved.categoryId
-      )
-
-    const categoryIsNiqab =
-      isNiqabCategory(category)
+    const resolved = fresh || product
+    const category = categories.find((cat) => cat.id === resolved.categoryId)
+    const categoryIsNiqab = isNiqabCategory(category)
 
     setFormData({
-      nameAr:
-        resolved.nameAr ||
-        resolved.name ||
-        '',
+      nameAr: resolved.nameAr || resolved.name || '',
+      nameFr: resolved.nameFr || resolved.name || '',
+      nameEn: resolved.nameEn || resolved.name || '',
 
-      nameFr:
-        resolved.nameFr ||
-        resolved.name ||
-        '',
-
-      nameEn:
-        resolved.nameEn ||
-        resolved.name ||
-        '',
-
-      descriptionFr:
-        resolved.descriptionFr ||
-        resolved.descriptionAr ||
-        resolved.descriptionEn ||
-        '',
+      descriptionAr: resolved.descriptionAr || '',
+      descriptionFr: resolved.descriptionFr || resolved.descriptionAr || resolved.descriptionEn || '',
+      descriptionEn: resolved.descriptionEn || '',
 
       sku: resolved.sku,
-
-      basePrice:
-        String(
-          resolved.basePrice
-        ),
-
-      salePrice:
-        resolved.salePrice !==
-          null &&
-          resolved.salePrice !==
-          undefined
-          ? String(
-            resolved.salePrice
-          )
-          : '',
-
-      stock:
-        String(resolved.stock),
-
-      categoryId:
-        resolved.categoryId,
-
-      mainImage:
-        resolved.mainImage,
-
-      images:
-        resolved.images || [],
-
-      colors:
-        resolved.colors
-          ?.map(
-            (color: { code: string }) =>
-              color.code
-          )
-          .join(', ') || '',
-
-      /*
-       * إذا كانت الفئة نقاب:
-       * sizes = ''
-       *
-       * وإلا نستعمل المقاسات الموجودة.
-       */
-      sizes: categoryIsNiqab
-        ? ''
-        : resolved.sizes
-          ?.join(', ') ||
-        'S, M, L, XL',
-
-      isFeatured:
-        resolved.isFeatured,
-
-      isActive:
-        resolved.isActive,
+      basePrice: String(resolved.basePrice),
+      salePrice: resolved.salePrice !== null && resolved.salePrice !== undefined ? String(resolved.salePrice) : '',
+      stock: String(resolved.stock),
+      categoryId: resolved.categoryId,
+      mainImage: resolved.mainImage,
+      images: resolved.images || [],
+      colors: resolved.colors?.map((color: { code: string }) => color.code).join(', ') || '',
+      sizes: categoryIsNiqab ? '' : resolved.sizes?.join(', ') || 'S, M, L, XL',
+      isFeatured: resolved.isFeatured,
+      isActive: resolved.isActive,
+      canAddNiqab: resolved.canAddNiqab ?? true,
     })
 
     setIsModalOpen(true)
@@ -623,241 +480,122 @@ function ProductContent() {
    * =========================================================
    */
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const parsedBasePrice = Number(formData.basePrice)
+    if (!Number.isFinite(parsedBasePrice) || parsedBasePrice < 0) {
+      error('Base price must be a valid non-negative number')
+      return
+    }
+
+    const parsedSalePrice = formData.salePrice.trim() ? Number(formData.salePrice.trim()) : null
+    if (parsedSalePrice !== null) {
+      if (!Number.isFinite(parsedSalePrice) || parsedSalePrice < 0) {
+        error('Sale price must be a valid non-negative number')
+        return
+      }
+      if (parsedSalePrice >= parsedBasePrice) {
+        error('Sale price must be lower than base price')
+        return
+      }
+    }
+
+    const parsedStock = Number.parseInt(formData.stock, 10)
+    if (!Number.isFinite(parsedStock) || parsedStock < 0) {
+      error('Stock quantity must be a non-negative whole number')
+      return
+    }
+
+    const rawColorTokens = formData.colors.split(',').map((c) => c.trim()).filter(Boolean)
+    const seenColors = new Set<string>()
+    const colorsArr: Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }> = []
+    for (const token of rawColorTokens) {
+      const normalized = (token.startsWith('#') ? token : `#${token}`).toUpperCase()
+      if (!/^#[0-9A-F]{3,8}$/.test(normalized)) {
+        error(`Invalid hex color code: "${token}"`)
+        return
+      }
+      if (!seenColors.has(normalized)) {
+        seenColors.add(normalized)
+        const names = getColorNames(normalized)
+        colorsArr.push({
+          code: normalized,
+          nameAr: names.ar,
+          nameFr: names.fr,
+          nameEn: names.en,
+        })
+      }
+    }
 
     setSubmitting(true)
 
     try {
-      const category =
-        categories.find(
-          (cat) =>
-            cat.id ===
-            formData.categoryId
-        )
+      const category = categories.find((cat) => cat.id === formData.categoryId)
+      const categoryIsNiqab = isNiqabCategory(category)
 
-      /*
-       * استعمال الـhelper الوحيد.
-       */
-      const categoryIsNiqab =
-        isNiqabCategory(category)
-
-      /*
-       * =====================================================
-       * Colors
-       * =====================================================
-       */
-
-      const colorsArr =
-        formData.colors
-          .split(',')
-          .map((c) =>
-            c.trim()
-          )
-          .filter(Boolean)
-          .map((code) => ({ code, ...getColorNames(code) }))
-
-      /*
-       * =====================================================
-       * Sizes
-       * =====================================================
-       *
-       * Niqab = []
-       *
-       * Other categories =
-       * parse normally.
-       */
-      const sizesArr =
-        categoryIsNiqab
-          ? []
-          : formData.sizes
-            .split(',')
-            .map((s) =>
-              s.trim()
-            )
-            .filter(Boolean)
-
-      /*
-       * =====================================================
-       * Payload
-       * =====================================================
-       */
+      const sizesArr = categoryIsNiqab
+        ? []
+        : Array.from(new Set(formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)))
 
       const payload = {
-        nameAr:
-          formData.nameAr ||
-          formData.nameFr,
-
-        nameFr:
-          formData.nameFr,
-
-        nameEn:
-          formData.nameEn ||
-          formData.nameFr,
-
-        descriptionFr:
-          formData.descriptionFr,
-
-        sku:
-          formData.sku,
-
-        basePrice:
-          parseFloat(
-            formData.basePrice
-          ),
-
-        salePrice:
-          formData.salePrice
-            ? parseFloat(
-              formData.salePrice
-            )
-            : null,
-
-        stock:
-          parseInt(
-            formData.stock,
-            10
-          ),
-
-        categoryId:
-          formData.categoryId,
-
-        mainImage:
-          formData.mainImage ||
-          formData.images[0] ||
-          '/images/brand/logo-full.png',
-
-        images:
-          formData.images
-            .length > 0
-            ? formData.images
-            : [
-              formData.mainImage ||
-              '/images/brand/logo-full.png',
-            ],
-
-        colors:
-          colorsArr,
-
-        /*
-         * نقاب دائمًا []
-         */
-        sizes:
-          sizesArr,
-
-        isFeatured:
-          formData.isFeatured,
-
-        isActive:
-          formData.isActive,
+        nameAr: formData.nameAr.trim() || formData.nameFr.trim(),
+        nameFr: formData.nameFr.trim(),
+        nameEn: formData.nameEn.trim() || formData.nameFr.trim(),
+        descriptionAr: formData.descriptionAr.trim() || formData.descriptionFr.trim(),
+        descriptionFr: formData.descriptionFr.trim(),
+        descriptionEn: formData.descriptionEn.trim() || formData.descriptionFr.trim(),
+        sku: formData.sku.trim(),
+        basePrice: parsedBasePrice,
+        salePrice: parsedSalePrice,
+        stock: parsedStock,
+        categoryId: formData.categoryId,
+        mainImage: formData.mainImage || formData.images[0] || '/images/brand/logo-full.png',
+        images: formData.images.length > 0
+          ? formData.images
+          : [formData.mainImage || '/images/brand/logo-full.png'],
+        colors: colorsArr,
+        sizes: sizesArr,
+        isFeatured: formData.isFeatured,
+        isActive: formData.isActive,
+        canAddNiqab: categoryIsNiqab ? false : formData.canAddNiqab,
       }
 
-      /*
-       * =====================================================
-       * IMPORTANT:
-       * أصلحنا الـURL.
-       *
-       * القديم كان:
-       * / api / admin / products / id
-       *
-       * والصحيح:
-       * /api/admin/products/id
-       * =====================================================
-       */
+      const url = editingProduct
+        ? `/api/admin/products/${editingProduct.id}`
+        : '/api/admin/products'
+      const method = editingProduct ? 'PUT' : 'POST'
 
-      const url =
-        editingProduct
-          ? `/api/admin/products/${editingProduct.id}`
-          : '/api/admin/products'
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
 
-      const method =
-        editingProduct
-          ? 'PUT'
-          : 'POST'
-
-      console.log(
-        'Saving product:',
-        {
-          url,
-          method,
-          payload,
-        }
-      )
-
-      const res =
-        await fetch(url, {
-          method,
-
-          headers: {
-            'Content-Type':
-              'application/json',
-
-            Accept:
-              'application/json',
-          },
-
-          body:
-            JSON.stringify(
-              payload
-            ),
-        })
-
-      const contentType =
-        res.headers.get(
-          'content-type'
-        ) || ''
-
-      let responseData: any =
-        null
-
-      if (
-        contentType.includes(
-          'application/json'
-        )
-      ) {
-        responseData =
-          await res.json()
+      const contentType = res.headers.get('content-type') || ''
+      let responseData: ApiMessageResponse | null = null
+      if (contentType.includes('application/json')) {
+        responseData = (await res.json()) as ApiMessageResponse
       } else {
-        const text =
-          await res.text()
-
-        responseData = {
-          error: text,
-        }
+        responseData = { error: await res.text() }
       }
 
       if (!res.ok) {
         throw new Error(
-          responseData?.error ||
-          responseData?.message ||
-          `Failed to save product (${res.status})`
+          responseData?.error || responseData?.message || `Failed to save product (${res.status})`
         )
       }
 
-      success(
-        editingProduct
-          ? 'Product updated successfully'
-          : 'Product created successfully'
-      )
-
+      success(editingProduct ? 'Product updated successfully' : 'Product created successfully')
       setIsModalOpen(false)
-
       setEditingProduct(null)
-
-      await fetchProducts()
+      setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Action failed'
-
-      console.error(
-        'Error saving product:',
-        err
-      )
-
+      const errorMessage = err instanceof Error ? err.message : 'Action failed'
+      console.error('Error saving product:', err)
       error(errorMessage)
     } finally {
       setSubmitting(false)
@@ -900,22 +638,12 @@ function ProductContent() {
             'content-type'
           ) || ''
 
-        let data: any = null
+        let data: ApiMessageResponse | null = null
 
-        if (
-          contentType.includes(
-            'application/json'
-          )
-        ) {
-          data =
-            await res.json()
+        if (contentType.includes('application/json')) {
+          data = (await res.json()) as ApiMessageResponse
         } else {
-          const text =
-            await res.text()
-
-          data = {
-            error: text,
-          }
+          data = { error: await res.text() }
         }
 
         if (!res.ok) {
@@ -926,13 +654,9 @@ function ProductContent() {
           )
         }
 
-        success(
-          'Product deleted successfully'
-        )
-
+        success('Product deleted successfully')
         setDeleteTarget(null)
-
-        await fetchProducts()
+        setRefreshTick((t) => t + 1)
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error
@@ -1167,8 +891,9 @@ function ProductContent() {
         <div
           style={{
             position: 'relative',
-            minWidth: 280,
-            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            flex: '1 1 220px',
           }}
         >
           <Search
@@ -1456,36 +1181,23 @@ function ProductContent() {
                         >
                           <div
                             style={{
+                              position: 'relative',
                               width: 44,
                               height: 44,
-                              borderRadius:
-                                12,
-                              background:
-                                '#27272a',
-                              border:
-                                '1px solid rgba(63,63,70,0.8)',
-                              overflow:
-                                'hidden',
-                              flexShrink:
-                                0,
+                              borderRadius: 12,
+                              background: '#27272a',
+                              border: '1px solid rgba(63,63,70,0.8)',
+                              overflow: 'hidden',
+                              flexShrink: 0,
                             }}
                           >
-                            <img
-                              src={
-                                prod.mainImage ||
-                                '/images/brand/logo-full.png'
-                              }
-                              alt={
-                                prod.name
-                              }
-                              style={{
-                                width:
-                                  '100%',
-                                height:
-                                  '100%',
-                                objectFit:
-                                  'cover',
-                              }}
+                            <Image
+                              src={prod.mainImage || '/images/brand/logo-full.png'}
+                              alt={prod.name}
+                              fill
+                              sizes="44px"
+                              referrerPolicy="no-referrer"
+                              className="object-cover"
                             />
                           </div>
 
@@ -2019,26 +1731,18 @@ function ProductContent() {
           }}
         >
           <div
+            className="p-4 sm:p-8"
             style={{
-              position:
-                'relative',
+              position: 'relative',
               width: '100%',
               maxWidth: 760,
-              maxHeight:
-                '90vh',
-              overflowY:
-                'auto',
-              background:
-                'rgb(24,24,27)',
-              border:
-                '1px solid rgba(63,63,70,0.8)',
-              borderRadius:
-                24,
-              padding: 32,
-              boxShadow:
-                '0 20px 50px rgba(0,0,0,0.6)',
-              color:
-                '#f4f4f5',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              background: 'rgb(24,24,27)',
+              border: '1px solid rgba(63,63,70,0.8)',
+              borderRadius: 24,
+              boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+              color: '#f4f4f5',
             }}
           >
             <button
@@ -2102,15 +1806,7 @@ function ProductContent() {
                   Product Names
                   ================================================= */}
 
-              <div
-                style={{
-                  display:
-                    'grid',
-                  gridTemplateColumns:
-                    'repeat(3, 1fr)',
-                  gap: 16,
-                }}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Arabic */}
                 <div>
                   <label
@@ -2277,15 +1973,7 @@ function ProductContent() {
                   Pricing, SKU, Stock
                   ================================================= */}
 
-              <div
-                style={{
-                  display:
-                    'grid',
-                  gridTemplateColumns:
-                    'repeat(4, 1fr)',
-                  gap: 16,
-                }}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* SKU */}
                 <div>
                   <label
@@ -2583,86 +2271,76 @@ function ProductContent() {
                   Description
                   ================================================= */}
 
-              <div>
-                <label
-                  style={{
-                    display:
-                      'block',
-                    fontSize:
-                      12,
-                    fontWeight:
-                      700,
-                    color:
-                      '#d4d4d8',
-                    marginBottom:
-                      6,
-                  }}
-                >
-                  Description
-                </label>
-
-                <textarea
-                  rows={3}
-                  value={
-                    formData.descriptionFr
-                  }
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      descriptionFr:
-                        e.target.value,
-                    })
-                  }
-                  placeholder="Detailed product specification and description..."
-                  style={{
-                    width:
-                      '100%',
-                    background:
-                      'rgb(9,9,11)',
-                    border:
-                      '1px solid rgba(63,63,70,0.8)',
-                    borderRadius:
-                      12,
-                    padding:
-                      '10px 14px',
-                    fontSize:
-                      12,
-                    color:
-                      '#f4f4f5',
-                    outline:
-                      'none',
-                    resize:
-                      'none',
-                  }}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>
+                    Description (Arabic)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.descriptionAr}
+                    onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
+                    placeholder="وصف المنتج بالعربية..."
+                    style={{
+                      width: '100%',
+                      background: 'rgb(9,9,11)',
+                      border: '1px solid rgba(63,63,70,0.8)',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      fontSize: 12,
+                      color: '#f4f4f5',
+                      outline: 'none',
+                      resize: 'none',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>
+                    Description (French/Primary)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.descriptionFr}
+                    onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
+                    placeholder="Description détaillée en français..."
+                    style={{
+                      width: '100%',
+                      background: 'rgb(9,9,11)',
+                      border: '1px solid rgba(63,63,70,0.8)',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      fontSize: 12,
+                      color: '#f4f4f5',
+                      outline: 'none',
+                      resize: 'none',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>
+                    Description (English)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.descriptionEn}
+                    onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
+                    placeholder="Detailed product description in English..."
+                    style={{
+                      width: '100%',
+                      background: 'rgb(9,9,11)',
+                      border: '1px solid rgba(63,63,70,0.8)',
+                      borderRadius: 12,
+                      padding: '10px 14px',
+                      fontSize: 12,
+                      color: '#f4f4f5',
+                      outline: 'none',
+                      resize: 'none',
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* =================================================
-                  Colors + Sizes
-                  =================================================
-                  
-                  IMPORTANT:
-                  إذا كانت الفئة نقاب:
-                  - Colors يظهر
-                  - Sizes لا يتم إنشاءه إطلاقًا
-                  
-                  لأننا نستخدم:
-                  {!selectedCategoryIsNiqab && (...)}
-                  ================================================= */}
-
-              <div
-                style={{
-                  display:
-                    'grid',
-
-                  gridTemplateColumns:
-                    selectedCategoryIsNiqab
-                      ? '1fr'
-                      : 'repeat(2, 1fr)',
-
-                  gap: 16,
-                }}
-              >
+              <div className={selectedCategoryIsNiqab ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 gap-4'}>
                 {/* =================================================
                     Colors
                     ================================================= */}
@@ -2841,10 +2519,9 @@ function ProductContent() {
 
               <div
                 style={{
-                  display:
-                    'flex',
-                  alignItems:
-                    'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
                   gap: 24,
                   paddingTop: 6,
                 }}
@@ -2852,93 +2529,66 @@ function ProductContent() {
                 {/* Featured */}
                 <label
                   style={{
-                    display:
-                      'flex',
-                    alignItems:
-                      'center',
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 8,
-                    fontSize:
-                      12,
-                    fontWeight:
-                      700,
-                    color:
-                      '#d4d4d8',
-                    cursor:
-                      'pointer',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#d4d4d8',
+                    cursor: 'pointer',
                   }}
                 >
                   <input
                     type="checkbox"
-                    checked={
-                      formData.isFeatured
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isFeatured:
-                          e.target.checked,
-                      })
-                    }
-                    style={{
-                      width:
-                        16,
-                      height:
-                        16,
-                      accentColor:
-                        '#f59e0b',
-                    }}
+                    checked={formData.isFeatured}
+                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    style={{ width: 16, height: 16, accentColor: '#f59e0b' }}
                   />
-
-                  <span>
-                    Featured Product
-                  </span>
+                  <span>Featured Product</span>
                 </label>
 
                 {/* Active */}
                 <label
                   style={{
-                    display:
-                      'flex',
-                    alignItems:
-                      'center',
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 8,
-                    fontSize:
-                      12,
-                    fontWeight:
-                      700,
-                    color:
-                      '#d4d4d8',
-                    cursor:
-                      'pointer',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#d4d4d8',
+                    cursor: 'pointer',
                   }}
                 >
                   <input
                     type="checkbox"
-                    checked={
-                      formData.isActive
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isActive:
-                          e.target.checked,
-                      })
-                    }
-                    style={{
-                      width:
-                        16,
-                      height:
-                        16,
-                      accentColor:
-                        '#34d399',
-                    }}
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    style={{ width: 16, height: 16, accentColor: '#34d399' }}
                   />
-
-                  <span>
-                    Published /
-                    Active
-                  </span>
+                  <span>Published / Active</span>
                 </label>
+
+                {!selectedCategoryIsNiqab && (
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: '#d4d4d8',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.canAddNiqab}
+                      onChange={(e) => setFormData({ ...formData, canAddNiqab: e.target.checked })}
+                      style={{ width: 16, height: 16, accentColor: '#fbbf24' }}
+                    />
+                    <span>Can Add Matching Niqab</span>
+                  </label>
+                )}
               </div>
 
               {/* =================================================
@@ -3138,12 +2788,16 @@ function ProductContent() {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                           {review.customer.avatarUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={review.customer.avatarUrl}
-                              alt={review.customer.name}
-                              style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                            />
+                            <div style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                              <Image
+                                src={review.customer.avatarUrl}
+                                alt={review.customer.name}
+                                fill
+                                sizes="30px"
+                                referrerPolicy="no-referrer"
+                                className="object-cover"
+                              />
+                            </div>
                           ) : (
                             <div
                               style={{
@@ -3251,14 +2905,20 @@ function ProductContent() {
   )
 }
 
+function ProductsWithSearchParams() {
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams.get('search') || ''
+  return <ProductContent key={initialSearch} initialSearch={initialSearch} />
+}
+
 export default function AdminProductsPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <ProductContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <Suspense fallback={null}>
+          <ProductsWithSearchParams />
+        </Suspense>
+      </AdminLayout>
+    </ToastProvider>
   )
 }

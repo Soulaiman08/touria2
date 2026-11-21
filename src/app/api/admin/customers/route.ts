@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
@@ -100,7 +101,7 @@ export async function GET(request: Request) {
       // never merges with a registered account.
       const key = ((order.customerPhone || order.customerEmail || '')).trim().toLowerCase() || (order.customerName || '').trim().toLowerCase()
       const idKey = key
-        ? `guest_${Buffer.from(key).toString('hex').slice(0, 12)}`
+        ? `guest_${crypto.createHash('sha256').update(key).digest('hex').slice(0, 16)}`
         : `guest_${order.id}`
       let group = guestMap.get(idKey)
       if (!group) {

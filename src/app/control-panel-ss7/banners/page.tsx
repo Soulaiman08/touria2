@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import {
   Image as ImageIcon,
   Plus,
@@ -14,7 +15,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 
@@ -47,26 +47,28 @@ function BannersContent() {
     isActive: true,
   })
 
+  const [refreshTick, setRefreshTick] = useState(0)
   const { success, error } = useToast()
 
-  const fetchBanners = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/banners')
-      const data = await res.json()
-      if (data.items) {
-        setBanners(data.items)
-      }
-    } catch (err) {
-      console.error('Error fetching banners:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    fetchBanners()
-  }, [fetchBanners])
+    let active = true
+    async function loadBanners() {
+      try {
+        const res = await fetch('/api/admin/banners')
+        if (!res.ok) return
+        const data = await res.json()
+        if (active && Array.isArray(data.items)) {
+          setBanners(data.items)
+        }
+      } catch (err) {
+        console.error('Error fetching banners:', err)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadBanners()
+    return () => { active = false }
+  }, [refreshTick])
 
   const openCreateModal = () => {
     setEditingBanner(null)
@@ -98,16 +100,21 @@ function BannersContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.imageUrl.trim()) {
+      error('Banner image is required')
+      return
+    }
     setSubmitting(true)
 
     try {
+      const parsedSortOrder = Number.parseInt(formData.sortOrder, 10)
       const payload = {
         title: formData.title,
         subtitle: formData.subtitle || null,
         buttonText: formData.buttonText || null,
         buttonUrl: formData.buttonUrl || null,
-        imageUrl: formData.imageUrl || '/images/brand/logo-full.png',
-        sortOrder: parseInt(formData.sortOrder, 10),
+        imageUrl: formData.imageUrl.trim(),
+        sortOrder: Number.isFinite(parsedSortOrder) ? parsedSortOrder : 0,
         isActive: formData.isActive,
       }
 
@@ -121,13 +128,13 @@ function BannersContent() {
       })
 
       if (!res.ok) {
-        const errData = await res.json()
+        const errData = await res.json().catch(() => ({}))
         throw new Error(errData.error || 'Failed to save banner')
       }
 
       success(editingBanner ? 'Banner updated' : 'Banner created')
       setIsModalOpen(false)
-      fetchBanners()
+      setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Action failed'
       error(errorMessage)
@@ -141,11 +148,14 @@ function BannersContent() {
     setSubmitting(true)
     try {
       const res = await fetch(`/api/admin/banners/${deleteTarget.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete banner')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to delete banner')
+      }
 
       success('Banner deleted successfully')
       setDeleteTarget(null)
-      fetchBanners()
+      setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Error deleting banner'
       error(errorMessage)
@@ -195,7 +205,7 @@ function BannersContent() {
       </div>
 
       {/* Grid of Banners */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: '#71717a' }}>
             <span style={{ display: 'inline-block', width: 24, height: 24, border: '2px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 8 }} />
@@ -219,10 +229,13 @@ function BannersContent() {
             >
               {/* Banner Image Preview */}
               <div style={{ position: 'relative', height: 200, background: 'rgb(9,9,11)', overflow: 'hidden' }}>
-                <img
+                <Image
                   src={ban.imageUrl || '/images/brand/logo-full.png'}
                   alt={ban.title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  referrerPolicy="no-referrer"
+                  className="object-cover"
                 />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(9,9,11,0.95), rgba(9,9,11,0.3), transparent)', padding: 18, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                   <h3 style={{ fontSize: 16, fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{ban.title}</h3>
@@ -279,7 +292,7 @@ function BannersContent() {
       {/* Banner Modal */}
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
-          <div style={{ position: 'relative', width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, padding: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
+          <div className="p-5 sm:p-8" style={{ position: 'relative', width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
             <button
               onClick={() => setIsModalOpen(false)}
               style={{ position: 'absolute', top: 24, right: 24, padding: 8, borderRadius: 10, background: 'none', border: 'none', color: '#71717a', cursor: 'pointer' }}
@@ -315,7 +328,7 @@ function BannersContent() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Button Text</label>
                   <input
@@ -409,12 +422,10 @@ function BannersContent() {
 
 export default function AdminBannersPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <BannersContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <BannersContent />
+      </AdminLayout>
+    </ToastProvider>
   )
 }

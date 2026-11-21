@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useCallback, useEffect, useState, use } from 'react'
+import React, { useEffect, useState, use } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ArrowLeft,
   User,
@@ -15,7 +16,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { formatPrice } from '@/lib/utils'
 import { resolveOrderColor } from '@/lib/color-names'
 import { CopyWhatsAppButton } from '@/components/admin/orders/CopyWhatsAppButton'
@@ -124,29 +124,30 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
   const [adminNotes, setAdminNotes] = useState('')
   const [statusNote, setStatusNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [refreshTick, setRefreshTick] = useState(0)
   const { success, error } = useToast()
 
-  const fetchOrderDetail = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/admin/orders/${orderId}`)
-      if (!res.ok) throw new Error(`Failed to load order: ${res.status}`)
-      const data = await res.json()
-      if (data.order) {
-        setOrder(data.order)
-        setStatus(data.order.status)
-        setAdminNotes(data.order.adminNotes || '')
-      }
-    } catch (err) {
-      console.error('Error loading order details:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [orderId])
-
   useEffect(() => {
-    fetchOrderDetail()
-  }, [fetchOrderDetail])
+    let active = true
+    async function loadOrderDetail() {
+      try {
+        const res = await fetch(`/api/admin/orders/${orderId}`)
+        if (!res.ok) throw new Error(`Failed to load order: ${res.status}`)
+        const data = await res.json()
+        if (active && data.order) {
+          setOrder(data.order)
+          setStatus(data.order.status)
+          setAdminNotes(data.order.adminNotes || '')
+        }
+      } catch (err) {
+        console.error('Error loading order details:', err)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadOrderDetail()
+    return () => { active = false }
+  }, [orderId, refreshTick])
 
   const handleUpdate = async () => {
     setSaving(true)
@@ -161,9 +162,12 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
         }),
       })
 
-      if (!res.ok) throw new Error('Failed to update order')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to update order')
+      }
 
-      await fetchOrderDetail()
+      setRefreshTick((t) => t + 1)
       setStatusNote('')
       success('Order updated successfully')
     } catch (err: unknown) {
@@ -288,9 +292,9 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
       </div>
 
       {/* ── Main Layout Grid ────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── Left Column (2/3 width): Purchased Items & Admin Notes ─────── */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="lg:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Purchased Items Card */}
           <div
             style={{
@@ -364,6 +368,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                       {/* Product Image */}
                       <div
                         style={{
+                          position: 'relative',
                           width: 64,
                           height: 64,
                           minWidth: 64,
@@ -375,10 +380,13 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                           flexShrink: 0,
                         }}
                       >
-                        <img
+                        <Image
                           src={productImage}
                           alt={productName}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          fill
+                          sizes="64px"
+                          referrerPolicy="no-referrer"
+                          className="object-cover"
                         />
                       </div>
 
@@ -451,9 +459,12 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                                 }}
                               >
                                 {niqab.image && (
-                                  <img
+                                  <Image
                                     src={niqab.image}
                                     alt="Niqab"
+                                    width={22}
+                                    height={22}
+                                    referrerPolicy="no-referrer"
                                     style={{
                                       width: 22,
                                       height: 22,
@@ -953,12 +964,10 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <OrderDetailContent orderId={resolvedParams.id} />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <OrderDetailContent orderId={resolvedParams.id} />
+      </AdminLayout>
+    </ToastProvider>
   )
 }

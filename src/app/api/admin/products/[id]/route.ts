@@ -65,7 +65,12 @@ export async function PUT(
   if (!auth.ok) return auth.response
   try {
     const { id } = await params
-    const body = await request.json() as Record<string, unknown>
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
 
     const existing = await prisma.product.findUnique({ where: { id } })
     if (!existing) {
@@ -82,57 +87,103 @@ export async function PUT(
 
     const updateData: Record<string, unknown> = {}
 
-    if (nameAr || name) updateData.nameAr = (nameAr || name) as string
-    if (nameFr || name) {
-      updateData.nameFr = (nameFr || name) as string
-      const newSlug = slugify((nameFr || name) as string)
-      if (newSlug && newSlug !== existing.slug) {
-        const dup = await prisma.product.findUnique({ where: { slug: newSlug }, select: { id: true } })
+    if (typeof nameAr === 'string' && nameAr.trim()) updateData.nameAr = nameAr.trim()
+    else if (typeof name === 'string' && name.trim()) updateData.nameAr = name.trim()
+
+    if (typeof nameFr === 'string' && nameFr.trim()) {
+      const trimmedFr = nameFr.trim()
+      updateData.nameFr = trimmedFr
+      const candidateSlug = slugify(trimmedFr)
+      if (candidateSlug && candidateSlug !== existing.slug) {
+        const dup = await prisma.product.findUnique({ where: { slug: candidateSlug }, select: { id: true } })
         if (dup && dup.id !== id) {
           return NextResponse.json({ error: 'A product with this name already exists (duplicate slug)' }, { status: 400 })
         }
+        updateData.slug = candidateSlug
       }
-      updateData.slug = newSlug
+    } else if (typeof name === 'string' && name.trim()) {
+      const trimmed = name.trim()
+      updateData.nameFr = trimmed
+      const candidateSlug = slugify(trimmed)
+      if (candidateSlug && candidateSlug !== existing.slug) {
+        const dup = await prisma.product.findUnique({ where: { slug: candidateSlug }, select: { id: true } })
+        if (dup && dup.id !== id) {
+          return NextResponse.json({ error: 'A product with this name already exists (duplicate slug)' }, { status: 400 })
+        }
+        updateData.slug = candidateSlug
+      }
     }
-    if (nameEn || name) updateData.nameEn = (nameEn || name) as string
 
-    if (descriptionAr || description) updateData.descriptionAr = (descriptionAr || description) as string
-    if (descriptionFr || description) updateData.descriptionFr = (descriptionFr || description) as string
-    if (descriptionEn || description) updateData.descriptionEn = (descriptionEn || description) as string
+    if (typeof nameEn === 'string' && nameEn.trim()) updateData.nameEn = nameEn.trim()
+    else if (typeof name === 'string' && name.trim()) updateData.nameEn = name.trim()
 
+    if (typeof descriptionAr === 'string' && descriptionAr.trim()) updateData.descriptionAr = descriptionAr.trim()
+    else if (typeof description === 'string' && description.trim()) updateData.descriptionAr = description.trim()
+
+    if (typeof descriptionFr === 'string' && descriptionFr.trim()) updateData.descriptionFr = descriptionFr.trim()
+    else if (typeof description === 'string' && description.trim()) updateData.descriptionFr = description.trim()
+
+    if (typeof descriptionEn === 'string' && descriptionEn.trim()) updateData.descriptionEn = descriptionEn.trim()
+    else if (typeof description === 'string' && description.trim()) updateData.descriptionEn = description.trim()
+
+    let effectiveBasePrice = Number(existing.basePrice)
     if (basePrice !== undefined) {
       const parsed = Number(basePrice)
-      if (!Number.isFinite(parsed) || parsed < 0) return NextResponse.json({ error: 'Price must be a valid number' }, { status: 400 })
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return NextResponse.json({ error: 'Price must be a valid number' }, { status: 400 })
+      }
+      effectiveBasePrice = parsed
       updateData.basePrice = parsed
     }
+
     if (salePrice !== undefined && salePrice !== null && String(salePrice).trim() !== '') {
       const parsed = Number(salePrice)
-      if (!Number.isFinite(parsed) || parsed < 0) return NextResponse.json({ error: 'Sale price must be a valid number' }, { status: 400 })
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return NextResponse.json({ error: 'Sale price must be a valid number' }, { status: 400 })
+      }
+      if (parsed >= effectiveBasePrice) {
+        return NextResponse.json({ error: 'Sale price must be lower than base price' }, { status: 400 })
+      }
       updateData.salePrice = parsed
     } else if (salePrice !== undefined) {
       updateData.salePrice = null
+    } else if (existing.salePrice !== null && Number(existing.salePrice) >= effectiveBasePrice) {
+      return NextResponse.json({ error: 'Base price must remain greater than existing sale price' }, { status: 400 })
     }
-    if (sku) {
-      if (sku !== existing.sku) {
-        const dup = await prisma.product.findUnique({ where: { sku: sku as string }, select: { id: true } })
+
+    if (typeof sku === 'string' && sku.trim()) {
+      const cleanSku = sku.trim()
+      if (cleanSku !== existing.sku) {
+        const dup = await prisma.product.findUnique({ where: { sku: cleanSku }, select: { id: true } })
         if (dup && dup.id !== id) return NextResponse.json({ error: 'This SKU is already in use' }, { status: 400 })
       }
-      updateData.sku = sku as string
+      updateData.sku = cleanSku
     }
-    if (categoryId) updateData.categoryId = categoryId as string
-    if (mainImage) updateData.mainImage = mainImage as string
-    if (Array.isArray(images)) updateData.images = images as string[]
+
+    if (typeof categoryId === 'string' && categoryId.trim()) {
+      const catExists = await prisma.category.findUnique({ where: { id: categoryId.trim() }, select: { id: true } })
+      if (!catExists) {
+        return NextResponse.json({ error: 'Selected category does not exist' }, { status: 400 })
+      }
+      updateData.categoryId = categoryId.trim()
+    }
+
+    if (typeof mainImage === 'string' && mainImage.trim()) updateData.mainImage = mainImage.trim()
+    if (Array.isArray(images)) updateData.images = images.filter((i): i is string => typeof i === 'string' && i.trim().length > 0)
     if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured)
     if (isActive !== undefined) updateData.isActive = Boolean(isActive)
     if (isNiqab !== undefined) updateData.isNiqab = Boolean(isNiqab)
     if (canAddNiqab !== undefined) updateData.canAddNiqab = Boolean(canAddNiqab)
 
-    // Product update + variant refresh happen in a single transaction so a
-    // failure can never leave the product and its variants out of sync.
-    // 45+ sequential variant upserts exceed Prisma's default interactive-transaction
-    // timeout (5s), which closes the transaction and makes later tx.* calls throw
-    // P2028 "Transaction not found". Raise the timeout so the full variant grid can
-    // complete atomically.
+    let parsedStock: number | null = null
+    if (stock !== undefined && stock !== null && String(stock).trim() !== '') {
+      const parsed = Number(String(stock).trim())
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return NextResponse.json({ error: 'Stock quantity must be a non-negative number' }, { status: 400 })
+      }
+      parsedStock = Math.floor(parsed)
+    }
+
     const updatedProduct = await prisma.$transaction(
       async (tx) => {
         const updated = await tx.product.update({
@@ -140,26 +191,29 @@ export async function PUT(
           data: updateData,
         })
 
-        // Refresh variants if stock/colors/sizes were provided.
-        // Upserts by (productId, size, colorCode) so existing variant IDs stay
-        // stable (order items reference them); old combos are deactivated
-        // instead of deleted to preserve order-item foreign keys.
         if (stock !== undefined || colors || sizes) {
-          const variantColors = Array.isArray(colors) && colors.length > 0
-            ? colors as Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }>
+          const rawColors = Array.isArray(colors) && colors.length > 0
+            ? (colors as Array<{ code?: string; nameAr?: string; nameFr?: string; nameEn?: string }>)
             : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
-          const variantSizes = Array.isArray(sizes) && sizes.length > 0
-            ? sizes as string[]
-            : ['Standard']
 
-          // When a total stock is provided, distribute it exactly across the
-          // variant grid (valid "0" stays 0). When absent, existing per-variant
-          // stock is preserved instead of being overwritten.
-          let parsedStock: number | null = null
-          if (stock !== undefined && stock !== null && String(stock).trim() !== '') {
-            const parsed = Number(String(stock).trim())
-            if (Number.isFinite(parsed)) parsedStock = Math.max(0, Math.floor(parsed))
+          const uniqueColorMap = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
+          for (const c of rawColors) {
+            const code = (c.code || '#000000').trim().toUpperCase()
+            if (!uniqueColorMap.has(code)) {
+              uniqueColorMap.set(code, {
+                code,
+                nameAr: c.nameAr?.trim() || 'لون',
+                nameFr: c.nameFr?.trim() || 'Couleur',
+                nameEn: c.nameEn?.trim() || 'Color',
+              })
+            }
           }
+          const variantColors = Array.from(uniqueColorMap.values())
+
+          const rawSizes = Array.isArray(sizes) && sizes.length > 0 ? (sizes as string[]) : ['Standard']
+          const variantSizes = Array.from(new Set(rawSizes.map((s) => String(s).trim()).filter(Boolean)))
+          if (variantSizes.length === 0) variantSizes.push('Standard')
+
           const totalSlots = variantColors.length * variantSizes.length
           const baseStock = parsedStock === null ? 0 : Math.floor(parsedStock / totalSlots)
           const remainder = parsedStock === null ? 0 : parsedStock % totalSlots
@@ -168,12 +222,12 @@ export async function PUT(
           let slotIndex = 0
           for (const color of variantColors) {
             for (const size of variantSizes) {
-              desiredKeys.add(`${size}:${color.code || '#000000'}`)
-              const slotStock = baseStock + (slotIndex < remainder ? 1 : 0)
+              desiredKeys.add(`${size}:${color.code}`)
+              const slotStock = parsedStock === null ? 10 : baseStock + (slotIndex < remainder ? 1 : 0)
               const variantUpdateData: Record<string, unknown> = {
-                colorNameAr: color.nameAr || 'لون',
-                colorNameFr: color.nameFr || 'Couleur',
-                colorNameEn: color.nameEn || 'Color',
+                colorNameAr: color.nameAr,
+                colorNameFr: color.nameFr,
+                colorNameEn: color.nameEn,
                 isActive: true,
               }
               if (parsedStock !== null) variantUpdateData.stockQuantity = slotStock
@@ -182,17 +236,17 @@ export async function PUT(
                   productId_size_colorCode: {
                     productId: id,
                     size,
-                    colorCode: color.code || '#000000',
+                    colorCode: color.code,
                   },
                 },
                 update: variantUpdateData,
                 create: {
                   productId: id,
                   size,
-                  colorCode: color.code || '#000000',
-                  colorNameAr: color.nameAr || 'لون',
-                  colorNameFr: color.nameFr || 'Couleur',
-                  colorNameEn: color.nameEn || 'Color',
+                  colorCode: color.code,
+                  colorNameAr: color.nameAr,
+                  colorNameFr: color.nameFr,
+                  colorNameEn: color.nameEn,
                   stockQuantity: slotStock,
                   priceModifier: 0,
                   images: [],
@@ -205,7 +259,7 @@ export async function PUT(
 
           const allVariants = await tx.productVariant.findMany({ where: { productId: id } })
           for (const variant of allVariants) {
-            if (!desiredKeys.has(`${variant.size}:${variant.colorCode}`)) {
+            if (!desiredKeys.has(`${variant.size}:${variant.colorCode.toUpperCase()}`)) {
               await tx.productVariant.update({
                 where: { id: variant.id },
                 data: { isActive: false },
@@ -219,15 +273,17 @@ export async function PUT(
       { timeout: 30000, maxWait: 5000 }
     )
 
-    // Revalidate storefront caches so changes appear immediately
     revalidatePath('/[locale]/products', 'layout')
     revalidatePath(`/[locale]/products/${updatedProduct.slug}`, 'page')
     revalidatePath('/[locale]', 'page')
     revalidatePath('/api/products')
 
     return NextResponse.json({ success: true, product: updatedProduct })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating product:', error)
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json({ error: 'Duplicate SKU or slug' }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
   }
 }

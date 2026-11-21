@@ -1,36 +1,32 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { siteConfig } from '@/config/site'
 
 const DEFAULT_SETTINGS = {
-  storeName: 'Thuraya Al-Maghribi | الثريا المغربي',
-  logo: '/images/brand/logo-full.png',
-  currency: 'MAD',
+  storeName: `${siteConfig.nameEn} | ${siteConfig.name}`,
+  logo: siteConfig.logoFull,
+  currency: siteConfig.currency.code,
   shippingCost: '35',
 
-  contactEmail: 'contact@thuraya.com',
-  contactPhone: '+212 6 12 34 56 78',
+  contactEmail: siteConfig.contact.email,
+  contactPhone: siteConfig.contact.phoneDisplay,
   address: 'Casablanca, Morocco',
 
-  instagram: 'https://instagram.com/thuraya.ma',
-  facebook: 'https://www.facebook.com/profile.php?id=100091985212461',
-  tiktok: 'https://www.tiktok.com/@thuraya.ma',
-  youtube: 'https://youtube.com/@thuraya.almaghribi',
-  whatsapp: '+212612345678',
+  instagram: siteConfig.social.instagram,
+  facebook: siteConfig.social.facebook,
+  tiktok: siteConfig.social.tiktok,
+  youtube: siteConfig.social.youtube,
+  whatsapp: siteConfig.contact.whatsapp,
 
   seoTitle: 'الثريا المغربي – أزياء وتصاميم مغربية تقليدية وفاخرة',
-  seoDescription: 'تصفحي أرقى تشكيلات الجلابة المغربية والنقاب بأجود أنواع الأقمشة وتطريز يدوي أصيل.',
+  seoDescription: siteConfig.description.ar,
   seoKeywords: 'جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي, قفطان',
 }
 
-// The general settings tab saves the shipping price under "shippingCost",
-// while checkout reads it from "shipping:default" (see order.service
-// resolveShippingCost). Keep both keys in sync so edited values are
-// actually used by the checkout.
 const SHIPPING_DEFAULT_KEY = 'shipping:default'
 
-// Only keys managed by the general settings tab may be written. Anything
-// else is rejected so no arbitrary/junk SiteSetting rows can be created.
 const ALLOWED_KEYS = new Set([
   'storeName',
   'logo',
@@ -49,6 +45,20 @@ const ALLOWED_KEYS = new Set([
   'seoKeywords',
 ])
 
+const URL_KEYS = new Set(['logo', 'instagram', 'facebook', 'tiktok', 'youtube'])
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isValidSettingUrl(val: string, allowRelative: boolean): boolean {
+  if (!val) return true
+  if (allowRelative && val.startsWith('/') && !val.startsWith('//')) return true
+  try {
+    const parsed = new URL(val)
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
 export async function GET() {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
@@ -60,8 +70,6 @@ export async function GET() {
       settingsMap[s.key] = s.value
     })
 
-    // If no explicit shippingCost row exists but a shipping:default price
-    // does, surface it in the general tab so both tabs agree.
     if (
       settingsMap['shippingCost'] === DEFAULT_SETTINGS.shippingCost &&
       settingsMap[SHIPPING_DEFAULT_KEY] !== undefined
@@ -81,36 +89,71 @@ export async function PUT(request: Request) {
   if (!auth.ok) return auth.response
 
   try {
-    const body = await request.json() as Record<string, unknown>;
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
 
-    const entries = Object.entries(body)
-      .filter(([key, value]) => ALLOWED_KEYS.has(key) && (typeof value === 'string' || typeof value === 'number'))
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Invalid settings payload' }, { status: 400 })
+    }
 
-    // All writes happen in a single transaction so a mid-way failure can
-    // never leave the settings partially saved (no partial-save + error).
-    await prisma.$transaction(async (tx) => {
-      for (const [key, value] of entries) {
-        await tx.siteSetting.upsert({
-          where: { key },
-          update: { value: String(value) },
-          create: { key, value: String(value) },
-        });
+    const sanitized: Record<string, string> = {}
+
+    for (const [key, raw] of Object.entries(body)) {
+      if (!ALLOWED_KEYS.has(key)) continue
+      if (typeof raw !== 'string' && typeof raw !== 'number') continue
+      const val = String(raw).trim()
+
+      if (key === 'shippingCost') {
+        const parsed = Number(val)
+        if (val === '' || !Number.isFinite(parsed) || parsed < 0 || parsed > 9999) {
+          return NextResponse.json({ error: 'Shipping cost must be between 0 and 9999 DH' }, { status: 400 })
+        }
+        sanitized[key] = String(parsed)
+        continue
       }
 
-      // Keep checkout shipping price in sync when edited from the general tab.
-      const shippingCost = body['shippingCost']
-      if (typeof shippingCost === 'string' || typeof shippingCost === 'number') {
+      if (key === 'contactEmail' && val && !EMAIL_RE.test(val)) {
+        return NextResponse.json({ error: 'Invalid contact email format' }, { status: 400 })
+      }
+
+      if (URL_KEYS.has(key) && val && !isValidSettingUrl(val, key === 'logo')) {
+        return NextResponse.json({ error: `Invalid URL provided for ${key}` }, { status: 400 })
+      }
+
+      sanitized[key] = val
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (const [key, value] of Object.entries(sanitized)) {
+        await tx.siteSetting.upsert({
+          where: { key },
+          update: { value },
+          create: { key, value },
+        })
+      }
+
+      if (sanitized['shippingCost'] !== undefined) {
         await tx.siteSetting.upsert({
           where: { key: SHIPPING_DEFAULT_KEY },
-          update: { value: String(shippingCost) },
-          create: { key: SHIPPING_DEFAULT_KEY, value: String(shippingCost) },
-        });
+          update: { value: sanitized['shippingCost'] },
+          create: { key: SHIPPING_DEFAULT_KEY, value: sanitized['shippingCost'] },
+        })
       }
     })
 
-    return NextResponse.json({ success: true, settings: body });
+    try {
+      revalidatePath('/[locale]', 'layout')
+    } catch {
+      // Non-fatal in non-Next-runtime calls
+    }
+
+    return NextResponse.json({ success: true, settings: sanitized })
   } catch (error) {
-    console.error('Failed to update settings:', error);
-    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
+    console.error('Failed to update settings:', error)
+    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
   }
 }

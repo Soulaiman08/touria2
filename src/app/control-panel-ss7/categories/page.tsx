@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
+import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import {
   FolderTree,
   Plus,
@@ -14,7 +16,6 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 
@@ -25,25 +26,32 @@ interface CategoryItem {
   nameAr?: string
   nameFr?: string
   nameEn?: string
+  descriptionAr?: string | null
+  descriptionFr?: string | null
+  descriptionEn?: string | null
   image: string | null
   sortOrder: number
   isActive: boolean
   productsCount?: number
 }
 
-function CategoryContent() {
+function CategoryContent({ initialSearch }: { initialSearch: string }) {
   const [categories, setCategories] = useState<CategoryItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<CategoryItem | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   const [formData, setFormData] = useState({
     nameAr: '',
     nameFr: '',
     nameEn: '',
+    descriptionAr: '',
+    descriptionFr: '',
+    descriptionEn: '',
     slug: '',
     image: '',
     sortOrder: '0',
@@ -52,24 +60,25 @@ function CategoryContent() {
 
   const { success, error } = useToast()
 
-  const fetchCategories = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/categories')
-      const data = await res.json()
-      if (data.items) {
-        setCategories(data.items)
-      }
-    } catch (err) {
-      console.error('Error loading categories:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
+    let active = true
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/admin/categories')
+        if (!res.ok) return
+        const data = await res.json()
+        if (active && Array.isArray(data.items)) {
+          setCategories(data.items)
+        }
+      } catch (err) {
+        console.error('Error loading categories:', err)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadCategories()
+    return () => { active = false }
+  }, [refreshTick])
 
   const openCreateModal = () => {
     setEditingCategory(null)
@@ -77,6 +86,9 @@ function CategoryContent() {
       nameAr: '',
       nameFr: '',
       nameEn: '',
+      descriptionAr: '',
+      descriptionFr: '',
+      descriptionEn: '',
       slug: '',
       image: '',
       sortOrder: String(categories.length + 1),
@@ -91,6 +103,9 @@ function CategoryContent() {
       nameAr: cat.nameAr || cat.name || '',
       nameFr: cat.nameFr || cat.name || '',
       nameEn: cat.nameEn || cat.name || '',
+      descriptionAr: cat.descriptionAr || '',
+      descriptionFr: cat.descriptionFr || '',
+      descriptionEn: cat.descriptionEn || '',
       slug: cat.slug,
       image: cat.image || '',
       sortOrder: String(cat.sortOrder || 0),
@@ -104,13 +119,17 @@ function CategoryContent() {
     setSubmitting(true)
 
     try {
+      const parsedSortOrder = Number.parseInt(formData.sortOrder, 10)
       const payload = {
-        nameAr: formData.nameAr || formData.nameFr,
-        nameFr: formData.nameFr,
-        nameEn: formData.nameEn || formData.nameFr,
-        slug: formData.slug,
+        nameAr: formData.nameAr.trim() || formData.nameFr.trim(),
+        nameFr: formData.nameFr.trim(),
+        nameEn: formData.nameEn.trim() || formData.nameFr.trim(),
+        descriptionAr: formData.descriptionAr.trim() || null,
+        descriptionFr: formData.descriptionFr.trim() || null,
+        descriptionEn: formData.descriptionEn.trim() || null,
+        slug: formData.slug.trim(),
         image: formData.image || null,
-        sortOrder: parseInt(formData.sortOrder, 10),
+        sortOrder: Number.isFinite(parsedSortOrder) ? parsedSortOrder : 0,
         isActive: formData.isActive,
       }
 
@@ -124,13 +143,13 @@ function CategoryContent() {
       })
 
       if (!res.ok) {
-        const errData = await res.json()
+        const errData = await res.json().catch(() => ({}))
         throw new Error(errData.error || 'Failed to save category')
       }
 
       success(editingCategory ? 'Category updated' : 'Category created')
       setIsModalOpen(false)
-      fetchCategories()
+      setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Action failed'
       error(errorMessage)
@@ -144,11 +163,14 @@ function CategoryContent() {
     setSubmitting(true)
     try {
       const res = await fetch(`/api/admin/categories/${deleteTarget.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete category')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to delete category')
+      }
 
       success('Category deleted successfully')
       setDeleteTarget(null)
-      fetchCategories()
+      setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Error deleting category'
       error(errorMessage)
@@ -157,9 +179,12 @@ function CategoryContent() {
     }
   }
 
+  const q = search.trim().toLowerCase()
   const filteredCategories = categories.filter((c) =>
-    (c.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.slug || '').toLowerCase().includes(search.toLowerCase())
+    (c.name || '').toLowerCase().includes(q) ||
+    (c.nameAr || '').toLowerCase().includes(q) ||
+    (c.nameEn || '').toLowerCase().includes(q) ||
+    (c.slug || '').toLowerCase().includes(q)
   )
 
   return (
@@ -233,7 +258,7 @@ function CategoryContent() {
       </div>
 
       {/* Grid of Categories */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 20 }}>
         {loading ? (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: '#71717a' }}>
             <span style={{ display: 'inline-block', width: 24, height: 24, border: '2px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 8 }} />
@@ -260,11 +285,14 @@ function CategoryContent() {
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: 16, background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', overflow: 'hidden', flexShrink: 0 }}>
-                    <img
+                  <div style={{ position: 'relative', width: 56, height: 56, borderRadius: 16, background: '#27272a', border: '1px solid rgba(63,63,70,0.8)', overflow: 'hidden', flexShrink: 0 }}>
+                    <Image
                       src={cat.image || '/images/brand/logo-full.png'}
                       alt={cat.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      fill
+                      sizes="56px"
+                      referrerPolicy="no-referrer"
+                      className="object-cover"
                     />
                   </div>
 
@@ -321,7 +349,7 @@ function CategoryContent() {
       {/* Category Modal */}
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
-          <div style={{ position: 'relative', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, padding: 32, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
+          <div className="p-5 sm:p-8" style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', background: 'rgb(24,24,27)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 24, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', color: '#f4f4f5' }}>
             <button
               onClick={() => setIsModalOpen(false)}
               style={{ position: 'absolute', top: 24, right: 24, padding: 8, borderRadius: 10, background: 'none', border: 'none', color: '#71717a', cursor: 'pointer' }}
@@ -334,19 +362,31 @@ function CategoryContent() {
             </h2>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Name (French/Primary)</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.nameFr}
-                  onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
-                  placeholder="Djellaba & Abayas"
-                  style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Name (French/Primary)</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nameFr}
+                    onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
+                    placeholder="Djellaba & Abayas"
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Name (English)</label>
+                  <input
+                    type="text"
+                    value={formData.nameEn}
+                    onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                    placeholder="Djellabas & Abayas"
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
+                  />
+                </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Name (Arabic)</label>
                   <input
@@ -365,6 +405,39 @@ function CategoryContent() {
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder="djellaba-abayas"
                     style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '10px 14px', fontSize: 12, color: '#f4f4f5', outline: 'none', fontFamily: 'monospace' }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#a1a1aa', marginBottom: 6 }}>Description (AR)</label>
+                  <input
+                    type="text"
+                    value={formData.descriptionAr}
+                    onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
+                    placeholder="وصف قصير..."
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '9px 12px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#a1a1aa', marginBottom: 6 }}>Description (FR)</label>
+                  <input
+                    type="text"
+                    value={formData.descriptionFr}
+                    onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
+                    placeholder="Description FR..."
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '9px 12px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#a1a1aa', marginBottom: 6 }}>Description (EN)</label>
+                  <input
+                    type="text"
+                    value={formData.descriptionEn}
+                    onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
+                    placeholder="Description EN..."
+                    style={{ width: '100%', background: 'rgb(9,9,11)', border: '1px solid rgba(63,63,70,0.8)', borderRadius: 12, padding: '9px 12px', fontSize: 12, color: '#f4f4f5', outline: 'none' }}
                   />
                 </div>
               </div>
@@ -438,14 +511,20 @@ function CategoryContent() {
   )
 }
 
+function CategoriesWithSearchParams() {
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams.get('search') || ''
+  return <CategoryContent key={initialSearch} initialSearch={initialSearch} />
+}
+
 export default function AdminCategoriesPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <CategoryContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <Suspense fallback={null}>
+          <CategoriesWithSearchParams />
+        </Suspense>
+      </AdminLayout>
+    </ToastProvider>
   )
 }

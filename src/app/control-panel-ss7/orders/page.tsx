@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   ShoppingBag,
@@ -13,10 +13,11 @@ import {
   Truck,
   PackageCheck,
   XCircle,
+  CheckCircle2,
+  RotateCcw,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { formatPrice } from '@/lib/utils'
 
 interface OrderItem {
@@ -41,38 +42,47 @@ function OrdersContent() {
   const [orders, setOrders] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [refreshTick, setRefreshTick] = useState(0)
   const { success, error } = useToast()
 
-  const fetchOrders = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (search) params.set('search', search)
-      if (statusFilter !== 'all') params.set('status', statusFilter)
-      params.set('page', String(page))
-      params.set('limit', '10')
-
-      const res = await fetch(`/api/admin/orders?${params.toString()}`)
-      if (!res.ok) throw new Error(`Failed to load orders: ${res.status}`)
-      const data = await res.json()
-
-      if (data.items) {
-        setOrders(data.items)
-        setTotalPages(data.totalPages || 1)
-      }
-    } catch (err) {
-      console.error('Error fetching orders:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [search, statusFilter, page])
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
   useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
+    let active = true
+    async function loadOrders() {
+      try {
+        const params = new URLSearchParams()
+        if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
+        if (statusFilter !== 'all') params.set('status', statusFilter)
+        params.set('page', String(page))
+        params.set('limit', '10')
+
+        const res = await fetch(`/api/admin/orders?${params.toString()}`)
+        if (!res.ok) throw new Error(`Failed to load orders: ${res.status}`)
+        const data = await res.json()
+
+        if (active && Array.isArray(data.items)) {
+          setOrders(data.items)
+          setTotalPages(data.totalPages || 1)
+        }
+      } catch (err) {
+        console.error('Error fetching orders:', err)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadOrders()
+    return () => { active = false }
+  }, [debouncedSearch, statusFilter, page, refreshTick])
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {
@@ -82,10 +92,13 @@ function OrdersContent() {
         body: JSON.stringify({ status: newStatus }),
       })
 
-      if (!res.ok) throw new Error('Failed to update status')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to update status')
+      }
 
       success(`Order status updated to ${newStatus}`)
-      fetchOrders()
+      setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Status update failed'
       error(errorMessage)
@@ -106,6 +119,12 @@ function OrdersContent() {
             <Truck style={{ width: 12, height: 12 }} /> Shipped
           </span>
         )
+      case 'CONFIRMED':
+        return (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(56,189,248,0.12)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <CheckCircle2 style={{ width: 12, height: 12 }} /> Confirmed
+          </span>
+        )
       case 'PROCESSING':
         return (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
@@ -116,6 +135,12 @@ function OrdersContent() {
         return (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
             <XCircle style={{ width: 12, height: 12 }} /> Cancelled
+          </span>
+        )
+      case 'RETURNED':
+        return (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(161,161,170,0.12)', color: '#a1a1aa', border: '1px solid rgba(113,113,122,0.4)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+            <RotateCcw style={{ width: 12, height: 12 }} /> Returned
           </span>
         )
       default:
@@ -159,7 +184,7 @@ function OrdersContent() {
         flexWrap: 'wrap',
         gap: 16,
       }}>
-        <div style={{ position: 'relative', minWidth: 280, flex: 1 }}>
+        <div style={{ position: 'relative', minWidth: 0, width: '100%', flex: '1 1 220px' }}>
           <Search style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
           <input
             type="text"
@@ -339,12 +364,10 @@ function OrdersContent() {
 
 export default function AdminOrdersPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <OrdersContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <OrdersContent />
+      </AdminLayout>
+    </ToastProvider>
   )
 }

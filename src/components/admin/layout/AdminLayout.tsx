@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -42,19 +42,48 @@ const navItems: NavItem[] = [
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [adminUser, setAdminUser] = useState<{ name: string; role?: string } | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const { success, error } = useToast()
+
+  useEffect(() => {
+    let active = true
+    async function loadAdminUser() {
+      try {
+        const res = await fetch('/api/admin/auth/me', { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json() as { user?: { name?: string; role?: string } }
+          if (active && data.user?.name) {
+            setAdminUser({ name: data.user.name, role: data.user.role })
+          }
+        }
+      } catch {
+        // Non-fatal fallback to generic label
+      }
+    }
+    loadAdminUser()
+    return () => { active = false }
+  }, [])
+
+  const adminName = adminUser?.name?.trim() || 'Admin'
+  const adminInitials = adminName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0].toUpperCase())
+    .join('') || 'AD'
 
   const handleLogout = async () => {
     try {
       const res = await fetch('/api/admin/auth/logout', { method: 'POST' })
       if (res.ok) {
         success('Logged out successfully')
-        router.push('/control-panel-ss7/login')
       }
     } catch {
-      error('Failed to log out')
+      error('Failed to reach logout endpoint; redirecting to login')
+    } finally {
+      router.push('/control-panel-ss7/login')
     }
   }
 
@@ -193,8 +222,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <VisitorCounter />
             <AdminNotifications />
             <Link href="/control-panel-ss7/profile" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px 6px 8px', borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgba(24,24,27,0.6)', textDecoration: 'none' }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11 }}>AD</div>
-              <span className="hidden sm:inline" style={{ fontSize: 12, fontWeight: 600, color: '#e4e4e7' }}>Admin</span>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11 }}>{adminInitials}</div>
+              <span className="hidden sm:inline" style={{ fontSize: 12, fontWeight: 600, color: '#e4e4e7' }}>{adminName}</span>
             </Link>
           </div>
         </header>

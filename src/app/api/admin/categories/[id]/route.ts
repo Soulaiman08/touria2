@@ -12,19 +12,55 @@ export async function PUT(
   if (!auth.ok) return auth.response
   try {
     const { id } = await params
-    const body = await request.json() as Record<string, unknown>
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
+
+    const existing = await prisma.category.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
 
     const updateData: Record<string, unknown> = {}
 
-    if (body.nameAr) updateData.nameAr = body.nameAr as string
-    if (body.nameFr) {
-      updateData.nameFr = body.nameFr as string
-      updateData.slug = slugify(body.nameFr as string)
+    if (typeof body.nameAr === 'string' && body.nameAr.trim()) updateData.nameAr = body.nameAr.trim()
+    if (typeof body.nameFr === 'string' && body.nameFr.trim()) updateData.nameFr = body.nameFr.trim()
+    if (typeof body.nameEn === 'string' && body.nameEn.trim()) updateData.nameEn = body.nameEn.trim()
+
+    if (body.descriptionAr !== undefined) {
+      updateData.descriptionAr = typeof body.descriptionAr === 'string' && body.descriptionAr.trim() ? body.descriptionAr.trim() : null
     }
-    if (body.nameEn) updateData.nameEn = body.nameEn as string
-    if (body.slug) updateData.slug = slugify(body.slug as string)
-    if (body.image !== undefined) updateData.image = body.image as string | null
-    if (body.sortOrder !== undefined) updateData.sortOrder = parseInt(body.sortOrder as string, 10)
+    if (body.descriptionFr !== undefined) {
+      updateData.descriptionFr = typeof body.descriptionFr === 'string' && body.descriptionFr.trim() ? body.descriptionFr.trim() : null
+    }
+    if (body.descriptionEn !== undefined) {
+      updateData.descriptionEn = typeof body.descriptionEn === 'string' && body.descriptionEn.trim() ? body.descriptionEn.trim() : null
+    }
+
+    if (typeof body.slug === 'string' && body.slug.trim()) {
+      const candidateSlug = slugify(body.slug)
+      if (!candidateSlug) {
+        return NextResponse.json({ error: 'Slug must contain URL-safe characters' }, { status: 400 })
+      }
+      if (candidateSlug !== existing.slug) {
+        const dup = await prisma.category.findUnique({ where: { slug: candidateSlug }, select: { id: true } })
+        if (dup && dup.id !== id) {
+          return NextResponse.json({ error: 'A category with this slug already exists' }, { status: 400 })
+        }
+        updateData.slug = candidateSlug
+      }
+    }
+
+    if (body.image !== undefined) {
+      updateData.image = typeof body.image === 'string' && body.image.trim() ? body.image.trim() : null
+    }
+    if (body.sortOrder !== undefined) {
+      const parsedOrder = Number.parseInt(String(body.sortOrder), 10)
+      updateData.sortOrder = Number.isFinite(parsedOrder) ? parsedOrder : 0
+    }
     if (body.isActive !== undefined) updateData.isActive = Boolean(body.isActive)
 
     const updated = await prisma.category.update({ where: { id }, data: updateData })
@@ -34,8 +70,11 @@ export async function PUT(
     revalidatePath('/api/categories')
 
     return NextResponse.json({ success: true, category: updated })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to update category:', error)
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json({ error: 'A category with this slug already exists' }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Failed to update category' }, { status: 500 })
   }
 }
@@ -49,7 +88,11 @@ export async function DELETE(
   try {
     const { id } = await params
 
-    // Don't delete if products are linked
+    const existing = await prisma.category.findUnique({ where: { id }, select: { id: true } })
+    if (!existing) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
+
     const productCount = await prisma.product.count({ where: { categoryId: id } })
     if (productCount > 0) {
       return NextResponse.json(

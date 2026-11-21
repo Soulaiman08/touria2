@@ -123,7 +123,7 @@ export async function GET(request: Request) {
           price: Number(p.salePrice ?? p.basePrice),
           stock: totalStock,
           image: p.mainImage,
-          href: `/control-panel-ss7/products`,
+          href: `/control-panel-ss7/products?search=${encodeURIComponent(p.sku || p.nameFr || p.nameAr)}`,
         }
       }),
       orders: orders.map((o) => ({
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
         phone: c.phone,
         email: c.email,
         city: c.city,
-        href: `/control-panel-ss7/customers`,
+        href: `/control-panel-ss7/customers?search=${encodeURIComponent(c.phone || c.name || c.email || '')}`,
       })),
       categories: categories.map((cat) => ({
         id: cat.id,
@@ -151,7 +151,7 @@ export async function GET(request: Request) {
         nameAr: cat.nameAr,
         nameFr: cat.nameFr,
         nameEn: cat.nameEn,
-        href: `/control-panel-ss7/categories`,
+        href: `/control-panel-ss7/categories?search=${encodeURIComponent(cat.nameFr || cat.nameAr || cat.nameEn)}`,
       })),
     })
   } catch (error) {

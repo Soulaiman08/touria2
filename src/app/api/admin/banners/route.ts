@@ -18,30 +18,66 @@ export async function GET() {
   }
 }
 
+function isSafeUrl(url: string): boolean {
+  if (url.startsWith('/') && !url.startsWith('//')) return true
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
 export async function POST(request: Request) {
   const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
   if (!auth.ok) return auth.response
   try {
-    const body = await request.json()
-    const { title, subtitle, buttonText, buttonUrl, imageUrl, sortOrder = 0, isActive = true } = body
+    let body: {
+      title?: unknown
+      subtitle?: unknown
+      buttonText?: unknown
+      buttonUrl?: unknown
+      imageUrl?: unknown
+      sortOrder?: unknown
+      isActive?: unknown
+    }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
+
+    const title = typeof body.title === 'string' ? body.title.trim() : ''
+    const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim() : ''
+    const subtitle = typeof body.subtitle === 'string' && body.subtitle.trim() ? body.subtitle.trim() : null
+    const buttonText = typeof body.buttonText === 'string' && body.buttonText.trim() ? body.buttonText.trim() : null
+    const buttonUrl = typeof body.buttonUrl === 'string' && body.buttonUrl.trim() ? body.buttonUrl.trim() : null
 
     if (!title || !imageUrl) {
       return NextResponse.json({ error: 'Title and image URL are required' }, { status: 400 })
     }
+    if (!isSafeUrl(imageUrl)) {
+      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 })
+    }
+    if (buttonUrl && !isSafeUrl(buttonUrl)) {
+      return NextResponse.json({ error: 'Button URL must start with / or https://' }, { status: 400 })
+    }
+
+    const parsedOrder = Number.parseInt(String(body.sortOrder ?? 0), 10)
+    const safeSortOrder = Number.isFinite(parsedOrder) ? parsedOrder : 0
 
     const banner = await prisma.banner.create({
       data: {
         title,
-        subtitle: subtitle || null,
-        buttonText: buttonText || null,
-        buttonUrl: buttonUrl || null,
+        subtitle,
+        buttonText,
+        buttonUrl,
         imageUrl,
-        sortOrder: parseInt(sortOrder || 0, 10),
-        isActive: Boolean(isActive),
+        sortOrder: safeSortOrder,
+        isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
       },
     })
 
-    // Revalidate homepage so banner changes appear immediately
     revalidatePath('/[locale]', 'page')
 
     return NextResponse.json({ success: true, banner })

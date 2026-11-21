@@ -49,24 +49,26 @@ export function AdminNotifications() {
   const popoverRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
-  const loadNotifications = async () => {
-    try {
-      const res = await fetch('/api/admin/notifications', { cache: 'no-store' })
-      if (res.ok) {
-        const data = await res.json() as { notifications: NotificationItem[]; unreadCount: number }
-        setNotifications(data.notifications || [])
-        setUnreadCount(data.unreadCount || 0)
-      }
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err)
-    }
-  }
-
   useEffect(() => {
+    let active = true
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/admin/notifications', { cache: 'no-store' })
+        if (res.ok && active) {
+          const data = await res.json() as { notifications: NotificationItem[]; unreadCount: number }
+          setNotifications(data.notifications || [])
+          setUnreadCount(data.unreadCount || 0)
+        }
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err)
+      }
+    }
     loadNotifications()
-    // Poll every 30 seconds for new store events
     const interval = setInterval(loadNotifications, 30_000)
-    return () => clearInterval(interval)
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
   }, [])
 
   // Close on click outside

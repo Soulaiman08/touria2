@@ -1694,22 +1694,23 @@ h6 {
 
   .admin-topbar {
     height: 56px !important;
-    padding: 0 14px !important;
+    padding: 0 12px !important;
+    gap: 8px !important;
   }
 
-  .admin-topbar>div:first-child>div {
-    display: none !important;
-  }
-
-  .admin-topbar>div:last-child {
+  .admin-topbar > div:first-child {
     gap: 6px !important;
   }
 
-  .admin-topbar>div:last-child>a {
+  .admin-topbar > div:last-child {
+    gap: 6px !important;
+  }
+
+  .admin-topbar > div:last-child > a {
     padding: 5px !important;
   }
 
-  .admin-topbar>div:last-child>a span {
+  .admin-topbar > div:last-child > a span {
     display: none;
   }
 

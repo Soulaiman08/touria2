@@ -12,7 +12,6 @@ import {
   FolderTree,
   Loader2,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react'
 
 interface SearchProduct {
@@ -117,17 +116,14 @@ export function AdminGlobalSearch() {
   // Debounced search
   useEffect(() => {
     const trimmed = query.trim()
-    if (!trimmed) {
-      setResults(null)
-      setLoading(false)
-      return
-    }
+    if (!trimmed) return
 
-    setLoading(true)
+    let active = true
     const timeout = setTimeout(async () => {
+      if (active) setLoading(true)
       try {
         const res = await fetch(`/api/admin/search?q=${encodeURIComponent(trimmed)}`)
-        if (res.ok) {
+        if (res.ok && active) {
           const data = (await res.json()) as SearchResults
           startTransition(() => {
             setResults(data)
@@ -136,17 +132,29 @@ export function AdminGlobalSearch() {
       } catch (err) {
         console.error('Search error:', err)
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }, 200)
 
-    return () => clearTimeout(timeout)
+    return () => {
+      active = false
+      clearTimeout(timeout)
+    }
   }, [query])
+
+  const updateQuery = (nextVal: string) => {
+    setQuery(nextVal)
+    if (!nextVal.trim()) {
+      setResults(null)
+      setLoading(false)
+    }
+  }
 
   const handleSelect = (href: string) => {
     setOpen(false)
     setMobileModalOpen(false)
     setQuery('')
+    setResults(null)
     router.push(href)
   }
 
@@ -210,7 +218,7 @@ export function AdminGlobalSearch() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                     {p.image ? (
-                      <Image src={p.image} alt={p.name} width={34} height={34} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-zinc-800" />
+                      <Image src={p.image} alt={p.name} width={34} height={34} referrerPolicy="no-referrer" className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-zinc-800" />
                     ) : (
                       <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(63,63,70,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Package style={{ width: 16, height: 16, color: '#71717a' }} />
@@ -354,10 +362,9 @@ export function AdminGlobalSearch() {
   return (
     <>
       {/* ── Search Bar (Desktop + triggers modal on mobile) ── */}
-      <div ref={containerRef} style={{ position: 'relative', width: 'clamp(150px, 28vw, 360px)' }}>
+      <div ref={containerRef} className="relative w-auto sm:w-[clamp(220px,28vw,360px)]">
         <div
           onClick={() => {
-            // On mobile viewports the input is hidden — open the full modal instead
             if (typeof window !== 'undefined' && window.innerWidth < 640) {
               setMobileModalOpen(true)
               setTimeout(() => mobileInputRef.current?.focus(), 80)
@@ -371,7 +378,7 @@ export function AdminGlobalSearch() {
             background: open ? 'rgb(9,9,11)' : 'rgba(63,63,70,0.4)',
             border: open ? '1px solid #fbbf24' : '1px solid rgba(63,63,70,0.6)',
             borderRadius: 12,
-            padding: '7px 12px',
+            padding: '7px 11px',
             transition: 'all 0.15s',
             cursor: 'text',
           }}
@@ -387,7 +394,7 @@ export function AdminGlobalSearch() {
             type="text"
             value={query}
             onChange={(e) => {
-              setQuery(e.target.value)
+              updateQuery(e.target.value)
               if (!open) setOpen(true)
             }}
             onFocus={() => setOpen(true)}
@@ -406,8 +413,7 @@ export function AdminGlobalSearch() {
           {query ? (
             <button
               onClick={() => {
-                setQuery('')
-                setResults(null)
+                updateQuery('')
                 inputRef.current?.focus()
               }}
               style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', padding: 2, display: 'flex' }}
@@ -416,6 +422,7 @@ export function AdminGlobalSearch() {
             </button>
           ) : (
             <kbd
+              className="hidden sm:inline-block"
               style={{
                 fontSize: 10,
                 fontWeight: 700,
@@ -493,7 +500,7 @@ export function AdminGlobalSearch() {
               ref={mobileInputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => updateQuery(e.target.value)}
               placeholder="Search products, orders, customers..."
               style={{
                 flex: 1,
@@ -507,8 +514,7 @@ export function AdminGlobalSearch() {
             <button
               onClick={() => {
                 setMobileModalOpen(false)
-                setQuery('')
-                setResults(null)
+                updateQuery('')
               }}
               style={{
                 background: 'rgba(63,63,70,0.5)',

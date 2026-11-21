@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 
 export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
   if (!auth.ok) return auth.response
 
   const { id } = await context.params

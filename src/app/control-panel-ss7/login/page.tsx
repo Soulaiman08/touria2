@@ -154,7 +154,7 @@ export default function AdminLoginPage() {
                   className="text-[#c5b8bc]"
                   style={{ fontSize: '12px', lineHeight: '1.5' }}
                 >
-                  Unable to sign in. Please try again later.
+                  {errorMsg}
                 </p>
               </div>
             </div>

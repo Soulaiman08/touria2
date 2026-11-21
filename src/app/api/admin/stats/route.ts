@@ -63,13 +63,13 @@ export async function GET() {
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now)
       date.setDate(now.getDate() - i)
-      const key = date.toISOString().slice(5, 10)
-      salesMap.set(key, { date: key, sales: 0, orders: 0 })
+      const fullKey = date.toISOString().slice(0, 10)
+      salesMap.set(fullKey, { date: fullKey.slice(5), sales: 0, orders: 0 })
     }
 
     for (const order of deliveredOrders) {
-      const key = order.createdAt.toISOString().slice(5, 10)
-      const day = salesMap.get(key)
+      const fullKey = order.createdAt.toISOString().slice(0, 10)
+      const day = salesMap.get(fullKey)
       if (day) {
         day.sales += Number(order.total)
         day.orders += 1
@@ -86,6 +86,7 @@ export async function GET() {
     }>()
     for (const order of deliveredOrders) {
       for (const item of order.items) {
+        if (!item.product) continue
         const product = productMap.get(item.productId)
         if (product) {
           product.salesCount += item.quantity

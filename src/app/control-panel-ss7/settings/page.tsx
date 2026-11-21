@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Settings,
   Store,
@@ -15,10 +15,9 @@ import {
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
-import { ThemeProvider } from '@/components/admin/providers/ThemeContext'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 import { MOROCCAN_REGIONS } from '@/config/moroccan-regions'
-import { MOROCCAN_CITIES, DEFAULT_SHIPPING_PRICE, getCitiesByRegion } from '@/config/moroccan-cities'
+import { DEFAULT_SHIPPING_PRICE, getCitiesByRegion } from '@/config/moroccan-cities'
 
 // ─── Shared Admin Input Style ──────────────────────────────────────────────
 const inputStyle: React.CSSProperties = {
@@ -81,17 +80,20 @@ function ShippingTab() {
   const [loadingList, setLoadingList] = useState(true)
   const [deletingCity, setDeletingCity] = useState<string | null>(null)
 
+  const [refreshTick, setRefreshTick] = useState(0)
+
   const availableCities = selectedRegion ? getCitiesByRegion(selectedRegion) : []
 
-  const loadShipping = useCallback(async () => {
-    setLoadingList(true)
-    try {
-      const res = await fetch('/api/admin/shipping')
-      if (res.ok) {
+  useEffect(() => {
+    let active = true
+    async function loadShipping() {
+      try {
+        const res = await fetch('/api/admin/shipping')
+        if (!res.ok) return
         const data = await res.json() as { defaultPrice: number; cities: CityShippingRow[] }
+        if (!active) return
         setDefaultPrice(data.defaultPrice)
         setDefaultPriceInput(String(data.defaultPrice))
-        // Only show cities that have a custom price, deduplicating by cityValue
         const seen = new Set<string>()
         const customList: CityShippingRow[] = []
         for (const c of data.cities) {
@@ -102,17 +104,15 @@ function ShippingTab() {
           }
         }
         setConfiguredCities(customList)
+      } catch {
+        if (active) error('Failed to load shipping configuration')
+      } finally {
+        if (active) setLoadingList(false)
       }
-    } catch {
-      error('Failed to load shipping configuration')
-    } finally {
-      setLoadingList(false)
     }
-  }, [error])
-
-  useEffect(() => {
     loadShipping()
-  }, [loadShipping])
+    return () => { active = false }
+  }, [error, refreshTick])
 
   const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedRegion(e.target.value)
@@ -141,7 +141,7 @@ function ShippingTab() {
       if (res.ok) {
         setDefaultPrice(price)
         success('Default shipping price saved!')
-        await loadShipping()
+        setRefreshTick((t) => t + 1)
       } else {
         error('Failed to save default price')
       }
@@ -168,7 +168,7 @@ function ShippingTab() {
         setSelectedRegion('')
         setSelectedCity('')
         setCityPriceInput('')
-        await loadShipping()
+        setRefreshTick((t) => t + 1)
       } else {
         error('Failed to save city price')
       }
@@ -185,7 +185,7 @@ function ShippingTab() {
       const res = await fetch(`/api/admin/shipping?city=${encodeURIComponent(cityValue)}`, { method: 'DELETE' })
       if (res.ok) {
         success('Custom price removed — city will use default')
-        await loadShipping()
+        setRefreshTick((t) => t + 1)
       } else {
         error('Failed to remove custom price')
       }
@@ -458,7 +458,10 @@ function SettingsContent() {
         body: JSON.stringify(settings),
       })
 
-      if (!res.ok) throw new Error('Failed to save settings')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to save settings')
+      }
 
       success('Store settings saved successfully!')
     } catch (err: unknown) {
@@ -562,11 +565,11 @@ function SettingsContent() {
       {/* Tab Form Card */}
       <form
         onSubmit={handleSubmit}
+        className="p-5 sm:p-8"
         style={{
           background: 'rgb(24,24,27)',
           border: '1px solid rgba(63,63,70,0.6)',
           borderRadius: 20,
-          padding: 32,
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           display: 'flex',
           flexDirection: 'column',
@@ -577,7 +580,7 @@ function SettingsContent() {
         {activeTab === 'general' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>General Brand Settings</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Store Name</label>
                 <input
@@ -622,7 +625,7 @@ function SettingsContent() {
         {activeTab === 'contact' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>Official Contact Information</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Support Email</label>
                 <input
@@ -663,7 +666,7 @@ function SettingsContent() {
         {activeTab === 'social' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 4 }}>Social Media Connections</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>Instagram URL</label>
                 <input
@@ -767,12 +770,10 @@ function SettingsContent() {
 
 export default function AdminSettingsPage() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AdminLayout>
-          <SettingsContent />
-        </AdminLayout>
-      </ToastProvider>
-    </ThemeProvider>
+    <ToastProvider>
+      <AdminLayout>
+        <SettingsContent />
+      </AdminLayout>
+    </ToastProvider>
   )
 }

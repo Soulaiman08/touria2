@@ -10,8 +10,14 @@ cloudinary.config({
 })
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
+  const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
   if (!auth.ok) return auth.response
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    return NextResponse.json(
+      { error: 'Image upload service is not configured on the server' },
+      { status: 503 }
+    )
+  }
   try {
     const formData = await request.formData()
 

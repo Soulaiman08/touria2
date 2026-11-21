@@ -13,7 +13,12 @@ function hasJwtSecretConfigured(): boolean {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    let body: { email?: unknown; password?: unknown }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
     const { email, password } = body
 
     if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 200) {
@@ -21,18 +26,27 @@ export async function POST(request: Request) {
     }
 
     if (!hasJwtSecretConfigured()) {
-      console.error('[ADMIN_AUTH] ADMIN_JWT_SECRET is not configured. Set it in Vercel environment variables (Production).')
+      console.error('[ADMIN_AUTH] ADMIN_JWT_SECRET is not configured. Set it in environment variables.')
       return NextResponse.json({ error: SAFE_LOGIN_ERROR }, { status: 503 })
     }
 
     const cleanEmail = email.toLowerCase().trim()
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip')?.trim() ||
+      'local'
+    const rateKey = `${ip}:${cleanEmail}`
     const now = Date.now()
-    const attempt = attempts.get(ip)
+    if (attempts.size > 500) {
+      for (const [k, v] of attempts.entries()) {
+        if (v.resetAt <= now) attempts.delete(k)
+      }
+    }
+    const attempt = attempts.get(rateKey)
     if (attempt && attempt.resetAt > now && attempt.count >= 10) {
       return NextResponse.json({ error: 'Too many login attempts' }, { status: 429, headers: { 'Retry-After': '900' } })
     }
-    if (!attempt || attempt.resetAt <= now) attempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
+    if (!attempt || attempt.resetAt <= now) attempts.set(rateKey, { count: 1, resetAt: now + 15 * 60 * 1000 })
     else attempt.count += 1
     let admin
     try {

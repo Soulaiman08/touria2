@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
 import { COOKIE_NAME } from '@/lib/auth'
-import { getCurrentAdmin } from '@/lib/auth'
 
 export async function POST() {
-  if (!(await getCurrentAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const response = NextResponse.json({ success: true })
-  response.cookies.delete(COOKIE_NAME)
+  response.cookies.set(COOKIE_NAME, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 0,
+    path: '/',
+  })
+  response.headers.set('Cache-Control', 'no-store')
   return response
 }
