@@ -423,14 +423,251 @@ function createMockPrismaClient(): PrismaClient {
   console.warn('[AI Studio] Database not connected — using in-memory mock with sample test products')
   const { categories, products, variants } = createMockSeedData()
   const siteSettingsStore = new Map<string, string>()
-  const customersStore: MockCustomer[] = []
-  const ordersStore: MockOrder[] = []
-  const orderItemsStore: MockOrderItem[] = []
-  const orderHistoryStore: MockOrderHistory[] = []
+  const dayMs = 24 * 60 * 60 * 1000
+  const today = new Date()
+  const yesterday = new Date(today.getTime() - dayMs)
+  const twoDaysAgo = new Date(today.getTime() - 2 * dayMs)
+
+  const customersStore: MockCustomer[] = [
+    {
+      id: 'cust-preview-1',
+      name: 'سلمى الفاسي',
+      email: 'salma@example.com',
+      phone: '+212612345678',
+      passwordHash: null,
+      avatarUrl: null,
+      address: 'شارع الزرقطوني 42',
+      city: 'Casablanca',
+      notes: null,
+      createdAt: twoDaysAgo,
+      updatedAt: twoDaysAgo,
+    },
+    {
+      id: 'cust-preview-2',
+      name: 'خديجة بنعلي',
+      email: 'khadija@example.com',
+      phone: '+212698765432',
+      passwordHash: null,
+      avatarUrl: null,
+      address: 'حي الرياض 15',
+      city: 'Rabat',
+      notes: null,
+      createdAt: yesterday,
+      updatedAt: yesterday,
+    },
+  ]
+
+  const ordersStore: MockOrder[] = [
+    {
+      id: 'ord-preview-1',
+      orderNumber: 'TH-2026-1001',
+      customerId: 'cust-preview-1',
+      status: 'DELIVERED',
+      paymentMethod: 'COD',
+      paymentStatus: 'PAID',
+      customerName: 'سلمى الفاسي',
+      customerPhone: '+212612345678',
+      customerPhone2: null,
+      customerEmail: 'salma@example.com',
+      region: 'Casablanca-Settat',
+      city: 'Casablanca',
+      district: 'Maarif',
+      address: 'شارع الزرقطوني 42',
+      notes: null,
+      adminNotes: null,
+      subtotal: 599,
+      shippingCost: 35,
+      discountAmount: 0,
+      total: 634,
+      createdAt: twoDaysAgo,
+      updatedAt: yesterday,
+    },
+    {
+      id: 'ord-preview-2',
+      orderNumber: 'TH-2026-1002',
+      customerId: 'cust-preview-2',
+      status: 'DELIVERED',
+      paymentMethod: 'COD',
+      paymentStatus: 'PAID',
+      customerName: 'خديجة بنعلي',
+      customerPhone: '+212698765432',
+      customerPhone2: null,
+      customerEmail: 'khadija@example.com',
+      region: 'Rabat-Salé-Kénitra',
+      city: 'Rabat',
+      district: 'Agdal',
+      address: 'حي الرياض 15',
+      notes: null,
+      adminNotes: null,
+      subtotal: 750,
+      shippingCost: 40,
+      discountAmount: 0,
+      total: 790,
+      createdAt: yesterday,
+      updatedAt: today,
+    },
+    {
+      id: 'ord-preview-3',
+      orderNumber: 'TH-2026-1003',
+      customerId: 'cust-preview-1',
+      status: 'PENDING',
+      paymentMethod: 'COD',
+      paymentStatus: 'PENDING',
+      customerName: 'سلمى الفاسي',
+      customerPhone: '+212612345678',
+      customerPhone2: null,
+      customerEmail: 'salma@example.com',
+      region: 'Casablanca-Settat',
+      city: 'Casablanca',
+      district: 'Maarif',
+      address: 'شارع الزرقطوني 42',
+      notes: 'توصيل بعد العصر',
+      adminNotes: null,
+      subtotal: 680,
+      shippingCost: 35,
+      discountAmount: 0,
+      total: 715,
+      createdAt: today,
+      updatedAt: today,
+    },
+  ]
+
+  const orderItemsStore: MockOrderItem[] = [
+    {
+      id: 'oi-preview-1',
+      orderId: 'ord-preview-1',
+      productId: 'prod-djellaba-1',
+      variantId: variants[0]?.id ?? 'var-1',
+      quantity: 1,
+      unitPrice: 599,
+      totalPrice: 599,
+      productSnapshot: {
+        nameAr: 'جلابة كلاسيكية – تيراكوتا',
+        nameFr: 'Djellaba Classique – Terracotta',
+        nameEn: 'Classic Djellaba – Terracotta',
+        sku: 'DJL-001-TERRA',
+        image: '/images/brand/logo-full.png',
+        size: 'M',
+        colorNameAr: 'تيراكوتا',
+        colorNameFr: 'Terracotta',
+        colorNameEn: 'Terracotta',
+        colorCode: '#C4622D',
+        includeNiqab: false,
+      },
+      createdAt: twoDaysAgo,
+    },
+    {
+      id: 'oi-preview-2',
+      orderId: 'ord-preview-2',
+      productId: 'prod-djellaba-2',
+      variantId: variants[35]?.id ?? 'var-36',
+      quantity: 1,
+      unitPrice: 750,
+      totalPrice: 750,
+      productSnapshot: {
+        nameAr: 'جلابة رويال – كريمي',
+        nameFr: 'Djellaba Royale – Crème',
+        nameEn: 'Royal Djellaba – Cream',
+        sku: 'DJL-002-CREME',
+        image: '/images/brand/logo-full.png',
+        size: 'L',
+        colorNameAr: 'كريمي',
+        colorNameFr: 'Crème',
+        colorNameEn: 'Cream',
+        colorCode: '#F2E4CE',
+        includeNiqab: true,
+      },
+      createdAt: yesterday,
+    },
+    {
+      id: 'oi-preview-3',
+      orderId: 'ord-preview-3',
+      productId: 'prod-djellaba-3',
+      variantId: variants[70]?.id ?? 'var-71',
+      quantity: 1,
+      unitPrice: 680,
+      totalPrice: 680,
+      productSnapshot: {
+        nameAr: 'جلابة عصرية – أزرق داكن',
+        nameFr: 'Djellaba Moderne – Marine',
+        nameEn: 'Modern Djellaba – Navy',
+        sku: 'DJL-003-MARINE',
+        image: '/images/brand/logo-full.png',
+        size: 'M',
+        colorNameAr: 'أزرق داكن',
+        colorNameFr: 'Marine',
+        colorNameEn: 'Navy',
+        colorCode: '#1B2B4B',
+        includeNiqab: false,
+      },
+      createdAt: today,
+    },
+  ]
+
+  const orderHistoryStore: MockOrderHistory[] = [
+    {
+      id: 'oh-preview-1',
+      orderId: 'ord-preview-1',
+      status: 'DELIVERED',
+      note: 'تم تسليم الطلب بنجاح',
+      createdAt: yesterday,
+    },
+    {
+      id: 'oh-preview-2',
+      orderId: 'ord-preview-2',
+      status: 'DELIVERED',
+      note: 'تم تسليم الطلب بنجاح',
+      createdAt: today,
+    },
+    {
+      id: 'oh-preview-3',
+      orderId: 'ord-preview-3',
+      status: 'PENDING',
+      note: 'طلب جديد قيد المراجعة',
+      createdAt: today,
+    },
+  ]
+
   const reviewsStore: MockReview[] = []
-  const bannersStore: Array<Record<string, unknown> & { id: string; sortOrder: number; isActive: boolean; createdAt: Date; updatedAt: Date }> = []
-  const notificationsStore: Array<Record<string, unknown> & { id: string; isRead: boolean; readAt: Date | null; createdAt: Date }> = []
-  const adminUsersStore: Array<Record<string, unknown> & { id: string; email: string }> = []
+  const bannersStore: Array<Record<string, unknown> & { id: string; sortOrder: number; isActive: boolean; createdAt: Date; updatedAt: Date }> = [
+    {
+      id: 'banner-preview-1',
+      title: 'تشكيلة ثريا المغربي الجديدة',
+      subtitle: 'جلابيات مغربية فاخرة مصنوعة يدوياً',
+      buttonText: 'تسوقي الآن',
+      buttonUrl: '/products',
+      imageUrl: '/images/brand/logo-full.png',
+      sortOrder: 1,
+      isActive: true,
+      createdAt: twoDaysAgo,
+      updatedAt: twoDaysAgo,
+    },
+  ]
+  const notificationsStore: Array<Record<string, unknown> & { id: string; isRead: boolean; readAt: Date | null; createdAt: Date }> = [
+    {
+      id: 'notif-preview-1',
+      type: 'ORDER',
+      title: 'طلب جديد #TH-2026-1003',
+      description: 'سلمى الفاسي — 715 DH (Casablanca)',
+      targetUrl: '/control-panel-ss7/orders/ord-preview-3',
+      referenceId: 'ord-preview-3',
+      isRead: false,
+      readAt: null,
+      createdAt: today,
+    },
+  ]
+  const adminUsersStore: Array<Record<string, unknown> & { id: string; email: string }> = [
+    {
+      id: 'preview-admin-1',
+      email: 'preview@thuraya.local',
+      name: 'Preview Admin',
+      role: 'SUPER_ADMIN',
+      avatar: null,
+      passwordHash: null,
+      createdAt: twoDaysAgo,
+      updatedAt: twoDaysAgo,
+    },
+  ]
   let idCounter = 100
 
   const matchCategoryWhere = (cat: MockCategory, where?: Record<string, unknown>): boolean => {
@@ -583,18 +820,25 @@ function createMockPrismaClient(): PrismaClient {
     return result
   }
 
-  const hydrateOrder = (order: MockOrder, include?: Record<string, unknown>) => {
+  const hydrateOrder = (
+    order: MockOrder,
+    include?: Record<string, unknown>,
+    select?: Record<string, unknown>
+  ) => {
     const items = orderItemsStore
       .filter((i) => i.orderId === order.id)
       .map((item) => {
         const itemsInc = (include?.items as { include?: Record<string, unknown> } | undefined)?.include
-        if (!itemsInc) return item
+        const itemsSel = (select?.items as { select?: Record<string, unknown> } | undefined)?.select
+        const needsProduct = Boolean(itemsInc?.product || itemsSel?.product)
+        const needsVariant = Boolean(itemsInc?.variant || itemsSel?.variant)
+        if (!needsProduct && !needsVariant) return item
         return {
           ...item,
-          ...(itemsInc.product
+          ...(needsProduct
             ? { product: products.find((p) => p.id === item.productId) ?? null }
             : {}),
-          ...(itemsInc.variant
+          ...(needsVariant
             ? { variant: variants.find((v) => v.id === item.variantId) ?? null }
             : {}),
         }
@@ -735,7 +979,7 @@ function createMockPrismaClient(): PrismaClient {
           const sorted = sortRecords(filtered, args?.orderBy) as MockOrder[]
           const start = args?.skip ?? 0
           const end = args?.take !== undefined ? start + args.take : undefined
-          return sorted.slice(start, end).map((o) => hydrateOrder(o, args?.include))
+          return sorted.slice(start, end).map((o) => hydrateOrder(o, args?.include, args?.select))
         }
         if (modelName === 'orderItem') {
           let filtered = [...orderItemsStore]

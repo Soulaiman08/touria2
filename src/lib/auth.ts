@@ -5,6 +5,14 @@ import { prisma } from '@/lib/prisma'
 
 export const COOKIE_NAME = 'admin_token'
 
+export function isDevPreviewAuthBypassEnabled(): boolean {
+  return (
+    process.env.NODE_ENV === 'development' &&
+    !process.env.DATABASE_URL &&
+    !process.env.ADMIN_JWT_SECRET
+  )
+}
+
 function getJwtSecret(): string {
   const secret = process.env.ADMIN_JWT_SECRET
   if (!secret) {
@@ -126,7 +134,18 @@ export function verifyAdminToken(token: string): AdminJwtPayload | null {
 
 export async function getCurrentAdmin() {
   const payload = await getAdminFromCookie()
-  if (!payload) return null
+  if (!payload) {
+    if (isDevPreviewAuthBypassEnabled()) {
+      return {
+        id: 'preview-admin-1',
+        email: 'preview@thuraya.local',
+        name: 'Preview Admin',
+        role: 'SUPER_ADMIN',
+        avatar: null,
+      }
+    }
+    return null
+  }
 
   let admin
   try {

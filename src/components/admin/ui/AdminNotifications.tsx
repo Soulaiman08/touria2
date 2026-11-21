@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Bell,
@@ -11,6 +11,7 @@ import {
   CheckCheck,
   ExternalLink,
 } from 'lucide-react'
+import { useAdminI18n } from '../providers/AdminI18nContext'
 
 export interface NotificationItem {
   id: string
@@ -22,26 +23,8 @@ export interface NotificationItem {
   createdAt: string
 }
 
-function timeAgo(dateString: string): string {
-  try {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-    if (diffSeconds < 60) return 'Just now'
-    const diffMinutes = Math.floor(diffSeconds / 60)
-    if (diffMinutes < 60) return `${diffMinutes}m ago`
-    const diffHours = Math.floor(diffMinutes / 60)
-    if (diffHours < 24) return `${diffHours}h ago`
-    const diffDays = Math.floor(diffHours / 24)
-    if (diffDays < 7) return `${diffDays}d ago`
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  } catch {
-    return ''
-  }
-}
-
 export function AdminNotifications() {
+  const { tr, locale } = useAdminI18n()
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -49,13 +32,47 @@ export function AdminNotifications() {
   const popoverRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
+  const formatTimeAgo = useCallback(
+    (dateString: string): string => {
+      try {
+        const date = new Date(dateString)
+        const now = new Date()
+        const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+        if (diffSeconds < 60) return tr('الآن', 'Just now')
+        const diffMinutes = Math.floor(diffSeconds / 60)
+        if (diffMinutes < 60) {
+          return locale === 'ar' ? `منذ ${diffMinutes} د` : `${diffMinutes}m ago`
+        }
+        const diffHours = Math.floor(diffMinutes / 60)
+        if (diffHours < 24) {
+          return locale === 'ar' ? `منذ ${diffHours} س` : `${diffHours}h ago`
+        }
+        const diffDays = Math.floor(diffHours / 24)
+        if (diffDays < 7) {
+          return locale === 'ar' ? `منذ ${diffDays} ي` : `${diffDays}d ago`
+        }
+        return date.toLocaleDateString(locale === 'ar' ? 'ar-MA' : 'en-US', {
+          month: 'short',
+          day: 'numeric',
+        })
+      } catch {
+        return ''
+      }
+    },
+    [locale, tr]
+  )
+
   useEffect(() => {
     let active = true
     async function loadNotifications() {
       try {
         const res = await fetch('/api/admin/notifications', { cache: 'no-store' })
         if (res.ok && active) {
-          const data = await res.json() as { notifications: NotificationItem[]; unreadCount: number }
+          const data = (await res.json()) as {
+            notifications: NotificationItem[]
+            unreadCount: number
+          }
           setNotifications(data.notifications || [])
           setUnreadCount(data.unreadCount || 0)
         }
@@ -71,17 +88,23 @@ export function AdminNotifications() {
     }
   }, [])
 
-  // Close on click outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
     if (open) {
       document.addEventListener('mousedown', handleClickOutside)
+      window.addEventListener('keydown', handleEscape)
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('keydown', handleEscape)
+    }
   }, [open])
 
   const handleMarkAllAsRead = async () => {
@@ -104,15 +127,12 @@ export function AdminNotifications() {
   }
 
   const handleNotificationClick = async (item: NotificationItem) => {
-    // If unread, mark as read on server
     if (!item.isRead) {
-      try {
-        fetch('/api/admin/notifications', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'mark_one', id: item.id }),
-        }).catch(() => {})
-      } catch {}
+      fetch('/api/admin/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_one', id: item.id }),
+      }).catch(() => {})
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
@@ -129,209 +149,123 @@ export function AdminNotifications() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'ORDER':
-        return <ShoppingBag style={{ width: 15, height: 15, color: '#fbbf24' }} />
+        return <ShoppingBag className="w-4 h-4 text-amber-400" />
       case 'CUSTOMER':
-        return <User style={{ width: 15, height: 15, color: '#60a5fa' }} />
+        return <User className="w-4 h-4 text-sky-400" />
       case 'LOW_STOCK':
-        return <AlertTriangle style={{ width: 15, height: 15, color: '#f59e0b' }} />
+        return <AlertTriangle className="w-4 h-4 text-amber-500" />
       case 'OUT_OF_STOCK':
-        return <XCircle style={{ width: 15, height: 15, color: '#ef4444' }} />
+        return <XCircle className="w-4 h-4 text-red-400" />
       default:
-        return <Bell style={{ width: 15, height: 15, color: '#fbbf24' }} />
+        return <Bell className="w-4 h-4 text-amber-400" />
     }
   }
 
   return (
-    <div ref={popoverRef} style={{ position: 'relative' }}>
+    <div ref={popoverRef} className="relative shrink-0">
       <button
-        onClick={() => setOpen(!open)}
-        title="Store Notifications"
-        style={{
-          position: 'relative',
-          padding: 10,
-          borderRadius: 12,
-          border: '1px solid rgba(63,63,70,0.8)',
-          background: open ? 'rgba(63,63,70,0.6)' : 'rgb(24,24,27)',
-          color: unreadCount > 0 ? '#fbbf24' : '#a1a1aa',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.15s',
-        }}
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        title={tr('إشعارات المتجر', 'Store Notifications')}
+        aria-label={tr('إشعارات المتجر', 'Store Notifications')}
+        aria-expanded={open}
+        className={`relative h-10 w-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer ${
+          open
+            ? 'border-amber-500/60 bg-zinc-800 text-amber-400'
+            : unreadCount > 0
+              ? 'border-zinc-700/80 bg-zinc-900 text-amber-400 hover:border-zinc-600'
+              : 'border-zinc-700/80 bg-zinc-900 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600'
+        }`}
       >
-        <Bell style={{ width: 18, height: 18 }} />
+        <Bell className="w-[18px] h-[18px]" />
         {unreadCount > 0 && (
-          <span
-            style={{
-              position: 'absolute',
-              top: -4,
-              right: -4,
-              minWidth: 18,
-              height: 18,
-              padding: '0 4px',
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              color: '#09090b',
-              fontSize: 10,
-              fontWeight: 900,
-              borderRadius: 999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid rgb(24,24,27)',
-              boxShadow: '0 2px 8px rgba(245,158,11,0.4)',
-            }}
-          >
+          <span className="absolute -top-1.5 -end-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 text-[10px] font-black flex items-center justify-center border-2 border-zinc-900 tabular-nums shadow-sm">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Popover Dropdown */}
       {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            width: 'clamp(290px, 90vw, 360px)',
-            maxHeight: 460,
-            background: 'rgb(24,24,27)',
-            border: '1px solid rgba(63,63,70,0.8)',
-            borderRadius: 16,
-            boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 50,
-            overflow: 'hidden',
-            animation: 'fadeIn 0.15s ease',
-          }}
-        >
+        <div className="absolute top-[calc(100%+8px)] end-0 w-[min(360px,calc(100vw-2rem))] max-h-[460px] bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden animate-in fade-in duration-200">
           {/* Header */}
-          <div
-            style={{
-              padding: '14px 16px',
-              borderBottom: '1px solid rgba(63,63,70,0.8)',
-              background: 'rgba(9,9,11,0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#fff' }}>Notifications</span>
+          <div className="px-4 py-3.5 border-b border-zinc-800 bg-zinc-950/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-bold text-white">{tr('الإشعارات', 'Notifications')}</span>
               {unreadCount > 0 && (
-                <span
-                  style={{
-                    padding: '2px 7px',
-                    borderRadius: 999,
-                    background: 'rgba(245,158,11,0.15)',
-                    color: '#fbbf24',
-                    fontSize: 10,
-                    fontWeight: 800,
-                  }}
-                >
-                  {unreadCount} new
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 text-[10px] font-extrabold tabular-nums">
+                  {unreadCount} {tr('جديد', 'new')}
                 </span>
               )}
             </div>
 
             {unreadCount > 0 && (
               <button
+                type="button"
                 onClick={handleMarkAllAsRead}
                 disabled={loading}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  background: 'none',
-                  border: 'none',
-                  color: '#fbbf24',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: '2px 6px',
-                  borderRadius: 6,
-                }}
+                className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 text-[11px] font-bold px-2 py-1 rounded-lg hover:bg-amber-500/10 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
-                <CheckCheck style={{ width: 13, height: 13 }} />
-                <span>Mark all as read</span>
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>{tr('تحديد الكل كمقروء', 'Mark all as read')}</span>
               </button>
             )}
           </div>
 
           {/* List */}
-          <div style={{ flex: 1, overflowY: 'auto', maxHeight: 380 }}>
+          <div className="flex-1 overflow-y-auto max-h-[380px] admin-scroll divide-y divide-zinc-800/60">
             {notifications.length === 0 ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center', color: '#71717a' }}>
-                <Bell style={{ width: 28, height: 28, margin: '0 auto 8px', opacity: 0.3 }} />
-                <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>No notifications yet</p>
-                <p style={{ fontSize: 11, margin: '4px 0 0', opacity: 0.8 }}>New orders, customers and stock alerts will appear here</p>
+              <div className="py-10 px-5 text-center text-zinc-500">
+                <Bell className="w-7 h-7 mx-auto mb-2 opacity-30" />
+                <p className="text-xs font-bold text-zinc-300">
+                  {tr('لا توجد إشعارات بعد', 'No notifications yet')}
+                </p>
+                <p className="text-[11px] mt-1">
+                  {tr(
+                    'ستظهر هنا الطلبات الجديدة، العملاء وتنبيهات المخزون',
+                    'New orders, customers and stock alerts will appear here'
+                  )}
+                </p>
               </div>
             ) : (
               notifications.map((item) => (
-                <div
+                <button
                   key={item.id}
+                  type="button"
                   onClick={() => handleNotificationClick(item)}
-                  style={{
-                    padding: '12px 16px',
-                    borderBottom: '1px solid rgba(63,63,70,0.3)',
-                    background: item.isRead ? 'transparent' : 'rgba(245,158,11,0.04)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 12,
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(63,63,70,0.4)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = item.isRead ? 'transparent' : 'rgba(245,158,11,0.04)'
-                  }}
+                  className={`w-full px-4 py-3 text-start flex items-start gap-3 transition-colors hover:bg-zinc-800/60 cursor-pointer ${
+                    item.isRead ? 'bg-transparent' : 'bg-amber-500/[0.04]'
+                  }`}
                 >
-                  {/* Icon */}
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 10,
-                      background: 'rgba(63,63,70,0.5)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: 2,
-                    }}
-                  >
+                  <div className="w-8 h-8 rounded-xl bg-zinc-800/90 border border-zinc-700/60 flex items-center justify-center shrink-0 mt-0.5">
                     {getIcon(item.type)}
                   </div>
 
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 2 }}>
-                      <p style={{ fontSize: 12.5, fontWeight: item.isRead ? 700 : 900, color: item.isRead ? '#e4e4e7' : '#fff', margin: 0 }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <p
+                        className={`text-xs truncate ${
+                          item.isRead ? 'font-semibold text-zinc-200' : 'font-extrabold text-white'
+                        }`}
+                      >
                         {item.title}
                       </p>
                       {!item.isRead && (
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fbbf24', flexShrink: 0 }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
                       )}
                     </div>
 
                     {item.description && (
-                      <p style={{ fontSize: 11.5, color: '#a1a1aa', margin: '0 0 4px', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                      <p className="text-[11.5px] text-zinc-400 leading-relaxed break-words mb-1">
                         {item.description}
                       </p>
                     )}
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 10, color: '#71717a', fontWeight: 600 }}>
-                        {timeAgo(item.createdAt)}
-                      </span>
-                      <ExternalLink style={{ width: 11, height: 11, color: '#71717a' }} />
+                    <div className="flex items-center justify-between text-[10px] text-zinc-500 font-semibold">
+                      <span>{formatTimeAgo(item.createdAt)}</span>
+                      <ExternalLink className="w-3 h-3" />
                     </div>
                   </div>
-                </div>
+                </button>
               ))
             )}
           </div>

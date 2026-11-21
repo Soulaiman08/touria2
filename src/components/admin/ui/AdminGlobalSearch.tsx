@@ -12,7 +12,9 @@ import {
   FolderTree,
   Loader2,
   ArrowRight,
+  ArrowLeft,
 } from 'lucide-react'
+import { useAdminI18n } from '../providers/AdminI18nContext'
 
 interface SearchProduct {
   id: string
@@ -62,6 +64,7 @@ interface SearchResults {
 }
 
 export function AdminGlobalSearch() {
+  const { tr, statusLabel, isRTL, locale, dir } = useAdminI18n()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)
@@ -74,17 +77,20 @@ export function AdminGlobalSearch() {
   const containerRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
-  // Global shortcut `/` or `Ctrl+K` / `Cmd+K`
+  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const tag = document.activeElement?.tagName
+      const isInputFocused = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
       if (
-        (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') ||
+        (e.key === '/' && !isInputFocused) ||
         ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')
       ) {
         e.preventDefault()
-        if (window.innerWidth < 768) {
+        if (window.innerWidth < 640) {
           setMobileModalOpen(true)
-          setTimeout(() => mobileInputRef.current?.focus(), 50)
+          setTimeout(() => mobileInputRef.current?.focus(), 60)
         } else {
           inputRef.current?.focus()
           setOpen(true)
@@ -100,7 +106,6 @@ export function AdminGlobalSearch() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Close desktop dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -113,7 +118,6 @@ export function AdminGlobalSearch() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open])
 
-  // Debounced search
   useEffect(() => {
     const trimmed = query.trim()
     if (!trimmed) return
@@ -166,23 +170,34 @@ export function AdminGlobalSearch() {
       results.categories.length > 0)
 
   const isSearching = query.trim().length > 0
+  const placeholderText = tr(
+    'ابحث عن منتج، طلب، عميل...',
+    'Search products, orders, customers...'
+  )
 
   const renderResultsList = () => {
     if (loading && !results) {
       return (
-        <div style={{ padding: '32px 20px', textAlign: 'center', color: '#71717a' }}>
-          <Loader2 style={{ width: 22, height: 22, margin: '0 auto 8px', animation: 'spin 1s linear infinite', color: '#fbbf24' }} />
-          <p style={{ fontSize: 12, margin: 0 }}>Searching store database...</p>
+        <div className="py-9 px-5 text-center text-zinc-400">
+          <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin text-amber-400" />
+          <p className="text-xs font-medium">{tr('جاري البحث في المتجر...', 'Searching store database...')}</p>
         </div>
       )
     }
 
     if (isSearching && !loading && !hasResults) {
       return (
-        <div style={{ padding: '32px 20px', textAlign: 'center', color: '#71717a' }}>
-          <Search style={{ width: 24, height: 24, margin: '0 auto 8px', opacity: 0.3 }} />
-          <p style={{ fontSize: 13, fontWeight: 700, margin: '0 0 2px', color: '#a1a1aa' }}>No results found for &ldquo;{query}&rdquo;</p>
-          <p style={{ fontSize: 11, margin: 0 }}>Try searching by product name, SKU, order number, customer name or phone</p>
+        <div className="py-9 px-5 text-center text-zinc-400">
+          <Search className="w-6 h-6 mx-auto mb-2 opacity-35" />
+          <p className="text-sm font-bold text-zinc-200 mb-1">
+            {tr(`لا توجد نتائج لـ "${query}"`, `No results found for "${query}"`)}
+          </p>
+          <p className="text-xs text-zinc-500">
+            {tr(
+              'جرّب البحث باسم المنتج، الرمز SKU، رقم الطلب أو هاتف العميل',
+              'Try searching by product name, SKU, order number, customer name or phone'
+            )}
+          </p>
         </div>
       )
     }
@@ -190,54 +205,62 @@ export function AdminGlobalSearch() {
     if (!hasResults) return null
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '12px' }}>
+      <div className="flex flex-col gap-4 p-3">
         {/* Products */}
         {results!.products.length > 0 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', fontSize: 11, fontWeight: 800, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <Package style={{ width: 13, height: 13 }} />
-              <span>Products ({results!.products.length})</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-bold text-amber-400 tracking-wide uppercase">
+              <Package className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {tr('المنتجات', 'Products')} ({results!.products.length})
+              </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-              {results!.products.map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => handleSelect(p.href)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    background: 'rgba(63,63,70,0.2)',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.1)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(63,63,70,0.2)' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                    {p.image ? (
-                      <Image src={p.image} alt={p.name} width={34} height={34} referrerPolicy="no-referrer" className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-zinc-800" />
-                    ) : (
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(63,63,70,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Package style={{ width: 16, height: 16, color: '#71717a' }} />
+            <div className="flex flex-col gap-1 mt-1">
+              {results!.products.map((p) => {
+                const displayName =
+                  locale === 'ar'
+                    ? p.nameAr || p.name
+                    : p.nameEn || p.nameFr || p.name
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleSelect(p.href)}
+                    className="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl bg-zinc-800/35 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/25 transition-colors text-start cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {p.image ? (
+                        <Image
+                          src={p.image}
+                          alt={displayName}
+                          width={96}
+                          height={96}
+                          quality={92}
+                          referrerPolicy="no-referrer"
+                          className="w-10 h-10 rounded-lg object-cover shrink-0 border border-zinc-700/80 bg-zinc-900"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center shrink-0">
+                          <Package className="w-4 h-4 text-zinc-500" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-zinc-100 truncate">{displayName}</p>
+                        <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                          <span className="font-mono">SKU: {p.sku}</span>
+                          <span className="mx-1.5 text-zinc-600">·</span>
+                          <span className={p.stock <= 3 ? 'text-amber-400 font-semibold' : 'text-zinc-400'}>
+                            {tr('المخزون:', 'Stock:')} {p.stock}
+                          </span>
+                        </p>
                       </div>
-                    )}
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: 12.5, fontWeight: 700, color: '#f4f4f5', margin: 0 }} className="truncate">
-                        {p.name}
-                      </p>
-                      <p style={{ fontSize: 11, color: '#71717a', margin: 0 }}>
-                        SKU: <span style={{ fontFamily: 'monospace' }}>{p.sku}</span> • Stock: <span style={{ color: p.stock <= 3 ? '#fbbf24' : '#a1a1aa' }}>{p.stock}</span>
-                      </p>
                     </div>
-                  </div>
-                  <span style={{ fontSize: 12.5, fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace', flexShrink: 0, marginLeft: 8 }}>
-                    {p.price} MAD
-                  </span>
-                </div>
-              ))}
+                    <span className="text-xs font-extrabold text-amber-400 font-mono tabular-nums shrink-0">
+                      {p.price} MAD
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -245,43 +268,39 @@ export function AdminGlobalSearch() {
         {/* Orders */}
         {results!.orders.length > 0 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', fontSize: 11, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <ShoppingBag style={{ width: 13, height: 13 }} />
-              <span>Orders ({results!.orders.length})</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-bold text-sky-400 tracking-wide uppercase">
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {tr('الطلبات', 'Orders')} ({results!.orders.length})
+              </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+            <div className="flex flex-col gap-1 mt-1">
               {results!.orders.map((o) => (
-                <div
+                <button
                   key={o.id}
+                  type="button"
                   onClick={() => handleSelect(o.href)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    background: 'rgba(63,63,70,0.2)',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(96,165,250,0.1)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(63,63,70,0.2)' }}
+                  className="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl bg-zinc-800/35 hover:bg-sky-500/10 border border-transparent hover:border-sky-500/25 transition-colors text-start cursor-pointer"
                 >
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: 12.5, fontWeight: 800, color: '#f4f4f5', margin: 0 }}>
-                      <span style={{ color: '#60a5fa', fontFamily: 'monospace' }}>#{o.orderNumber}</span> — {o.customerName}
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold text-zinc-100 truncate">
+                      <span className="text-sky-400 font-mono">#{o.orderNumber}</span>
+                      <span className="mx-1.5 text-zinc-600">—</span>
+                      <span>{o.customerName}</span>
                     </p>
-                    <p style={{ fontSize: 11, color: '#71717a', margin: 0 }}>
-                      {o.customerPhone} • <span style={{ textTransform: 'capitalize' }}>{o.status.toLowerCase()}</span>
+                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                      <span className="font-mono">{o.customerPhone}</span>
+                      <span className="mx-1.5 text-zinc-600">·</span>
+                      <span>{statusLabel(o.status)}</span>
                     </p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 900, color: '#f4f4f5', fontFamily: 'monospace' }}>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-extrabold text-zinc-100 font-mono tabular-nums">
                       {o.total} MAD
                     </span>
-                    <ArrowRight style={{ width: 12, height: 12, color: '#71717a' }} />
+                    <ArrowIcon className="w-3.5 h-3.5 text-zinc-500" />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -290,34 +309,29 @@ export function AdminGlobalSearch() {
         {/* Customers */}
         {results!.customers.length > 0 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', fontSize: 11, fontWeight: 800, color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <Users style={{ width: 13, height: 13 }} />
-              <span>Customers ({results!.customers.length})</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-bold text-emerald-400 tracking-wide uppercase">
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {tr('العملاء', 'Customers')} ({results!.customers.length})
+              </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+            <div className="flex flex-col gap-1 mt-1">
               {results!.customers.map((c) => (
-                <div
+                <button
                   key={c.id}
+                  type="button"
                   onClick={() => handleSelect(c.href)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    background: 'rgba(63,63,70,0.2)',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.1)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(63,63,70,0.2)' }}
+                  className="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl bg-zinc-800/35 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/25 transition-colors text-start cursor-pointer"
                 >
-                  <div>
-                    <p style={{ fontSize: 12.5, fontWeight: 700, color: '#f4f4f5', margin: 0 }}>{c.name}</p>
-                    <p style={{ fontSize: 11, color: '#71717a', margin: 0 }}>{c.phone} {c.city ? `• ${c.city}` : ''}</p>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold text-zinc-100 truncate">{c.name}</p>
+                    <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-mono">
+                      {c.phone}
+                      {c.city ? ` · ${c.city}` : ''}
+                    </p>
                   </div>
-                  <ArrowRight style={{ width: 12, height: 12, color: '#71717a' }} />
-                </div>
+                  <ArrowIcon className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                </button>
               ))}
             </div>
           </div>
@@ -326,31 +340,23 @@ export function AdminGlobalSearch() {
         {/* Categories */}
         {results!.categories.length > 0 && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', fontSize: 11, fontWeight: 800, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <FolderTree style={{ width: 13, height: 13 }} />
-              <span>Categories ({results!.categories.length})</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-bold text-purple-400 tracking-wide uppercase">
+              <FolderTree className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {tr('التصنيفات', 'Categories')} ({results!.categories.length})
+              </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+            <div className="flex flex-col gap-1 mt-1">
               {results!.categories.map((cat) => (
-                <div
+                <button
                   key={cat.id}
+                  type="button"
                   onClick={() => handleSelect(cat.href)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    background: 'rgba(63,63,70,0.2)',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(192,132,252,0.1)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(63,63,70,0.2)' }}
+                  className="w-full flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl bg-zinc-800/35 hover:bg-purple-500/10 border border-transparent hover:border-purple-500/25 transition-colors text-start cursor-pointer"
                 >
-                  <p style={{ fontSize: 12.5, fontWeight: 700, color: '#f4f4f5', margin: 0 }}>{cat.name}</p>
-                  <ArrowRight style={{ width: 12, height: 12, color: '#71717a' }} />
-                </div>
+                  <p className="text-[13px] font-bold text-zinc-100 truncate">{cat.name}</p>
+                  <ArrowIcon className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                </button>
               ))}
             </div>
           </div>
@@ -361,32 +367,36 @@ export function AdminGlobalSearch() {
 
   return (
     <>
-      {/* ── Search Bar (Desktop + triggers modal on mobile) ── */}
-      <div ref={containerRef} className="relative w-auto sm:w-[clamp(220px,28vw,360px)]">
-        <div
+      <div ref={containerRef} className="relative flex items-center sm:w-[clamp(210px,26vw,340px)]">
+        {/* Mobile Trigger (< 640px) */}
+        <button
+          type="button"
           onClick={() => {
-            if (typeof window !== 'undefined' && window.innerWidth < 640) {
-              setMobileModalOpen(true)
-              setTimeout(() => mobileInputRef.current?.focus(), 80)
-              return
-            }
+            setMobileModalOpen(true)
+            setTimeout(() => mobileInputRef.current?.focus(), 60)
           }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: open ? 'rgb(9,9,11)' : 'rgba(63,63,70,0.4)',
-            border: open ? '1px solid #fbbf24' : '1px solid rgba(63,63,70,0.6)',
-            borderRadius: 12,
-            padding: '7px 11px',
-            transition: 'all 0.15s',
-            cursor: 'text',
-          }}
+          aria-label={tr('بحث سريع', 'Quick search')}
+          className="sm:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-700/80 bg-zinc-900 text-zinc-300 hover:text-amber-400 hover:border-zinc-600 transition-colors cursor-pointer shrink-0"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+
+        {/* Desktop Input (>= 640px) */}
+        <div
+          className={`hidden sm:flex items-center gap-2 w-full h-10 rounded-xl border px-3 transition-colors ${
+            open
+              ? 'bg-zinc-950 border-amber-500/70 ring-2 ring-amber-500/20'
+              : 'bg-zinc-900/90 border-zinc-700/80 hover:border-zinc-600'
+          }`}
         >
           {loading ? (
-            <Loader2 style={{ width: 14, height: 14, color: '#fbbf24', animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+            <Loader2 className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
           ) : (
-            <Search style={{ width: 14, height: 14, color: open ? '#fbbf24' : '#71717a', flexShrink: 0 }} />
+            <Search
+              className={`w-4 h-4 shrink-0 transition-colors ${
+                open ? 'text-amber-400' : 'text-zinc-500'
+              }`}
+            />
           )}
 
           <input
@@ -398,149 +408,84 @@ export function AdminGlobalSearch() {
               if (!open) setOpen(true)
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Search products, orders, customers..."
-            className="hidden sm:block"
-            style={{
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              fontSize: 12,
-              color: '#f4f4f5',
-            }}
+            placeholder={placeholderText}
+            aria-label={placeholderText}
+            className="w-full bg-transparent border-0 outline-none text-xs font-medium text-zinc-100 placeholder:text-zinc-500 min-w-0"
           />
 
           {query ? (
             <button
+              type="button"
               onClick={() => {
                 updateQuery('')
                 inputRef.current?.focus()
               }}
-              style={{ background: 'none', border: 'none', color: '#71717a', cursor: 'pointer', padding: 2, display: 'flex' }}
+              aria-label={tr('مسح البحث', 'Clear search')}
+              className="p-1 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
             >
-              <X style={{ width: 13, height: 13 }} />
+              <X className="w-3.5 h-3.5" />
             </button>
           ) : (
-            <kbd
-              className="hidden sm:inline-block"
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: '#71717a',
-                background: 'rgba(63,63,70,0.5)',
-                border: '1px solid rgba(63,63,70,0.8)',
-                borderRadius: 6,
-                padding: '2px 5px',
-                fontFamily: 'monospace',
-                flexShrink: 0,
-              }}
-            >
+            <kbd className="text-[10px] font-bold text-zinc-500 bg-zinc-800/80 border border-zinc-700 rounded-md px-1.5 py-0.5 font-mono shrink-0">
               /
             </kbd>
           )}
         </div>
 
-        {/* Dropdown Results */}
+        {/* Desktop Dropdown Results */}
         {open && isSearching && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              left: 0,
-              right: 0,
-              maxHeight: 460,
-              background: 'rgb(24,24,27)',
-              border: '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 16,
-              boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
-              zIndex: 50,
-              overflowY: 'auto',
-              animation: 'fadeIn 0.15s ease',
-            }}
-          >
+          <div className="hidden sm:block absolute top-[calc(100%+8px)] start-0 w-[min(440px,85vw)] max-h-[460px] bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl z-50 overflow-y-auto admin-scroll animate-in fade-in duration-200">
             {renderResultsList()}
           </div>
         )}
       </div>
 
-      {/* ── Mobile Modal Overlay ── */}
+      {/* Mobile Search Modal */}
       {mobileModalOpen && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 60,
-            background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '16px',
-            animation: 'fadeIn 0.15s ease',
-          }}
+          dir={dir}
+          role="dialog"
+          aria-modal="true"
+          aria-label={tr('البحث في لوحة التحكم', 'Search Admin Panel')}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col p-4 animate-in fade-in duration-200"
         >
-          {/* Top Search Input Box */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              background: 'rgb(24,24,27)',
-              border: '1px solid rgba(245,158,11,0.5)',
-              borderRadius: 14,
-              padding: '10px 14px',
-              marginBottom: 12,
-            }}
-          >
+          <div className="flex items-center gap-2.5 bg-zinc-900 border border-amber-500/50 rounded-2xl px-3.5 h-12 mb-3 shrink-0">
             {loading ? (
-              <Loader2 style={{ width: 18, height: 18, color: '#fbbf24', animation: 'spin 1s linear infinite' }} />
+              <Loader2 className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
             ) : (
-              <Search style={{ width: 18, height: 18, color: '#fbbf24' }} />
+              <Search className="w-4 h-4 text-amber-400 shrink-0" />
             )}
             <input
               ref={mobileInputRef}
               type="text"
               value={query}
               onChange={(e) => updateQuery(e.target.value)}
-              placeholder="Search products, orders, customers..."
-              style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                fontSize: 14,
-                color: '#fff',
-              }}
+              placeholder={placeholderText}
+              aria-label={placeholderText}
+              className="flex-1 bg-transparent border-0 outline-none text-sm text-zinc-100 placeholder:text-zinc-500 min-w-0"
             />
             <button
+              type="button"
               onClick={() => {
                 setMobileModalOpen(false)
                 updateQuery('')
               }}
-              style={{
-                background: 'rgba(63,63,70,0.5)',
-                border: 'none',
-                color: '#fff',
-                borderRadius: 8,
-                padding: 6,
-                cursor: 'pointer',
-                display: 'flex',
-              }}
+              aria-label={tr('إغلاق البحث', 'Close search')}
+              className="w-8 h-8 rounded-lg bg-zinc-800 text-zinc-300 hover:text-white flex items-center justify-center shrink-0 cursor-pointer"
             >
-              <X style={{ width: 16, height: 16 }} />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Results Area */}
-          <div
-            style={{
-              flex: 1,
-              background: 'rgb(24,24,27)',
-              border: '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 16,
-              overflowY: 'auto',
-            }}
-          >
-            {renderResultsList()}
+          <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-y-auto admin-scroll">
+            {renderResultsList() || (
+              <div className="py-12 px-6 text-center text-zinc-500 text-xs">
+                {tr(
+                  'ابدأ بالكتابة للبحث في المنتجات، الطلبات، العملاء أو التصنيفات.',
+                  'Start typing to search products, orders, customers, or categories.'
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

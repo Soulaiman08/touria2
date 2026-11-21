@@ -19,25 +19,28 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useToast } from '../providers/ToastContext'
+import { useAdminI18n } from '../providers/AdminI18nContext'
 import { AdminNotifications } from '../ui/AdminNotifications'
 import { AdminGlobalSearch } from '../ui/AdminGlobalSearch'
 import { VisitorCounter } from '../ui/VisitorCounter'
+import { AdminLanguageSwitcher } from '../ui/AdminLanguageSwitcher'
 
 interface NavItem {
-  name: string
+  labelAr: string
+  labelEn: string
   href: string
   icon: React.ElementType
 }
 
 const navItems: NavItem[] = [
-  { name: 'Dashboard',      href: '/control-panel-ss7',            icon: LayoutDashboard },
-  { name: 'Products',       href: '/control-panel-ss7/products',   icon: Package         },
-  { name: 'Categories',     href: '/control-panel-ss7/categories', icon: FolderTree      },
-  { name: 'Orders',         href: '/control-panel-ss7/orders',     icon: ShoppingBag     },
-  { name: 'Customers',      href: '/control-panel-ss7/customers',  icon: Users           },
-  { name: 'Banners',        href: '/control-panel-ss7/banners',    icon: ImageIcon       },
-  { name: 'Store Settings', href: '/control-panel-ss7/settings',   icon: Settings        },
-  { name: 'Profile',        href: '/control-panel-ss7/profile',    icon: User            },
+  { labelAr: 'لوحة التحكم',  labelEn: 'Dashboard',      href: '/control-panel-ss7',            icon: LayoutDashboard },
+  { labelAr: 'المنتجات',     labelEn: 'Products',       href: '/control-panel-ss7/products',   icon: Package         },
+  { labelAr: 'التصنيفات',    labelEn: 'Categories',     href: '/control-panel-ss7/categories', icon: FolderTree      },
+  { labelAr: 'الطلبات',      labelEn: 'Orders',         href: '/control-panel-ss7/orders',     icon: ShoppingBag     },
+  { labelAr: 'العملاء',      labelEn: 'Customers',      href: '/control-panel-ss7/customers',  icon: Users           },
+  { labelAr: 'البانرات',     labelEn: 'Banners',        href: '/control-panel-ss7/banners',    icon: ImageIcon       },
+  { labelAr: 'إعدادات المتجر', labelEn: 'Store Settings', href: '/control-panel-ss7/settings',   icon: Settings        },
+  { labelAr: 'حسابي',        labelEn: 'Profile',        href: '/control-panel-ss7/profile',    icon: User            },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -46,6 +49,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { success, error } = useToast()
+  const { tr, dir, isRTL, locale } = useAdminI18n()
 
   useEffect(() => {
     let active = true
@@ -53,184 +57,199 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       try {
         const res = await fetch('/api/admin/auth/me', { cache: 'no-store' })
         if (res.ok) {
-          const data = await res.json() as { user?: { name?: string; role?: string } }
+          const data = (await res.json()) as { user?: { name?: string; role?: string } }
           if (active && data.user?.name) {
             setAdminUser({ name: data.user.name, role: data.user.role })
           }
         }
       } catch {
-        // Non-fatal fallback to generic label
+        // Non-fatal fallback
       }
     }
     loadAdminUser()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
-  const adminName = adminUser?.name?.trim() || 'Admin'
-  const adminInitials = adminName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0].toUpperCase())
-    .join('') || 'AD'
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && mobileOpen) {
+        setMobileOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mobileOpen])
+
+  const adminName = adminUser?.name?.trim() || tr('المدير', 'Admin')
+  const adminInitials =
+    adminName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0].toUpperCase())
+      .join('') || 'TH'
 
   const handleLogout = async () => {
     try {
       const res = await fetch('/api/admin/auth/logout', { method: 'POST' })
       if (res.ok) {
-        success('Logged out successfully')
+        success(tr('تم تسجيل الخروج بنجاح', 'Logged out successfully'))
       }
     } catch {
-      error('Failed to reach logout endpoint; redirecting to login')
+      error(tr('تعذر الاتصال، جاري التوجيه لتسجيل الدخول', 'Failed to reach logout endpoint; redirecting to login'))
     } finally {
       router.push('/control-panel-ss7/login')
     }
   }
 
-  const sidebarNav = (
-    <>
-      {/* Brand */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid rgba(63,63,70,0.8)' }}>
-        <Link href="/control-panel-ss7" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#fbbf24,#f59e0b,#d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Sparkles style={{ width: 16, height: 16, color: '#09090b' }} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 13, color: '#fff', lineHeight: 1 }}>THURAYA</div>
-            <div style={{ fontWeight: 600, fontSize: 10, color: '#fbbf24', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 3 }}>Admin Panel</div>
-          </div>
-        </Link>
-        <button onClick={() => setMobileOpen(false)} style={{ display: 'none', padding: 6, borderRadius: 8, background: 'none', border: 'none', color: '#71717a', cursor: 'pointer' }} className="md-hide-close">
-          <X style={{ width: 18, height: 18 }} />
-        </button>
-      </div>
-
-      {/* Nav links */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== '/control-panel-ss7' && pathname.startsWith(item.href))
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                borderRadius: 12,
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: 13,
-                transition: 'all 0.15s',
-                background: isActive ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'transparent',
-                color: isActive ? '#09090b' : '#a1a1aa',
-              }}
-            >
-              <Icon style={{ width: 15, height: 15, flexShrink: 0, color: isActive ? '#09090b' : '#71717a' }} />
-              <span>{item.name}</span>
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div style={{ paddingTop: 16, marginTop: 16, borderTop: '1px solid rgba(63,63,70,0.8)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <Link href="/ar" target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12, textDecoration: 'none', fontSize: 12, color: '#a1a1aa', background: 'rgba(63,63,70,0.4)' }}>
-          <ExternalLink style={{ width: 14, height: 14, color: '#fbbf24', flexShrink: 0 }} />
-          <span>View Storefront</span>
-        </Link>
-        <button
-          onClick={handleLogout}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'none', border: '1px solid rgba(239,68,68,0.15)', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#f87171', width: '100%' }}
-        >
-          <LogOut style={{ width: 14, height: 14, flexShrink: 0 }} />
-          <span>Logout</span>
-        </button>
-      </div>
-    </>
-  )
-
   return (
-    <div className="admin-shell" style={{ height: '100vh', background: '#09090b', color: '#f4f4f5', display: 'flex', flexDirection: 'row', fontFamily: 'sans-serif', overflow: 'hidden' }}>
-
-      {/* Mobile overlay */}
+    <div
+      dir={dir}
+      className="admin-shell dark h-dvh bg-[#09090b] text-zinc-100 flex overflow-hidden"
+      style={{
+        fontFamily: isRTL
+          ? 'var(--font-arabic), system-ui, sans-serif'
+          : 'var(--font-sans), system-ui, sans-serif',
+      }}
+    >
+      {/* Mobile / Tablet Drawer Overlay */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+          aria-hidden="true"
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs lg:hidden"
         />
       )}
 
-      {/* ── Sidebar ── */}
-      <aside className={`admin-sidebar ${mobileOpen ? 'admin-sidebar-open' : ''}`}
-        style={{
-          width: 210,
-          minWidth: 210,
-          maxWidth: 210,
-          minHeight: '100vh',
-          background: 'rgba(24,24,27,0.98)',
-          borderRight: '1px solid rgba(63,63,70,0.8)',
-          padding: '16px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          overflowY: 'auto',
-          flexShrink: 0,
-          zIndex: 20,
-        }}
+      {/* ── Sidebar Navigation ── */}
+      <aside
+        aria-label={tr('قائمة لوحة التحكم', 'Admin navigation')}
+        className={`admin-sidebar ${mobileOpen ? 'admin-sidebar-open' : ''} w-[232px] shrink-0 h-dvh bg-zinc-900/98 border-e border-zinc-800/90 px-3.5 py-4 flex flex-col overflow-y-auto admin-scroll z-20 no-print`}
       >
-        {sidebarNav}
+        {/* Brand Header */}
+        <div className="flex items-center justify-between gap-2 pb-4 mb-4 border-b border-zinc-800">
+          <Link
+            href="/control-panel-ss7"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2.5 min-w-0"
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-600 flex items-center justify-center shrink-0 shadow-sm">
+              <Sparkles className="w-4 h-4 text-zinc-950" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-extrabold text-sm text-white leading-tight tracking-tight truncate">
+                {tr('ثريا', 'THURAYA')}
+              </div>
+              <div className="font-bold text-[10px] text-amber-400 tracking-wider uppercase mt-0.5 truncate">
+                {tr('لوحة الإدارة', 'Admin Panel')}
+              </div>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label={tr('إغلاق القائمة', 'Close navigation')}
+            className="lg:hidden w-9 h-9 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 flex items-center justify-center shrink-0 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Nav Links */}
+        <nav className="flex-1 flex flex-col gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/control-panel-ss7' && pathname.startsWith(item.href))
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all whitespace-nowrap ${
+                  isActive
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-bold shadow-md shadow-amber-500/15'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70'
+                }`}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    isActive ? 'text-zinc-950' : 'text-zinc-500'
+                  }`}
+                />
+                <span className="truncate">{isRTL ? item.labelAr : item.labelEn}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Footer Actions */}
+        <div className="pt-4 mt-4 border-t border-zinc-800 flex flex-col gap-2">
+          <Link
+            href={`/${locale}`}
+            target="_blank"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-zinc-300 bg-zinc-800/55 hover:bg-zinc-800 hover:text-white border border-zinc-700/40 transition-colors whitespace-nowrap"
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="truncate">{tr('زيارة المتجر', 'View Storefront')}</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 transition-colors w-full cursor-pointer whitespace-nowrap"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span>{tr('تسجيل الخروج', 'Logout')}</span>
+          </button>
+        </div>
       </aside>
 
-      {/* ── Main content area ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflowY: 'auto' }}>
-
-        {/* Top header */}
-        <header className="admin-topbar" style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 30,
-          height: 64,
-          background: 'rgba(24,24,27,0.9)',
-          borderBottom: '1px solid rgba(63,63,70,0.8)',
-          padding: '0 28px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          backdropFilter: 'blur(12px)',
-        }}>
-          {/* Left: Mobile Toggle & Global Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+      {/* ── Main Content Shell ── */}
+      <div className="flex-1 flex flex-col min-w-0 h-dvh overflow-hidden">
+        {/* Top Bar */}
+        <header className="admin-topbar sticky top-0 z-30 h-16 shrink-0 bg-zinc-900/90 border-b border-zinc-800/90 px-4 sm:px-6 lg:px-7 flex items-center justify-between gap-2.5 sm:gap-3 backdrop-blur-md no-print">
+          {/* Start Group: Drawer Toggle + Search */}
+          <div className="flex items-center gap-2.5 min-w-0">
             <button
+              type="button"
               onClick={() => setMobileOpen(true)}
-              style={{ padding: 8, borderRadius: 12, background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', display: 'none' }}
-              className="mobile-menu-btn"
+              aria-label={tr('فتح القائمة', 'Open navigation')}
+              className="lg:hidden h-10 w-10 rounded-xl border border-zinc-700/80 bg-zinc-900 text-zinc-300 hover:text-white hover:border-zinc-600 flex items-center justify-center shrink-0 cursor-pointer"
             >
-              <Menu style={{ width: 24, height: 24 }} />
+              <Menu className="w-5 h-5" />
             </button>
+
             <AdminGlobalSearch />
           </div>
 
-          {/* Right: Visitor Counter, Notifications, Admin Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          {/* End Group: Language Switcher, Visitors, Notifications, Profile */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <AdminLanguageSwitcher />
             <VisitorCounter />
             <AdminNotifications />
-            <Link href="/control-panel-ss7/profile" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px 6px 8px', borderRadius: 12, border: '1px solid rgba(63,63,70,0.8)', background: 'rgba(24,24,27,0.6)', textDecoration: 'none' }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11 }}>{adminInitials}</div>
-              <span className="hidden sm:inline" style={{ fontSize: 12, fontWeight: 600, color: '#e4e4e7' }}>{adminName}</span>
+            <Link
+              href="/control-panel-ss7/profile"
+              title={adminName}
+              className="flex items-center gap-2.5 h-10 px-2 sm:px-2.5 rounded-xl border border-zinc-700/80 bg-zinc-900/90 hover:border-zinc-600 hover:bg-zinc-800/80 transition-colors shrink-0"
+            >
+              <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center border border-amber-500/30 text-[11px] shrink-0">
+                {adminInitials}
+              </div>
+              <span className="hidden md:inline text-xs font-semibold text-zinc-200 max-w-[120px] truncate">
+                {adminName}
+              </span>
             </Link>
           </div>
         </header>
 
-        {/* Page body — generous padding away from sidebar */}
-        <main className="admin-main" style={{ flex: 1, padding: '40px 48px' }}>
-          {children}
+        {/* Scrollable Page Content */}
+        <main className="admin-main flex-1 overflow-y-auto overflow-x-hidden admin-scroll">
+          <div className="max-w-[1440px] mx-auto w-full">{children}</div>
         </main>
       </div>
     </div>

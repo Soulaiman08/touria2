@@ -45,6 +45,8 @@ export async function POST(request: Request) {
     const result = await cloudinary.uploader.upload(base64, {
       folder: 'thuraya-almaghribi',
       resource_type: 'image',
+      quality: 'auto:best',
+      fetch_format: 'auto',
     })
 
     return NextResponse.json({

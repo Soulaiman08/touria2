@@ -323,7 +323,8 @@ export function Header({ locale }: HeaderProps) {
                     src={resolvedLogo}
                     alt={brandName}
                     fill
-                    sizes="40px"
+                    sizes="96px"
+                    quality={95}
                     priority
                     className="object-cover"
                     onError={() => setLogoError(true)}
@@ -460,7 +461,8 @@ export function Header({ locale }: HeaderProps) {
                   src={resolvedLogo}
                   alt={brandName}
                   fill
-                  sizes="32px"
+                  sizes="96px"
+                  quality={95}
                   className="object-cover"
                   onError={() => setLogoError(true)}
                 />
@@ -544,9 +546,11 @@ export function Header({ locale }: HeaderProps) {
                     <Image
                       src={customer.avatarUrl}
                       alt={customer.name || 'Avatar'}
-                      width={26}
-                      height={26}
-                      className="h-[26px] w-[26px] rounded-full object-cover border flex-shrink-0"
+                      width={80}
+                      height={80}
+                      quality={95}
+                      referrerPolicy="no-referrer"
+                      className="h-[28px] w-[28px] rounded-full object-cover border flex-shrink-0"
                       style={{ borderColor: 'var(--gold)' }}
                     />
                   ) : (

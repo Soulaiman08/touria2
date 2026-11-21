@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
+    qualities: [75, 85, 90, 92, 95],
     remotePatterns: [
       {
         protocol: 'https',
@@ -14,6 +15,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
       },
     ],
     formats: ['image/avif', 'image/webp'] as const,

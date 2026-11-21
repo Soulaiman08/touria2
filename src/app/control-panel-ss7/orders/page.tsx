@@ -15,9 +15,12 @@ import {
   XCircle,
   CheckCircle2,
   RotateCcw,
+  X,
+  Loader2,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
+import { useAdminI18n } from '@/components/admin/providers/AdminI18nContext'
 import { formatPrice } from '@/lib/utils'
 
 interface OrderItem {
@@ -36,9 +39,18 @@ interface OrderItem {
   createdAt: string
 }
 
-const statusOptions = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']
+const statusOptions = [
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+  'RETURNED',
+]
 
 function OrdersContent() {
+  const { tr, statusLabel, isRTL } = useAdminI18n()
   const [orders, setOrders] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -46,8 +58,13 @@ function OrdersContent() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState<number | null>(null)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [refreshTick, setRefreshTick] = useState(0)
   const { success, error } = useToast()
+
+  const PrevIcon = isRTL ? ChevronRight : ChevronLeft
+  const NextIcon = isRTL ? ChevronLeft : ChevronRight
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -66,13 +83,16 @@ function OrdersContent() {
         params.set('page', String(page))
         params.set('limit', '10')
 
-        const res = await fetch(`/api/admin/orders?${params.toString()}`)
+        const res = await fetch(`/api/admin/orders?${params.toString()}`, {
+          cache: 'no-store',
+        })
         if (!res.ok) throw new Error(`Failed to load orders: ${res.status}`)
         const data = await res.json()
 
         if (active && Array.isArray(data.items)) {
           setOrders(data.items)
           setTotalPages(data.totalPages || 1)
+          setTotalCount(typeof data.total === 'number' ? data.total : data.items.length)
         }
       } catch (err) {
         console.error('Error fetching orders:', err)
@@ -81,10 +101,13 @@ function OrdersContent() {
       }
     }
     loadOrders()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [debouncedSearch, statusFilter, page, refreshTick])
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
+    setUpdatingId(id)
     try {
       const res = await fetch(`/api/admin/orders/${id}`, {
         method: 'PATCH',
@@ -94,240 +117,364 @@ function OrdersContent() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.error || 'Failed to update status')
+        throw new Error(errData.error || tr('فشل تحديث الحالة', 'Failed to update status'))
       }
 
-      success(`Order status updated to ${newStatus}`)
+      success(
+        tr(
+          `تم تحديث حالة الطلب إلى ${statusLabel(newStatus)}`,
+          `Order status updated to ${statusLabel(newStatus)}`
+        )
+      )
       setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Status update failed'
+      const errorMessage =
+        err instanceof Error ? err.message : tr('فشل تحديث الحالة', 'Status update failed')
       error(errorMessage)
+    } finally {
+      setUpdatingId(null)
     }
   }
 
   const getStatusBadge = (status: string) => {
+    const label = statusLabel(status)
     switch (status) {
       case 'DELIVERED':
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <PackageCheck style={{ width: 12, height: 12 }} /> Delivered
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/12 text-emerald-400 border border-emerald-500/25 text-[11px] font-bold whitespace-nowrap">
+            <PackageCheck className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
       case 'SHIPPED':
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <Truck style={{ width: 12, height: 12 }} /> Shipped
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/12 text-sky-400 border border-sky-500/25 text-[11px] font-bold whitespace-nowrap">
+            <Truck className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
       case 'CONFIRMED':
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(56,189,248,0.12)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <CheckCircle2 style={{ width: 12, height: 12 }} /> Confirmed
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/12 text-cyan-400 border border-cyan-500/25 text-[11px] font-bold whitespace-nowrap">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
       case 'PROCESSING':
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <Clock style={{ width: 12, height: 12 }} /> Processing
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/12 text-amber-400 border border-amber-500/25 text-[11px] font-bold whitespace-nowrap">
+            <Clock className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
       case 'CANCELLED':
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.25)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <XCircle style={{ width: 12, height: 12 }} /> Cancelled
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/12 text-rose-400 border border-rose-500/25 text-[11px] font-bold whitespace-nowrap">
+            <XCircle className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
       case 'RETURNED':
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(161,161,170,0.12)', color: '#a1a1aa', border: '1px solid rgba(113,113,122,0.4)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <RotateCcw style={{ width: 12, height: 12 }} /> Returned
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 text-[11px] font-bold whitespace-nowrap">
+            <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
       default:
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'rgba(63,63,70,0.4)', color: '#d4d4d8', border: '1px solid rgba(63,63,70,0.6)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
-            <Clock style={{ width: 12, height: 12 }} /> Pending
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/90 text-zinc-200 border border-zinc-700 text-[11px] font-bold whitespace-nowrap">
+            <Clock className="w-3.5 h-3.5 shrink-0" />
+            {label}
           </span>
         )
     }
   }
 
+  const hasFilters = Boolean(search.trim()) || statusFilter !== 'all'
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+    <div className="flex flex-col gap-6 w-full">
       {/* Page Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid rgba(63,63,70,0.6)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ padding: 10, borderRadius: 12, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShoppingBag style={{ width: 22, height: 22 }} />
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-zinc-800/80">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-amber-500/12 border border-amber-500/25 text-amber-400 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-5 h-5" />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
-              Order Management
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              {tr('إدارة الطلبات', 'Order Management')}
             </h1>
-            <p style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>
-              Track customer orders, update shipping status, and view customer details
+            <p className="text-xs sm:text-[13px] text-zinc-400 mt-0.5">
+              {tr(
+                'تتبع طلبات العملاء، تحديث حالة الشحن، ومعاينة تفاصيل كل طلب',
+                'Track customer orders, update shipping status, and review order details'
+              )}
             </p>
           </div>
         </div>
+
+        {totalCount !== null && (
+          <div className="text-xs font-bold text-zinc-300 bg-zinc-900 border border-zinc-800 px-3.5 py-2 rounded-xl tabular-nums">
+            {tr('الطلبات:', 'Orders:')} <span className="text-amber-400 font-mono">{totalCount}</span>
+          </div>
+        )}
       </div>
 
       {/* Search & Status Filter Card */}
-      <div style={{
-        background: 'rgb(24,24,27)',
-        border: '1px solid rgba(63,63,70,0.6)',
-        borderRadius: 16,
-        padding: '16px 20px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 16,
-      }}>
-        <div style={{ position: 'relative', minWidth: 0, width: '100%', flex: '1 1 220px' }}>
-          <Search style={{ position: 'absolute', left: 14, top: 12, width: 16, height: 16, color: '#71717a' }} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1)
-            }}
-            placeholder="Search by order #, phone, customer..."
-            style={{
-              width: '100%',
-              background: 'rgb(9,9,11)',
-              border: '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 12,
-              padding: '10px 14px 10px 40px',
-              fontSize: 12,
-              color: '#f4f4f5',
-              outline: 'none',
-            }}
-          />
+      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="w-4 h-4 text-zinc-500 absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              placeholder={tr('ابحث برقم الطلب، الهاتف، اسم العميل...', 'Search by order #, phone, customer...')}
+              className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-10 pe-10 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 outline-none transition-colors"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('')
+                  setPage(1)
+                }}
+                aria-label={tr('مسح البحث', 'Clear search')}
+                className="absolute end-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Filter className="w-4 h-4 text-amber-400 shrink-0" />
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value)
+                setPage(1)
+              }}
+              aria-label={tr('تصفية حسب الحالة', 'Filter by status')}
+              className="h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer"
+            >
+              <option value="all">{tr('جميع الحالات', 'All Statuses')}</option>
+              {statusOptions.map((st) => (
+                <option key={st} value={st}>
+                  {statusLabel(st)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('')
+                setStatusFilter('all')
+                setPage(1)
+              }}
+              className="h-11 px-3.5 rounded-xl border border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+            >
+              {tr('مسح الفلاتر', 'Clear Filters')}
+            </button>
+          )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#a1a1aa', fontWeight: 600 }}>
-            <Filter style={{ width: 14, height: 14, color: '#fbbf24' }} /> Status:
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value)
+        {/* Quick Status Filter Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 admin-scroll">
+          <button
+            type="button"
+            onClick={() => {
+              setStatusFilter('all')
               setPage(1)
             }}
-            style={{
-              background: 'rgb(9,9,11)',
-              border: '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 12,
-              padding: '10px 14px',
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#f4f4f5',
-              outline: 'none',
-              cursor: 'pointer',
-            }}
+            className={`h-8 px-3 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer border ${
+              statusFilter === 'all'
+                ? 'bg-amber-500 text-zinc-950 border-amber-500'
+                : 'bg-zinc-950/70 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:border-zinc-700'
+            }`}
           >
-            <option value="all">All Statuses</option>
-            {statusOptions.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
+            {tr('الكل', 'All')}
+          </button>
+          {statusOptions.map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => {
+                setStatusFilter(st)
+                setPage(1)
+              }}
+              className={`h-8 px-3 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shrink-0 cursor-pointer border ${
+                statusFilter === st
+                  ? 'bg-amber-500 text-zinc-950 border-amber-500'
+                  : 'bg-zinc-950/70 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:border-zinc-700'
+              }`}
+            >
+              {statusLabel(st)}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Orders Table Card */}
-      <div style={{
-        background: 'rgb(24,24,27)',
-        border: '1px solid rgba(63,63,70,0.6)',
-        borderRadius: 20,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      {/* Orders List / Table Card */}
+      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
+        {/* Mobile Cards (< lg) */}
+        <div className="lg:hidden divide-y divide-zinc-800/70">
+          {loading ? (
+            <div className="py-14 text-center text-zinc-400">
+              <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-amber-400" />
+              <p className="text-xs">{tr('جاري تحميل الطلبات...', 'Fetching orders list...')}</p>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="py-14 px-4 text-center text-xs text-zinc-500">
+              {tr('لا توجد طلبات مطابقة للبحث.', 'No orders found matching filters.')}
+            </div>
+          ) : (
+            orders.map((ord) => (
+              <div key={ord.id} className="p-4 flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-sm font-black text-amber-400">
+                        {ord.orderNumber}
+                      </span>
+                      {getStatusBadge(ord.status)}
+                    </div>
+                    <p className="text-sm font-bold text-white mt-1.5 truncate">{ord.customerName}</p>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      <span className="font-mono">{ord.customerPhone}</span> · {ord.city}
+                      {ord.region ? ` (${ord.region})` : ''}
+                    </p>
+                  </div>
+                  <div className="text-end shrink-0">
+                    <p className="font-mono font-black text-emerald-400 text-sm tabular-nums">
+                      {formatPrice(ord.total, 'fr')}
+                    </p>
+                    <p className="text-[11px] text-zinc-500 mt-0.5 tabular-nums">
+                      {ord.itemsCount} {tr('عنصر', 'item(s)')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/70">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <select
+                      value={ord.status}
+                      disabled={updatingId === ord.id}
+                      onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
+                      aria-label={tr('تحديث حالة الطلب', 'Update order status')}
+                      className="h-9 flex-1 max-w-[180px] bg-[#111115] border border-zinc-700/80 rounded-lg px-2.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer disabled:opacity-50"
+                    >
+                      {statusOptions.map((st) => (
+                        <option key={st} value={st}>
+                          {statusLabel(st)}
+                        </option>
+                      ))}
+                    </select>
+                    {updatingId === ord.id && (
+                      <Loader2 className="w-4 h-4 animate-spin text-amber-400 shrink-0" />
+                    )}
+                  </div>
+
+                  <Link
+                    href={`/control-panel-ss7/orders/${ord.id}`}
+                    className="h-9 px-3.5 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 text-xs font-bold inline-flex items-center gap-1.5 transition-colors shrink-0"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>{tr('تفاصيل', 'Details')}</span>
+                  </Link>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table (>= lg) */}
+        <div className="hidden lg:block overflow-x-auto admin-scroll">
+          <table className="w-full text-sm border-collapse">
             <thead>
-              <tr style={{ background: 'rgba(9,9,11,0.6)', borderBottom: '1px solid rgba(63,63,70,0.6)' }}>
-                {['Order #', 'Customer & City', 'Region', 'Items', 'Shipping', 'Total', 'Status', 'Quick Status Update', 'Action'].map((h, i) => (
-                  <th key={i} style={{ padding: '14px 18px', textAlign: i === 8 ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
-                ))}
+              <tr className="bg-zinc-950/60 border-b border-zinc-800 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                <th className="py-3.5 px-4 text-start">{tr('رقم الطلب', 'Order #')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('العميل والمدينة', 'Customer & City')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('الجهة', 'Region')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('القطع', 'Items')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('الشحن', 'Shipping')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('المجموع', 'Total')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('الحالة', 'Status')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('تحديث سريع', 'Quick Update')}</th>
+                <th className="py-3.5 px-4 text-end">{tr('إجراء', 'Action')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-zinc-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan={9} style={{ padding: '48px 18px', textAlign: 'center', color: '#71717a' }}>
-                    <span style={{ display: 'inline-block', width: 24, height: 24, border: '2px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 8 }} />
-                    <p style={{ fontSize: 12 }}>Fetching orders list...</p>
+                  <td colSpan={9} className="py-14 px-4 text-center text-zinc-400">
+                    <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-amber-400" />
+                    <p className="text-xs">{tr('جاري تحميل قائمة الطلبات...', 'Fetching orders list...')}</p>
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ padding: '48px 18px', textAlign: 'center', fontSize: 12, color: '#3f3f46' }}>
-                    No orders found matching filters.
+                  <td colSpan={9} className="py-14 px-4 text-center text-xs text-zinc-500">
+                    {tr('لا توجد طلبات مطابقة للفلاتر المحددة.', 'No orders found matching filters.')}
                   </td>
                 </tr>
               ) : (
                 orders.map((ord) => (
-                  <tr key={ord.id} style={{ borderBottom: '1px solid rgba(63,63,70,0.4)' }} className="hover:bg-zinc-800/30 transition-colors">
-                    <td style={{ padding: '16px 18px', fontWeight: 900, color: '#fbbf24', fontFamily: 'monospace' }}>{ord.orderNumber}</td>
-                    <td style={{ padding: '16px 18px' }}>
-                      <div style={{ fontWeight: 700, color: '#fff' }}>{ord.customerName}</div>
-                      <div style={{ fontSize: 11, color: '#71717a', marginTop: 2 }}>
-                        {ord.customerPhone} • {ord.city}
+                  <tr key={ord.id} className="hover:bg-zinc-800/35 transition-colors">
+                    <td className="py-4 px-4 font-black text-amber-400 font-mono whitespace-nowrap">
+                      {ord.orderNumber}
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-white">{ord.customerName}</div>
+                      <div className="text-[11px] text-zinc-400 mt-0.5">
+                        <span className="font-mono">{ord.customerPhone}</span> · {ord.city}
                       </div>
                     </td>
-                    <td style={{ padding: '16px 18px', color: '#d4d4d8', fontSize: 12 }}>{ord.region || '—'}</td>
-                    <td style={{ padding: '16px 18px', color: '#d4d4d8' }}>{ord.itemsCount} item(s)</td>
-                    <td style={{ padding: '16px 18px', color: '#71717a', fontSize: 12 }}>{formatPrice(ord.shippingCost ?? 0, 'fr')}</td>
-                    <td style={{ padding: '16px 18px', fontWeight: 900, color: '#34d399' }}>{formatPrice(ord.total, 'fr')}</td>
-                    <td style={{ padding: '16px 18px' }}>{getStatusBadge(ord.status)}</td>
-                    <td style={{ padding: '16px 18px' }}>
-                      <select
-                        value={ord.status}
-                        onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
-                        style={{
-                          background: 'rgb(9,9,11)',
-                          border: '1px solid rgba(63,63,70,0.8)',
-                          borderRadius: 8,
-                          padding: '6px 10px',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: '#f4f4f5',
-                          outline: 'none',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {statusOptions.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
+                    <td className="py-4 px-4 text-zinc-300 text-xs">{ord.region || '—'}</td>
+                    <td className="py-4 px-4 text-zinc-300 text-xs tabular-nums whitespace-nowrap">
+                      {ord.itemsCount} {tr('عنصر', 'item(s)')}
                     </td>
-                    <td style={{ padding: '16px 18px', textAlign: 'right' }}>
+                    <td className="py-4 px-4 text-zinc-400 text-xs font-mono tabular-nums whitespace-nowrap">
+                      {formatPrice(ord.shippingCost ?? 0, 'fr')}
+                    </td>
+                    <td className="py-4 px-4 font-black text-emerald-400 font-mono tabular-nums whitespace-nowrap">
+                      {formatPrice(ord.total, 'fr')}
+                    </td>
+                    <td className="py-4 px-4 whitespace-nowrap">{getStatusBadge(ord.status)}</td>
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="inline-flex items-center gap-2">
+                        <select
+                          value={ord.status}
+                          disabled={updatingId === ord.id}
+                          onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
+                          aria-label={tr('تغيير حالة الطلب', 'Change order status')}
+                          className="h-9 bg-[#111115] border border-zinc-700/80 rounded-lg px-2.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer disabled:opacity-50"
+                        >
+                          {statusOptions.map((st) => (
+                            <option key={st} value={st}>
+                              {statusLabel(st)}
+                            </option>
+                          ))}
+                        </select>
+                        {updatingId === ord.id && (
+                          <Loader2 className="w-4 h-4 animate-spin text-amber-400 shrink-0" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-end whitespace-nowrap">
                       <Link
                         href={`/control-panel-ss7/orders/${ord.id}`}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '6px 14px',
-                          borderRadius: 10,
-                          background: 'rgba(63,63,70,0.7)',
-                          color: '#d4d4d8',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          textDecoration: 'none',
-                        }}
-                        className="hover:bg-amber-500 hover:text-zinc-950 transition-all"
+                        className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 text-xs font-bold transition-colors"
                       >
-                        <Eye style={{ width: 14, height: 14 }} /> Details
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{tr('تفاصيل', 'Details')}</span>
                       </Link>
                     </td>
                   </tr>
@@ -338,22 +485,28 @@ function OrdersContent() {
         </div>
 
         {/* Pagination */}
-        <div style={{ padding: '14px 20px', background: 'rgba(9,9,11,0.6)', borderTop: '1px solid rgba(63,63,70,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: 12, color: '#71717a', fontWeight: 500 }}>Page {page} of {totalPages}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="px-5 py-3.5 bg-zinc-950/60 border-t border-zinc-800 flex items-center justify-between">
+          <div className="text-xs text-zinc-400 font-medium tabular-nums">
+            {tr(`صفحة ${page} من ${totalPages}`, `Page ${page} of ${totalPages}`)}
+          </div>
+          <div className="flex items-center gap-2">
             <button
+              type="button"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              style={{ padding: 8, borderRadius: 10, background: 'rgba(63,63,70,0.6)', border: 'none', color: '#d4d4d8', cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.4 : 1 }}
+              aria-label={tr('الصفحة السابقة', 'Previous page')}
+              className="h-9 w-9 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              <ChevronLeft style={{ width: 16, height: 16 }} />
+              <PrevIcon className="w-4 h-4" />
             </button>
             <button
+              type="button"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              style={{ padding: 8, borderRadius: 10, background: 'rgba(63,63,70,0.6)', border: 'none', color: '#d4d4d8', cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.4 : 1 }}
+              aria-label={tr('الصفحة التالية', 'Next page')}
+              className="h-9 w-9 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              <ChevronRight style={{ width: 16, height: 16 }} />
+              <NextIcon className="w-4 h-4" />
             </button>
           </div>
         </div>

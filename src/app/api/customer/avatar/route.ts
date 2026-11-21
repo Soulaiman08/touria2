@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const result = await cloudinary.uploader.upload(base64, {
       folder: 'thuraya-almaghribi/avatars',
       resource_type: 'image',
-      transformation: [{ width: 400, height: 400, crop: 'limit' }],
+      transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto:best', fetch_format: 'auto' }],
     })
 
     const updated = await prisma.customer.update({

@@ -214,6 +214,7 @@ export function ProductCard({
                   alt={idx === 0 ? name : `${name} (${idx + 1})`}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  quality={90}
                   className="product-card-img object-cover"
                   onError={() => handleImageError(imgSrc)}
                   loading="lazy"

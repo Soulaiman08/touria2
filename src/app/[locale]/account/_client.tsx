@@ -190,14 +190,15 @@ export function AccountPageClient({ params }: AccountPageProps) {
             <div className="flex items-center gap-4 pb-5 mb-6 border-b border-[var(--border)]">
               <div className="relative flex-shrink-0">
                 {user.avatarUrl ? (
-                  <div className="w-16 h-[72px] rounded-t-[999px] rounded-b-xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)]">
+                  <div className="relative w-16 h-[72px] rounded-t-[999px] rounded-b-xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)]">
                     <Image
                       src={user.avatarUrl}
                       alt={user.name}
-                      width={64}
-                      height={72}
+                      fill
+                      sizes="160px"
+                      quality={95}
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
+                      className="object-cover"
                       onError={(e) => {
                         ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
                       }}

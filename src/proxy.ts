@@ -12,6 +12,11 @@ const ADMIN_LOGIN = '/control-panel-ss7/login'
 const isKnownAdminRole = (role: string) =>
   ['ADMIN', 'SUPER_ADMIN', 'ADMINISTRATOR', 'MANAGER', 'STAFF', 'STAFF MEMBER'].includes(role.trim().toUpperCase())
 
+const isDevPreviewAuthBypass =
+  process.env.NODE_ENV === 'development' &&
+  !process.env.DATABASE_URL &&
+  !process.env.ADMIN_JWT_SECRET
+
 function unauthorizedResponse() {
   const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   response.cookies.delete(COOKIE_NAME)
@@ -31,7 +36,7 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith('/api/admin')) {
-    if (pathname === '/api/admin/auth/login') return NextResponse.next()
+    if (pathname === '/api/admin/auth/login' || isDevPreviewAuthBypass) return NextResponse.next()
     const token = request.cookies.get(COOKIE_NAME)?.value
     const payload = token ? await verifyAdminTokenEdge(token) : null
     if (!payload || !isKnownAdminRole(payload.role)) {
@@ -44,6 +49,10 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith(ADMIN_PANEL)) {
+    if (isDevPreviewAuthBypass) {
+      return NextResponse.next()
+    }
+
     if (pathname === ADMIN_LOGIN) {
       const token = request.cookies.get(COOKIE_NAME)?.value
       const payload = token ? await verifyAdminTokenEdge(token) : null

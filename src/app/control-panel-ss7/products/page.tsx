@@ -18,13 +18,12 @@ import {
   Filter,
   MessageSquare,
   Loader2,
+  Palette,
+  Ruler,
 } from 'lucide-react'
-
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
-import {
-  ToastProvider,
-  useToast,
-} from '@/components/admin/providers/ToastContext'
+import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
+import { useAdminI18n } from '@/components/admin/providers/AdminI18nContext'
 import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 import { formatPrice } from '@/lib/utils'
@@ -35,21 +34,16 @@ interface ProductItem {
   sku: string
   slug: string
   name: string
-
   nameAr?: string
   nameFr?: string
   nameEn?: string
-
   descriptionAr?: string
   descriptionFr?: string
   descriptionEn?: string
-
   basePrice: number
   salePrice: number | null
   stock: number
-
   categoryId: string
-
   category?: {
     id: string
     nameAr?: string
@@ -58,37 +52,20 @@ interface ProductItem {
     name?: string
     slug: string
   }
-
   mainImage: string
   images: string[]
-
   colors: {
     code: string
     nameAr?: string
     nameFr?: string
     nameEn?: string
   }[]
-
   sizes: string[]
-
   isFeatured: boolean
   isActive: boolean
   canAddNiqab?: boolean
 }
 
-/*
- * =========================================================
- * Category
- * =========================================================
- *
- * بعض APIs ترجع:
- * name
- *
- * وبعضها ترجع:
- * nameAr / nameFr / nameEn
- *
- * لذلك ندعم كل الاحتمالات.
- */
 interface CategoryOption {
   id: string
   name?: string
@@ -98,50 +75,17 @@ interface CategoryOption {
   slug: string
 }
 
-/*
- * =========================================================
- * NIQAB HELPER
- * =========================================================
- *
- * هذا هو الـhelper الوحيد المسؤول عن معرفة هل الفئة نقاب.
- *
- * يدعم:
- * - niqab
- * - Niqab
- * - نقاب
- * - slug = niqab
- * - nameAr = نقاب
- * - nameFr = Niqab
- * - nameEn = Niqab
- */
-const isNiqabCategory = (
-  category?: CategoryOption | null
-): boolean => {
-  if (!category) {
-    return false
+interface ReviewItem {
+  id: string
+  rating: number
+  comment: string
+  createdAt: string
+  customer: {
+    id: string
+    name: string
+    email: string | null
+    avatarUrl: string | null
   }
-
-  const values = [
-    category.slug,
-    category.name,
-    category.nameAr,
-    category.nameFr,
-    category.nameEn,
-  ]
-    .filter(Boolean)
-    .map((value) =>
-      String(value)
-        .trim()
-        .toLowerCase()
-    )
-
-  return values.some(
-    (value) =>
-      value === 'niqab' ||
-      value === 'نقاب' ||
-      value.includes('niqab') ||
-      value.includes('نقاب')
-  )
 }
 
 interface ApiProductsResponse {
@@ -157,42 +101,89 @@ interface ApiMessageResponse {
   message?: string
 }
 
+type LangTab = 'ar' | 'fr' | 'en'
+
+const PRESET_COLORS = [
+  '#000000',
+  '#3B2316',
+  '#6B1D2F',
+  '#C4622D',
+  '#C88B12',
+  '#0F5132',
+  '#1B2A4A',
+  '#F2E4CE',
+]
+
+const PRESET_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Standard']
+
+const isNiqabCategory = (category?: CategoryOption | null): boolean => {
+  if (!category) return false
+  const values = [category.slug, category.name, category.nameAr, category.nameFr, category.nameEn]
+    .filter(Boolean)
+    .map((value) => String(value).trim().toLowerCase())
+  return values.some(
+    (value) =>
+      value === 'niqab' ||
+      value === 'نقاب' ||
+      value.includes('niqab') ||
+      value.includes('نقاب')
+  )
+}
+
+function parseColorTokens(str: string): string[] {
+  return Array.from(
+    new Set(
+      str
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean)
+        .map((c) => (c.startsWith('#') ? c : `#${c}`).toUpperCase())
+    )
+  )
+}
+
+function parseSizeTokens(str: string): string[] {
+  return Array.from(
+    new Set(
+      str
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    )
+  )
+}
+
 function ProductContent({ initialSearch }: { initialSearch: string }) {
+  const { tr, formatDate, isRTL, locale, dir } = useAdminI18n()
   const [products, setProducts] = useState<ProductItem[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
-
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState(initialSearch)
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch)
   const [selectedCategory, setSelectedCategory] = useState('all')
-
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [refreshTick, setRefreshTick] = useState(0)
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingProduct, setEditingProduct] =
-    useState<ProductItem | null>(null)
-  const [deleteTarget, setDeleteTarget] =
-    useState<ProductItem | null>(null)
+  const [activeLangTab, setActiveLangTab] = useState<LangTab>('ar')
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<ProductItem | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // Color & Size picker helpers
+  const [pickerColor, setPickerColor] = useState('#C4622D')
+  const [customSizeInput, setCustomSizeInput] = useState('')
+
   // Reviews modal state
-  const [reviewsTarget, setReviewsTarget] =
-    useState<ProductItem | null>(null)
-  const [reviewsData, setReviewsData] = useState<Array<{
-    id: string
-    rating: number
-    comment: string
-    createdAt: string
-    customer: { id: string; name: string; email: string | null; avatarUrl: string | null }
-  }>>([])
+  const [reviewsTarget, setReviewsTarget] = useState<ProductItem | null>(null)
+  const [reviewsData, setReviewsData] = useState<ReviewItem[]>([])
   const [reviewsCount, setReviewsCount] = useState(0)
   const [reviewsLoading, setReviewsLoading] = useState(false)
   const [reviewsDeleting, setReviewsDeleting] = useState<string | null>(null)
+  const [reviewDeleteConfirm, setReviewDeleteConfirm] = useState<ReviewItem | null>(null)
 
-  // Form fields
   const [formData, setFormData] = useState({
     nameAr: '',
     nameFr: '',
@@ -200,61 +191,40 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     descriptionAr: '',
     descriptionFr: '',
     descriptionEn: '',
-
     sku: '',
-
     basePrice: '',
     salePrice: '',
     stock: '20',
-
     categoryId: '',
-
     mainImage: '',
     images: [] as string[],
-
     colors: '#C4622D, #F2E4CE, #000000',
-
     sizes: 'S, M, L, XL',
-
     isFeatured: false,
     isActive: true,
     canAddNiqab: true,
   })
 
   const { success, error } = useToast()
+  const PrevIcon = isRTL ? ChevronRight : ChevronLeft
+  const NextIcon = isRTL ? ChevronLeft : ChevronRight
 
-  /*
-   * =========================================================
-   * Selected Form Category
-   * =========================================================
-   *
-   * نبحث عن الفئة المختارة حاليًا.
-   */
-  const selectedFormCategory = categories.find(
-    (category) =>
-      category.id === formData.categoryId
-  )
+  const selectedFormCategory = categories.find((c) => c.id === formData.categoryId)
+  const selectedCategoryIsNiqab = isNiqabCategory(selectedFormCategory)
 
-  /*
-   * =========================================================
-   * Is current selected category Niqab?
-   * =========================================================
-   *
-   * نستعمل الـhelper الوحيد هنا.
-   */
-  const selectedCategoryIsNiqab =
-    isNiqabCategory(selectedFormCategory)
+  const getCategoryDisplayName = (cat?: CategoryOption | ProductItem['category']) => {
+    if (!cat) return tr('تصنيف', 'Category')
+    if (locale === 'ar') return cat.nameAr || cat.name || cat.nameFr || cat.nameEn || cat.slug
+    return cat.nameEn || cat.nameFr || cat.name || cat.nameAr || cat.slug
+  }
 
-  /*
-   * =========================================================
-   * Fetch Categories
-   * =========================================================
-   */
+  const getProductDisplayName = (prod: ProductItem): string => {
+    if (locale === 'ar') return prod.nameAr || prod.name || prod.nameFr || prod.nameEn || prod.sku || 'Product'
+    return prod.nameEn || prod.nameFr || prod.name || prod.nameAr || prod.sku || 'Product'
+  }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setDebouncedSearch(search)
-    }, 300)
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 300)
     return () => window.clearTimeout(timer)
   }, [search])
 
@@ -267,10 +237,11 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
           cache: 'no-store',
           headers: { Accept: 'application/json' },
         })
-        if (!res.ok) {
-          throw new Error(`Failed to fetch categories (${res.status})`)
+        if (!res.ok) throw new Error(`Failed to fetch categories (${res.status})`)
+        const data = (await res.json()) as {
+          items?: CategoryOption[]
+          categories?: CategoryOption[]
         }
-        const data = (await res.json()) as { items?: CategoryOption[]; categories?: CategoryOption[] }
         const items = Array.isArray(data?.items)
           ? data.items
           : Array.isArray(data?.categories)
@@ -283,7 +254,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       }
     }
     loadCategories()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   useEffect(() => {
@@ -291,12 +264,8 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     async function loadProducts() {
       try {
         const params = new URLSearchParams()
-        if (debouncedSearch.trim()) {
-          params.set('search', debouncedSearch.trim())
-        }
-        if (selectedCategory !== 'all') {
-          params.set('category', selectedCategory)
-        }
+        if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
+        if (selectedCategory !== 'all') params.set('category', selectedCategory)
         params.set('page', String(page))
         params.set('limit', '8')
 
@@ -316,7 +285,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         }
 
         if (!res.ok) {
-          throw new Error(data?.error || data?.message || `Products API returned HTTP ${res.status}`)
+          throw new Error(
+            data?.error || data?.message || `Products API returned HTTP ${res.status}`
+          )
         }
 
         const items = Array.isArray(data?.items)
@@ -340,12 +311,15 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       }
     }
     loadProducts()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [debouncedSearch, selectedCategory, page, refreshTick])
 
   const openCreateModal = () => {
     setEditingProduct(null)
-
+    setActiveLangTab(locale === 'ar' ? 'ar' : 'en')
+    setCustomSizeInput('')
     setFormData({
       nameAr: '',
       nameFr: '',
@@ -353,38 +327,26 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       descriptionAr: '',
       descriptionFr: '',
       descriptionEn: '',
-
       sku: `SKU-${Math.floor(100000 + Math.random() * 900000)}`,
-
       basePrice: '',
       salePrice: '',
       stock: '20',
-
       categoryId: categories[0]?.id || '',
-
       mainImage: '',
       images: [],
-
       colors: '#C4622D, #F2E4CE, #000000',
-
       sizes: 'S, M, L, XL',
-
       isFeatured: false,
       isActive: true,
       canAddNiqab: true,
     })
-
     setIsModalOpen(true)
   }
 
-  /*
-   * =========================================================
-   * Edit Modal
-   * =========================================================
-   */
-
   const openEditModal = async (product: ProductItem) => {
     setEditingProduct(product)
+    setActiveLangTab(locale === 'ar' ? 'ar' : 'en')
+    setCustomSizeInput('')
 
     let fresh: ProductItem | null = null
     try {
@@ -410,110 +372,128 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       nameAr: resolved.nameAr || resolved.name || '',
       nameFr: resolved.nameFr || resolved.name || '',
       nameEn: resolved.nameEn || resolved.name || '',
-
       descriptionAr: resolved.descriptionAr || '',
-      descriptionFr: resolved.descriptionFr || resolved.descriptionAr || resolved.descriptionEn || '',
+      descriptionFr:
+        resolved.descriptionFr || resolved.descriptionAr || resolved.descriptionEn || '',
       descriptionEn: resolved.descriptionEn || '',
-
       sku: resolved.sku,
       basePrice: String(resolved.basePrice),
-      salePrice: resolved.salePrice !== null && resolved.salePrice !== undefined ? String(resolved.salePrice) : '',
+      salePrice:
+        resolved.salePrice !== null && resolved.salePrice !== undefined
+          ? String(resolved.salePrice)
+          : '',
       stock: String(resolved.stock),
       categoryId: resolved.categoryId,
       mainImage: resolved.mainImage,
       images: resolved.images || [],
-      colors: resolved.colors?.map((color: { code: string }) => color.code).join(', ') || '',
+      colors: resolved.colors?.map((color) => color.code).join(', ') || '',
       sizes: categoryIsNiqab ? '' : resolved.sizes?.join(', ') || 'S, M, L, XL',
       isFeatured: resolved.isFeatured,
       isActive: resolved.isActive,
       canAddNiqab: resolved.canAddNiqab ?? true,
     })
-
     setIsModalOpen(true)
   }
 
-  /*
-   * =========================================================
-   * Category Change
-   * =========================================================
-   */
-
-  const handleCategoryChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const categoryId =
-      e.target.value
-
-    const category =
-      categories.find(
-        (cat) =>
-          cat.id === categoryId
-      )
-
-    /*
-     * استعمال الـhelper الوحيد.
-     */
-    const categoryIsNiqab =
-      isNiqabCategory(category)
-
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryId = e.target.value
+    const category = categories.find((cat) => cat.id === categoryId)
+    const categoryIsNiqab = isNiqabCategory(category)
     setFormData((prev) => ({
       ...prev,
-
       categoryId,
-
-      /*
-       * نقاب = لا Sizes
-       *
-       * أي اختيار نقاب يمسح
-       * المقاسات مباشرة.
-       */
-      sizes: categoryIsNiqab
-        ? ''
-        : prev.sizes ||
-        'S, M, L, XL',
+      sizes: categoryIsNiqab ? '' : prev.sizes || 'S, M, L, XL',
     }))
   }
 
-  /*
-   * =========================================================
-   * Submit
-   * =========================================================
-   */
+  const toggleColorHex = (hex: string) => {
+    const norm = (hex.startsWith('#') ? hex : `#${hex}`).toUpperCase()
+    const current = parseColorTokens(formData.colors)
+    const next = current.includes(norm)
+      ? current.filter((c) => c !== norm)
+      : [...current, norm]
+    setFormData((prev) => ({ ...prev, colors: next.join(', ') }))
+  }
+
+  const addCustomColor = (hex: string) => {
+    const norm = (hex.startsWith('#') ? hex : `#${hex}`).toUpperCase()
+    if (!/^#[0-9A-F]{3,8}$/.test(norm)) {
+      error(tr(`كود لون غير صالح: ${hex}`, `Invalid hex color: ${hex}`))
+      return
+    }
+    const current = parseColorTokens(formData.colors)
+    if (!current.includes(norm)) {
+      setFormData((prev) => ({ ...prev, colors: [...current, norm].join(', ') }))
+    }
+  }
+
+  const toggleSizeChip = (sizeVal: string) => {
+    const current = parseSizeTokens(formData.sizes)
+    const next = current.includes(sizeVal)
+      ? current.filter((s) => s !== sizeVal)
+      : [...current, sizeVal]
+    setFormData((prev) => ({ ...prev, sizes: next.join(', ') }))
+  }
+
+  const addCustomSize = () => {
+    const trimmed = customSizeInput.trim()
+    if (!trimmed) return
+    const current = parseSizeTokens(formData.sizes)
+    if (!current.includes(trimmed)) {
+      setFormData((prev) => ({ ...prev, sizes: [...current, trimmed].join(', ') }))
+    }
+    setCustomSizeInput('')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    const primaryName =
+      formData.nameFr.trim() || formData.nameAr.trim() || formData.nameEn.trim()
+    if (!primaryName) {
+      error(tr('يرجى إدخال اسم المنتج بلغة واحدة على الأقل', 'Please enter a product name in at least one language'))
+      return
+    }
+
+    if (!formData.categoryId) {
+      error(tr('يرجى اختيار تصنيف المنتج', 'Please select a product category'))
+      return
+    }
+
     const parsedBasePrice = Number(formData.basePrice)
     if (!Number.isFinite(parsedBasePrice) || parsedBasePrice < 0) {
-      error('Base price must be a valid non-negative number')
+      error(tr('السعر الأساسي يجب أن يكون رقماً صحيحاً غير سالب', 'Base price must be a valid non-negative number'))
       return
     }
 
     const parsedSalePrice = formData.salePrice.trim() ? Number(formData.salePrice.trim()) : null
     if (parsedSalePrice !== null) {
       if (!Number.isFinite(parsedSalePrice) || parsedSalePrice < 0) {
-        error('Sale price must be a valid non-negative number')
+        error(tr('سعر التخفيض غير صالح', 'Sale price must be a valid non-negative number'))
         return
       }
       if (parsedSalePrice >= parsedBasePrice) {
-        error('Sale price must be lower than base price')
+        error(tr('يجب أن يكون سعر التخفيض أقل من السعر الأساسي', 'Sale price must be lower than base price'))
         return
       }
     }
 
     const parsedStock = Number.parseInt(formData.stock, 10)
     if (!Number.isFinite(parsedStock) || parsedStock < 0) {
-      error('Stock quantity must be a non-negative whole number')
+      error(tr('كمية المخزون يجب أن تكون رقماً صحيحاً غير سالب', 'Stock quantity must be a non-negative whole number'))
       return
     }
 
-    const rawColorTokens = formData.colors.split(',').map((c) => c.trim()).filter(Boolean)
+    const rawColorTokens = formData.colors
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean)
     const seenColors = new Set<string>()
     const colorsArr: Array<{ code: string; nameAr: string; nameFr: string; nameEn: string }> = []
     for (const token of rawColorTokens) {
       const normalized = (token.startsWith('#') ? token : `#${token}`).toUpperCase()
       if (!/^#[0-9A-F]{3,8}$/.test(normalized)) {
-        error(`Invalid hex color code: "${token}"`)
+        error(tr(`كود لون غير صالح: "${token}"`, `Invalid hex color code: "${token}"`))
         return
       }
       if (!seenColors.has(normalized)) {
@@ -533,27 +513,30 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     try {
       const category = categories.find((cat) => cat.id === formData.categoryId)
       const categoryIsNiqab = isNiqabCategory(category)
+      const sizesArr = categoryIsNiqab ? [] : parseSizeTokens(formData.sizes)
 
-      const sizesArr = categoryIsNiqab
-        ? []
-        : Array.from(new Set(formData.sizes.split(',').map((s) => s.trim()).filter(Boolean)))
+      const primaryDesc =
+        formData.descriptionFr.trim() ||
+        formData.descriptionAr.trim() ||
+        formData.descriptionEn.trim()
 
       const payload = {
-        nameAr: formData.nameAr.trim() || formData.nameFr.trim(),
-        nameFr: formData.nameFr.trim(),
-        nameEn: formData.nameEn.trim() || formData.nameFr.trim(),
-        descriptionAr: formData.descriptionAr.trim() || formData.descriptionFr.trim(),
-        descriptionFr: formData.descriptionFr.trim(),
-        descriptionEn: formData.descriptionEn.trim() || formData.descriptionFr.trim(),
+        nameAr: formData.nameAr.trim() || primaryName,
+        nameFr: formData.nameFr.trim() || primaryName,
+        nameEn: formData.nameEn.trim() || primaryName,
+        descriptionAr: formData.descriptionAr.trim() || primaryDesc,
+        descriptionFr: formData.descriptionFr.trim() || primaryDesc,
+        descriptionEn: formData.descriptionEn.trim() || primaryDesc,
         sku: formData.sku.trim(),
         basePrice: parsedBasePrice,
         salePrice: parsedSalePrice,
         stock: parsedStock,
         categoryId: formData.categoryId,
         mainImage: formData.mainImage || formData.images[0] || '/images/brand/logo-full.png',
-        images: formData.images.length > 0
-          ? formData.images
-          : [formData.mainImage || '/images/brand/logo-full.png'],
+        images:
+          formData.images.length > 0
+            ? formData.images
+            : [formData.mainImage || '/images/brand/logo-full.png'],
         colors: colorsArr,
         sizes: sizesArr,
         isFeatured: formData.isFeatured,
@@ -589,96 +572,51 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         )
       }
 
-      success(editingProduct ? 'Product updated successfully' : 'Product created successfully')
+      success(
+        editingProduct
+          ? tr('تم تحديث المنتج بنجاح', 'Product updated successfully')
+          : tr('تم إنشاء المنتج بنجاح', 'Product created successfully')
+      )
       setIsModalOpen(false)
       setEditingProduct(null)
       setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Action failed'
-      console.error('Error saving product:', err)
+      const errorMessage = err instanceof Error ? err.message : tr('فشل الحفظ', 'Action failed')
       error(errorMessage)
     } finally {
       setSubmitting(false)
     }
   }
 
-  /*
-   * =========================================================
-   * Delete
-   * =========================================================
-   */
-
-  const handleDelete =
-    async () => {
-      if (!deleteTarget) {
-        return
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/admin/products/${deleteTarget.id}`, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json' },
+      })
+      const contentType = res.headers.get('content-type') || ''
+      let data: ApiMessageResponse | null = null
+      if (contentType.includes('application/json')) {
+        data = (await res.json()) as ApiMessageResponse
+      } else {
+        data = { error: await res.text() }
       }
 
-      setSubmitting(true)
-
-      try {
-        /*
-         * إصلاح الـURL هنا أيضًا.
-         */
-        const url =
-          `/api/admin/products/${deleteTarget.id}`
-
-        const res =
-          await fetch(url, {
-            method: 'DELETE',
-
-            headers: {
-              Accept:
-                'application/json',
-            },
-          })
-
-        const contentType =
-          res.headers.get(
-            'content-type'
-          ) || ''
-
-        let data: ApiMessageResponse | null = null
-
-        if (contentType.includes('application/json')) {
-          data = (await res.json()) as ApiMessageResponse
-        } else {
-          data = { error: await res.text() }
-        }
-
-        if (!res.ok) {
-          throw new Error(
-            data?.error ||
-            data?.message ||
-            `Failed to delete product (${res.status})`
-          )
-        }
-
-        success('Product deleted successfully')
-        setDeleteTarget(null)
-        setRefreshTick((t) => t + 1)
-      } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : 'Error deleting product'
-
-        console.error(
-          'Error deleting product:',
-          err
-        )
-
-        error(errorMessage)
-      } finally {
-        setSubmitting(false)
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || `Failed to delete product (${res.status})`)
       }
+
+      success(tr('تم حذف المنتج بنجاح', 'Product deleted successfully'))
+      setDeleteTarget(null)
+      setRefreshTick((t) => t + 1)
+    } catch (err: unknown) {
+      error(err instanceof Error ? err.message : tr('فشل حذف المنتج', 'Error deleting product'))
+    } finally {
+      setSubmitting(false)
     }
-
-  /*
-   * =========================================================
-   * Reviews
-   * =========================================================
-   */
+  }
 
   const loadReviews = useCallback(
     async (productId: string) => {
@@ -687,22 +625,19 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         const res = await fetch(`/api/admin/reviews?productId=${encodeURIComponent(productId)}`, {
           headers: { Accept: 'application/json' },
         })
-        if (!res.ok) {
-          throw new Error(`Failed to load reviews (${res.status})`)
-        }
+        if (!res.ok) throw new Error(`Failed to load reviews (${res.status})`)
         const data = await res.json()
-        setReviewsData(data.reviews)
-        setReviewsCount(data.count)
+        setReviewsData(data.reviews || [])
+        setReviewsCount(data.count || 0)
       } catch (err: unknown) {
-        console.error('Error loading reviews:', err)
         setReviewsData([])
         setReviewsCount(0)
-        error(err instanceof Error ? err.message : 'Failed to load reviews')
+        error(err instanceof Error ? err.message : tr('فشل تحميل التقييمات', 'Failed to load reviews'))
       } finally {
         setReviewsLoading(false)
       }
     },
-    [error]
+    [error, tr]
   )
 
   const openReviewsModal = (prod: ProductItem) => {
@@ -724,1958 +659,862 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         try {
           const data = await res.json()
           if (data?.error) message = data.error
-        } catch { /* ignore */ }
+        } catch {
+          // ignore
+        }
         throw new Error(message)
       }
       setReviewsData((current) => current.filter((r) => r.id !== reviewId))
       setReviewsCount((count) => Math.max(0, count - 1))
-      success('Review deleted successfully')
+      setReviewDeleteConfirm(null)
+      success(tr('تم حذف التقييم بنجاح', 'Review deleted successfully'))
     } catch (err: unknown) {
-      error(err instanceof Error ? err.message : 'Failed to delete review')
+      error(err instanceof Error ? err.message : tr('فشل حذف التقييم', 'Failed to delete review'))
     } finally {
       setReviewsDeleting(null)
     }
   }
 
+  const currentColorList = parseColorTokens(formData.colors)
+  const currentSizeList = parseSizeTokens(formData.sizes)
+  const hasFilters = Boolean(search.trim()) || selectedCategory !== 'all'
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
-        width: '100%',
-      }}
-    >
-      {/* =====================================================
-          Header
-          ===================================================== */}
-
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent:
-            'space-between',
-          paddingBottom: 16,
-          borderBottom:
-            '1px solid rgba(63,63,70,0.6)',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              padding: 10,
-              borderRadius: 12,
-              background:
-                'rgba(245,158,11,0.12)',
-              border:
-                '1px solid rgba(245,158,11,0.25)',
-              color: '#fbbf24',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent:
-                'center',
-            }}
-          >
-            <Package
-              style={{
-                width: 22,
-                height: 22,
-              }}
-            />
+    <div className="flex flex-col gap-6 w-full">
+      {/* ── Header ── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-zinc-800/80">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-amber-500/12 border border-amber-500/25 text-amber-400 flex items-center justify-center shrink-0">
+            <Package className="w-5 h-5" />
           </div>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection:
-                'column',
-              gap: 4,
-            }}
-          >
-            <h1
-              style={{
-                fontSize: 22,
-                fontWeight: 900,
-                color: '#fff',
-                letterSpacing:
-                  '-0.02em',
-              }}
-            >
-              Product Management
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              {tr('إدارة المنتجات', 'Product Management')}
             </h1>
-
-            <p
-              style={{
-                fontSize: 12,
-                color: '#71717a',
-                fontWeight: 500,
-              }}
-            >
-              Manage catalog, pricing,
-              stock levels, variants,
-              and visibility
+            <p className="text-xs sm:text-[13px] text-zinc-400 mt-0.5">
+              {tr(
+                'إدارة الكتالوج، الأسعار، المخزون، الألوان والمقاسات',
+                'Manage catalog, pricing, stock levels, colors, and sizes'
+              )}
             </p>
           </div>
         </div>
 
         <button
-          onClick={
-            openCreateModal
-          }
-          style={{
-            display:
-              'inline-flex',
-            alignItems:
-              'center',
-            gap: 8,
-            padding:
-              '10px 18px',
-            borderRadius: 12,
-            background:
-              'linear-gradient(90deg, #f59e0b, #d97706)',
-            color: '#09090b',
-            fontWeight: 900,
-            fontSize: 12,
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow:
-              '0 4px 20px rgba(245,158,11,0.25)',
-          }}
+          type="button"
+          onClick={openCreateModal}
+          className="h-10 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs inline-flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer shrink-0 whitespace-nowrap"
         >
-          <Plus
-            style={{
-              width: 16,
-              height: 16,
-            }}
-          />
-
-          <span>
-            Add New Product
-          </span>
+          <Plus className="w-4 h-4" />
+          <span>{tr('إضافة منتج جديد', 'Add New Product')}</span>
         </button>
       </div>
 
-      {/* =====================================================
-          Search & Filter
-          ===================================================== */}
-
-      <div
-        style={{
-          background:
-            'rgb(24,24,27)',
-          border:
-            '1px solid rgba(63,63,70,0.6)',
-          borderRadius: 16,
-          padding:
-            '16px 20px',
-          boxShadow:
-            '0 4px 20px rgba(0,0,0,0.3)',
-          display: 'flex',
-          alignItems:
-            'center',
-          justifyContent:
-            'space-between',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            minWidth: 0,
-            width: '100%',
-            flex: '1 1 220px',
-          }}
-        >
-          <Search
-            style={{
-              position:
-                'absolute',
-              left: 14,
-              top: 12,
-              width: 16,
-              height: 16,
-              color: '#71717a',
-            }}
-          />
-
+      {/* ── Search & Category Filter ── */}
+      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="w-4 h-4 text-zinc-500 absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => {
-              setSearch(
-                e.target.value
-              )
-
+              setSearch(e.target.value)
               setPage(1)
             }}
-            placeholder="Search by name or SKU..."
-            style={{
-              width: '100%',
-              background:
-                'rgb(9,9,11)',
-              border:
-                '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 12,
-              padding:
-                '10px 14px 10px 40px',
-              fontSize: 12,
-              color: '#f4f4f5',
-              outline: 'none',
-            }}
+            placeholder={tr('ابحث باسم المنتج أو الرمز SKU...', 'Search by name or SKU...')}
+            className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-10 pe-10 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 outline-none transition-colors"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('')
+                setPage(1)
+              }}
+              aria-label={tr('مسح البحث', 'Clear search')}
+              className="absolute end-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems:
-              'center',
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              display:
-                'flex',
-              alignItems:
-                'center',
-              gap: 6,
-              fontSize: 12,
-              color: '#a1a1aa',
-              fontWeight: 600,
-            }}
-          >
-            <Filter
-              style={{
-                width: 14,
-                height: 14,
-                color: '#fbbf24',
-              }}
-            />
-
-            Filter Category:
-          </div>
-
+        <div className="flex items-center gap-2 shrink-0">
+          <Filter className="w-4 h-4 text-amber-400 shrink-0" />
           <select
-            value={
-              selectedCategory
-            }
+            value={selectedCategory}
             onChange={(e) => {
-              setSelectedCategory(
-                e.target.value
-              )
-
+              setSelectedCategory(e.target.value)
               setPage(1)
             }}
-            style={{
-              background:
-                'rgb(9,9,11)',
-              border:
-                '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 12,
-              padding:
-                '10px 14px',
-              fontSize: 12,
-              fontWeight: 700,
-              color:
-                '#f4f4f5',
-              outline: 'none',
-              cursor:
-                'pointer',
-            }}
+            aria-label={tr('تصفية حسب التصنيف', 'Filter by category')}
+            className="h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer"
           >
-            <option value="all">
-              All Categories
-            </option>
-
-            {categories.map(
-              (cat) => (
-                <option
-                  key={cat.id}
-                  value={cat.id}
-                >
-                  {cat.name ||
-                    cat.nameFr ||
-                    cat.nameAr ||
-                    cat.nameEn ||
-                    cat.slug}
-                </option>
-              )
-            )}
+            <option value="all">{tr('جميع التصنيفات', 'All Categories')}</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {getCategoryDisplayName(cat)}
+              </option>
+            ))}
           </select>
         </div>
+
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('')
+              setSelectedCategory('all')
+              setPage(1)
+            }}
+            className="h-11 px-3.5 rounded-xl border border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+          >
+            {tr('مسح الفلاتر', 'Clear Filters')}
+          </button>
+        )}
       </div>
 
-      {/* =====================================================
-          Products Table
-          ===================================================== */}
-
-      <div
-        style={{
-          background:
-            'rgb(24,24,27)',
-          border:
-            '1px solid rgba(63,63,70,0.6)',
-          borderRadius: 20,
-          boxShadow:
-            '0 8px 32px rgba(0,0,0,0.4)',
-          display: 'flex',
-          flexDirection:
-            'column',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            overflowX: 'auto',
-          }}
-        >
-          <table
-            style={{
-              width: '100%',
-              borderCollapse:
-                'collapse',
-              fontSize: 13,
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  background:
-                    'rgba(9,9,11,0.6)',
-                  borderBottom:
-                    '1px solid rgba(63,63,70,0.6)',
-                }}
+      {/* ── Products List / Table Card ── */}
+      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
+        {/* Mobile Cards (< lg) */}
+        <div className="lg:hidden divide-y divide-zinc-800/70">
+          {loading ? (
+            <div className="py-14 text-center text-zinc-400">
+              <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-amber-400" />
+              <p className="text-xs">{tr('جاري تحميل المنتجات...', 'Loading products catalog...')}</p>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="py-14 px-4 text-center space-y-3">
+              <p className="text-sm font-semibold text-zinc-400">
+                {tr('لا توجد منتجات مطابقة.', 'No products found.')}
+              </p>
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="h-9 px-4 rounded-xl bg-amber-500 text-zinc-950 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
               >
-                {[
-                  'Product',
-                  'SKU',
-                  'Category',
-                  'Price',
-                  'Stock',
-                  'Status',
-                  'Actions',
-                ].map((h, i) => (
-                  <th
-                    key={i}
-                    style={{
-                      padding:
-                        '14px 18px',
-                      textAlign:
-                        i === 6
-                          ? 'right'
-                          : 'left',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: '#71717a',
-                      textTransform:
-                        'uppercase',
-                      letterSpacing:
-                        '0.08em',
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
+                <Plus className="w-3.5 h-3.5" />
+                {tr('إضافة أول منتج', 'Add Product')}
+              </button>
+            </div>
+          ) : (
+            products.map((prod) => (
+              <div key={prod.id} className="p-4 flex flex-col gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="relative w-14 h-14 rounded-xl bg-zinc-800 border border-zinc-700/80 overflow-hidden shrink-0">
+                    <Image
+                      src={prod.mainImage || '/images/brand/logo-full.png'}
+                      alt={getProductDisplayName(prod)}
+                      fill
+                      sizes="128px"
+                      quality={92}
+                      referrerPolicy="no-referrer"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-bold text-white truncate">
+                        {getProductDisplayName(prod)}
+                      </h3>
+                      <span className="text-xs font-black text-amber-400 font-mono tabular-nums shrink-0">
+                        {formatPrice(prod.salePrice || prod.basePrice, 'fr')}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      <span className="font-mono">{prod.sku}</span>
+                      <span className="mx-1.5 text-zinc-600">·</span>
+                      <span>{getCategoryDisplayName(prod.category)}</span>
+                      <span className="mx-1.5 text-zinc-600">·</span>
+                      <span
+                        className={
+                          prod.stock > 10
+                            ? 'text-emerald-400'
+                            : prod.stock > 0
+                              ? 'text-amber-400'
+                              : 'text-rose-400'
+                        }
+                      >
+                        {prod.stock > 0
+                          ? `${prod.stock} ${tr('قطعة', 'units')}`
+                          : tr('نفد المخزون', 'Out of Stock')}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/70">
+                  <div className="flex items-center gap-2">
+                    {prod.isActive ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/12 text-emerald-400 border border-emerald-500/25 text-[11px] font-bold">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {tr('نشط', 'Active')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/12 text-rose-400 border border-rose-500/25 text-[11px] font-bold">
+                        <XCircle className="w-3 h-3" />
+                        {tr('مسودة', 'Draft')}
+                      </span>
+                    )}
+                    {prod.isFeatured && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400">
+                        <Star className="w-3 h-3 fill-current" />
+                        {tr('مميز', 'Featured')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(prod)}
+                      aria-label={tr('تعديل المنتج', 'Edit Product')}
+                      className="h-9 w-9 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openReviewsModal(prod)}
+                      aria-label={tr('تقييمات المنتج', 'Product Reviews')}
+                      className="h-9 w-9 rounded-lg bg-sky-500/12 border border-sky-500/25 text-sky-400 hover:bg-sky-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(prod)}
+                      aria-label={tr('حذف المنتج', 'Delete Product')}
+                      className="h-9 w-9 rounded-lg bg-rose-500/12 border border-rose-500/25 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table (>= lg) */}
+        <div className="hidden lg:block overflow-x-auto admin-scroll">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-zinc-950/60 border-b border-zinc-800 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                <th className="py-3.5 px-4 text-start">{tr('المنتج', 'Product')}</th>
+                <th className="py-3.5 px-4 text-start">SKU</th>
+                <th className="py-3.5 px-4 text-start">{tr('التصنيف', 'Category')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('السعر', 'Price')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('المخزون', 'Stock')}</th>
+                <th className="py-3.5 px-4 text-start">{tr('الحالة', 'Status')}</th>
+                <th className="py-3.5 px-4 text-end">{tr('إجراءات', 'Actions')}</th>
               </tr>
             </thead>
-
-            <tbody>
+            <tbody className="divide-y divide-zinc-800/60">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding:
-                        '48px 18px',
-                      textAlign:
-                        'center',
-                      color:
-                        '#71717a',
-                    }}
-                  >
-                    <span
-                      style={{
-                        display:
-                          'inline-block',
-                        width: 24,
-                        height: 24,
-                        border:
-                          '2px solid #fbbf24',
-                        borderTopColor:
-                          'transparent',
-                        borderRadius:
-                          '50%',
-                        animation:
-                          'spin 1s linear infinite',
-                        marginBottom: 8,
-                      }}
-                    />
-
-                    <p
-                      style={{
-                        fontSize: 12,
-                      }}
-                    >
-                      Loading products
-                      catalog...
-                    </p>
+                  <td colSpan={7} className="py-14 px-4 text-center text-zinc-400">
+                    <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-amber-400" />
+                    <p className="text-xs">{tr('جاري تحميل كتالوج المنتجات...', 'Loading products catalog...')}</p>
                   </td>
                 </tr>
-              ) : products.length ===
-                0 ? (
+              ) : products.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding:
-                        '48px 18px',
-                      textAlign:
-                        'center',
-                      fontSize: 12,
-                      color:
-                        '#3f3f46',
-                    }}
-                  >
-                    No products found
-                    matching your search.
+                  <td colSpan={7} className="py-14 px-4 text-center text-xs text-zinc-500">
+                    {tr('لا توجد منتجات مطابقة لبحثك.', 'No products found matching your search.')}
                   </td>
                 </tr>
               ) : (
-                products.map(
-                  (prod) => (
-                    <tr
-                      key={prod.id}
-                      style={{
-                        borderBottom:
-                          '1px solid rgba(63,63,70,0.4)',
-                      }}
-                      className="hover:bg-zinc-800/30 transition-colors"
-                    >
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display:
-                              'flex',
-                            alignItems:
-                              'center',
-                            gap: 14,
-                            minWidth:
-                              200,
-                          }}
-                        >
-                          <div
-                            style={{
-                              position: 'relative',
-                              width: 44,
-                              height: 44,
-                              borderRadius: 12,
-                              background: '#27272a',
-                              border: '1px solid rgba(63,63,70,0.8)',
-                              overflow: 'hidden',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <Image
-                              src={prod.mainImage || '/images/brand/logo-full.png'}
-                              alt={prod.name}
-                              fill
-                              sizes="44px"
-                              referrerPolicy="no-referrer"
-                              className="object-cover"
-                            />
-                          </div>
-
-                          <div
-                            style={{
-                              display:
-                                'flex',
-                              flexDirection:
-                                'column',
-                              gap: 4,
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontWeight:
-                                  700,
-                                color:
-                                  '#fff',
-                                fontSize:
-                                  14,
-                              }}
-                            >
-                              {
-                                prod.name
-                              }
-                            </div>
-
-                            {prod.isFeatured && (
-                              <span
-                                style={{
-                                  display:
-                                    'inline-flex',
-                                  alignItems:
-                                    'center',
-                                  gap: 4,
-                                  fontSize:
-                                    10,
-                                  color:
-                                    '#fbbf24',
-                                  fontWeight:
-                                    700,
-                                }}
-                              >
-                                <Star
-                                  style={{
-                                    width:
-                                      12,
-                                    height:
-                                      12,
-                                    fill:
-                                      'currentColor',
-                                  }}
-                                />
-
-                                Featured
-                                Item
-                              </span>
-                            )}
-                          </div>
+                products.map((prod) => (
+                  <tr key={prod.id} className="hover:bg-zinc-800/35 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3.5 min-w-[210px]">
+                        <div className="relative w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700/80 overflow-hidden shrink-0">
+                          <Image
+                            src={prod.mainImage || '/images/brand/logo-full.png'}
+                            alt={getProductDisplayName(prod)}
+                            fill
+                            sizes="128px"
+                            quality={92}
+                            referrerPolicy="no-referrer"
+                            className="object-cover"
+                          />
                         </div>
-                      </td>
-
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                          color:
-                            '#71717a',
-                          fontFamily:
-                            'monospace',
-                          fontSize: 12,
-                        }}
-                      >
-                        {
-                          prod.sku
-                        }
-                      </td>
-
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            padding:
-                              '4px 10px',
-                            borderRadius:
-                              8,
-                            background:
-                              'rgba(63,63,70,0.4)',
-                            color:
-                              '#d4d4d8',
-                            border:
-                              '1px solid rgba(63,63,70,0.6)',
-                            fontSize:
-                              11,
-                            fontWeight:
-                              600,
-                          }}
-                        >
-                          {prod.category
-                            ?.nameFr ||
-                            prod.category
-                              ?.nameAr ||
-                            prod.category
-                              ?.name ||
-                            prod.category
-                              ?.nameEn ||
-                            'Category'}
-                        </span>
-                      </td>
-
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight:
-                              900,
-                            color:
-                              '#fbbf24',
-                          }}
-                        >
-                          {formatPrice(
-                            prod.salePrice ||
-                            prod.basePrice,
-                            'fr'
+                        <div className="min-w-0">
+                          <div className="font-bold text-white text-sm truncate max-w-[240px]">
+                            {getProductDisplayName(prod)}
+                          </div>
+                          {prod.isFeatured && (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-amber-400 font-bold mt-0.5">
+                              <Star className="w-3 h-3 fill-current" />
+                              {tr('منتج مميز', 'Featured')}
+                            </span>
                           )}
                         </div>
-
-                        {prod.salePrice && (
-                          <div
-                            style={{
-                              fontSize:
-                                11,
-                              color:
-                                '#71717a',
-                              textDecoration:
-                                'line-through',
-                            }}
-                          >
-                            {formatPrice(
-                              prod.basePrice,
-                              'fr'
-                            )}
-                          </div>
-                        )}
-                      </td>
-
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontWeight:
-                              700,
-                            color:
-                              prod.stock >
-                                10
-                                ? '#34d399'
-                                : prod.stock >
-                                  0
-                                  ? '#fbbf24'
-                                  : '#f87171',
-                          }}
-                        >
-                          {prod.stock >
-                            0
-                            ? `${prod.stock} units`
-                            : 'Out of Stock'}
-                        </span>
-                      </td>
-
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                        }}
-                      >
-                        {prod.isActive ? (
-                          <span
-                            style={{
-                              display:
-                                'inline-flex',
-                              alignItems:
-                                'center',
-                              gap: 4,
-                              padding:
-                                '4px 10px',
-                              borderRadius:
-                                999,
-                              background:
-                                'rgba(52,211,153,0.12)',
-                              color:
-                                '#34d399',
-                              border:
-                                '1px solid rgba(52,211,153,0.25)',
-                              fontSize:
-                                10,
-                              fontWeight:
-                                800,
-                              textTransform:
-                                'uppercase',
-                            }}
-                          >
-                            <CheckCircle2
-                              style={{
-                                width:
-                                  12,
-                                height:
-                                  12,
-                              }}
-                            />
-
-                            Active
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              display:
-                                'inline-flex',
-                              alignItems:
-                                'center',
-                              gap: 4,
-                              padding:
-                                '4px 10px',
-                              borderRadius:
-                                999,
-                              background:
-                                'rgba(248,113,113,0.12)',
-                              color:
-                                '#f87171',
-                              border:
-                                '1px solid rgba(248,113,113,0.25)',
-                              fontSize:
-                                10,
-                              fontWeight:
-                                800,
-                              textTransform:
-                                'uppercase',
-                            }}
-                          >
-                            <XCircle
-                              style={{
-                                width:
-                                  12,
-                                height:
-                                  12,
-                              }}
-                            />
-
-                            Draft
-                          </span>
-                        )}
-                      </td>
-
-                      <td
-                        style={{
-                          padding:
-                            '16px 18px',
-                          textAlign:
-                            'right',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display:
-                              'flex',
-                            alignItems:
-                              'center',
-                            justifyContent:
-                              'flex-end',
-                            gap: 8,
-                          }}
-                        >
-                          <button
-                            onClick={() =>
-                              openEditModal(
-                                prod
-                              )
-                            }
-                            style={{
-                              padding:
-                                8,
-                              borderRadius:
-                                10,
-                              background:
-                                'rgba(63,63,70,0.6)',
-                              border:
-                                'none',
-                              color:
-                                '#d4d4d8',
-                              cursor:
-                                'pointer',
-                            }}
-                            className="hover:bg-amber-500 hover:text-zinc-950 transition-all"
-                            title="Edit Product"
-                          >
-                            <Edit2
-                              style={{
-                                width:
-                                  15,
-                                height:
-                                  15,
-                              }}
-                            />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              openReviewsModal(
-                                prod
-                              )
-                            }
-                            style={{
-                              padding:
-                                8,
-                              borderRadius:
-                                10,
-                              background:
-                                'rgba(59,130,246,0.12)',
-                              border:
-                                '1px solid rgba(59,130,246,0.25)',
-                              color:
-                                '#60a5fa',
-                              cursor:
-                                'pointer',
-                            }}
-                            className="hover:bg-blue-500 hover:text-white transition-all"
-                            title="Reviews"
-                          >
-                            <MessageSquare
-                              style={{
-                                width:
-                                  15,
-                                height:
-                                  15,
-                              }}
-                            />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              setDeleteTarget(
-                                prod
-                              )
-                            }
-                            style={{
-                              padding:
-                                8,
-                              borderRadius:
-                                10,
-                              background:
-                                'rgba(239,68,68,0.12)',
-                              border:
-                                '1px solid rgba(239,68,68,0.25)',
-                              color:
-                                '#f87171',
-                              cursor:
-                                'pointer',
-                            }}
-                            className="hover:bg-rose-600 hover:text-white transition-all"
-                            title="Delete Product"
-                          >
-                            <Trash2
-                              style={{
-                                width:
-                                  15,
-                                height:
-                                  15,
-                              }}
-                            />
-                          </button>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-zinc-400 font-mono text-xs whitespace-nowrap">
+                      {prod.sku}
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="px-2.5 py-1 rounded-lg bg-zinc-800/80 text-zinc-200 border border-zinc-700/60 text-xs font-semibold">
+                        {getCategoryDisplayName(prod.category)}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap font-mono tabular-nums">
+                      <div className="font-black text-amber-400">
+                        {formatPrice(prod.salePrice || prod.basePrice, 'fr')}
+                      </div>
+                      {prod.salePrice && (
+                        <div className="text-[11px] text-zinc-500 line-through">
+                          {formatPrice(prod.basePrice, 'fr')}
                         </div>
-                      </td>
-                    </tr>
-                  )
-                )
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap tabular-nums">
+                      <span
+                        className={`text-xs font-bold ${
+                          prod.stock > 10
+                            ? 'text-emerald-400'
+                            : prod.stock > 0
+                              ? 'text-amber-400'
+                              : 'text-rose-400'
+                        }`}
+                      >
+                        {prod.stock > 0
+                          ? `${prod.stock} ${tr('قطعة', 'units')}`
+                          : tr('نفد المخزون', 'Out of Stock')}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {prod.isActive ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/12 text-emerald-400 border border-emerald-500/25 text-[11px] font-bold">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {tr('نشط', 'Active')}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/12 text-rose-400 border border-rose-500/25 text-[11px] font-bold">
+                          <XCircle className="w-3 h-3" />
+                          {tr('مسودة', 'Draft')}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-end whitespace-nowrap">
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(prod)}
+                          title={tr('تعديل المنتج', 'Edit Product')}
+                          aria-label={tr('تعديل المنتج', 'Edit Product')}
+                          className="h-9 w-9 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openReviewsModal(prod)}
+                          title={tr('التقييمات', 'Reviews')}
+                          aria-label={tr('تقييمات المنتج', 'Product Reviews')}
+                          className="h-9 w-9 rounded-lg bg-sky-500/12 border border-sky-500/25 text-sky-400 hover:bg-sky-500 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(prod)}
+                          title={tr('حذف المنتج', 'Delete Product')}
+                          aria-label={tr('حذف المنتج', 'Delete Product')}
+                          className="h-9 w-9 rounded-lg bg-rose-500/12 border border-rose-500/25 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
 
-        {/* =====================================================
-            Pagination
-            ===================================================== */}
-
-        <div
-          style={{
-            padding:
-              '14px 20px',
-            background:
-              'rgba(9,9,11,0.6)',
-            borderTop:
-              '1px solid rgba(63,63,70,0.6)',
-            display: 'flex',
-            alignItems:
-              'center',
-            justifyContent:
-              'space-between',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-              color: '#71717a',
-              fontWeight: 500,
-            }}
-          >
-            Page {page} of{' '}
-            {totalPages}
+        {/* Pagination */}
+        <div className="px-5 py-3.5 bg-zinc-950/60 border-t border-zinc-800 flex items-center justify-between">
+          <div className="text-xs text-zinc-400 font-medium tabular-nums">
+            {tr(`صفحة ${page} من ${totalPages}`, `Page ${page} of ${totalPages}`)}
           </div>
-
-          <div
-            style={{
-              display:
-                'flex',
-              alignItems:
-                'center',
-              gap: 8,
-            }}
-          >
+          <div className="flex items-center gap-2">
             <button
-              disabled={
-                page <= 1
-              }
-              onClick={() =>
-                setPage(
-                  page - 1
-                )
-              }
-              style={{
-                padding: 8,
-                borderRadius: 10,
-                background:
-                  'rgba(63,63,70,0.6)',
-                border:
-                  'none',
-                color:
-                  '#d4d4d8',
-                cursor:
-                  page <= 1
-                    ? 'not-allowed'
-                    : 'pointer',
-                opacity:
-                  page <= 1
-                    ? 0.4
-                    : 1,
-              }}
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              aria-label={tr('الصفحة السابقة', 'Previous page')}
+              className="h-9 w-9 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              <ChevronLeft
-                style={{
-                  width: 16,
-                  height: 16,
-                }}
-              />
+              <PrevIcon className="w-4 h-4" />
             </button>
-
             <button
-              disabled={
-                page >=
-                totalPages
-              }
-              onClick={() =>
-                setPage(
-                  page + 1
-                )
-              }
-              style={{
-                padding: 8,
-                borderRadius: 10,
-                background:
-                  'rgba(63,63,70,0.6)',
-                border:
-                  'none',
-                color:
-                  '#d4d4d8',
-                cursor:
-                  page >=
-                    totalPages
-                    ? 'not-allowed'
-                    : 'pointer',
-                opacity:
-                  page >=
-                    totalPages
-                    ? 0.4
-                    : 1,
-              }}
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              aria-label={tr('الصفحة التالية', 'Next page')}
+              className="h-9 w-9 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              <ChevronRight
-                style={{
-                  width: 16,
-                  height: 16,
-                }}
-              />
+              <NextIcon className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* =====================================================
-          Product Create / Edit Modal
-          ===================================================== */}
-
+      {/* ── Product Create / Edit Modal (Sticky Header & Footer + Language Tabs + Visual Pickers) ── */}
       {isModalOpen && (
         <div
-          style={{
-            position:
-              'fixed',
-            inset: 0,
-            zIndex: 50,
-            display:
-              'flex',
-            alignItems:
-              'center',
-            justifyContent:
-              'center',
-            padding: 16,
-            background:
-              'rgba(0,0,0,0.75)',
-            backdropFilter:
-              'blur(6px)',
-          }}
+          dir={dir}
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div
-            className="p-4 sm:p-8"
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: 760,
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              background: 'rgb(24,24,27)',
-              border: '1px solid rgba(63,63,70,0.8)',
-              borderRadius: 24,
-              boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-              color: '#f4f4f5',
-            }}
-          >
-            <button
-              onClick={() =>
-                setIsModalOpen(
-                  false
-                )
-              }
-              style={{
-                position:
-                  'absolute',
-                top: 24,
-                right: 24,
-                padding: 8,
-                borderRadius:
-                  10,
-                background:
-                  'none',
-                border:
-                  'none',
-                color:
-                  '#71717a',
-                cursor:
-                  'pointer',
-              }}
-            >
-              <X
-                style={{
-                  width: 20,
-                  height: 20,
-                }}
-              />
-            </button>
+          <div className="w-full max-w-3xl max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
+            {/* Sticky Header */}
+            <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
+              <h2 className="text-base sm:text-lg font-black text-white">
+                {editingProduct
+                  ? tr('تعديل المنتج', 'Edit Product')
+                  : tr('إضافة منتج جديد', 'Create New Product')}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                aria-label={tr('إغلاق النافذة', 'Close modal')}
+                className="w-9 h-9 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 900,
-                color: '#fff',
-                marginBottom: 24,
-              }}
-            >
-              {editingProduct
-                ? 'Edit Product'
-                : 'Create New Product'}
-            </h2>
+            {/* Scrollable Form */}
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto admin-scroll p-5 sm:p-6 space-y-6">
+                {/* 3-Language Tabs for Name & Description */}
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-zinc-300">
+                      {tr('الاسم والوصف حسب اللغة', 'Name & Description by Language')}
+                    </span>
+                    <div className="inline-flex rounded-xl bg-zinc-900 p-1 border border-zinc-800">
+                      {(['ar', 'fr', 'en'] as LangTab[]).map((tab) => {
+                        const label =
+                          tab === 'ar' ? 'العربية' : tab === 'fr' ? 'Français' : 'English'
+                        return (
+                          <button
+                            key={tab}
+                            type="button"
+                            onClick={() => setActiveLangTab(tab)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              activeLangTab === tab
+                                ? 'bg-amber-500 text-zinc-950'
+                                : 'text-zinc-400 hover:text-zinc-200'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
 
-            <form
-              onSubmit={
-                handleSubmit
-              }
-              style={{
-                display:
-                  'flex',
-                flexDirection:
-                  'column',
-                gap: 20,
-              }}
-            >
-              {/* =================================================
-                  Product Names
-                  ================================================= */}
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Arabic */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Name (Arabic)
-                  </label>
-
-                  <input
-                    type="text"
-                    value={
-                      formData.nameAr
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        nameAr:
-                          e.target.value,
-                      })
-                    }
-                    placeholder="جلابة مغربية"
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                    }}
-                  />
-                </div>
-
-                {/* French */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Name
-                    (French/Primary)
-                  </label>
-
-                  <input
-                    type="text"
-                    required
-                    value={
-                      formData.nameFr
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        nameFr:
-                          e.target.value,
-                      })
-                    }
-                    placeholder="Djellaba Royale"
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                    }}
-                  />
-                </div>
-
-                {/* English */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Name (English)
-                  </label>
-
-                  <input
-                    type="text"
-                    value={
-                      formData.nameEn
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        nameEn:
-                          e.target.value,
-                      })
-                    }
-                    placeholder="Royal Djellaba"
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* =================================================
-                  Pricing, SKU, Stock
-                  ================================================= */}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* SKU */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    SKU
-                  </label>
-
-                  <input
-                    type="text"
-                    required
-                    value={
-                      formData.sku
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        sku:
-                          e.target.value,
-                      })
-                    }
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                      fontFamily:
-                        'monospace',
-                    }}
-                  />
-                </div>
-
-                {/* Base Price */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Base Price
-                    (DH)
-                  </label>
-
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={
-                      formData.basePrice
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        basePrice:
-                          e.target.value,
-                      })
-                    }
-                    placeholder="599"
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                    }}
-                  />
-                </div>
-
-                {/* Sale Price */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Sale Price
-                    (DH)
-                  </label>
-
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={
-                      formData.salePrice
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        salePrice:
-                          e.target.value,
-                      })
-                    }
-                    placeholder="499 (Optional)"
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                    }}
-                  />
-                </div>
-
-                {/* Stock */}
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Stock Quantity
-                  </label>
-
-                  <input
-                    type="number"
-                    required
-                    value={
-                      formData.stock
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        stock:
-                          e.target.value,
-                      })
-                    }
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* =================================================
-                  Category
-                  ================================================= */}
-
-              <div>
-                <label
-                  style={{
-                    display:
-                      'block',
-                    fontSize:
-                      12,
-                    fontWeight:
-                      700,
-                    color:
-                      '#d4d4d8',
-                    marginBottom:
-                      6,
-                  }}
-                >
-                  Category
-                </label>
-
-                <select
-                  value={
-                    formData.categoryId
-                  }
-                  onChange={
-                    handleCategoryChange
-                  }
-                  style={{
-                    width:
-                      '100%',
-                    background:
-                      'rgb(9,9,11)',
-                    border:
-                      '1px solid rgba(63,63,70,0.8)',
-                    borderRadius:
-                      12,
-                    padding:
-                      '10px 14px',
-                    fontSize:
-                      12,
-                    color:
-                      '#f4f4f5',
-                    outline:
-                      'none',
-                  }}
-                >
-                  <option value="">
-                    Select Category
-                  </option>
-
-                  {categories.map(
-                    (category) => (
-                      <option
-                        key={
-                          category.id
-                        }
-                        value={
-                          category.id
-                        }
-                      >
-                        {category.name ||
-                          category.nameFr ||
-                          category.nameAr ||
-                          category.nameEn ||
-                          category.slug}
-                      </option>
-                    )
+                  {activeLangTab === 'ar' && (
+                    <div className="space-y-3" dir="rtl">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          {tr('اسم المنتج (بالعربية)', 'Product Name (Arabic)')}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nameAr}
+                          onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                          placeholder="جلابة مغربية ملكية"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          {tr('وصف المنتج (بالعربية)', 'Product Description (Arabic)')}
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={formData.descriptionAr}
+                          onChange={(e) =>
+                            setFormData({ ...formData, descriptionAr: e.target.value })
+                          }
+                          placeholder="وصف تفصيلي للمنتج..."
+                          className="w-full bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 py-2.5 text-sm text-zinc-100 outline-none resize-none"
+                        />
+                      </div>
+                    </div>
                   )}
-                </select>
-              </div>
 
-              {/* =================================================
-                  Description
-                  ================================================= */}
+                  {activeLangTab === 'fr' && (
+                    <div className="space-y-3" dir="ltr">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Nom du produit (Français)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nameFr}
+                          onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
+                          placeholder="Djellaba Royale"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Description (Français)
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={formData.descriptionFr}
+                          onChange={(e) =>
+                            setFormData({ ...formData, descriptionFr: e.target.value })
+                          }
+                          placeholder="Description détaillée en français..."
+                          className="w-full bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 py-2.5 text-sm text-zinc-100 outline-none resize-none"
+                        />
+                      </div>
+                    </div>
+                  )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>
-                    Description (Arabic)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={formData.descriptionAr}
-                    onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
-                    placeholder="وصف المنتج بالعربية..."
-                    style={{
-                      width: '100%',
-                      background: 'rgb(9,9,11)',
-                      border: '1px solid rgba(63,63,70,0.8)',
-                      borderRadius: 12,
-                      padding: '10px 14px',
-                      fontSize: 12,
-                      color: '#f4f4f5',
-                      outline: 'none',
-                      resize: 'none',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>
-                    Description (French/Primary)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={formData.descriptionFr}
-                    onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
-                    placeholder="Description détaillée en français..."
-                    style={{
-                      width: '100%',
-                      background: 'rgb(9,9,11)',
-                      border: '1px solid rgba(63,63,70,0.8)',
-                      borderRadius: 12,
-                      padding: '10px 14px',
-                      fontSize: 12,
-                      color: '#f4f4f5',
-                      outline: 'none',
-                      resize: 'none',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#d4d4d8', marginBottom: 6 }}>
-                    Description (English)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={formData.descriptionEn}
-                    onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
-                    placeholder="Detailed product description in English..."
-                    style={{
-                      width: '100%',
-                      background: 'rgb(9,9,11)',
-                      border: '1px solid rgba(63,63,70,0.8)',
-                      borderRadius: 12,
-                      padding: '10px 14px',
-                      fontSize: 12,
-                      color: '#f4f4f5',
-                      outline: 'none',
-                      resize: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className={selectedCategoryIsNiqab ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 gap-4'}>
-                {/* =================================================
-                    Colors
-                    ================================================= */}
-
-                <div>
-                  <label
-                    style={{
-                      display:
-                        'block',
-                      fontSize:
-                        12,
-                      fontWeight:
-                        700,
-                      color:
-                        '#d4d4d8',
-                      marginBottom:
-                        6,
-                    }}
-                  >
-                    Colors (Comma
-                    separated hex
-                    codes)
-                  </label>
-
-                  <input
-                    type="text"
-                    value={
-                      formData.colors
-                    }
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        colors:
-                          e.target.value,
-                      })
-                    }
-                    placeholder="#C4622D, #F2E4CE, #000000"
-                    style={{
-                      width:
-                        '100%',
-                      background:
-                        'rgb(9,9,11)',
-                      border:
-                        '1px solid rgba(63,63,70,0.8)',
-                      borderRadius:
-                        12,
-                      padding:
-                        '10px 14px',
-                      fontSize:
-                        12,
-                      color:
-                        '#f4f4f5',
-                      outline:
-                        'none',
-                      fontFamily:
-                        'monospace',
-                    }}
-                  />
+                  {activeLangTab === 'en' && (
+                    <div className="space-y-3" dir="ltr">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Product Name (English)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nameEn}
+                          onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                          placeholder="Royal Moroccan Djellaba"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Description (English)
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={formData.descriptionEn}
+                          onChange={(e) =>
+                            setFormData({ ...formData, descriptionEn: e.target.value })
+                          }
+                          placeholder="Detailed product description in English..."
+                          className="w-full bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 py-2.5 text-sm text-zinc-100 outline-none resize-none"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* =================================================
-                    SIZES
-                    =================================================
-                    
-                    هذا العنصر لا يتم رسمه نهائيًا
-                    إذا كانت الفئة Niqab.
-                    ================================================= */}
-
-                {!selectedCategoryIsNiqab && (
+                {/* Pricing, SKU, Stock & Category */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label
-                      style={{
-                        display:
-                          'block',
-                        fontSize:
-                          12,
-                        fontWeight:
-                          700,
-                        color:
-                          '#d4d4d8',
-                        marginBottom:
-                          6,
-                      }}
-                    >
-                      Sizes (Comma
-                      separated)
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('الرمز SKU', 'SKU')} *
                     </label>
-
                     <input
                       type="text"
-                      value={
-                        formData.sizes
-                      }
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          sizes:
-                            e.target.value,
-                        })
-                      }
-                      placeholder="S, M, L, XL, Standard"
-                      style={{
-                        width:
-                          '100%',
-                        background:
-                          'rgb(9,9,11)',
-                        border:
-                          '1px solid rgba(63,63,70,0.8)',
-                        borderRadius:
-                          12,
-                        padding:
-                          '10px 14px',
-                        fontSize:
-                          12,
-                        color:
-                          '#f4f4f5',
-                        outline:
-                          'none',
-                        fontFamily:
-                          'monospace',
-                      }}
+                      required
+                      dir="ltr"
+                      value={formData.sku}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                      className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-mono text-zinc-100 outline-none"
                     />
                   </div>
-                )}
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('السعر الأساسي (MAD)', 'Base Price (MAD)')} *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      dir="ltr"
+                      value={formData.basePrice}
+                      onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                      placeholder="599"
+                      className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm font-mono text-zinc-100 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('سعر التخفيض (اختياري)', 'Sale Price (Optional)')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      dir="ltr"
+                      value={formData.salePrice}
+                      onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+                      placeholder="499"
+                      className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm font-mono text-zinc-100 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('الكمية في المخزون', 'Stock Quantity')} *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      dir="ltr"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm font-mono text-zinc-100 outline-none"
+                    />
+                  </div>
+                </div>
 
-              {/* =================================================
-                  Image Upload
-                  ================================================= */}
-
-              <div>
-                <label
-                  style={{
-                    display:
-                      'block',
-                    fontSize:
-                      12,
-                    fontWeight:
-                      700,
-                    color:
-                      '#d4d4d8',
-                    marginBottom:
-                      8,
-                  }}
-                >
-                  Product Images
-                  (Drag & Drop or
-                  Click)
-                </label>
-
-                <ImageUploader
-                  images={
-                    formData.images
-                  }
-                  mainImage={
-                    formData.mainImage
-                  }
-                  onChange={(
-                    updatedImages,
-                    updatedMain
-                  ) => {
-                    setFormData({
-                      ...formData,
-                      images:
-                        updatedImages,
-                      mainImage:
-                        updatedMain,
-                    })
-                  }}
-                />
-              </div>
-
-              {/* =================================================
-                  Switches
-                  ================================================= */}
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 24,
-                  paddingTop: 6,
-                }}
-              >
-                {/* Featured */}
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: '#d4d4d8',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                    style={{ width: 16, height: 16, accentColor: '#f59e0b' }}
-                  />
-                  <span>Featured Product</span>
-                </label>
-
-                {/* Active */}
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: '#d4d4d8',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    style={{ width: 16, height: 16, accentColor: '#34d399' }}
-                  />
-                  <span>Published / Active</span>
-                </label>
-
-                {!selectedCategoryIsNiqab && (
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: '#d4d4d8',
-                      cursor: 'pointer',
-                    }}
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                    {tr('التصنيف', 'Category')} *
+                  </label>
+                  <select
+                    value={formData.categoryId}
+                    onChange={handleCategoryChange}
+                    className="w-full h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none cursor-pointer"
                   >
+                    <option value="">{tr('اختر التصنيف', 'Select Category')}</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {getCategoryDisplayName(category)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Visual Color Swatches + Picker */}
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200">
+                      <Palette className="w-4 h-4 text-amber-400" />
+                      {tr('ألوان المنتج', 'Product Colors')}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={pickerColor}
+                        onChange={(e) => setPickerColor(e.target.value.toUpperCase())}
+                        aria-label={tr('اختيار لون مخصص', 'Pick custom color')}
+                        className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addCustomColor(pickerColor)}
+                        className="h-8 px-3 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        + {tr('إضافة اللون', 'Add Color')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Quick Presets */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {PRESET_COLORS.map((hex) => {
+                      const active = currentColorList.includes(hex.toUpperCase())
+                      const info = getColorNames(hex)
+                      return (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => toggleColorHex(hex)}
+                          title={locale === 'ar' ? info.ar : info.en}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${
+                            active
+                              ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                              : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700'
+                          }`}
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-white/60 shrink-0"
+                            style={{ backgroundColor: hex }}
+                          />
+                          <span>{locale === 'ar' ? info.ar : info.en}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Active Color Chips + Manual Hex Input */}
+                  {currentColorList.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {currentColorList.map((hex) => {
+                        const info = getColorNames(hex)
+                        return (
+                          <span
+                            key={hex}
+                            className="inline-flex items-center gap-1.5 ps-2 pe-1.5 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-zinc-200"
+                          >
+                            <span
+                              className="w-3 h-3 rounded-full border border-white/60 shrink-0"
+                              style={{ backgroundColor: hex }}
+                            />
+                            <span className="font-semibold">
+                              {locale === 'ar' ? info.ar : info.en}
+                            </span>
+                            <span className="font-mono text-[10px] text-zinc-500">{hex}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleColorHex(hex)}
+                              aria-label={tr(`إزالة ${hex}`, `Remove ${hex}`)}
+                              className="p-0.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-rose-400 cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={formData.colors}
+                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                    placeholder="#C4622D, #F2E4CE, #000000"
+                    className="w-full h-10 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-mono text-zinc-300 outline-none"
+                  />
+                </div>
+
+                {/* Interactive Size Chips (Hidden automatically for Niqab category) */}
+                {!selectedCategoryIsNiqab && (
+                  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200">
+                      <Ruler className="w-4 h-4 text-amber-400" />
+                      {tr('المقاسات المتاحة', 'Available Sizes')}
+                    </span>
+
+                    <div className="flex flex-wrap gap-2">
+                      {PRESET_SIZES.map((sz) => {
+                        const active = currentSizeList.includes(sz)
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => toggleSizeChip(sz)}
+                            className={`h-8 px-3 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
+                              active
+                                ? 'bg-amber-500 text-zinc-950 border-amber-500'
+                                : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={customSizeInput}
+                        onChange={(e) => setCustomSizeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            addCustomSize()
+                          }
+                        }}
+                        placeholder={tr('أضف مقاساً مخصصاً (مثلاً 54 أو 56)...', 'Add custom size (e.g., 54, 56)...')}
+                        className="flex-1 h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={addCustomSize}
+                        className="h-9 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold cursor-pointer shrink-0"
+                      >
+                        {tr('إضافة', 'Add')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-2">
+                    {tr('صور المنتج', 'Product Images')}
+                  </label>
+                  <ImageUploader
+                    images={formData.images}
+                    mainImage={formData.mainImage}
+                    onChange={(updatedImages, updatedMain) => {
+                      setFormData({
+                        ...formData,
+                        images: updatedImages,
+                        mainImage: updatedMain,
+                      })
+                    }}
+                  />
+                </div>
+
+                {/* Visibility & Feature Switches */}
+                <div className="flex flex-wrap items-center gap-5 pt-2">
+                  <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-200 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.canAddNiqab}
-                      onChange={(e) => setFormData({ ...formData, canAddNiqab: e.target.checked })}
-                      style={{ width: 16, height: 16, accentColor: '#fbbf24' }}
+                      checked={formData.isFeatured}
+                      onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                      className="w-4 h-4 accent-amber-500 rounded"
                     />
-                    <span>Can Add Matching Niqab</span>
+                    <span>{tr('منتج مميز', 'Featured Product')}</span>
                   </label>
-                )}
+
+                  <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                      className="w-4 h-4 accent-emerald-500 rounded"
+                    />
+                    <span>{tr('منشور في المتجر', 'Published / Active')}</span>
+                  </label>
+
+                  {!selectedCategoryIsNiqab && (
+                    <label className="inline-flex items-center gap-2 text-xs font-bold text-zinc-200 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.canAddNiqab}
+                        onChange={(e) =>
+                          setFormData({ ...formData, canAddNiqab: e.target.checked })
+                        }
+                        className="w-4 h-4 accent-amber-500 rounded"
+                      />
+                      <span>{tr('إتاحة إضافة نقاب مطابق', 'Can Add Matching Niqab')}</span>
+                    </label>
+                  )}
+                </div>
               </div>
 
-              {/* =================================================
-                  Action Buttons
-                  ================================================= */}
-
-              <div
-                style={{
-                  display:
-                    'flex',
-                  alignItems:
-                    'center',
-                  justifyContent:
-                    'flex-end',
-                  gap: 12,
-                  paddingTop:
-                    20,
-                  borderTop:
-                    '1px solid rgba(63,63,70,0.8)',
-                }}
-              >
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-5 sm:px-6 py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
                 <button
                   type="button"
-                  onClick={() =>
-                    setIsModalOpen(
-                      false
-                    )
-                  }
-                  style={{
-                    padding:
-                      '10px 18px',
-                    borderRadius:
-                      12,
-                    background:
-                      'none',
-                    border:
-                      'none',
-                    fontSize:
-                      12,
-                    fontWeight:
-                      600,
-                    color:
-                      '#a1a1aa',
-                    cursor:
-                      'pointer',
-                  }}
+                  onClick={() => setIsModalOpen(false)}
+                  className="h-10 px-4 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {tr('إلغاء', 'Cancel')}
                 </button>
-
                 <button
                   type="submit"
-                  disabled={
-                    submitting
-                  }
-                  style={{
-                    padding:
-                      '10px 24px',
-                    borderRadius:
-                      12,
-                    background:
-                      'linear-gradient(90deg, #f59e0b, #d97706)',
-                    color:
-                      '#09090b',
-                    fontWeight:
-                      900,
-                    fontSize:
-                      12,
-                    border:
-                      'none',
-                    cursor:
-                      submitting
-                        ? 'not-allowed'
-                        : 'pointer',
-                    boxShadow:
-                      '0 4px 20px rgba(245,158,11,0.2)',
-                    opacity:
-                      submitting
-                        ? 0.6
-                        : 1,
-                  }}
+                  disabled={submitting}
+                  className="h-10 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {submitting
-                    ? 'Saving...'
+                    ? tr('جاري الحفظ...', 'Saving...')
                     : editingProduct
-                      ? 'Update Product'
-                      : 'Create Product'}
+                      ? tr('حفظ التعديلات', 'Update Product')
+                      : tr('إنشاء المنتج', 'Create Product')}
                 </button>
               </div>
             </form>
@@ -2683,190 +1522,117 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         </div>
       )}
 
-      {/* =====================================================
-          Reviews Dialog
-          ===================================================== */}
-
+      {/* ── Reviews Dialog ── */}
       {reviewsTarget && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 120,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            background: 'rgba(0,0,0,0.72)',
-          }}
+          dir={dir}
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setReviewsTarget(null)}
         >
           <div
-            style={{
-              width: '100%',
-              maxWidth: 560,
-              maxHeight: '80vh',
-              display: 'flex',
-              flexDirection: 'column',
-              borderRadius: 16,
-              border: '1px solid rgba(63,63,70,0.8)',
-              background: 'linear-gradient(145deg, rgba(26,28,30,0.99), rgba(13,15,17,0.99))',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.55)',
-              overflow: 'hidden',
-            }}
+            className="w-full max-w-xl max-h-[82dvh] flex flex-col rounded-2xl border border-zinc-700/80 bg-zinc-900 shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                borderBottom: '1px solid rgba(63,63,70,0.6)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <MessageSquare style={{ width: 17, height: 17, color: '#60a5fa' }} />
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#f4f4f5' }}>
-                  Reviews — {reviewsTarget.name}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <MessageSquare className="w-4 h-4 text-sky-400 shrink-0" />
+                <h3 className="text-sm font-extrabold text-white truncate">
+                  {tr('التقييمات', 'Reviews')} — {getProductDisplayName(reviewsTarget)}
                 </h3>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: '#fbbf24',
-                    background: 'rgba(251,191,36,0.12)',
-                    border: '1px solid rgba(251,191,36,0.3)',
-                    borderRadius: 999,
-                    padding: '2px 8px',
-                  }}
-                >
+                <span className="text-[11px] font-bold text-amber-400 bg-amber-500/12 border border-amber-500/25 rounded-full px-2 py-0.5 tabular-nums shrink-0">
                   {reviewsCount}
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => setReviewsTarget(null)}
-                style={{
-                  padding: 7,
-                  borderRadius: 9,
-                  background: 'rgba(63,63,70,0.6)',
-                  border: 'none',
-                  color: '#d4d4d8',
-                  cursor: 'pointer',
-                }}
-                className="hover:bg-zinc-600 transition-all"
-                aria-label="Close"
+                aria-label={tr('إغلاق', 'Close')}
+                className="w-8 h-8 rounded-lg bg-zinc-800 text-zinc-300 hover:text-white flex items-center justify-center cursor-pointer shrink-0"
               >
-                <X style={{ width: 15, height: 15 }} />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
+            <div className="p-5 overflow-y-auto flex-1 admin-scroll">
               {reviewsLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                  <Loader2 className="animate-spin" style={{ width: 22, height: 22, color: '#fbbf24' }} />
+                <div className="flex justify-center py-10">
+                  <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
                 </div>
               ) : reviewsData.length === 0 ? (
-                <p style={{ margin: 0, padding: '24px 0', textAlign: 'center', fontSize: 13, color: '#71717a' }}>
-                  No reviews for this product yet.
+                <p className="py-10 text-center text-xs text-zinc-400">
+                  {tr('لا توجد تقييمات لهذا المنتج بعد.', 'No reviews for this product yet.')}
                 </p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div className="flex flex-col gap-3">
                   {reviewsData.map((review) => (
                     <div
                       key={review.id}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                        padding: '12px 14px',
-                        borderRadius: 12,
-                        background: 'rgba(9,9,11,0.6)',
-                        border: '1px solid rgba(63,63,70,0.5)',
-                      }}
+                      className="flex flex-col gap-2 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-800"
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                      <div className="flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           {review.customer.avatarUrl ? (
-                            <div style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700">
                               <Image
                                 src={review.customer.avatarUrl}
                                 alt={review.customer.name}
                                 fill
-                                sizes="30px"
+                                sizes="96px"
+                                quality={92}
                                 referrerPolicy="no-referrer"
                                 className="object-cover"
                               />
                             </div>
                           ) : (
-                            <div
-                              style={{
-                                width: 30,
-                                height: 30,
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#fbbf24',
-                                color: '#090909',
-                                fontSize: 13,
-                                fontWeight: 800,
-                                flexShrink: 0,
-                              }}
-                            >
+                            <div className="w-8 h-8 rounded-full bg-amber-500 text-zinc-950 text-xs font-black flex items-center justify-center shrink-0">
                               {review.customer.name.charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <div style={{ minWidth: 0 }}>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f4f4f5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-zinc-100 truncate">
                               {review.customer.name}
                             </p>
-                            <p style={{ margin: 0, fontSize: 11, color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <p className="text-[11px] text-zinc-500 truncate">
                               {review.customer.email || '—'}
                             </p>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} dir="ltr">
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <div className="flex items-center gap-0.5" dir="ltr">
                             {[1, 2, 3, 4, 5].map((n) => (
                               <Star
                                 key={n}
-                                style={{
-                                  width: 13,
-                                  height: 13,
-                                  fill: n <= review.rating ? '#fbbf24' : 'transparent',
-                                  color: n <= review.rating ? '#fbbf24' : '#52525b',
-                                }}
+                                className={`w-3.5 h-3.5 ${
+                                  n <= review.rating
+                                    ? 'fill-amber-400 text-amber-400'
+                                    : 'text-zinc-600'
+                                }`}
                               />
                             ))}
                           </div>
                           <button
-                            onClick={() => handleDeleteReview(review.id)}
+                            type="button"
+                            onClick={() => setReviewDeleteConfirm(review)}
                             disabled={reviewsDeleting === review.id}
-                            style={{
-                              padding: 6,
-                              borderRadius: 8,
-                              background: 'rgba(239,68,68,0.12)',
-                              border: '1px solid rgba(239,68,68,0.25)',
-                              color: '#f87171',
-                              cursor: 'pointer',
-                            }}
-                            className="hover:bg-rose-600 hover:text-white transition-all disabled:opacity-50"
-                            title="Delete Review"
+                            title={tr('حذف التقييم', 'Delete Review')}
+                            aria-label={tr('حذف التقييم', 'Delete Review')}
+                            className="w-8 h-8 rounded-lg bg-rose-500/12 border border-rose-500/25 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
                           >
                             {reviewsDeleting === review.id ? (
-                              <Loader2 className="animate-spin" style={{ width: 13, height: 13 }} />
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             ) : (
-                              <Trash2 style={{ width: 13, height: 13 }} />
+                              <Trash2 className="w-3.5 h-3.5" />
                             )}
                           </button>
                         </div>
                       </div>
-                      <p style={{ margin: 0, fontSize: 13, color: '#d4d4d8', lineHeight: 1.6, wordBreak: 'break-word' }}>
+                      <p className="text-xs text-zinc-300 leading-relaxed break-words">
                         {review.comment}
                       </p>
-                      <p style={{ margin: 0, fontSize: 11, color: '#71717a' }}>
-                        {new Date(review.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                      <p className="text-[11px] text-zinc-500">
+                        {formatDate(review.createdAt, true)}
                       </p>
                     </div>
                   ))}
@@ -2877,29 +1643,36 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         </div>
       )}
 
-      {/* =====================================================
-          Delete Confirmation
-          ===================================================== */}
-
+      {/* Delete Review Confirmation */}
       <ConfirmModal
-        isOpen={
-          !!deleteTarget
-        }
-        title="Delete Product"
-        message={`Are you sure you want to permanently delete "${deleteTarget?.name}" ? This action cannot be undone.`}
-        confirmText="Delete Product"
+        isOpen={!!reviewDeleteConfirm}
+        title={tr('حذف التقييم', 'Delete Review')}
+        message={tr(
+          `هل أنت متأكد من حذف تقييم "${reviewDeleteConfirm?.customer.name}"؟`,
+          `Are you sure you want to delete this review by "${reviewDeleteConfirm?.customer.name}"?`
+        )}
+        confirmText={tr('حذف التقييم', 'Delete Review')}
         variant="danger"
-        isLoading={
-          submitting
-        }
-        onConfirm={
-          handleDelete
-        }
-        onCancel={() =>
-          setDeleteTarget(
-            null
-          )
-        }
+        isLoading={Boolean(reviewsDeleting)}
+        onConfirm={() => {
+          if (reviewDeleteConfirm) handleDeleteReview(reviewDeleteConfirm.id)
+        }}
+        onCancel={() => setReviewDeleteConfirm(null)}
+      />
+
+      {/* Delete Product Confirmation */}
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title={tr('حذف المنتج', 'Delete Product')}
+        message={tr(
+          `هل أنت متأكد من حذف "${deleteTarget ? getProductDisplayName(deleteTarget) : ''}" نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`,
+          `Are you sure you want to permanently delete "${deleteTarget ? getProductDisplayName(deleteTarget) : ''}"? This action cannot be undone.`
+        )}
+        confirmText={tr('حذف المنتج', 'Delete Product')}
+        variant="danger"
+        isLoading={submitting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   )

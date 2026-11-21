@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react'
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react'
+import { useAdminI18n } from './AdminI18nContext'
 
 export type ToastType = 'success' | 'error' | 'info'
 
@@ -22,14 +23,15 @@ const ToastContext = createContext<ToastContextType | null>(null)
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([])
+  const { dir, tr } = useAdminI18n()
 
   const addToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Math.random().toString(36).slice(2, 9)
-    setToasts((prev) => [...prev, { id, message, type }])
+    setToasts((prev) => [...prev.slice(-3), { id, message, type }])
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 4000)
+    }, 4200)
   }, [])
 
   const removeToast = useCallback((id: string) => {
@@ -46,27 +48,34 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-3 max-w-md w-full px-4 pointer-events-none">
+      <div
+        dir={dir}
+        aria-live="polite"
+        className="fixed bottom-4 end-4 z-[90] flex flex-col gap-2.5 max-w-sm w-[calc(100vw-2rem)] pointer-events-none"
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-xl border text-sm font-medium transition-all transform translate-y-0 duration-200 ${
+            role={t.type === 'error' ? 'alert' : 'status'}
+            className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-xl shadow-2xl border text-xs sm:text-sm font-semibold transition-all duration-200 backdrop-blur-md ${
               t.type === 'success'
-                ? 'bg-emerald-950/90 text-emerald-200 border-emerald-800/50 backdrop-blur-md'
+                ? 'bg-emerald-950/95 text-emerald-100 border-emerald-700/60'
                 : t.type === 'error'
-                ? 'bg-rose-950/90 text-rose-200 border-rose-800/50 backdrop-blur-md'
-                : 'bg-zinc-900/90 text-zinc-100 border-zinc-700/50 backdrop-blur-md'
+                ? 'bg-rose-950/95 text-rose-100 border-rose-700/60'
+                : 'bg-zinc-900/95 text-zinc-100 border-zinc-700/70'
             }`}
           >
-            <div className="flex items-center gap-3">
-              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
-              {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />}
-              {t.type === 'info' && <Info className="w-5 h-5 text-amber-400 shrink-0" />}
-              <span>{t.message}</span>
+            <div className="flex items-center gap-2.5 min-w-0">
+              {t.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+              {t.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
+              {t.type === 'info' && <Info className="w-4 h-4 text-amber-400 shrink-0" />}
+              <span className="break-words">{t.message}</span>
             </div>
             <button
+              type="button"
               onClick={() => removeToast(t.id)}
-              className="p-1 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+              aria-label={tr('إغلاق الإشعار', 'Dismiss notification')}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors shrink-0 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

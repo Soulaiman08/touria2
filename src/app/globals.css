@@ -1667,20 +1667,28 @@ h6 {
   }
 }
 
-@media (max-width: 639px) {
+@media (max-width: 1023px) {
 
   .admin-sidebar {
     position: fixed !important;
-    inset: 0 auto 0 0 !important;
-    width: min(280px, 85vw) !important;
+    inset-block: 0 !important;
+    inset-inline-start: 0 !important;
+    width: min(272px, 84vw) !important;
     min-width: 0 !important;
-    max-width: min(280px, 85vw) !important;
+    max-width: min(272px, 84vw) !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
     transform: translateX(-105%);
-    transition: transform .2s ease;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 50 !important;
   }
 
-  .admin-sidebar.admin-sidebar-open {
+  [dir="rtl"] .admin-sidebar {
+    transform: translateX(105%);
+  }
+
+  .admin-sidebar.admin-sidebar-open,
+  [dir="rtl"] .admin-sidebar.admin-sidebar-open {
     transform: translateX(0);
   }
 
@@ -1693,29 +1701,19 @@ h6 {
   }
 
   .admin-topbar {
-    height: 56px !important;
-    padding: 0 12px !important;
-    gap: 8px !important;
-  }
-
-  .admin-topbar > div:first-child {
-    gap: 6px !important;
-  }
-
-  .admin-topbar > div:last-child {
-    gap: 6px !important;
-  }
-
-  .admin-topbar > div:last-child > a {
-    padding: 5px !important;
-  }
-
-  .admin-topbar > div:last-child > a span {
-    display: none;
+    height: 60px !important;
+    padding-inline: 16px !important;
+    gap: 10px !important;
   }
 
   .admin-main {
-    padding: 20px 14px !important;
+    padding: 20px 16px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-main {
+    padding: 28px 32px !important;
   }
 }
 
@@ -1924,22 +1922,52 @@ h6 {
   animation-duration: 300ms;
 }
 
-/* Admin scrollbar style */
+/* Admin scrollbar, dark select, and autofill dark styling */
+.admin-shell {
+  color-scheme: dark;
+}
+
+.admin-shell input:-webkit-autofill,
+.admin-shell input:-webkit-autofill:hover,
+.admin-shell input:-webkit-autofill:focus,
+.admin-shell textarea:-webkit-autofill,
+.admin-shell select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0b0b0e inset !important;
+  -webkit-text-fill-color: #f4f4f5 !important;
+  caret-color: #f4f4f5;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.admin-shell select,
+.admin-shell.dark select,
+.admin-shell select option,
+.admin-shell.dark select option,
+.admin-shell select optgroup {
+  background-color: #111115 !important;
+  color: #f4f4f5 !important;
+}
+
+.admin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.35) #09090b;
+}
+
 .admin-scroll::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .admin-scroll::-webkit-scrollbar-track {
-  background: #18181b;
+  background: #09090b;
 }
 
 .admin-scroll::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: rgba(161, 161, 170, 0.28);
   border-radius: 9999px;
 }
 
 .admin-scroll::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b;
+  background: rgba(245, 158, 11, 0.75);
 }
 
 
