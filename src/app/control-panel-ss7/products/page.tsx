@@ -20,6 +20,7 @@ import {
   Loader2,
   Palette,
   Ruler,
+  ChevronDown,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
@@ -741,22 +742,25 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
 
         <div className="flex items-center gap-2 shrink-0">
           <Filter className="w-4 h-4 text-amber-400 shrink-0" />
-          <select
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value)
-              setPage(1)
-            }}
-            aria-label={tr('تصفية حسب التصنيف', 'Filter by category')}
-            className="h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer"
-          >
-            <option value="all">{tr('جميع التصنيفات', 'All Categories')}</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {getCategoryDisplayName(cat)}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value)
+                setPage(1)
+              }}
+              aria-label={tr('تصفية حسب التصنيف', 'Filter by category')}
+              className="appearance-none h-11 min-w-[178px] bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-9 text-xs font-bold text-zinc-100 outline-none cursor-pointer transition-colors"
+            >
+              <option value="all">{tr('جميع التصنيفات', 'All Categories')}</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {getCategoryDisplayName(cat)}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-zinc-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
         </div>
 
         {hasFilters && (
@@ -1279,18 +1283,21 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                   <label className="block text-xs font-bold text-zinc-300 mb-1.5">
                     {tr('التصنيف', 'Category')} *
                   </label>
-                  <select
-                    value={formData.categoryId}
-                    onChange={handleCategoryChange}
-                    className="w-full h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none cursor-pointer"
-                  >
-                    <option value="">{tr('اختر التصنيف', 'Select Category')}</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {getCategoryDisplayName(category)}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={formData.categoryId}
+                      onChange={handleCategoryChange}
+                      className="appearance-none w-full h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-10 text-sm text-zinc-100 outline-none cursor-pointer transition-colors"
+                    >
+                      <option value="">{tr('اختر التصنيف', 'Select Category')}</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {getCategoryDisplayName(category)}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-zinc-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
 
                 {/* Visual Color Swatches + Picker */}

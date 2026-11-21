@@ -17,6 +17,7 @@ import {
   RotateCcw,
   X,
   Loader2,
+  ChevronDown,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
@@ -138,52 +139,54 @@ function OrdersContent() {
 
   const getStatusBadge = (status: string) => {
     const label = statusLabel(status)
+    const base =
+      'inline-flex items-center justify-center gap-1.5 min-w-[114px] px-2.5 py-1 rounded-lg border text-[11px] font-bold whitespace-nowrap'
     switch (status) {
       case 'DELIVERED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/12 text-emerald-400 border border-emerald-500/25 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-emerald-500/12 text-emerald-400 border-emerald-500/25`}>
             <PackageCheck className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
         )
       case 'SHIPPED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/12 text-sky-400 border border-sky-500/25 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-sky-500/12 text-sky-400 border-sky-500/25`}>
             <Truck className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
         )
       case 'CONFIRMED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/12 text-cyan-400 border border-cyan-500/25 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-cyan-500/12 text-cyan-400 border-cyan-500/25`}>
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
         )
       case 'PROCESSING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/12 text-amber-400 border border-amber-500/25 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-amber-500/12 text-amber-400 border-amber-500/25`}>
             <Clock className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
         )
       case 'CANCELLED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/12 text-rose-400 border border-rose-500/25 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-rose-500/12 text-rose-400 border-rose-500/25`}>
             <XCircle className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
         )
       case 'RETURNED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-zinc-800 text-zinc-300 border-zinc-700`}>
             <RotateCcw className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
         )
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/90 text-zinc-200 border border-zinc-700 text-[11px] font-bold whitespace-nowrap">
+          <span className={`${base} bg-zinc-800/90 text-zinc-200 border-zinc-700`}>
             <Clock className="w-3.5 h-3.5 shrink-0" />
             {label}
           </span>
@@ -253,22 +256,25 @@ function OrdersContent() {
 
           <div className="flex items-center gap-2 shrink-0">
             <Filter className="w-4 h-4 text-amber-400 shrink-0" />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value)
-                setPage(1)
-              }}
-              aria-label={tr('تصفية حسب الحالة', 'Filter by status')}
-              className="h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer"
-            >
-              <option value="all">{tr('جميع الحالات', 'All Statuses')}</option>
-              {statusOptions.map((st) => (
-                <option key={st} value={st}>
-                  {statusLabel(st)}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value)
+                  setPage(1)
+                }}
+                aria-label={tr('تصفية حسب الحالة', 'Filter by status')}
+                className="appearance-none h-11 min-w-[168px] bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-9 text-xs font-bold text-zinc-100 outline-none cursor-pointer transition-colors"
+              >
+                <option value="all">{tr('جميع الحالات', 'All Statuses')}</option>
+                {statusOptions.map((st) => (
+                  <option key={st} value={st}>
+                    {statusLabel(st)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-zinc-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           {hasFilters && (
@@ -348,7 +354,7 @@ function OrdersContent() {
                     </div>
                     <p className="text-sm font-bold text-white mt-1.5 truncate">{ord.customerName}</p>
                     <p className="text-xs text-zinc-400 mt-0.5">
-                      <span className="font-mono">{ord.customerPhone}</span> · {ord.city}
+                      <span dir="ltr" className="font-mono inline-block">{ord.customerPhone}</span> · {ord.city}
                       {ord.region ? ` (${ord.region})` : ''}
                     </p>
                   </div>
@@ -364,19 +370,22 @@ function OrdersContent() {
 
                 <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/70">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <select
-                      value={ord.status}
-                      disabled={updatingId === ord.id}
-                      onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
-                      aria-label={tr('تحديث حالة الطلب', 'Update order status')}
-                      className="h-9 flex-1 max-w-[180px] bg-[#111115] border border-zinc-700/80 rounded-lg px-2.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer disabled:opacity-50"
-                    >
-                      {statusOptions.map((st) => (
-                        <option key={st} value={st}>
-                          {statusLabel(st)}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative flex-1 max-w-[190px]">
+                      <select
+                        value={ord.status}
+                        disabled={updatingId === ord.id}
+                        onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
+                        aria-label={tr('تحديث حالة الطلب', 'Update order status')}
+                        className="w-full h-9 appearance-none bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-lg ps-3 pe-8 text-xs font-bold text-zinc-100 outline-none cursor-pointer disabled:opacity-50"
+                      >
+                        {statusOptions.map((st) => (
+                          <option key={st} value={st}>
+                            {statusLabel(st)}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                     {updatingId === ord.id && (
                       <Loader2 className="w-4 h-4 animate-spin text-amber-400 shrink-0" />
                     )}
@@ -434,7 +443,7 @@ function OrdersContent() {
                     <td className="py-4 px-4">
                       <div className="font-bold text-white">{ord.customerName}</div>
                       <div className="text-[11px] text-zinc-400 mt-0.5">
-                        <span className="font-mono">{ord.customerPhone}</span> · {ord.city}
+                        <span dir="ltr" className="font-mono inline-block">{ord.customerPhone}</span> · {ord.city}
                       </div>
                     </td>
                     <td className="py-4 px-4 text-zinc-300 text-xs">{ord.region || '—'}</td>
@@ -450,19 +459,22 @@ function OrdersContent() {
                     <td className="py-4 px-4 whitespace-nowrap">{getStatusBadge(ord.status)}</td>
                     <td className="py-4 px-4 whitespace-nowrap">
                       <div className="inline-flex items-center gap-2">
-                        <select
-                          value={ord.status}
-                          disabled={updatingId === ord.id}
-                          onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
-                          aria-label={tr('تغيير حالة الطلب', 'Change order status')}
-                          className="h-9 bg-[#111115] border border-zinc-700/80 rounded-lg px-2.5 text-xs font-bold text-zinc-100 outline-none cursor-pointer disabled:opacity-50"
-                        >
-                          {statusOptions.map((st) => (
-                            <option key={st} value={st}>
-                              {statusLabel(st)}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative">
+                          <select
+                            value={ord.status}
+                            disabled={updatingId === ord.id}
+                            onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
+                            aria-label={tr('تغيير حالة الطلب', 'Change order status')}
+                            className="w-[152px] h-9 appearance-none bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 rounded-lg ps-3 pe-8 text-xs font-bold text-zinc-100 outline-none cursor-pointer disabled:opacity-50"
+                          >
+                            {statusOptions.map((st) => (
+                              <option key={st} value={st}>
+                                {statusLabel(st)}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
                         {updatingId === ord.id && (
                           <Loader2 className="w-4 h-4 animate-spin text-amber-400 shrink-0" />
                         )}

@@ -16,6 +16,7 @@ import {
   FileText,
   Printer,
   Loader2,
+  ChevronDown,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
@@ -255,18 +256,21 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 
           <div className="flex items-center gap-2 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3">
             <span className="text-xs font-bold text-zinc-400">{tr('الحالة:', 'Status:')}</span>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              aria-label={tr('حالة الطلب', 'Order status')}
-              className="bg-[#111115] border-0 text-xs font-extrabold text-amber-400 outline-none cursor-pointer"
-            >
-              {statusOptions.map((st) => (
-                <option key={st} value={st}>
-                  {statusLabel(st)}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex items-center">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                aria-label={tr('حالة الطلب', 'Order status')}
+                className="appearance-none min-w-[138px] h-7 bg-[#111115] border border-zinc-700/70 focus:border-amber-500/70 rounded-lg ps-2.5 pe-7 text-xs font-extrabold text-amber-400 outline-none cursor-pointer"
+              >
+                {statusOptions.map((st) => (
+                  <option key={st} value={st}>
+                    {statusLabel(st)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-amber-400 absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           {isDirty && (
