@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import type { CategoryConfig } from '@/lib/category-config'
+import { getCategoryConfig, getCategoryConfigMap } from '@/lib/category-config.server'
 import type {
   ProductCard,
   Product,
@@ -16,6 +18,8 @@ type NiqabProductData = {
   nameFr: string
   nameEn: string
   mainImage: string
+  basePrice: number
+  salePrice: number | null
   variants: Array<{
     id: string
     productId: string
@@ -46,6 +50,9 @@ async function getNiqabProduct(): Promise<NiqabProductData | null> {
         { slug: { contains: 'niquab', mode: 'insensitive' } },
       ],
       isActive: true,
+      category: {
+        isActive: true,
+      },
     },
     include: {
       variants: {
@@ -69,6 +76,8 @@ async function getNiqabProduct(): Promise<NiqabProductData | null> {
     nameFr: niqab.nameFr,
     nameEn: niqab.nameEn,
     mainImage: niqab.mainImage,
+    basePrice: Number(niqab.basePrice),
+    salePrice: niqab.salePrice !== null ? Number(niqab.salePrice) : null,
     variants: niqab.variants.map((variant) => ({
       ...variant,
       priceModifier: Number(variant.priceModifier),
@@ -111,13 +120,20 @@ export const productService = {
     }
 
     // -----------------------------------------------
-    // CATEGORY
+    // CATEGORY (Always require an active category)
     // -----------------------------------------------
-    if (filters.category) {
-      whereClause.category = {
-        slug: filters.category,
-      }
-    }
+    whereClause.category = filters.category
+      ? {
+          isActive: true,
+          OR: [
+            { slug: filters.category },
+            { slug: filters.category.replace(/s$/, '') },
+            { slug: `${filters.category}s` },
+          ],
+        }
+      : {
+          isActive: true,
+        }
 
     // -----------------------------------------------
     // SIZE & COLOR (Combined variant query so neither overwrites the other)
@@ -236,11 +252,27 @@ export const productService = {
     ])
 
     // -----------------------------------------------
-    // MAP
+    // HYDRATE CATEGORY CONFIGS & MAP
     // -----------------------------------------------
+    const uniqueCats = Array.from(
+      new Map(
+        dbProducts
+          .map((p) => p.category)
+          .filter((c): c is NonNullable<typeof c> => Boolean(c))
+          .map((c) => [c.id, c])
+      ).values()
+    )
+    const configMap = await getCategoryConfigMap(uniqueCats)
+
     const items = dbProducts.map((p) =>
       this.mapToCard({
         ...p,
+        category: p.category
+          ? {
+              ...p.category,
+              config: configMap.get(p.category.id),
+            }
+          : null,
         basePrice: Number(p.basePrice),
         salePrice: p.salePrice !== null ? Number(p.salePrice) : null,
       }),
@@ -275,7 +307,12 @@ export const productService = {
         },
       }),
       prisma.product.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          category: {
+            isActive: true,
+          },
+        },
         select: { id: true },
       }),
     ])
@@ -321,17 +358,23 @@ export const productService = {
       },
     })
 
-    if (!dbProduct) {
+    if (!dbProduct || (dbProduct.category && !dbProduct.category.isActive)) {
       return null
     }
 
-    let niqabProduct: NiqabProductData | null = null
-    if (dbProduct.canAddNiqab && !dbProduct.isNiqab) {
-      niqabProduct = await getNiqabProduct()
-    }
+    const [niqabProduct, categoryConfig] = await Promise.all([
+      dbProduct.canAddNiqab && !dbProduct.isNiqab ? getNiqabProduct() : Promise.resolve(null),
+      dbProduct.category ? getCategoryConfig(dbProduct.category) : Promise.resolve(undefined),
+    ])
 
     return {
       ...dbProduct,
+      category: dbProduct.category
+        ? {
+            ...dbProduct.category,
+            config: categoryConfig,
+          }
+        : undefined,
       basePrice: Number(dbProduct.basePrice),
       salePrice:
         dbProduct.salePrice !== null ? Number(dbProduct.salePrice) : null,
@@ -376,6 +419,7 @@ export const productService = {
       nameAr: string
       nameFr: string
       nameEn: string
+      config?: CategoryConfig
     } | null
     variants?: Array<{
       colorCode: string
@@ -434,6 +478,7 @@ export const productService = {
             nameAr: p.category.nameAr,
             nameFr: p.category.nameFr,
             nameEn: p.category.nameEn,
+            config: p.category.config,
           }
         : undefined,
       availableColors,

@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { slugify } from '@/lib/utils'
+import { getCategoryConfigMap, saveCategoryConfig } from '@/lib/category-config.server'
 
 export async function GET() {
   const auth = await requireAdmin()
@@ -14,6 +15,8 @@ export async function GET() {
       },
       orderBy: { sortOrder: 'asc' },
     })
+
+    const configMap = await getCategoryConfigMap(categories)
 
     const items = categories.map((c) => ({
       id: c.id,
@@ -28,7 +31,9 @@ export async function GET() {
       image: c.image,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
+      parentId: c.parentId ?? null,
       productsCount: c._count.products,
+      config: configMap.get(c.id),
       createdAt: c.createdAt,
     }))
 
@@ -62,6 +67,8 @@ export async function POST(request: Request) {
       image,
       sortOrder = 0,
       isActive = true,
+      parentId,
+      config: rawConfig,
     } = body as {
       name?: string
       nameAr?: string
@@ -74,6 +81,8 @@ export async function POST(request: Request) {
       image?: string | null
       sortOrder?: string | number
       isActive?: boolean
+      parentId?: string | null
+      config?: unknown
     }
 
     const rawAr = typeof nameAr === 'string' ? nameAr.trim() : ''
@@ -100,6 +109,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'A category with this slug already exists' }, { status: 400 })
     }
 
+    let safeParentId: string | null = null
+    if (typeof parentId === 'string' && parentId.trim()) {
+      const parentExists = await prisma.category.findUnique({
+        where: { id: parentId.trim() },
+        select: { id: true },
+      })
+      if (!parentExists) {
+        return NextResponse.json({ error: 'Selected parent category does not exist' }, { status: 400 })
+      }
+      safeParentId = parentExists.id
+    }
+
     const parsedOrder = Number.parseInt(String(sortOrder ?? 0), 10)
     const safeSortOrder = Number.isFinite(parsedOrder) ? parsedOrder : 0
 
@@ -115,14 +136,19 @@ export async function POST(request: Request) {
         image: typeof image === 'string' && image.trim() ? image.trim() : null,
         sortOrder: safeSortOrder,
         isActive: Boolean(isActive),
+        parentId: safeParentId,
       },
     })
 
-    revalidatePath('/[locale]/products', 'page')
-    revalidatePath('/[locale]', 'page')
-    revalidatePath('/api/categories')
+    const savedConfig = await saveCategoryConfig(category, rawConfig)
 
-    return NextResponse.json({ success: true, category })
+    revalidatePath('/[locale]', 'layout')
+    revalidatePath('/[locale]', 'page')
+    revalidatePath('/[locale]/products', 'layout')
+    revalidatePath('/api/categories')
+    revalidatePath('/api/products')
+
+    return NextResponse.json({ success: true, category: { ...category, config: savedConfig } })
   } catch (error: unknown) {
     console.error('Failed to create category:', error)
     if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {

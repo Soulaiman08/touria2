@@ -60,6 +60,19 @@ export const useCartStore =
 
         addItem: (item) => {
           const items = get().items
+          const maxQty = item.maxOrderQuantity ?? null
+          const currentProductQty = items
+            .filter((cartItem) => cartItem.productId === item.productId)
+            .reduce((sum, cartItem) => sum + cartItem.quantity, 0)
+          const effectiveAddQty =
+            maxQty !== null
+              ? Math.min(item.quantity, Math.max(0, maxQty - currentProductQty))
+              : item.quantity
+
+          if (maxQty !== null && effectiveAddQty <= 0) {
+            set({ isOpen: true })
+            return
+          }
 
           // نفس المنتج + نفس الـ variant + نفس المقاس + نفس اللون
           // يعتبر نفس عنصر السلة.
@@ -70,6 +83,7 @@ export const useCartStore =
               cartItem.productId === item.productId &&
               cartItem.variantId === item.variantId &&
               (cartItem.size || '') === (item.size || '') &&
+              (cartItem.customNote || '').trim() === (item.customNote || '').trim() &&
               cartItem.colorCode === item.colorCode &&
               JSON.stringify(cartItem.niqabItems ?? []) ===
                 JSON.stringify(item.niqabItems ?? []),
@@ -80,11 +94,14 @@ export const useCartStore =
               items: items.map((cartItem) =>
                 cartItem.id === existing.id
                   ? {
-                    ...cartItem,
-                    quantity:
-                      cartItem.quantity +
-                      item.quantity,
-                  }
+                      ...cartItem,
+                      minOrderQuantity: item.minOrderQuantity ?? cartItem.minOrderQuantity,
+                      maxOrderQuantity:
+                        item.maxOrderQuantity !== undefined
+                          ? item.maxOrderQuantity
+                          : cartItem.maxOrderQuantity,
+                      quantity: cartItem.quantity + effectiveAddQty,
+                    }
                   : cartItem,
               ),
               isOpen: true,
@@ -98,6 +115,7 @@ export const useCartStore =
               ...items,
               {
                 ...item,
+                quantity: effectiveAddQty,
                 id: uuidv4(),
               },
             ],
@@ -130,13 +148,23 @@ export const useCartStore =
             return
           }
 
+          const currentItems = get().items
+          const target = currentItems.find((item) => item.id === id)
+          let clampedQty = quantity
+          if (target && target.maxOrderQuantity != null) {
+            const otherRowsQty = currentItems
+              .filter((item) => item.id !== id && item.productId === target.productId)
+              .reduce((sum, item) => sum + item.quantity, 0)
+            clampedQty = Math.min(quantity, Math.max(1, target.maxOrderQuantity - otherRowsQty))
+          }
+
           set({
-            items: get().items.map((item) =>
+            items: currentItems.map((item) =>
               item.id === id
                 ? {
-                  ...item,
-                  quantity,
-                }
+                    ...item,
+                    quantity: clampedQty,
+                  }
                 : item,
             ),
           })

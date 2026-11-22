@@ -93,6 +93,7 @@ interface Snapshot extends Record<string, unknown> {
   selectedSize?: string
   color?: SnapshotColor | string
   selectedColor?: SnapshotColor | string
+  customNote?: string
   niqabs?: SnapshotNiqab[]
 }
 
@@ -386,6 +387,17 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                         <p className="text-xs text-zinc-400 font-mono tabular-nums">
                           {formatPrice(item.unitPrice, 'fr')} {tr('للقطعة', 'each')}
                         </p>
+
+                        {text(snap.customNote).trim() && (
+                          <div className="mt-1.5 inline-flex items-start gap-1.5 text-xs bg-zinc-800/80 border border-amber-500/25 text-amber-200 rounded-xl px-2.5 py-1.5 max-w-full">
+                            <span className="font-bold text-amber-400 shrink-0">
+                              {tr('ملاحظة القياس/التفصيل:', 'Custom note:')}
+                            </span>
+                            <span className="break-words text-zinc-200">
+                              {text(snap.customNote).trim()}
+                            </span>
+                          </div>
+                        )}
 
                         {/* Niqab Add-ons */}
                         {Array.isArray(snap.niqabs) &&

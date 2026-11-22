@@ -17,6 +17,8 @@ export interface CatalogCategoryOption {
   slug: string
   label: string
   count: number
+  showSizeFilter?: boolean
+  sizes?: string[]
 }
 
 export interface CatalogColorOption {
@@ -41,6 +43,7 @@ interface CatalogMobileControlsProps {
   activeSort?: string
   activeSearch?: string
   allCount: number
+  showSizeFilter?: boolean
   labels: {
     allCategories: string
     filter: string
@@ -68,6 +71,7 @@ export function CatalogMobileControls({
   activeSort,
   activeSearch,
   allCount,
+  showSizeFilter = true,
   labels,
 }: CatalogMobileControlsProps) {
   const router = useRouter()
@@ -191,6 +195,19 @@ export function CatalogMobileControls({
   const draftColorObj = draftColor
     ? colors.find((c) => c.code.replace('#', '').toLowerCase() === draftColor.toLowerCase())
     : undefined
+
+  const draftCategoryObj = draftCategory
+    ? categories.find((c) => c.slug === draftCategory || `${c.slug}s` === draftCategory)
+    : undefined
+
+  const effectiveShowSizeFilter = draftCategoryObj
+    ? draftCategoryObj.showSizeFilter !== false
+    : showSizeFilter
+
+  const effectiveSizes =
+    draftCategoryObj?.sizes && draftCategoryObj.sizes.length > 0
+      ? draftCategoryObj.sizes
+      : sizes
 
   return (
     <div className="lg:hidden space-y-3">
@@ -428,7 +445,13 @@ export function CatalogMobileControls({
                       <button
                         key={cat.id}
                         type="button"
-                        onClick={() => setDraftCategory(isSelected ? undefined : cat.slug)}
+                        onClick={() => {
+                          const nextSlug = isSelected ? undefined : cat.slug
+                          setDraftCategory(nextSlug)
+                          if (nextSlug && cat.showSizeFilter === false) {
+                            setDraftSize(undefined)
+                          }
+                        }}
                         className={cn(
                           'w-full h-11 px-3.5 rounded-xl border text-xs flex items-center justify-between transition-colors cursor-pointer',
                           isSelected
@@ -482,45 +505,47 @@ export function CatalogMobileControls({
               )}
 
               {/* Size (Symmetrical 4x2 Grid) */}
-              <div className="space-y-2.5 pt-4 border-t border-[var(--border)]">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] m-0">
-                  {labels.size}
-                </h3>
+              {effectiveShowSizeFilter && effectiveSizes.length > 0 && (
+                <div className="space-y-2.5 pt-4 border-t border-[var(--border)]">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] m-0">
+                    {labels.size}
+                  </h3>
 
-                <div className="grid grid-cols-4 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setDraftSize(undefined)}
-                    className={cn(
-                      'h-11 rounded-xl border text-xs font-semibold transition-colors cursor-pointer',
-                      !draftSize
-                        ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)] font-bold'
-                        : 'border-[var(--border)] bg-[var(--bg-subtle)]/60 text-[var(--text-muted)]'
-                    )}
-                  >
-                    {labels.allSizes}
-                  </button>
+                  <div className="grid grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDraftSize(undefined)}
+                      className={cn(
+                        'h-11 rounded-xl border text-xs font-semibold transition-colors cursor-pointer',
+                        !draftSize
+                          ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)] font-bold'
+                          : 'border-[var(--border)] bg-[var(--bg-subtle)]/60 text-[var(--text-muted)]'
+                      )}
+                    >
+                      {labels.allSizes}
+                    </button>
 
-                  {sizes.map((s) => {
-                    const isSelected = draftSize === s
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setDraftSize(isSelected ? undefined : s)}
-                        className={cn(
-                          'h-11 rounded-xl border text-xs font-semibold tabular-nums transition-colors cursor-pointer',
-                          isSelected
-                            ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)] font-bold'
-                            : 'border-[var(--border)] bg-[var(--bg-subtle)]/60 text-[var(--text-muted)]'
-                        )}
-                      >
-                        {s}
-                      </button>
-                    )
-                  })}
+                    {effectiveSizes.map((s) => {
+                      const isSelected = draftSize === s
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setDraftSize(isSelected ? undefined : s)}
+                          className={cn(
+                            'h-11 rounded-xl border text-xs font-semibold tabular-nums transition-colors cursor-pointer',
+                            isSelected
+                              ? 'border-[var(--accent)] bg-[var(--accent-light)] text-[var(--accent)] font-bold'
+                              : 'border-[var(--border)] bg-[var(--bg-subtle)]/60 text-[var(--text-muted)]'
+                          )}
+                        >
+                          {s}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Footer */}

@@ -14,6 +14,7 @@ import { VisitorTracker } from '@/components/shared/VisitorTracker'
 
 import { CustomerAuthProvider } from '@/components/providers/CustomerAuthProvider'
 import { LocaleDocumentSync } from '@/components/shared/LocaleDocumentSync'
+import { categoryService } from '@/services/category.service'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -174,6 +175,26 @@ export default async function LocaleLayout({
   const messages = await getMessages()
   const isRTL = locale === 'ar'
 
+  let footerCategories: Array<{
+    slug: string
+    nameAr: string
+    nameFr: string
+    nameEn: string
+  }> = []
+  try {
+    const allCategories = await categoryService.getCategories()
+    footerCategories = allCategories
+      .filter((cat) => cat.config?.showInFooter !== false)
+      .map((cat) => ({
+        slug: cat.slug,
+        nameAr: cat.nameAr,
+        nameFr: cat.nameFr,
+        nameEn: cat.nameEn,
+      }))
+  } catch {
+    footerCategories = []
+  }
+
   return (
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider>
@@ -201,7 +222,7 @@ export default async function LocaleLayout({
                 {children}
               </main>
 
-              <Footer locale={locale} />
+              <Footer locale={locale} categories={footerCategories} />
               <CartDrawer locale={locale} />
               <WhatsAppButton />
               <VisitorTracker />

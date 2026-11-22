@@ -1540,6 +1540,27 @@ function createMockPrismaClient(): PrismaClient {
           }
           return { count }
         }
+        if (modelName === 'siteSetting') {
+          const keyFilter = args?.where?.key as string | { startsWith?: string; in?: string[] } | undefined
+          let count = 0
+          if (typeof keyFilter === 'string') {
+            if (siteSettingsStore.delete(keyFilter)) count++
+          } else if (keyFilter && typeof keyFilter === 'object') {
+            if (Array.isArray(keyFilter.in)) {
+              for (const k of keyFilter.in) {
+                if (siteSettingsStore.delete(k)) count++
+              }
+            } else if (typeof keyFilter.startsWith === 'string') {
+              for (const k of Array.from(siteSettingsStore.keys())) {
+                if (k.startsWith(keyFilter.startsWith)) {
+                  siteSettingsStore.delete(k)
+                  count++
+                }
+              }
+            }
+          }
+          return { count }
+        }
         return { count: 0 }
       },
     }

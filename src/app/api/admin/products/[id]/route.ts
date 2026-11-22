@@ -3,6 +3,9 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { slugify } from '@/lib/utils'
+import { getColorNames } from '@/lib/color-names'
+import { isNiqabIdentity } from '@/lib/category-config'
+import { getCategoryConfig } from '@/lib/category-config.server'
 
 export async function GET(
   _request: Request,
@@ -72,7 +75,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
     }
 
-    const existing = await prisma.product.findUnique({ where: { id } })
+    const existing = await prisma.product.findUnique({
+      where: { id },
+      include: { variants: true },
+    })
     if (!existing) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
@@ -82,7 +88,7 @@ export async function PUT(
       description, descriptionAr, descriptionFr, descriptionEn,
       basePrice, salePrice, sku, categoryId,
       mainImage, images, colors, sizes, stock,
-      isFeatured, isActive, isNiqab, canAddNiqab,
+      isFeatured, isActive, canAddNiqab,
     } = body
 
     const updateData: Record<string, unknown> = {}
@@ -160,20 +166,35 @@ export async function PUT(
       updateData.sku = cleanSku
     }
 
-    if (typeof categoryId === 'string' && categoryId.trim()) {
-      const catExists = await prisma.category.findUnique({ where: { id: categoryId.trim() }, select: { id: true } })
-      if (!catExists) {
-        return NextResponse.json({ error: 'Selected category does not exist' }, { status: 400 })
-      }
-      updateData.categoryId = categoryId.trim()
+    const requestedCategoryId =
+      typeof categoryId === 'string' && categoryId.trim() ? categoryId.trim() : existing.categoryId
+    const targetCategory = await prisma.category.findUnique({
+      where: { id: requestedCategoryId },
+    })
+    if (!targetCategory) {
+      return NextResponse.json({ error: 'Selected category does not exist' }, { status: 400 })
     }
+    const categoryChanged = targetCategory.id !== existing.categoryId
+    if (categoryChanged) {
+      updateData.categoryId = targetCategory.id
+    }
+
+    const catConfig = await getCategoryConfig(targetCategory)
+    const catIsNiqab = isNiqabIdentity(targetCategory)
 
     if (typeof mainImage === 'string' && mainImage.trim()) updateData.mainImage = mainImage.trim()
     if (Array.isArray(images)) updateData.images = images.filter((i): i is string => typeof i === 'string' && i.trim().length > 0)
     if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured)
     if (isActive !== undefined) updateData.isActive = Boolean(isActive)
-    if (isNiqab !== undefined) updateData.isNiqab = Boolean(isNiqab)
-    if (canAddNiqab !== undefined) updateData.canAddNiqab = Boolean(canAddNiqab)
+
+    updateData.isNiqab = catIsNiqab
+    if (catIsNiqab) {
+      updateData.canAddNiqab = false
+    } else if (canAddNiqab !== undefined) {
+      updateData.canAddNiqab = Boolean(canAddNiqab)
+    } else if (categoryChanged) {
+      updateData.canAddNiqab = catConfig.allowMatchingNiqab
+    }
 
     let parsedStock: number | null = null
     if (stock !== undefined && stock !== null && String(stock).trim() !== '') {
@@ -191,28 +212,83 @@ export async function PUT(
           data: updateData,
         })
 
-        if (stock !== undefined || colors || sizes) {
-          const rawColors = Array.isArray(colors) && colors.length > 0
-            ? (colors as Array<{ code?: string; nameAr?: string; nameFr?: string; nameEn?: string }>)
-            : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
-
-          const uniqueColorMap = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
-          for (const c of rawColors) {
-            const code = (c.code || '#000000').trim().toUpperCase()
-            if (!uniqueColorMap.has(code)) {
-              uniqueColorMap.set(code, {
-                code,
-                nameAr: c.nameAr?.trim() || 'لون',
-                nameFr: c.nameFr?.trim() || 'Couleur',
-                nameEn: c.nameEn?.trim() || 'Color',
+        if (stock !== undefined || colors !== undefined || sizes !== undefined || categoryChanged) {
+          const existingActiveVariants = existing.variants.filter((v) => v.isActive)
+          const existingActiveColorsMap = new Map<
+            string,
+            { code: string; nameAr: string; nameFr: string; nameEn: string }
+          >()
+          const existingActiveSizes: string[] = []
+          for (const v of existingActiveVariants) {
+            if (!existingActiveSizes.includes(v.size)) existingActiveSizes.push(v.size)
+            const normCode = v.colorCode.trim().toUpperCase()
+            if (!existingActiveColorsMap.has(normCode)) {
+              existingActiveColorsMap.set(normCode, {
+                code: normCode,
+                nameAr: v.colorNameAr,
+                nameFr: v.colorNameFr,
+                nameEn: v.colorNameEn,
               })
             }
           }
-          const variantColors = Array.from(uniqueColorMap.values())
 
-          const rawSizes = Array.isArray(sizes) && sizes.length > 0 ? (sizes as string[]) : ['Standard']
-          const variantSizes = Array.from(new Set(rawSizes.map((s) => String(s).trim()).filter(Boolean)))
-          if (variantSizes.length === 0) variantSizes.push('Standard')
+          type RawColorInput = { code?: string; nameAr?: string; nameFr?: string; nameEn?: string }
+          const rawColors: RawColorInput[] =
+            Array.isArray(colors) && colors.length > 0
+              ? (colors as RawColorInput[])
+              : existingActiveColorsMap.size > 0
+                ? Array.from(existingActiveColorsMap.values())
+                : (catConfig.defaultColors.length > 0 ? catConfig.defaultColors : ['#000000']).map((hex) => ({
+                    code: hex,
+                  }))
+
+          const uniqueColorMap = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
+          for (const c of rawColors) {
+            const rawCode = (c.code || '#000000').trim()
+            const code = (rawCode.startsWith('#') ? rawCode : `#${rawCode}`).toUpperCase()
+            if (!/^#[0-9A-F]{3,8}$/.test(code)) continue
+            if (!uniqueColorMap.has(code)) {
+              const fallbackNames = getColorNames(code)
+              const nameArVal = c.nameAr?.trim()
+              const nameFrVal = c.nameFr?.trim()
+              const nameEnVal = c.nameEn?.trim()
+              uniqueColorMap.set(code, {
+                code,
+                nameAr: nameArVal && nameArVal !== 'لون' ? nameArVal : fallbackNames.ar,
+                nameFr: nameFrVal && nameFrVal.toLowerCase() !== 'couleur' ? nameFrVal : fallbackNames.fr,
+                nameEn: nameEnVal && nameEnVal.toLowerCase() !== 'color' ? nameEnVal : fallbackNames.en,
+              })
+            }
+          }
+
+          if (uniqueColorMap.size === 0) {
+            const fallbackNames = getColorNames('#000000')
+            uniqueColorMap.set('#000000', {
+              code: '#000000',
+              nameAr: fallbackNames.ar,
+              nameFr: fallbackNames.fr,
+              nameEn: fallbackNames.en,
+            })
+          }
+
+          const allParsedColors = Array.from(uniqueColorMap.values())
+          const variantColors =
+            catConfig.colorMode === 'single' ? allParsedColors.slice(0, 1) : allParsedColors
+
+          const variantSizes = (() => {
+            if (catIsNiqab || catConfig.sizingMode === 'bundle_no_size') {
+              return ['Standard']
+            }
+            if (Array.isArray(sizes)) {
+              const cleaned = Array.from(new Set(sizes.map((s) => String(s).trim()).filter(Boolean)))
+              if (cleaned.length > 0) return cleaned
+            }
+            if (!categoryChanged && existingActiveSizes.length > 0) {
+              return existingActiveSizes
+            }
+            if (catConfig.defaultSizes.length > 0) return [...catConfig.defaultSizes]
+            return catConfig.sizingMode === 'standard' ? ['Standard'] : ['S', 'M', 'L', 'XL']
+          })()
 
           const totalSlots = variantColors.length * variantSizes.length
           const baseStock = parsedStock === null ? 0 : Math.floor(parsedStock / totalSlots)
@@ -273,9 +349,14 @@ export async function PUT(
       { timeout: 30000, maxWait: 5000 }
     )
 
+    revalidatePath('/[locale]', 'layout')
+    revalidatePath('/[locale]', 'page')
     revalidatePath('/[locale]/products', 'layout')
     revalidatePath(`/[locale]/products/${updatedProduct.slug}`, 'page')
-    revalidatePath('/[locale]', 'page')
+    if (existing.slug && existing.slug !== updatedProduct.slug) {
+      revalidatePath(`/[locale]/products/${existing.slug}`, 'page')
+    }
+    revalidatePath('/api/categories')
     revalidatePath('/api/products')
 
     return NextResponse.json({ success: true, product: updatedProduct })
@@ -309,9 +390,11 @@ export async function DELETE(
     if (linkedOrderItems > 0) {
       await prisma.product.update({ where: { id }, data: { isActive: false } })
 
+      revalidatePath('/[locale]', 'layout')
+      revalidatePath('/[locale]', 'page')
       revalidatePath('/[locale]/products', 'layout')
       revalidatePath(`/[locale]/products/${product.slug}`, 'page')
-      revalidatePath('/[locale]', 'page')
+      revalidatePath('/api/categories')
       revalidatePath('/api/products')
 
       return NextResponse.json({ success: true, softDeleted: true })
@@ -321,11 +404,13 @@ export async function DELETE(
     await prisma.product.delete({ where: { id } })
 
     // Revalidate storefront caches so deletion appears immediately
+    revalidatePath('/[locale]', 'layout')
+    revalidatePath('/[locale]', 'page')
     revalidatePath('/[locale]/products', 'layout')
     if (product?.slug) {
       revalidatePath(`/[locale]/products/${product.slug}`, 'page')
     }
-    revalidatePath('/[locale]', 'page')
+    revalidatePath('/api/categories')
     revalidatePath('/api/products')
 
     return NextResponse.json({ success: true })

@@ -146,7 +146,11 @@ export function ProductCard({
       : 0
 
   const saleLabel = locale === 'ar' ? `خصم ${discount}%` : `-${discount}%`
-  const isOutOfStock = !product.availableSizes || product.availableSizes.length === 0
+  const hasAnyVariantData =
+    (product.availableSizes && product.availableSizes.length > 0) ||
+    (product.availableColors && product.availableColors.length > 0)
+  const isOutOfStock = !hasAnyVariantData
+  const cardAspectRatio = product.category?.config?.cardAspectRatio === '1:1' ? '1 / 1' : '3 / 4'
   const productUrl = `/${locale}/products/${product.slug}`
 
   // Priority-ordered single top badge so images remain calm & uncluttered
@@ -173,9 +177,10 @@ export function ProductCard({
       dir={isRTL ? 'rtl' : 'ltr'}
       aria-label={name}
     >
-      {/* ── Image Canvas (3:4 studio frame) ───────────────────────── */}
+      {/* ── Image Canvas (Category-driven 3:4 or 1:1 frame) ───────────────────────── */}
       <div
         className="product-card-img-wrap"
+        style={{ aspectRatio: cardAspectRatio }}
         onTouchStart={(e) => {
           if (!hasMultipleImages) return
           touchStartXRef.current = e.touches[0].clientX

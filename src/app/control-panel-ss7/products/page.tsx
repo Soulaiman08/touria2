@@ -29,6 +29,14 @@ import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
 import { formatPrice } from '@/lib/utils'
 import { getColorNames } from '@/lib/color-names'
+import {
+  getDefaultCategoryConfig,
+  isNiqabIdentity,
+  LETTER_PRESET_SIZES,
+  NUMERIC_PRESET_SIZES,
+  STANDARD_PRESET_SIZES,
+  type CategoryConfig,
+} from '@/lib/category-config'
 
 interface ProductItem {
   id: string
@@ -74,6 +82,7 @@ interface CategoryOption {
   nameFr?: string
   nameEn?: string
   slug: string
+  config?: CategoryConfig
 }
 
 interface ReviewItem {
@@ -115,46 +124,8 @@ const PRESET_COLORS = [
   '#F2E4CE',
 ]
 
-const PRESET_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Standard']
-
-const isNiqabCategory = (category?: CategoryOption | null): boolean => {
-  if (!category) return false
-  const values = [category.slug, category.name, category.nameAr, category.nameFr, category.nameEn]
-    .filter(Boolean)
-    .map((value) => String(value).trim().toLowerCase())
-  return values.some(
-    (value) =>
-      value === 'niqab' ||
-      value === 'نقاب' ||
-      value.includes('niqab') ||
-      value.includes('niquab') ||
-      value.includes('نقاب')
-  )
-}
-
-const isOneSizeAccessoryCategory = (category?: CategoryOption | null): boolean => {
-  if (!category) return false
-  const values = [category.slug, category.name, category.nameAr, category.nameFr, category.nameEn]
-    .filter(Boolean)
-    .map((value) => String(value).trim().toLowerCase())
-  const keywords = [
-    'glove',
-    'gant',
-    'قفاز',
-    'كفوف',
-    'sock',
-    'chaussette',
-    'جوارب',
-    'accessori',
-    'accessoire',
-    'إكسسوار',
-    'اكسسوار',
-    'scarf',
-    'khimar',
-    'خمار',
-    'شال',
-  ]
-  return values.some((value) => keywords.some((kw) => value.includes(kw)))
+function resolveCategoryConfig(category?: CategoryOption | null): CategoryConfig {
+  return category?.config ?? getDefaultCategoryConfig(category)
 }
 
 function parseColorTokens(str: string): string[] {
@@ -178,6 +149,29 @@ function parseSizeTokens(str: string): string[] {
         .filter(Boolean)
     )
   )
+}
+
+async function fetchCategoriesApi(): Promise<CategoryOption[]> {
+  try {
+    const res = await fetch('/api/admin/categories', {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    })
+    if (!res.ok) throw new Error(`Failed to fetch categories (${res.status})`)
+    const data = (await res.json()) as {
+      items?: CategoryOption[]
+      categories?: CategoryOption[]
+    }
+    return Array.isArray(data?.items)
+      ? data.items
+      : Array.isArray(data?.categories)
+        ? data.categories
+        : []
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+    return []
+  }
 }
 
 function ProductContent({ initialSearch }: { initialSearch: string }) {
@@ -237,7 +231,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
   const NextIcon = isRTL ? ChevronLeft : ChevronRight
 
   const selectedFormCategory = categories.find((c) => c.id === formData.categoryId)
-  const selectedCategoryIsNiqab = isNiqabCategory(selectedFormCategory)
+  const selectedCategoryConfig = resolveCategoryConfig(selectedFormCategory)
+  const selectedCategoryIsNiqab = isNiqabIdentity(selectedFormCategory)
+  const selectedCategoryHidesSizes = selectedCategoryConfig.sizingMode === 'bundle_no_size'
 
   const getCategoryDisplayName = (cat?: CategoryOption | ProductItem['category']) => {
     if (!cat) return tr('تصنيف', 'Category')
@@ -255,36 +251,21 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     return () => window.clearTimeout(timer)
   }, [search])
 
+  const loadCategories = useCallback(async (): Promise<CategoryOption[]> => {
+    const items = await fetchCategoriesApi()
+    setCategories(items)
+    return items
+  }, [])
+
   useEffect(() => {
     let active = true
-    async function loadCategories() {
-      try {
-        const res = await fetch('/api/admin/categories', {
-          method: 'GET',
-          cache: 'no-store',
-          headers: { Accept: 'application/json' },
-        })
-        if (!res.ok) throw new Error(`Failed to fetch categories (${res.status})`)
-        const data = (await res.json()) as {
-          items?: CategoryOption[]
-          categories?: CategoryOption[]
-        }
-        const items = Array.isArray(data?.items)
-          ? data.items
-          : Array.isArray(data?.categories)
-            ? data.categories
-            : []
-        if (active) setCategories(items)
-      } catch (err) {
-        console.error('Error fetching categories:', err)
-        if (active) setCategories([])
-      }
-    }
-    loadCategories()
+    fetchCategoriesApi().then((items) => {
+      if (active) setCategories(items)
+    })
     return () => {
       active = false
     }
-  }, [])
+  }, [refreshTick])
 
   useEffect(() => {
     let active = true
@@ -343,13 +324,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     }
   }, [debouncedSearch, selectedCategory, page, refreshTick])
 
-  const openCreateModal = () => {
+  const openCreateModal = async () => {
     setEditingProduct(null)
     setActiveLangTab(locale === 'ar' ? 'ar' : 'en')
     setCustomSizeInput('')
-    const defaultCat = categories[0]
-    const defaultIsNiqab = isNiqabCategory(defaultCat)
-    const defaultIsAccessory = isOneSizeAccessoryCategory(defaultCat)
+    const freshCategories = await loadCategories()
+    const pool = freshCategories.length > 0 ? freshCategories : categories
+    const defaultCat = pool[0]
+    const defaultCfg = resolveCategoryConfig(defaultCat)
     setFormData({
       nameAr: '',
       nameFr: '',
@@ -364,11 +346,18 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       categoryId: defaultCat?.id || '',
       mainImage: '',
       images: [],
-      colors: '#C4622D, #F2E4CE, #000000',
-      sizes: defaultIsNiqab ? '' : defaultIsAccessory ? 'Standard' : 'S, M, L, XL',
+      colors:
+        defaultCfg.colorMode === 'single'
+          ? defaultCfg.defaultColors[0] || '#000000'
+          : defaultCfg.defaultColors.join(', '),
+      sizes:
+        defaultCfg.sizingMode === 'bundle_no_size'
+          ? ''
+          : defaultCfg.defaultSizes.join(', ') ||
+            (defaultCfg.sizingMode === 'standard' ? 'Standard' : 'S, M, L, XL'),
       isFeatured: false,
       isActive: true,
-      canAddNiqab: !defaultIsNiqab && !defaultIsAccessory,
+      canAddNiqab: isNiqabIdentity(defaultCat) ? false : defaultCfg.allowMatchingNiqab,
     })
     setIsModalOpen(true)
   }
@@ -378,25 +367,36 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     setActiveLangTab(locale === 'ar' ? 'ar' : 'en')
     setCustomSizeInput('')
 
-    let fresh: ProductItem | null = null
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}`, {
-        method: 'GET',
-        credentials: 'same-origin',
-        cache: 'no-store',
-        headers: { Accept: 'application/json' },
-      })
-      if (res.ok) {
-        const data = (await res.json()) as { product?: ProductItem | null }
-        fresh = data?.product ?? null
-      }
-    } catch (err) {
-      console.error('Error fetching product detail:', err)
-    }
+    const [freshCategories, freshProduct] = await Promise.all([
+      loadCategories(),
+      (async (): Promise<ProductItem | null> => {
+        try {
+          const res = await fetch(`/api/admin/products/${product.id}`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' },
+          })
+          if (res.ok) {
+            const data = (await res.json()) as { product?: ProductItem | null }
+            return data?.product ?? null
+          }
+        } catch (err) {
+          console.error('Error fetching product detail:', err)
+        }
+        return null
+      })(),
+    ])
 
-    const resolved = fresh || product
-    const category = categories.find((cat) => cat.id === resolved.categoryId)
-    const categoryIsNiqab = isNiqabCategory(category)
+    const pool = freshCategories.length > 0 ? freshCategories : categories
+    const resolved = freshProduct || product
+    const category = pool.find((cat) => cat.id === resolved.categoryId)
+    const catCfg = resolveCategoryConfig(category)
+    const hideSizes = catCfg.sizingMode === 'bundle_no_size' || isNiqabIdentity(category)
+    const initialColors =
+      resolved.colors && resolved.colors.length > 0
+        ? resolved.colors.map((color) => color.code)
+        : catCfg.defaultColors
 
     setFormData({
       nameAr: resolved.nameAr || resolved.name || '',
@@ -416,11 +416,18 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       categoryId: resolved.categoryId,
       mainImage: resolved.mainImage,
       images: resolved.images || [],
-      colors: resolved.colors?.map((color) => color.code).join(', ') || '',
-      sizes: categoryIsNiqab ? '' : resolved.sizes?.join(', ') || 'S, M, L, XL',
+      colors:
+        catCfg.colorMode === 'single'
+          ? initialColors[0] || '#000000'
+          : initialColors.join(', '),
+      sizes: hideSizes
+        ? ''
+        : resolved.sizes?.join(', ') || catCfg.defaultSizes.join(', ') || 'S, M, L, XL',
       isFeatured: resolved.isFeatured,
       isActive: resolved.isActive,
-      canAddNiqab: resolved.canAddNiqab ?? true,
+      canAddNiqab: isNiqabIdentity(category)
+        ? false
+        : (resolved.canAddNiqab ?? catCfg.allowMatchingNiqab),
     })
     setIsModalOpen(true)
   }
@@ -428,24 +435,75 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = e.target.value
     const category = categories.find((cat) => cat.id === categoryId)
-    const categoryIsNiqab = isNiqabCategory(category)
-    const categoryIsAccessory = isOneSizeAccessoryCategory(category)
+    const cfg = resolveCategoryConfig(category)
+    const catIsNiqab = isNiqabIdentity(category)
+    const nextSizes =
+      cfg.sizingMode === 'bundle_no_size' || catIsNiqab
+        ? ''
+        : cfg.defaultSizes.join(', ') || (cfg.sizingMode === 'standard' ? 'Standard' : 'S, M, L, XL')
+
+    setFormData((prev) => {
+      const prevCategory = categories.find((cat) => cat.id === prev.categoryId)
+      const prevCfg = resolveCategoryConfig(prevCategory)
+      const shouldReplaceSizes =
+        !editingProduct ||
+        prevCfg.sizingMode !== cfg.sizingMode ||
+        cfg.sizingMode === 'bundle_no_size' ||
+        catIsNiqab
+
+      const prevColors = parseColorTokens(prev.colors)
+      const nextColors = editingProduct
+        ? cfg.colorMode === 'single'
+          ? prevColors[0] || cfg.defaultColors[0] || '#000000'
+          : prev.colors
+        : cfg.colorMode === 'single'
+          ? cfg.defaultColors[0] || '#000000'
+          : cfg.defaultColors.join(', ')
+
+      return {
+        ...prev,
+        categoryId,
+        sizes: shouldReplaceSizes ? nextSizes : prev.sizes,
+        colors: nextColors,
+        canAddNiqab: catIsNiqab ? false : cfg.allowMatchingNiqab,
+      }
+    })
+  }
+
+  const applySelectedCategoryDefaults = () => {
+    const category = categories.find((cat) => cat.id === formData.categoryId)
+    if (!category) return
+    const cfg = resolveCategoryConfig(category)
+    const catIsNiqab = isNiqabIdentity(category)
+    const nextSizes =
+      cfg.sizingMode === 'bundle_no_size' || catIsNiqab
+        ? ''
+        : cfg.defaultSizes.join(', ') || (cfg.sizingMode === 'standard' ? 'Standard' : 'S, M, L, XL')
+    const nextColors =
+      cfg.colorMode === 'single'
+        ? cfg.defaultColors[0] || '#000000'
+        : (cfg.defaultColors.length > 0 ? cfg.defaultColors : ['#000000']).join(', ')
+
     setFormData((prev) => ({
       ...prev,
-      categoryId,
-      sizes: categoryIsNiqab
-        ? ''
-        : categoryIsAccessory
-          ? 'Standard'
-          : !prev.sizes || prev.sizes === 'Standard'
-            ? 'S, M, L, XL'
-            : prev.sizes,
-      canAddNiqab: categoryIsNiqab || categoryIsAccessory ? false : prev.canAddNiqab,
+      sizes: nextSizes,
+      colors: nextColors,
+      canAddNiqab: catIsNiqab ? false : cfg.allowMatchingNiqab,
     }))
+    success(
+      tr(
+        'تم تطبيق مقاسات وألوان وقواعد التصنيف على هذا المنتج (احفظ لحفظ التغييرات)',
+        'Applied category default sizes, colors & rules (click Save to persist)'
+      )
+    )
   }
 
   const toggleColorHex = (hex: string) => {
     const norm = (hex.startsWith('#') ? hex : `#${hex}`).toUpperCase()
+    if (selectedCategoryConfig.colorMode === 'single') {
+      setFormData((prev) => ({ ...prev, colors: norm }))
+      return
+    }
     const current = parseColorTokens(formData.colors)
     const next = current.includes(norm)
       ? current.filter((c) => c !== norm)
@@ -457,6 +515,10 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     const norm = (hex.startsWith('#') ? hex : `#${hex}`).toUpperCase()
     if (!/^#[0-9A-F]{3,8}$/.test(norm)) {
       error(tr(`كود لون غير صالح: ${hex}`, `Invalid hex color: ${hex}`))
+      return
+    }
+    if (selectedCategoryConfig.colorMode === 'single') {
+      setFormData((prev) => ({ ...prev, colors: norm }))
       return
     }
     const current = parseColorTokens(formData.colors)
@@ -550,8 +612,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
 
     try {
       const category = categories.find((cat) => cat.id === formData.categoryId)
-      const categoryIsNiqab = isNiqabCategory(category)
-      const sizesArr = categoryIsNiqab ? [] : parseSizeTokens(formData.sizes)
+      const catCfg = resolveCategoryConfig(category)
+      const categoryIsNiqab = isNiqabIdentity(category)
+      const effectiveColorsArr =
+        catCfg.colorMode === 'single' ? colorsArr.slice(0, 1) : colorsArr
+      const sizesArr =
+        categoryIsNiqab || catCfg.sizingMode === 'bundle_no_size'
+          ? []
+          : parseSizeTokens(formData.sizes)
 
       const primaryDesc =
         formData.descriptionFr.trim() ||
@@ -575,7 +643,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
           formData.images.length > 0
             ? formData.images
             : [formData.mainImage || '/images/brand/logo-full.png'],
-        colors: colorsArr,
+        colors: effectiveColorsArr,
         sizes: sizesArr,
         isFeatured: formData.isFeatured,
         isActive: formData.isActive,
@@ -1336,15 +1404,109 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                     </select>
                     <ChevronDown className="w-4 h-4 text-zinc-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
+                  {selectedFormCategory && (() => {
+                    const catDefaultColors = (
+                      selectedCategoryConfig.colorMode === 'single'
+                        ? [selectedCategoryConfig.defaultColors[0] || '#000000']
+                        : selectedCategoryConfig.defaultColors
+                    ).map((c) => c.toUpperCase())
+                    const catDefaultSizes =
+                      selectedCategoryIsNiqab || selectedCategoryHidesSizes
+                        ? []
+                        : selectedCategoryConfig.defaultSizes
+                    const colorsMatch =
+                      currentColorList.length === catDefaultColors.length &&
+                      catDefaultColors.every((c) => currentColorList.includes(c))
+                    const sizesMatch =
+                      selectedCategoryIsNiqab || selectedCategoryHidesSizes
+                        ? true
+                        : currentSizeList.length === catDefaultSizes.length &&
+                          catDefaultSizes.every((s) => currentSizeList.includes(s))
+                    const differsFromCategoryDefaults = !colorsMatch || !sizesMatch
+
+                    return (
+                      <div className="mt-2.5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-[11px] text-zinc-300 tabular-nums">
+                            {tr('قواعد التصنيف المطبقة:', 'Category Rules:')}{' '}
+                            <span className="text-amber-400 font-semibold">
+                              {selectedCategoryConfig.sizingMode === 'bundle_no_size'
+                                ? tr('بدون مقاس', 'No Size')
+                                : selectedCategoryConfig.sizingMode === 'standard'
+                                  ? tr('مقاس موحد', 'One Size')
+                                  : selectedCategoryConfig.sizingMode === 'numeric'
+                                    ? tr('مقاسات رقمية', 'Numeric')
+                                    : tr('مقاسات حرفية', 'Letter Sizes')}
+                              {' · '}
+                              {selectedCategoryConfig.colorMode === 'single'
+                                ? tr('لون موحد', 'Single Color')
+                                : tr('ألوان متعددة', 'Multi-Color')}
+                              {' · '}
+                              {tr('نسبة', 'Frame')} {selectedCategoryConfig.cardAspectRatio}
+                              {' · '}
+                              {tr('الأدنى', 'Min')} {selectedCategoryConfig.minOrderQuantity}
+                              {selectedCategoryConfig.maxOrderQuantity !== null
+                                ? ` · ${tr('الأقصى', 'Max')} ${selectedCategoryConfig.maxOrderQuantity}`
+                                : ''}
+                              {' · '}
+                              {selectedCategoryConfig.allowCustomNote
+                                ? tr('ملاحظة تفصيل مفعلة', 'Custom note on')
+                                : tr('بدون ملاحظة تفصيل', 'No custom note')}
+                            </span>
+                          </p>
+                          <button
+                            type="button"
+                            onClick={applySelectedCategoryDefaults}
+                            className={`h-7 px-2.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer shrink-0 ${
+                              differsFromCategoryDefaults
+                                ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400'
+                                : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                            }`}
+                          >
+                            {tr('تطبيق مقاسات وألوان التصنيف', 'Apply Category Defaults')}
+                          </button>
+                        </div>
+
+                        {differsFromCategoryDefaults && (
+                          <p className="text-[11px] text-amber-300/90 tabular-nums leading-relaxed">
+                            {tr('القيم الافتراضية في التصنيف:', 'Category Defaults:')}{' '}
+                            {!selectedCategoryIsNiqab && !selectedCategoryHidesSizes && (
+                              <>
+                                <span className="font-semibold">
+                                  {catDefaultSizes.join(', ') || 'Standard'}
+                                </span>
+                                {' · '}
+                              </>
+                            )}
+                            <span className="font-mono" dir="ltr">
+                              {catDefaultColors.join(', ')}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
 
                 {/* Visual Color Swatches + Picker */}
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200">
-                      <Palette className="w-4 h-4 text-amber-400" />
-                      {tr('ألوان المنتج', 'Product Colors')}
-                    </span>
+                    <div className="space-y-0.5">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200">
+                        <Palette className="w-4 h-4 text-amber-400" />
+                        {selectedCategoryConfig.colorMode === 'single'
+                          ? tr('لون المنتج (لون موحّد)', 'Product Color (Single-Color Policy)')
+                          : tr('ألوان المنتج', 'Product Colors')}
+                      </span>
+                      {selectedCategoryConfig.colorMode === 'single' && (
+                        <p className="text-[11px] text-zinc-400">
+                          {tr(
+                            'التصنيف مضبوط على لون موحّد — يتم استبدال اللون باختيار لون آخر',
+                            'Single-color category rule — selecting a color replaces the active color'
+                          )}
+                        </p>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
@@ -1358,7 +1520,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                         onClick={() => addCustomColor(pickerColor)}
                         className="h-8 px-3 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 text-xs font-bold transition-colors cursor-pointer"
                       >
-                        + {tr('إضافة اللون', 'Add Color')}
+                        {selectedCategoryConfig.colorMode === 'single'
+                          ? tr('تحديد اللون', 'Set Color')
+                          : `+ ${tr('إضافة اللون', 'Add Color')}`}
                       </button>
                     </div>
                   </div>
@@ -1427,28 +1591,54 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                     dir="ltr"
                     value={formData.colors}
                     onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
-                    placeholder="#C4622D, #F2E4CE, #000000"
+                    onBlur={() => {
+                      if (selectedCategoryConfig.colorMode === 'single') {
+                        const first = parseColorTokens(formData.colors)[0]
+                        if (first && first !== formData.colors.trim().toUpperCase()) {
+                          setFormData((prev) => ({ ...prev, colors: first }))
+                        }
+                      }
+                    }}
+                    placeholder={
+                      selectedCategoryConfig.colorMode === 'single'
+                        ? '#000000'
+                        : '#C4622D, #F2E4CE, #000000'
+                    }
                     className="w-full h-10 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-mono text-zinc-300 outline-none"
                   />
                 </div>
 
-                {/* Interactive Size Chips (Hidden automatically for Niqab category) */}
-                {!selectedCategoryIsNiqab && (
+                {/* Interactive Size Chips (Driven by Category sizingMode) */}
+                {!selectedCategoryIsNiqab && !selectedCategoryHidesSizes && (
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200">
-                      <Ruler className="w-4 h-4 text-amber-400" />
-                      {tr('المقاسات المتاحة', 'Available Sizes')}
-                    </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200">
+                        <Ruler className="w-4 h-4 text-amber-400" />
+                        {tr('المقاسات المتاحة', 'Available Sizes')}
+                      </span>
+                      <span className="text-[11px] text-zinc-500">
+                        {selectedCategoryConfig.sizingMode === 'numeric'
+                          ? tr('مقاسات طولية (50–60)', 'Length sizes')
+                          : selectedCategoryConfig.sizingMode === 'standard'
+                            ? tr('مقاس موحّد', 'Standard size')
+                            : tr('مقاسات حرفية', 'Letter sizes')}
+                      </span>
+                    </div>
 
                     <div className="flex flex-wrap gap-2">
-                      {PRESET_SIZES.map((sz) => {
+                      {(selectedCategoryConfig.sizingMode === 'numeric'
+                        ? NUMERIC_PRESET_SIZES
+                        : selectedCategoryConfig.sizingMode === 'standard'
+                          ? STANDARD_PRESET_SIZES
+                          : LETTER_PRESET_SIZES
+                      ).map((sz) => {
                         const active = currentSizeList.includes(sz)
                         return (
                           <button
                             key={sz}
                             type="button"
                             onClick={() => toggleSizeChip(sz)}
-                            className={`h-8 px-3 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
+                            className={`h-8 px-3 rounded-lg border text-xs font-bold tabular-nums transition-colors cursor-pointer ${
                               active
                                 ? 'bg-amber-500 text-zinc-950 border-amber-500'
                                 : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700'
@@ -1458,6 +1648,28 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                           </button>
                         )
                       })}
+                      {currentSizeList
+                        .filter(
+                          (sz) =>
+                            !(
+                              selectedCategoryConfig.sizingMode === 'numeric'
+                                ? NUMERIC_PRESET_SIZES
+                                : selectedCategoryConfig.sizingMode === 'standard'
+                                  ? STANDARD_PRESET_SIZES
+                                  : LETTER_PRESET_SIZES
+                            ).includes(sz)
+                        )
+                        .map((sz) => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => toggleSizeChip(sz)}
+                            className="h-8 px-3 rounded-lg border border-amber-500 bg-amber-500/20 text-amber-300 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>{sz}</span>
+                            <X className="w-3 h-3" />
+                          </button>
+                        ))}
                     </div>
 
                     <div className="flex gap-2">

@@ -9,6 +9,7 @@ import { siteConfig } from '@/config/site'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 import { BreadcrumbBar } from '@/components/shared/PageNavigation'
 import { CatalogMobileControls } from '@/components/products/CatalogMobileControls'
+import { LETTER_PRESET_SIZES, NUMERIC_PRESET_SIZES } from '@/lib/category-config'
 
 import type { ProductFilters } from '@/types/product'
 
@@ -98,7 +99,7 @@ export async function generateMetadata({
   }
 }
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as const
+const SIZES = LETTER_PRESET_SIZES
 
 export default async function ProductsPage({
   params,
@@ -213,13 +214,60 @@ export default async function ProductsPage({
     { key: 'priceDesc', label: pt('sortBy.priceDesc') },
   ]
 
-  const categoryOptions = dbCategories.map((cat) => ({
-    id: cat.id,
-    slug: cat.slug,
-    label:
-      locale === 'ar' ? cat.nameAr : locale === 'fr' ? cat.nameFr : cat.nameEn,
-    count: cat.productCount ?? 0,
-  }))
+  const showSizeFilter = currentCategory
+    ? currentCategory.config?.showSizeFilter !== false
+    : true
+
+  const activeSizes: readonly string[] = (() => {
+    if (!currentCategory?.config) return SIZES
+    if (currentCategory.config.sizingMode === 'bundle_no_size') {
+      return []
+    }
+    if (currentCategory.config.sizingMode === 'standard') {
+      return currentCategory.config.defaultSizes.length > 0
+        ? currentCategory.config.defaultSizes
+        : ['Standard']
+    }
+    if (currentCategory.config.sizingMode === 'numeric') {
+      return currentCategory.config.defaultSizes.length > 0
+        ? currentCategory.config.defaultSizes
+        : NUMERIC_PRESET_SIZES
+    }
+    if (
+      currentCategory.config.sizingMode === 'letter' &&
+      currentCategory.config.defaultSizes.length > 0
+    ) {
+      return currentCategory.config.defaultSizes
+    }
+    return SIZES
+  })()
+
+  const categoryOptions = dbCategories.map((cat) => {
+    const catSizes =
+      cat.config?.sizingMode === 'bundle_no_size'
+        ? []
+        : cat.config?.sizingMode === 'standard'
+          ? cat.config.defaultSizes.length > 0
+            ? cat.config.defaultSizes
+            : ['Standard']
+          : cat.config?.sizingMode === 'numeric'
+            ? cat.config.defaultSizes.length > 0
+              ? cat.config.defaultSizes
+              : [...NUMERIC_PRESET_SIZES]
+            : cat.config?.sizingMode === 'letter' && cat.config.defaultSizes.length > 0
+              ? cat.config.defaultSizes
+              : [...SIZES]
+
+    return {
+      id: cat.id,
+      slug: cat.slug,
+      label:
+        locale === 'ar' ? cat.nameAr : locale === 'fr' ? cat.nameFr : cat.nameEn,
+      count: cat.productCount ?? 0,
+      showSizeFilter: cat.config?.showSizeFilter !== false,
+      sizes: catSizes,
+    }
+  })
 
   const allCatalogCount =
     categoryOptions.reduce((sum, c) => sum + c.count, 0) || productsResponse.total
@@ -348,7 +396,7 @@ export default async function ProductsPage({
       <CatalogMobileControls
         locale={locale}
         categories={categoryOptions}
-        sizes={SIZES}
+        sizes={activeSizes}
         colors={colorOptions}
         sortOptions={sortOptions}
         activeCategory={category}
@@ -357,6 +405,7 @@ export default async function ProductsPage({
         activeSort={sort}
         activeSearch={search}
         allCount={allCatalogCount}
+        showSizeFilter={showSizeFilter}
         labels={{
           allCategories: pt('filters.all'),
           filter: pt('filter'),
@@ -481,42 +530,44 @@ export default async function ProductsPage({
               </div>
             )}
 
-            {/* 3. Size (Symmetrical 4x2 Architectural Grid) */}
-            <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
-              <h3 className="font-semibold text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)] m-0">
-                {pt('filters.size')}
-              </h3>
+            {/* 3. Size (Symmetrical Grid driven by active category rules) */}
+            {showSizeFilter && activeSizes.length > 0 && (
+              <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
+                <h3 className="font-semibold text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)] m-0">
+                  {pt('filters.size')}
+                </h3>
 
-              <div className="grid grid-cols-4 gap-1.5">
-                <Link
-                  href={buildFilterUrl({ size: null })}
-                  className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold transition-colors no-underline ${
-                    !size
-                      ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-light)] font-bold'
-                      : 'border-[var(--border)] text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
-                  }`}
-                >
-                  {allSizesLabel}
-                </Link>
+                <div className="grid grid-cols-4 gap-1.5">
+                  <Link
+                    href={buildFilterUrl({ size: null })}
+                    className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold transition-colors no-underline ${
+                      !size
+                        ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-light)] font-bold'
+                        : 'border-[var(--border)] text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+                    }`}
+                  >
+                    {allSizesLabel}
+                  </Link>
 
-                {SIZES.map((s) => {
-                  const isActive = size === s
-                  return (
-                    <Link
-                      key={s}
-                      href={buildFilterUrl({ size: isActive ? null : s })}
-                      className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold tabular-nums transition-colors no-underline ${
-                        isActive
-                          ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-light)] font-bold'
-                          : 'border-[var(--border)] text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
-                      }`}
-                    >
-                      {s}
-                    </Link>
-                  )
-                })}
+                  {activeSizes.map((s) => {
+                    const isActive = size === s
+                    return (
+                      <Link
+                        key={s}
+                        href={buildFilterUrl({ size: isActive ? null : s })}
+                        className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold tabular-nums transition-colors no-underline ${
+                          isActive
+                            ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-light)] font-bold'
+                            : 'border-[var(--border)] text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+                        }`}
+                      >
+                        {s}
+                      </Link>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </aside>
 

@@ -138,6 +138,14 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                     item.size &&
                     !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim())
 
+                  const sameProductQty = cartStore.items
+                    .filter((entry) => entry.productId === item.productId)
+                    .reduce((sum, entry) => sum + entry.quantity, 0)
+                  const minQty = Math.max(1, item.minOrderQuantity ?? (item.isNiqab ? 5 : 1))
+                  const maxQty = item.maxOrderQuantity ?? null
+                  const canDecrease = item.quantity > 1 && sameProductQty > minQty
+                  const canIncrease = maxQty === null || sameProductQty < maxQty
+
                   return (
                     <div
                       key={item.id}
@@ -181,6 +189,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                               <span>{itemColor}</span>
                             </span>
                           </div>
+                          {item.customNote && (
+                            <p className="mt-1 text-[11px] text-[var(--accent)] leading-snug line-clamp-2 m-0">
+                              {item.customNote}
+                            </p>
+                          )}
                         </div>
 
                         {/* Qty Stepper + Price */}
@@ -188,8 +201,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                           <div className="inline-flex items-center border border-[var(--border)] rounded-xl bg-[var(--card-bg)] overflow-hidden">
                             <button
                               type="button"
-                              onClick={() => cartStore.updateQuantity(item.id, item.quantity - 1)}
-                              className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors"
+                              onClick={() => {
+                                if (canDecrease) cartStore.updateQuantity(item.id, item.quantity - 1)
+                              }}
+                              disabled={!canDecrease}
+                              className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
                               aria-label="Decrease quantity"
                             >
                               <Minus className="w-3.5 h-3.5" />
@@ -199,8 +215,11 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                             </span>
                             <button
                               type="button"
-                              onClick={() => cartStore.updateQuantity(item.id, item.quantity + 1)}
-                              className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors"
+                              onClick={() => {
+                                if (canIncrease) cartStore.updateQuantity(item.id, item.quantity + 1)
+                              }}
+                              disabled={!canIncrease}
+                              className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-3.5 h-3.5" />

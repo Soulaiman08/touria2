@@ -37,6 +37,11 @@ export function FeaturedCollectionShowcase({
   const [fetchedByCategory, setFetchedByCategory] = useState<Record<string, ProductCardType[]>>({})
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null)
 
+  const visibleCategories = useMemo(
+    () => categories.filter((cat) => cat.config?.showInHomeTabs !== false),
+    [categories]
+  )
+
   const preloadedByCategory = useMemo(() => {
     const map: Record<string, ProductCardType[]> = {}
     for (const product of initialCatalogProducts) {
@@ -126,7 +131,7 @@ export function FeaturedCollectionShowcase({
 
           {/* Unified Underline Category Tabs + Desktop View All */}
           <div className="flex items-end justify-between gap-4 border-b border-[var(--border)]">
-            {categories.length > 0 ? (
+            {visibleCategories.length > 0 ? (
               <div
                 role="tablist"
                 aria-label={labels.allCatalog}
@@ -157,7 +162,7 @@ export function FeaturedCollectionShowcase({
                   )}
                 </button>
 
-                {categories.map((cat) => {
+                {visibleCategories.map((cat) => {
                   const isActive = activeCategory === cat.slug
                   const catLabel =
                     locale === 'ar'

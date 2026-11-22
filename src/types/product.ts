@@ -1,3 +1,5 @@
+import type { CategoryConfig } from '@/lib/category-config'
+
 // ==========================================
 // PRODUCT TYPES
 // ==========================================
@@ -15,6 +17,7 @@ export interface Category {
   sortOrder: number
   isActive: boolean
   parentId?: string | null
+  config?: CategoryConfig
   createdAt: Date
   updatedAt: Date
 }
@@ -71,6 +74,8 @@ export interface Product {
     nameFr: string
     nameEn: string
     mainImage: string
+    basePrice?: number | string
+    salePrice?: number | string | null
     variants?: ProductVariant[]
   }
 
@@ -118,7 +123,7 @@ export interface ProductCard {
 
   category?: Pick<
     Category,
-    'id' | 'slug' | 'nameAr' | 'nameFr' | 'nameEn'
+    'id' | 'slug' | 'nameAr' | 'nameFr' | 'nameEn' | 'config'
   >
 
   availableColors?: Array<{

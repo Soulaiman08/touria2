@@ -14,10 +14,12 @@ import {
   Ruler,
   Share2,
   ShieldCheck,
+  Info,
 } from 'lucide-react'
 
 import { useCartStore } from '@/store/cart.store'
 import { formatPrice } from '@/lib/utils'
+import { getDefaultCategoryConfig, getCategoryUnitLabels } from '@/lib/category-config'
 import type { Product } from '@/types/product'
 import { CustomSelect } from '@/components/shared/CustomSelect'
 import { ProductGallery } from './ProductGallery'
@@ -49,12 +51,21 @@ interface JellabaSelection {
   quantity: number
 }
 
-const NIQAB_PRICE = 20
+function safeId(): string {
+  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
 
 export function ProductDetail({ product, locale }: ProductDetailProps) {
   const t = useTranslations('products')
   const cartStore = useCartStore()
   const isRTL = locale === 'ar'
+
+  const categoryConfig = product.category?.config ?? getDefaultCategoryConfig(product.category)
+  const unitLabels = getCategoryUnitLabels(categoryConfig, locale)
+  const effectiveMinQty = Math.max(1, categoryConfig.minOrderQuantity || (product.isNiqab ? 5 : 1))
+  const effectiveMaxQty = categoryConfig.maxOrderQuantity ?? null
 
   const sizes = Array.from(
     new Set(product.variants?.map((variant) => variant.size) || [])
@@ -72,6 +83,22 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   const hasMultipleOrNamedSizes =
     sizes.length > 1 ||
     (sizes.length === 1 && !NON_APPAREL_SIZES.has(sizes[0].trim().toLowerCase()))
+
+  const showSizesUI =
+    categoryConfig.sizingMode !== 'bundle_no_size' &&
+    categoryConfig.sizingMode !== 'standard' &&
+    hasMultipleOrNamedSizes
+
+  const showSizeGuideButton =
+    showSizesUI && categoryConfig.sizeGuideProfile !== 'none'
+
+  const careNote = (
+    locale === 'ar'
+      ? categoryConfig.careNoteAr
+      : locale === 'fr'
+        ? categoryConfig.careNoteFr
+        : categoryConfig.careNoteEn
+  ).trim()
 
   const colors = Array.from(
     (() => {
@@ -121,6 +148,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               nameFr: variant.colorNameFr,
               nameEn: variant.colorNameEn,
               variantId: variant.id,
+              priceModifier: Number(variant.priceModifier || 0),
             },
           ])
       ).values()
@@ -129,11 +157,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
   const [includeNiqab, setIncludeNiqab] = useState(false)
   const [addedFeedback, setAddedFeedback] = useState(false)
-
-  const safeId = () =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  const [customNote, setCustomNote] = useState('')
 
   const [niqabSelections, setNiqabSelections] = useState<NiqabSelection[]>(() =>
     product.isNiqab && niqabColors[0]
@@ -145,7 +169,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             colorNameFr: niqabColors[0].nameFr,
             colorNameEn: niqabColors[0].nameEn,
             variantId: niqabColors[0].variantId,
-            quantity: 5,
+            quantity: effectiveMinQty,
           },
         ]
       : []
@@ -153,6 +177,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
   const [selectedJellabas, setSelectedJellabas] = useState<JellabaSelection[]>(() => {
     if (product.isNiqab || colors.length === 0) return []
+    const initialQty =
+      effectiveMaxQty !== null ? Math.min(effectiveMinQty, effectiveMaxQty) : effectiveMinQty
     return [
       {
         id: safeId(),
@@ -161,7 +187,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         colorNameFr: colors[0].nameFr,
         colorNameEn: colors[0].nameEn,
         size: sizes[0] || '',
-        quantity: 1,
+        quantity: Math.max(1, initialQty),
       },
     ]
   })
@@ -211,10 +237,25 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         return v ? v.stockQuantity > 0 : true
       })
 
-  const basePriceVal = Number(product.salePrice || product.basePrice)
+  const basePriceVal = Number(product.salePrice ?? product.basePrice)
+
+  const niqabAddonBasePrice = product.niqabProduct
+    ? Number(product.niqabProduct.salePrice ?? product.niqabProduct.basePrice ?? 0)
+    : 0
+
+  const getNiqabSelectionUnitPrice = (selection: NiqabSelection) => {
+    const colorEntry = niqabColors.find(
+      (c) => (selection.variantId && c.variantId === selection.variantId) || c.code === selection.colorCode
+    )
+    const modifier = Number(colorEntry?.priceModifier || 0)
+    return (product.isNiqab ? basePriceVal : niqabAddonBasePrice) + modifier
+  }
 
   const selectedNiqabQuantity = niqabSelections.reduce((sum, item) => sum + item.quantity, 0)
-  const niqabTotal = selectedNiqabQuantity * NIQAB_PRICE
+  const niqabTotal = niqabSelections.reduce(
+    (sum, item) => sum + item.quantity * getNiqabSelectionUnitPrice(item),
+    0
+  )
 
   const jellabasTotal = selectedJellabas.reduce((sum, item) => {
     const variant = product.variants?.find(
@@ -228,7 +269,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   const availableJellabaColors = colors.filter((color) => !usedJellabaColors.has(color.code))
 
   const finalPrice = product.isNiqab
-    ? selectedNiqabQuantity * basePriceVal
+    ? niqabTotal
     : jellabasTotal + niqabTotal
 
   const usedNiqabColors = new Set(niqabSelections.map((item) => item.colorCode))
@@ -331,6 +372,9 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   const handleAddNiqabColor = () => {
     const nextColor = availableNiqabColors[0]
     if (!nextColor) return
+    if (product.isNiqab && effectiveMaxQty !== null && selectedNiqabQuantity >= effectiveMaxQty) {
+      return
+    }
     setNiqabSelections((current) => [
       ...current,
       {
@@ -346,11 +390,18 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   }
 
   const updateNiqabQuantity = (id: string, amount: number) => {
-    setNiqabSelections((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item
-      )
-    )
+    setNiqabSelections((current) => {
+      const totalBefore = current.reduce((sum, entry) => sum + entry.quantity, 0)
+      return current.map((item) => {
+        if (item.id !== id) return item
+        const nextQty = Math.max(1, item.quantity + amount)
+        if (product.isNiqab && amount > 0 && effectiveMaxQty !== null) {
+          const allowedMaxForRow = Math.max(item.quantity, item.quantity + (effectiveMaxQty - totalBefore))
+          return { ...item, quantity: Math.min(nextQty, allowedMaxForRow) }
+        }
+        return { ...item, quantity: nextQty }
+      })
+    })
   }
 
   const removeNiqabColor = (id: string) => {
@@ -384,6 +435,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   const handleAddJellabaColor = () => {
     const nextColor = availableJellabaColors[0]
     if (!nextColor) return
+    if (effectiveMaxQty !== null && selectedJellabaQuantity >= effectiveMaxQty) return
     setSelectedJellabas((current) => [
       ...current,
       {
@@ -399,11 +451,18 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   }
 
   const updateJellabaQuantity = (id: string, amount: number) => {
-    setSelectedJellabas((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item
-      )
-    )
+    setSelectedJellabas((current) => {
+      const totalBefore = current.reduce((sum, entry) => sum + entry.quantity, 0)
+      return current.map((item) => {
+        if (item.id !== id) return item
+        const nextQty = Math.max(1, item.quantity + amount)
+        if (amount > 0 && effectiveMaxQty !== null) {
+          const allowedMaxForRow = Math.max(item.quantity, item.quantity + (effectiveMaxQty - totalBefore))
+          return { ...item, quantity: Math.min(nextQty, allowedMaxForRow) }
+        }
+        return { ...item, quantity: nextQty }
+      })
+    })
   }
 
   const removeJellabaColor = (id: string) => {
@@ -442,7 +501,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
   const handleAddToCart = () => {
     if (product.isNiqab) {
-      if (selectedNiqabQuantity < 5) return
+      if (selectedNiqabQuantity < effectiveMinQty) return
+      if (effectiveMaxQty !== null && selectedNiqabQuantity > effectiveMaxQty) return
       niqabSelections.forEach((selection) => {
         const variant = product.variants?.find((entry) => entry.id === selection.variantId)
         cartStore.addItem({
@@ -461,6 +521,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           quantity: selection.quantity,
           unitPrice: basePriceVal + Number(variant?.priceModifier || 0),
           isNiqab: true,
+          minOrderQuantity: effectiveMinQty,
+          maxOrderQuantity: effectiveMaxQty,
         })
       })
       triggerFeedback()
@@ -468,6 +530,10 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
     }
 
     if (selectedJellabas.length === 0) return
+    if (selectedJellabaQuantity < effectiveMinQty) return
+    if (effectiveMaxQty !== null && selectedJellabaQuantity > effectiveMaxQty) return
+
+    const trimmedNote = categoryConfig.allowCustomNote ? customNote.trim() : ''
 
     selectedJellabas.forEach((selection) => {
       const variant = product.variants?.find(
@@ -490,6 +556,9 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         quantity: selection.quantity,
         unitPrice: basePriceVal + Number(variant?.priceModifier || 0),
         isNiqab: false,
+        minOrderQuantity: effectiveMinQty,
+        maxOrderQuantity: effectiveMaxQty,
+        customNote: trimmedNote || undefined,
         niqabItems:
           includeNiqab && niqabSelections.length > 0
             ? niqabSelections.map((item) => ({
@@ -504,7 +573,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 colorNameFr: item.colorNameFr,
                 colorNameEn: item.colorNameEn,
                 quantity: item.quantity,
-                unitPrice: NIQAB_PRICE,
+                unitPrice: getNiqabSelectionUnitPrice(item),
               }))
             : undefined,
       })
@@ -674,13 +743,13 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 </span>
               )}
 
-              {product.isNiqab && (
+              {(product.isNiqab || effectiveMinQty > 1) && (
                 <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                   {locale === 'ar'
-                    ? 'للنقاب الواحد'
+                    ? `للـ${unitLabels.singular} الواحد`
                     : locale === 'fr'
-                      ? 'pour un niqab'
-                      : 'per niqab'}
+                      ? `par ${unitLabels.singular}`
+                      : `per ${unitLabels.singular}`}
                 </span>
               )}
             </div>
@@ -699,7 +768,22 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             {productDesc}
           </p>
 
-          {/* Jellaba Variant Builder */}
+          {/* Care / Material Editorial Note from Category Config */}
+          {careNote && (
+            <div
+              className="flex items-start gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs leading-relaxed"
+              style={{
+                background: 'var(--bg-subtle)',
+                borderColor: 'var(--border)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
+              <span>{careNote}</span>
+            </div>
+          )}
+
+          {/* Jellaba / Apparel / Accessory Variant Builder */}
           {!product.isNiqab && colors.length > 0 && (
             <div
               className="rounded-xl border p-3 sm:p-3.5 space-y-2.5"
@@ -711,7 +795,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="font-bold text-sm block" style={{ color: 'var(--text-primary)' }}>
-                    {hasMultipleOrNamedSizes
+                    {showSizesUI
                       ? locale === 'ar'
                         ? 'اختاري الألوان والمقاسات'
                         : locale === 'fr'
@@ -724,7 +808,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                           : 'Choose colors and quantities'}
                   </span>
                   <span className="text-xs block mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                    {hasMultipleOrNamedSizes
+                    {showSizesUI
                       ? locale === 'ar'
                         ? 'أضيفي قطعاً بألوان ومقاسات مختلفة في طلب واحد'
                         : locale === 'fr'
@@ -738,7 +822,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   </span>
                 </div>
 
-                {hasMultipleOrNamedSizes && (
+                {showSizeGuideButton && (
                   <button
                     type="button"
                     onClick={() => setIsSizeGuideOpen(true)}
@@ -791,7 +875,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       </div>
 
                       <div className="flex items-center justify-between xl:justify-end gap-2 flex-shrink-0">
-                        {hasMultipleOrNamedSizes && (
+                        {showSizesUI && (
                           <div className="flex-1 min-w-[5.5rem] xl:flex-initial xl:w-28">
                             <CustomSelect
                               value={selection.size}
@@ -826,7 +910,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                             <button
                               type="button"
                               onClick={() => updateJellabaQuantity(selection.id, 1)}
-                              className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer"
+                              disabled={effectiveMaxQty !== null && selectedJellabaQuantity >= effectiveMaxQty}
+                              className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer disabled:opacity-40"
                               aria-label="Increase quantity"
                             >
                               <Plus className="h-3.5 w-3.5" />
@@ -853,7 +938,9 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   )
                 })}
 
-                {availableJellabaColors.length > 0 && (
+                {categoryConfig.colorMode !== 'single' &&
+                  availableJellabaColors.length > 0 &&
+                  (effectiveMaxQty === null || selectedJellabaQuantity < effectiveMaxQty) && (
                   <button
                     type="button"
                     onClick={handleAddJellabaColor}
@@ -882,10 +969,10 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 >
                   <span className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {locale === 'ar'
-                      ? `القطع المختارة (${selectedJellabaQuantity})`
+                      ? `الكمية المختارة (${selectedJellabaQuantity} ${selectedJellabaQuantity === 1 ? unitLabels.singular : unitLabels.plural})`
                       : locale === 'fr'
-                        ? `Articles sélectionnés (${selectedJellabaQuantity})`
-                        : `Selected items (${selectedJellabaQuantity})`}
+                        ? `Sélection (${selectedJellabaQuantity} ${selectedJellabaQuantity === 1 ? unitLabels.singular : unitLabels.plural})`
+                        : `Selected (${selectedJellabaQuantity} ${selectedJellabaQuantity === 1 ? unitLabels.singular : unitLabels.plural})`}
                   </span>
                   <span className="text-sm sm:text-base font-bold" style={{ color: 'var(--accent)' }}>
                     {formatPrice(jellabasTotal, locale)}
@@ -895,8 +982,45 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             </div>
           )}
 
+          {/* Optional Custom Tailoring Note */}
+          {!product.isNiqab && categoryConfig.allowCustomNote && colors.length > 0 && (
+            <div className="space-y-1.5">
+              <label
+                htmlFor="product-custom-note"
+                className="block text-xs font-semibold"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                {locale === 'ar'
+                  ? 'ملاحظة خاصة بالتفصيل أو الطول (اختياري)'
+                  : locale === 'fr'
+                    ? 'Note de coupe ou longueur (optionnel)'
+                    : 'Custom length or tailoring note (optional)'}
+              </label>
+              <input
+                id="product-custom-note"
+                type="text"
+                maxLength={140}
+                value={customNote}
+                onChange={(e) => setCustomNote(e.target.value)}
+                placeholder={
+                  locale === 'ar'
+                    ? 'مثال: الطول 142 سم أو أكمام أضيق...'
+                    : locale === 'fr'
+                      ? 'Ex : Longueur 142 cm ou manches ajustées...'
+                      : 'e.g. Length 142 cm or fitted sleeves...'
+                }
+                className="w-full h-10 px-3.5 rounded-xl border text-xs sm:text-sm transition-colors focus:outline-none focus:border-[var(--accent)]"
+                style={{
+                  borderColor: 'var(--border)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+            </div>
+          )}
+
           {/* Niqab Add-on or Standalone Builder */}
-          {((product.canAddNiqab && !product.isNiqab) || product.isNiqab) &&
+          {((product.canAddNiqab && categoryConfig.allowMatchingNiqab && !product.isNiqab) || product.isNiqab) &&
             niqabColors.length > 0 && (
               <div
                 className="rounded-xl border p-3 sm:p-4 space-y-2.5 sm:space-y-3 transition-colors"
@@ -932,15 +1056,17 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                             : 'Add a matching niqab'}
                     </span>
                     <span className="text-xs block" style={{ color: 'var(--text-muted)' }}>
-                      {locale === 'ar' ? (
-                        <>
-                          نقاب متناسق مع قطعتك (<span dir="ltr" className="inline-block">+20</span> د.م.)
-                        </>
-                      ) : locale === 'fr' ? (
-                        'Niqab assorti à votre tenue (+20 DH)'
-                      ) : (
-                        'Matching niqab for your outfit (+20 DH)'
-                      )}
+                      {product.isNiqab
+                        ? locale === 'ar'
+                          ? 'اختاري الألوان والكميات المناسبة لك'
+                          : locale === 'fr'
+                            ? 'Sélectionnez vos couleurs et quantités'
+                            : 'Select your preferred colors and quantities'
+                        : locale === 'ar'
+                          ? `نقاب متناسق مع قطعتك (+${formatPrice(niqabAddonBasePrice, locale)})`
+                          : locale === 'fr'
+                            ? `Niqab assorti à votre tenue (+${formatPrice(niqabAddonBasePrice, locale)})`
+                            : `Matching niqab for your outfit (+${formatPrice(niqabAddonBasePrice, locale)})`}
                     </span>
                   </div>
                 </label>
@@ -997,7 +1123,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                               <button
                                 type="button"
                                 onClick={() => updateNiqabQuantity(selection.id, 1)}
-                                className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer"
+                                disabled={product.isNiqab && effectiveMaxQty !== null && selectedNiqabQuantity >= effectiveMaxQty}
+                                className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer disabled:opacity-40"
                                 aria-label="Increase niqab quantity"
                               >
                                 <Plus className="h-3.5 w-3.5" />
@@ -1023,7 +1150,9 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       )
                     })}
 
-                    {availableNiqabColors.length > 0 && (
+                    {(!product.isNiqab || categoryConfig.colorMode !== 'single') &&
+                      availableNiqabColors.length > 0 &&
+                      (!product.isNiqab || effectiveMaxQty === null || selectedNiqabQuantity < effectiveMaxQty) && (
                       <button
                         type="button"
                         onClick={handleAddNiqabColor}
@@ -1073,7 +1202,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               </div>
             )}
 
-          {product.isNiqab && (
+          {(effectiveMinQty > 1 || effectiveMaxQty !== null) && (
             <div
               className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold"
               style={{
@@ -1083,12 +1212,24 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               }}
             >
               <ShieldAlert className="h-4 w-4 flex-shrink-0" />
-              <span>
-                {locale === 'ar'
-                  ? 'الحد الأدنى للطلب: 5 نقابات'
-                  : locale === 'fr'
-                    ? 'Quantité minimale : 5 niqabs'
-                    : 'Minimum order: 5 niqabs'}
+              <span className="tabular-nums">
+                {effectiveMinQty > 1 && effectiveMaxQty !== null
+                  ? locale === 'ar'
+                    ? `الحد الأدنى للطلب: ${effectiveMinQty} ${unitLabels.plural} · الحد الأقصى: ${effectiveMaxQty}`
+                    : locale === 'fr'
+                      ? `Commande min : ${effectiveMinQty} ${unitLabels.plural} · Max : ${effectiveMaxQty}`
+                      : `Min order: ${effectiveMinQty} ${unitLabels.plural} · Max: ${effectiveMaxQty}`
+                  : effectiveMinQty > 1
+                    ? locale === 'ar'
+                      ? `الحد الأدنى للطلب: ${effectiveMinQty} ${unitLabels.plural}`
+                      : locale === 'fr'
+                        ? `Quantité minimale : ${effectiveMinQty} ${unitLabels.plural}`
+                        : `Minimum order: ${effectiveMinQty} ${unitLabels.plural}`
+                    : locale === 'ar'
+                      ? `الحد الأقصى للطلب: ${effectiveMaxQty} ${unitLabels.plural}`
+                      : locale === 'fr'
+                        ? `Quantité maximale : ${effectiveMaxQty} ${unitLabels.plural}`
+                        : `Maximum order: ${effectiveMaxQty} ${unitLabels.plural}`}
               </span>
             </div>
           )}
@@ -1110,8 +1251,14 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               type="button"
               onClick={handleAddToCart}
               disabled={
-                (!product.isNiqab && (selectedJellabas.length === 0 || !hasStock)) ||
-                (product.isNiqab && selectedNiqabQuantity < 5)
+                (!product.isNiqab &&
+                  (selectedJellabas.length === 0 ||
+                    !hasStock ||
+                    selectedJellabaQuantity < effectiveMinQty ||
+                    (effectiveMaxQty !== null && selectedJellabaQuantity > effectiveMaxQty))) ||
+                (product.isNiqab &&
+                  (selectedNiqabQuantity < effectiveMinQty ||
+                    (effectiveMaxQty !== null && selectedNiqabQuantity > effectiveMaxQty)))
               }
               className="btn btn-primary rounded-xl flex h-12 w-full items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
             >
@@ -1172,6 +1319,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         isOpen={isSizeGuideOpen}
         onClose={() => setIsSizeGuideOpen(false)}
         locale={locale}
+        profile={categoryConfig.sizeGuideProfile}
       />
 
       <ProductReviews productId={product.id} locale={locale} />

@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import type { CategoryConfig } from '@/lib/category-config'
+import { getCategoryConfig, getCategoryConfigMap } from '@/lib/category-config.server'
 
 export interface StoreCategory {
   id: string
@@ -9,7 +11,9 @@ export interface StoreCategory {
   image: string | null
   sortOrder: number
   isActive: boolean
+  parentId?: string | null
   productCount?: number
+  config: CategoryConfig
 }
 
 export const categoryService = {
@@ -25,6 +29,8 @@ export const categoryService = {
       }),
     ])
 
+    const configMap = await getCategoryConfigMap(dbCategories)
+
     const countsByCategory = new Map<string, number>()
     for (const p of activeProducts) {
       countsByCategory.set(p.categoryId, (countsByCategory.get(p.categoryId) ?? 0) + 1)
@@ -39,7 +45,9 @@ export const categoryService = {
       image: c.image,
       sortOrder: c.sortOrder,
       isActive: c.isActive,
+      parentId: c.parentId ?? null,
       productCount: countsByCategory.get(c.id) ?? 0,
+      config: configMap.get(c.id)!,
     }))
   },
 
@@ -57,6 +65,8 @@ export const categoryService = {
     })
 
     if (!cat) return null
+    const config = await getCategoryConfig(cat)
+
     return {
       id: cat.id,
       slug: cat.slug,
@@ -66,6 +76,8 @@ export const categoryService = {
       image: cat.image,
       sortOrder: cat.sortOrder,
       isActive: cat.isActive,
+      parentId: cat.parentId ?? null,
+      config,
     }
   },
 }

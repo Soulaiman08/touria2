@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { generateOrderNumber } from '@/lib/utils'
 import { DEFAULT_SHIPPING_PRICE, getCityByValue, MOROCCAN_CITIES } from '@/config/moroccan-cities'
+import { sanitizeCategoryConfig, type CategoryConfig } from '@/lib/category-config'
+import { CATEGORY_CONFIG_KEY_PREFIX } from '@/lib/category-config'
 import type { CreateOrderRequest, CreateOrderResponse, Order, ProductSnapshot } from '@/types/order'
 
 const asNumber = (value: Prisma.Decimal | number) => Number(value)
@@ -54,6 +56,29 @@ async function resolveShippingCost(
   return parsedCity !== null ? parsedCity : defaultPrice
 }
 
+async function resolveCategoryConfigInTx(
+  category: { id: string; slug?: string | null; nameAr?: string | null; nameFr?: string | null; nameEn?: string | null },
+  tx: Prisma.TransactionClient,
+  cache: Map<string, CategoryConfig>
+): Promise<CategoryConfig> {
+  const cached = cache.get(category.id)
+  if (cached) return cached
+
+  let raw: unknown
+  try {
+    const row = await tx.siteSetting.findUnique({
+      where: { key: `${CATEGORY_CONFIG_KEY_PREFIX}${category.id}` },
+    })
+    if (row?.value) raw = JSON.parse(row.value)
+  } catch {
+    // Fall back to category defaults
+  }
+
+  const resolved = sanitizeCategoryConfig(raw, category)
+  cache.set(category.id, resolved)
+  return resolved
+}
+
 export const orderService = {
   async createOrder(req: CreateOrderRequest): Promise<CreateOrderResponse> {
     if (!Array.isArray(req.items) || req.items.length === 0) throw new Error('Your cart is empty')
@@ -61,6 +86,8 @@ export const orderService = {
 
     const order = await prisma.$transaction(async (tx) => {
       const snapshots: Array<{ productId: string; variantId: string | null; quantity: number; unitPrice: number; totalPrice: number; snapshot: ProductSnapshot }> = []
+      const categoryConfigCache = new Map<string, CategoryConfig>()
+      const productTotals = new Map<string, { quantity: number; config: CategoryConfig }>()
 
       // ============================================================
       // Niqab add-ons are aggregated into independent OrderItems.
@@ -78,10 +105,27 @@ export const orderService = {
         if (!Number.isInteger(requestedItem.quantity) || requestedItem.quantity < 1) throw new Error('Invalid product quantity')
         const product = await tx.product.findUnique({
           where: { id: requestedItem.productId },
-          include: { variants: { where: { isActive: true } } },
+          include: { category: true, variants: { where: { isActive: true } } },
         })
-        if (!product || !product.isActive) throw new Error('A selected product is unavailable')
-        if ((requestedItem.niqabItems?.length ?? 0) > 0 && !product.canAddNiqab) throw new Error('This product does not allow niqab add-ons')
+        if (!product || !product.isActive || (product.category && !product.category.isActive)) {
+          throw new Error('A selected product is unavailable')
+        }
+
+        const catConfig = await resolveCategoryConfigInTx(
+          product.category ?? { id: product.categoryId },
+          tx,
+          categoryConfigCache
+        )
+
+        const existingTotals = productTotals.get(product.id)
+        productTotals.set(product.id, {
+          quantity: (existingTotals?.quantity ?? 0) + requestedItem.quantity,
+          config: catConfig,
+        })
+
+        if ((requestedItem.niqabItems?.length ?? 0) > 0 && (!product.canAddNiqab || !catConfig.allowMatchingNiqab)) {
+          throw new Error('This product does not allow niqab add-ons')
+        }
 
         const variant = requestedItem.variantId
           ? product.variants.find((entry) => entry.id === requestedItem.variantId)
@@ -116,6 +160,11 @@ export const orderService = {
           }
         }
 
+        const cleanCustomNote =
+          catConfig.allowCustomNote && typeof requestedItem.customNote === 'string'
+            ? requestedItem.customNote.trim().slice(0, 140) || undefined
+            : undefined
+
         const totalPrice = unitPrice * requestedItem.quantity
         snapshots.push({
           productId: product.id, variantId: variant?.id ?? null, quantity: requestedItem.quantity, unitPrice, totalPrice,
@@ -124,10 +173,22 @@ export const orderService = {
             mainImage: variant?.images[0] ?? product.mainImage, sku: product.sku,
             isNiqab: product.isNiqab,
             selectedSize: product.isNiqab ? '' : (variant?.size ?? ''),
+            ...(cleanCustomNote ? { customNote: cleanCustomNote } : {}),
             selectedColor: { code: variant?.colorCode ?? '', nameAr: variant?.colorNameAr ?? '', nameFr: variant?.colorNameFr ?? '', nameEn: variant?.colorNameEn ?? '' },
             quantity: requestedItem.quantity, unitPrice, totalPrice, niqabs: [],
           },
         })
+      }
+
+      // Enforce Category-level min/max order quantity bounds per product
+      for (const { quantity, config } of productTotals.values()) {
+        const minQty = Math.max(1, config.minOrderQuantity || 1)
+        if (quantity < minQty) {
+          throw new Error('Minimum order quantity requirement not met')
+        }
+        if (config.maxOrderQuantity !== null && quantity > config.maxOrderQuantity) {
+          throw new Error('Maximum order quantity limit exceeded')
+        }
       }
 
       // ============================================================
@@ -137,9 +198,11 @@ export const orderService = {
       for (const entry of niqabAccumulator.values()) {
         const niqabProduct = await tx.product.findUnique({
           where: { id: entry.productId },
-          include: { variants: { where: { isActive: true } } },
+          include: { category: true, variants: { where: { isActive: true } } },
         })
-        if (!niqabProduct || !niqabProduct.isActive || !niqabProduct.isNiqab) throw new Error('A selected niqab is unavailable')
+        if (!niqabProduct || !niqabProduct.isActive || !niqabProduct.isNiqab || (niqabProduct.category && !niqabProduct.category.isActive)) {
+          throw new Error('A selected niqab is unavailable')
+        }
         const niqabVariant = entry.variantId
           ? niqabProduct.variants.find((v) => v.id === entry.variantId)
           : niqabProduct.variants.length === 0 ? null : undefined

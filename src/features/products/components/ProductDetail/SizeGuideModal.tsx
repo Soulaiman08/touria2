@@ -3,11 +3,13 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Ruler, Info } from 'lucide-react'
+import type { SizeGuideProfile } from '@/lib/category-config'
 
 interface SizeGuideModalProps {
   isOpen: boolean
   onClose: () => void
   locale: string
+  profile?: SizeGuideProfile
 }
 
 interface SizeRow {
@@ -18,7 +20,7 @@ interface SizeRow {
   height: string
 }
 
-const SIZE_ROWS: SizeRow[] = [
+const DJELLABA_ROWS: SizeRow[] = [
   { size: 'XS', chest: '96–100', length: '134', shoulder: '40', height: '152–158' },
   { size: 'S', chest: '101–105', length: '137', shoulder: '42', height: '158–163' },
   { size: 'M', chest: '106–112', length: '140', shoulder: '44', height: '163–168' },
@@ -28,11 +30,25 @@ const SIZE_ROWS: SizeRow[] = [
   { size: 'XXXL', chest: '133–140', length: '150', shoulder: '52', height: '176–182' },
 ]
 
-export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps) {
+const ABAYA_ROWS: SizeRow[] = [
+  { size: '50', chest: '112–118', length: '127', shoulder: '41', height: '150–155' },
+  { size: '52', chest: '116–122', length: '132', shoulder: '42', height: '155–160' },
+  { size: '54', chest: '120–126', length: '137', shoulder: '43', height: '160–165' },
+  { size: '56', chest: '124–130', length: '142', shoulder: '45', height: '165–170' },
+  { size: '58', chest: '128–134', length: '147', shoulder: '46', height: '170–175' },
+  { size: '60', chest: '132–138', length: '152', shoulder: '48', height: '175–182' },
+]
+
+export function SizeGuideModal({
+  isOpen,
+  onClose,
+  locale,
+  profile = 'djellaba',
+}: SizeGuideModalProps) {
   const isRTL = locale === 'ar'
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || profile === 'none') return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
@@ -43,19 +59,32 @@ export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps)
       document.body.style.overflow = prevOverflow
       window.removeEventListener('keydown', handleKey)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, profile, onClose])
 
-  if (!isOpen || typeof document === 'undefined') return null
+  if (!isOpen || profile === 'none' || typeof document === 'undefined') return null
 
-  const title =
-    locale === 'ar'
+  const isAbaya = profile === 'abaya'
+  const rows = isAbaya ? ABAYA_ROWS : DJELLABA_ROWS
+
+  const title = isAbaya
+    ? locale === 'ar'
+      ? 'دليل مقاسات العباءات (الطول)'
+      : locale === 'fr'
+        ? 'Guide des tailles — Abayas'
+        : 'Abaya Size Guide (Length)'
+    : locale === 'ar'
       ? 'دليل المقاسات — ثريا المغربي'
       : locale === 'fr'
         ? 'Guide des tailles — Thuraya'
         : 'Size Guide — Thuraya'
 
-  const subtitle =
-    locale === 'ar'
+  const subtitle = isAbaya
+    ? locale === 'ar'
+      ? 'تُقاس العباءة بالإنش (50–60) مع ما يعادلها بالطول بالسنتيمتر وطول القامة المناسب.'
+      : locale === 'fr'
+        ? 'Tailles d’abaya (50–60) avec longueur totale en cm et stature recommandée.'
+        : 'Abaya sizes (50–60) matched with total length in cm and recommended height.'
+    : locale === 'ar'
       ? 'جميع القياسات بالسنتيمتر (سم) ومصممة بقصة مريحة ومحتشمة.'
       : locale === 'fr'
         ? 'Toutes les mesures sont en centimètres (cm), coupe ample et pudique.'
@@ -65,8 +94,8 @@ export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps)
     locale === 'ar'
       ? {
           size: 'المقاس',
-          chest: 'محيط الصدر',
-          length: 'الطول الكلي',
+          chest: isAbaya ? 'العرض / الصدر' : 'محيط الصدر',
+          length: 'الطول الكلي (سم)',
           shoulder: 'الكتف',
           height: 'الطول الموصى به',
         }
@@ -86,8 +115,13 @@ export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps)
             height: 'Rec. Height',
           }
 
-  const tip =
-    locale === 'ar'
+  const tip = isAbaya
+    ? locale === 'ar'
+      ? 'نصيحة ثريا للعباءات: إذا كنتِ ترتدين كعباً أو تفضلين طولاً إضافياً للستر، ننصح باختيار مقاس أطول بدرجة واحدة.'
+      : locale === 'fr'
+        ? 'Conseil Abaya : si vous portez des talons ou préférez plus d’aisance en longueur, optez pour une taille au-dessus.'
+        : 'Abaya fit note: If you wear heels or prefer extra coverage, select one length size up.'
+    : locale === 'ar'
       ? 'نصيحة ثريا: تصاميمنا تأتي بقصة واسعة وأنيقة. إذا كان قياسك بين مقاسين، نوصي باختيار المقاس الأكبر لراحة أكبر.'
       : locale === 'fr'
         ? 'Conseil Thuraya : nos coupes sont amples et fluides. Entre deux tailles, privilégiez la taille supérieure pour plus de confort.'
@@ -180,7 +214,7 @@ export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps)
               </tr>
             </thead>
             <tbody>
-              {SIZE_ROWS.map((row, idx) => (
+              {rows.map((row, idx) => (
                 <tr
                   key={row.size}
                   className="transition-colors hover:bg-[var(--bg-subtle)]/70"

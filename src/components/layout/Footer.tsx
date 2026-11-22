@@ -10,11 +10,19 @@ import { FaWhatsapp, FaInstagram, FaTiktok, FaFacebookF, FaYoutube } from 'react
 import { siteConfig } from '@/config/site'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 
-interface FooterProps {
-  locale: string
+export interface FooterCategoryLink {
+  slug: string
+  nameAr: string
+  nameFr: string
+  nameEn: string
 }
 
-export function Footer({ locale }: FooterProps) {
+interface FooterProps {
+  locale: string
+  categories?: FooterCategoryLink[]
+}
+
+export function Footer({ locale, categories }: FooterProps) {
   const isRTL = locale === 'ar'
   const year = new Date().getFullYear()
   const pathname = usePathname()
@@ -63,10 +71,34 @@ export function Footer({ locale }: FooterProps) {
     }
   }
 
-  const quickLinks = [
+  const dynamicCategoryLinks: Array<{
+    href: string
+    label: string
+    isContact?: boolean
+  }> =
+    categories && categories.length > 0
+      ? categories.slice(0, 4).map((cat) => ({
+          href: `/${locale}/products?category=${encodeURIComponent(cat.slug)}`,
+          label: isRTL ? cat.nameAr : locale === 'fr' ? cat.nameFr : cat.nameEn,
+        }))
+      : [
+          {
+            href: `/${locale}/products`,
+            label: isRTL ? 'الجلابات' : locale === 'fr' ? 'Djellabas' : 'Djellabas',
+          },
+          {
+            href: `/${locale}/products?category=niqabs`,
+            label: isRTL ? 'النقاب' : locale === 'fr' ? 'Niqab' : 'Niqabs',
+          },
+        ]
+
+  const quickLinks: Array<{
+    href: string
+    label: string
+    isContact?: boolean
+  }> = [
     { href: `/${locale}`, label: isRTL ? 'الرئيسية' : locale === 'fr' ? 'Accueil' : 'Home' },
-    { href: `/${locale}/products`, label: isRTL ? 'الجلابات' : locale === 'fr' ? 'Djellabas' : 'Djellabas' },
-    { href: `/${locale}/products?category=niqabs`, label: isRTL ? 'النقاب' : locale === 'fr' ? 'Niqab' : 'Niqabs' },
+    ...dynamicCategoryLinks,
     { href: `/${locale}/products?sort=sale`, label: isRTL ? 'العروض' : locale === 'fr' ? 'Offres' : 'Offers' },
     { href: `/${locale}/about`, label: isRTL ? 'من نحن' : locale === 'fr' ? 'À propos' : 'About Us' },
     { href: `/${locale}#contact`, label: isRTL ? 'اتصل بنا' : locale === 'fr' ? 'Contact' : 'Contact Us', isContact: true },
@@ -234,7 +266,7 @@ export function Footer({ locale }: FooterProps) {
               </h3>
               <ul className="grid grid-cols-3 gap-x-2 gap-y-0.5 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1">
                 {quickLinks.map((l) => (
-                  <li key={l.href} className="min-w-0">
+                  <li key={`${l.href}-${l.label}`} className="min-w-0">
                     <Link
                       href={l.href}
                       onClick={l.isContact ? handleContactClick : undefined}

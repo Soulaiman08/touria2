@@ -33,6 +33,7 @@ export interface ProductSnapshot {
   mainImage: string
   isNiqab?: boolean
   selectedSize?: string
+  customNote?: string
   selectedColor: { code: string; nameAr: string; nameFr: string; nameEn: string }
   sku: string
   quantity: number
@@ -118,6 +119,7 @@ export interface CreateOrderRequest {
     productId: string
     variantId?: string
     quantity: number
+    customNote?: string
     niqabItems?: Array<{ productId: string; variantId?: string; quantity: number }>
   }>
   locale: string

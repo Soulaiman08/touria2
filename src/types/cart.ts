@@ -36,6 +36,7 @@ export interface CartItem {
   mainImage: string
 
   size?: string
+  customNote?: string
 
   colorCode: string
   colorNameAr: string
@@ -46,6 +47,8 @@ export interface CartItem {
   unitPrice: number
 
   isNiqab: boolean
+  minOrderQuantity?: number
+  maxOrderQuantity?: number | null
 
   // ==========================================
   // MULTIPLE NIQAB ADD-ONS

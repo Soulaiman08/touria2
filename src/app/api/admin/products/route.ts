@@ -3,6 +3,9 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/utils'
 import { requireAdmin } from '@/lib/auth'
+import { getColorNames } from '@/lib/color-names'
+import { isNiqabIdentity } from '@/lib/category-config'
+import { getCategoryConfig } from '@/lib/category-config.server'
 
 class ValidationError extends Error {}
 
@@ -176,6 +179,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Selected category does not exist' }, { status: 400 })
     }
 
+    const catConfig = await getCategoryConfig(categoryExists)
+    const effectiveIsNiqab = isNiqabIdentity(categoryExists) || Boolean(isNiqab && catConfig.sizingMode === 'bundle_no_size' && isNiqabIdentity(categoryExists))
+    const effectiveCanAddNiqab = effectiveIsNiqab ? false : Boolean(canAddNiqab)
+
     const rawAr = typeof nameAr === 'string' ? nameAr.trim() : ''
     const rawFr = typeof nameFr === 'string' ? nameFr.trim() : ''
     const rawEn = typeof nameEn === 'string' ? nameEn.trim() : ''
@@ -250,32 +257,63 @@ export async function POST(request: Request) {
             images: productImages,
             isFeatured: Boolean(isFeatured),
             isActive: Boolean(isActive),
-            isNiqab: Boolean(isNiqab),
-            canAddNiqab: Boolean(canAddNiqab),
+            isNiqab: effectiveIsNiqab,
+            canAddNiqab: effectiveCanAddNiqab,
           },
         })
 
-        // Deduplicate colors & sizes so composite unique key never fails
-        const rawColors = Array.isArray(colors) && colors.length > 0
-          ? colors
-          : [{ code: '#000000', nameAr: 'أسود', nameFr: 'Noir', nameEn: 'Black' }]
+        // Deduplicate colors & honor category colorMode (single vs multi)
+        type RawColorInput = { code?: string; nameAr?: string; nameFr?: string; nameEn?: string }
+        const defaultCatColors: RawColorInput[] =
+          catConfig.defaultColors.length > 0
+            ? catConfig.defaultColors.map((hex) => ({ code: hex }))
+            : [{ code: '#000000' }]
+        const rawColors: RawColorInput[] =
+          Array.isArray(colors) && colors.length > 0 ? colors : defaultCatColors
+
         const uniqueColorMap = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
         for (const c of rawColors) {
-          const code = (c.code || '#000000').trim().toUpperCase()
+          const rawCode = (c.code || '#000000').trim()
+          const code = (rawCode.startsWith('#') ? rawCode : `#${rawCode}`).toUpperCase()
+          if (!/^#[0-9A-F]{3,8}$/.test(code)) continue
           if (!uniqueColorMap.has(code)) {
+            const fallbackNames = getColorNames(code)
+            const nameArVal = c.nameAr?.trim()
+            const nameFrVal = c.nameFr?.trim()
+            const nameEnVal = c.nameEn?.trim()
             uniqueColorMap.set(code, {
               code,
-              nameAr: c.nameAr?.trim() || 'لون',
-              nameFr: c.nameFr?.trim() || 'Couleur',
-              nameEn: c.nameEn?.trim() || 'Color',
+              nameAr: nameArVal && nameArVal !== 'لون' ? nameArVal : fallbackNames.ar,
+              nameFr: nameFrVal && nameFrVal.toLowerCase() !== 'couleur' ? nameFrVal : fallbackNames.fr,
+              nameEn: nameEnVal && nameEnVal.toLowerCase() !== 'color' ? nameEnVal : fallbackNames.en,
             })
           }
         }
-        const variantColors = Array.from(uniqueColorMap.values())
+        if (uniqueColorMap.size === 0) {
+          const fallbackNames = getColorNames('#000000')
+          uniqueColorMap.set('#000000', {
+            code: '#000000',
+            nameAr: fallbackNames.ar,
+            nameFr: fallbackNames.fr,
+            nameEn: fallbackNames.en,
+          })
+        }
+        const allParsedColors = Array.from(uniqueColorMap.values())
+        const variantColors =
+          catConfig.colorMode === 'single' ? allParsedColors.slice(0, 1) : allParsedColors
 
-        const rawSizes = Array.isArray(sizes) && sizes.length > 0 ? sizes : ['Standard']
-        const variantSizes = Array.from(new Set(rawSizes.map((s) => String(s).trim()).filter(Boolean)))
-        if (variantSizes.length === 0) variantSizes.push('Standard')
+        // Honor category sizingMode & niqab identity
+        const variantSizes = (() => {
+          if (effectiveIsNiqab || catConfig.sizingMode === 'bundle_no_size') {
+            return ['Standard']
+          }
+          const incoming = Array.isArray(sizes)
+            ? Array.from(new Set(sizes.map((s) => String(s).trim()).filter(Boolean)))
+            : []
+          if (incoming.length > 0) return incoming
+          if (catConfig.defaultSizes.length > 0) return [...catConfig.defaultSizes]
+          return catConfig.sizingMode === 'standard' ? ['Standard'] : ['S', 'M', 'L', 'XL']
+        })()
 
         const parsedStock = (() => {
           if (stock === undefined || stock === null || String(stock).trim() === '') return 10
@@ -315,8 +353,10 @@ export async function POST(request: Request) {
       { timeout: 30000, maxWait: 5000 }
     )
 
-    revalidatePath('/[locale]/products', 'layout')
+    revalidatePath('/[locale]', 'layout')
     revalidatePath('/[locale]', 'page')
+    revalidatePath('/[locale]/products', 'layout')
+    revalidatePath('/api/categories')
     revalidatePath('/api/products')
 
     return NextResponse.json({ success: true, product })

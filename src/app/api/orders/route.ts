@@ -98,6 +98,8 @@ export async function POST(request: Request) {
       'A selected product is unavailable',
       'A selected niqab is unavailable',
       'This product does not allow niqab add-ons',
+      'Minimum order quantity requirement not met',
+      'Maximum order quantity limit exceeded',
       'Please select a valid product variant',
       'Please select a valid niqab variant',
       'The requested product quantity is no longer in stock',

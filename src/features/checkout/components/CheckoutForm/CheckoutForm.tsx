@@ -105,10 +105,22 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
     setErrorMsg(null)
 
     try {
+      const itemCustomNotes = cartStore.items
+        .filter((item) => item.customNote && item.customNote.trim())
+        .map((item) => {
+          const itemName = locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn
+          return `${itemName}${item.size ? ` (${item.size})` : ''}: ${item.customNote!.trim()}`
+        })
+
+      const mergedNotes = [data.notes?.trim(), ...itemCustomNotes]
+        .filter(Boolean)
+        .join(' | ')
+
       const orderItems = cartStore.items.map((item) => ({
         productId: item.productId,
         variantId: item.variantId,
         quantity: item.quantity,
+        customNote: item.customNote?.trim() || undefined,
         niqabItems: item.niqabItems?.map((niqab) => ({
           productId: niqab.productId,
           variantId: niqab.variantId,
@@ -120,7 +132,10 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          formData: data,
+          formData: {
+            ...data,
+            notes: mergedNotes,
+          },
           items: orderItems,
           locale,
         }),
@@ -485,6 +500,11 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                         {cartT('quantity')}: <span className="font-semibold text-[var(--text-primary)]">{item.quantity}</span>
                       </span>
                     </div>
+                    {item.customNote && (
+                      <p className="text-[11px] text-[var(--accent)] mt-1 leading-snug">
+                        {item.customNote}
+                      </p>
+                    )}
                   </div>
                   <span className="tabular-nums font-extrabold text-sm text-[var(--accent)] whitespace-nowrap self-center">
                     {formatPrice(item.unitPrice * item.quantity, locale)}
