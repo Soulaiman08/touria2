@@ -127,8 +127,34 @@ const isNiqabCategory = (category?: CategoryOption | null): boolean => {
       value === 'niqab' ||
       value === 'نقاب' ||
       value.includes('niqab') ||
+      value.includes('niquab') ||
       value.includes('نقاب')
   )
+}
+
+const isOneSizeAccessoryCategory = (category?: CategoryOption | null): boolean => {
+  if (!category) return false
+  const values = [category.slug, category.name, category.nameAr, category.nameFr, category.nameEn]
+    .filter(Boolean)
+    .map((value) => String(value).trim().toLowerCase())
+  const keywords = [
+    'glove',
+    'gant',
+    'قفاز',
+    'كفوف',
+    'sock',
+    'chaussette',
+    'جوارب',
+    'accessori',
+    'accessoire',
+    'إكسسوار',
+    'اكسسوار',
+    'scarf',
+    'khimar',
+    'خمار',
+    'شال',
+  ]
+  return values.some((value) => keywords.some((kw) => value.includes(kw)))
 }
 
 function parseColorTokens(str: string): string[] {
@@ -321,6 +347,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     setEditingProduct(null)
     setActiveLangTab(locale === 'ar' ? 'ar' : 'en')
     setCustomSizeInput('')
+    const defaultCat = categories[0]
+    const defaultIsNiqab = isNiqabCategory(defaultCat)
+    const defaultIsAccessory = isOneSizeAccessoryCategory(defaultCat)
     setFormData({
       nameAr: '',
       nameFr: '',
@@ -332,14 +361,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       basePrice: '',
       salePrice: '',
       stock: '20',
-      categoryId: categories[0]?.id || '',
+      categoryId: defaultCat?.id || '',
       mainImage: '',
       images: [],
       colors: '#C4622D, #F2E4CE, #000000',
-      sizes: 'S, M, L, XL',
+      sizes: defaultIsNiqab ? '' : defaultIsAccessory ? 'Standard' : 'S, M, L, XL',
       isFeatured: false,
       isActive: true,
-      canAddNiqab: true,
+      canAddNiqab: !defaultIsNiqab && !defaultIsAccessory,
     })
     setIsModalOpen(true)
   }
@@ -400,10 +429,18 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     const categoryId = e.target.value
     const category = categories.find((cat) => cat.id === categoryId)
     const categoryIsNiqab = isNiqabCategory(category)
+    const categoryIsAccessory = isOneSizeAccessoryCategory(category)
     setFormData((prev) => ({
       ...prev,
       categoryId,
-      sizes: categoryIsNiqab ? '' : prev.sizes || 'S, M, L, XL',
+      sizes: categoryIsNiqab
+        ? ''
+        : categoryIsAccessory
+          ? 'Standard'
+          : !prev.sizes || prev.sizes === 'Standard'
+            ? 'S, M, L, XL'
+            : prev.sizes,
+      canAddNiqab: categoryIsNiqab || categoryIsAccessory ? false : prev.canAddNiqab,
     }))
   }
 
@@ -542,6 +579,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         sizes: sizesArr,
         isFeatured: formData.isFeatured,
         isActive: formData.isActive,
+        isNiqab: categoryIsNiqab,
         canAddNiqab: categoryIsNiqab ? false : formData.canAddNiqab,
       }
 

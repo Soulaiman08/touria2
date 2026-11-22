@@ -43,7 +43,7 @@ function BannersContent() {
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
-    buttonText: 'تسوق الآن',
+    buttonText: tr('تسوق الآن', 'Shop Now'),
     buttonUrl: '/products',
     imageUrl: '',
     sortOrder: '1',
@@ -80,7 +80,7 @@ function BannersContent() {
     setFormData({
       title: '',
       subtitle: '',
-      buttonText: 'تسوق الآن',
+      buttonText: tr('تسوق الآن', 'Shop Now'),
       buttonUrl: '/products',
       imageUrl: '',
       sortOrder: String(banners.length + 1),
@@ -279,9 +279,11 @@ function BannersContent() {
                     <span className="truncate text-zinc-200 font-semibold">
                       {ban.buttonText || tr('بدون زر', 'No Button')}
                     </span>
-                    <span className="font-mono text-[11px] text-zinc-500 truncate max-w-[160px]" dir="ltr">
-                      ({ban.buttonUrl || '/'})
-                    </span>
+                    {ban.buttonUrl && (
+                      <span className="font-mono text-[11px] text-zinc-500 truncate max-w-[160px]" dir="ltr">
+                        ({ban.buttonUrl})
+                      </span>
+                    )}
                   </span>
                   <span className="inline-flex items-center gap-1 font-bold text-zinc-300 font-mono shrink-0 tabular-nums">
                     <ArrowUpDown className="w-3.5 h-3.5 text-amber-400" />#{ban.sortOrder}
@@ -371,7 +373,7 @@ function BannersContent() {
                       type="text"
                       value={formData.buttonText}
                       onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })}
-                      placeholder="تسوق الآن"
+                      placeholder={tr('تسوق الآن', 'Shop Now')}
                       className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
                     />
                   </div>

@@ -49,10 +49,10 @@ export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps)
 
   const title =
     locale === 'ar'
-      ? 'دليل مقاسات الجلابة المغربية'
+      ? 'دليل المقاسات — ثريا المغربي'
       : locale === 'fr'
-        ? 'Guide des tailles — Djellaba'
-        : 'Djellaba Size Guide'
+        ? 'Guide des tailles — Thuraya'
+        : 'Size Guide — Thuraya'
 
   const subtitle =
     locale === 'ar'
@@ -88,10 +88,10 @@ export function SizeGuideModal({ isOpen, onClose, locale }: SizeGuideModalProps)
 
   const tip =
     locale === 'ar'
-      ? 'نصيحة ثريا: الجلابة المغربية تأتي بقصة واسعة وأنيقة. إذا كان قياسك بين مقاسين، نوصي باختيار المقاس الأكبر لراحة أكبر.'
+      ? 'نصيحة ثريا: تصاميمنا تأتي بقصة واسعة وأنيقة. إذا كان قياسك بين مقاسين، نوصي باختيار المقاس الأكبر لراحة أكبر.'
       : locale === 'fr'
-        ? 'Conseil Thuraya : la coupe est ample et fluide. Entre deux tailles, privilégiez la taille supérieure pour plus de confort.'
-        : 'Thuraya fit note: Our djellabas have a generous modest drape. If between two sizes, choose the larger size for optimal drape.'
+        ? 'Conseil Thuraya : nos coupes sont amples et fluides. Entre deux tailles, privilégiez la taille supérieure pour plus de confort.'
+        : 'Thuraya fit note: Our garments have a generous modest drape. If between two sizes, choose the larger size for optimal drape.'
 
   const closeLabel =
     locale === 'ar' ? 'إغلاق دليل المقاسات' : locale === 'fr' ? 'Fermer le guide' : 'Close size guide'

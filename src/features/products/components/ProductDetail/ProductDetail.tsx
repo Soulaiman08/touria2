@@ -60,6 +60,19 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
     new Set(product.variants?.map((variant) => variant.size) || [])
   )
 
+  const NON_APPAREL_SIZES = new Set([
+    'standard',
+    'one size',
+    'free size',
+    'unique',
+    'n/a',
+    'null',
+    'undefined',
+  ])
+  const hasMultipleOrNamedSizes =
+    sizes.length > 1 ||
+    (sizes.length === 1 && !NON_APPAREL_SIZES.has(sizes[0].trim().toLowerCase()))
+
   const colors = Array.from(
     (() => {
       const map = new Map<string, { code: string; nameAr: string; nameFr: string; nameEn: string }>()
@@ -698,40 +711,54 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="font-bold text-sm block" style={{ color: 'var(--text-primary)' }}>
-                    {locale === 'ar'
-                      ? 'اختاري الألوان والمقاسات'
-                      : locale === 'fr'
-                        ? 'Choisissez les couleurs et tailles'
-                        : 'Choose colors and sizes'}
+                    {hasMultipleOrNamedSizes
+                      ? locale === 'ar'
+                        ? 'اختاري الألوان والمقاسات'
+                        : locale === 'fr'
+                          ? 'Choisissez les couleurs et tailles'
+                          : 'Choose colors and sizes'
+                      : locale === 'ar'
+                        ? 'اختاري الألوان والكميات'
+                        : locale === 'fr'
+                          ? 'Choisissez les couleurs et quantités'
+                          : 'Choose colors and quantities'}
                   </span>
                   <span className="text-xs block mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                    {locale === 'ar'
-                      ? 'أضيفي جلابات بألوان ومقاسات مختلفة في طلب واحد'
-                      : locale === 'fr'
-                        ? 'Ajoutez des djellabas en différentes couleurs et tailles'
-                        : 'Add djellabas in different colors and sizes'}
+                    {hasMultipleOrNamedSizes
+                      ? locale === 'ar'
+                        ? 'أضيفي قطعاً بألوان ومقاسات مختلفة في طلب واحد'
+                        : locale === 'fr'
+                          ? 'Ajoutez des articles en différentes couleurs et tailles'
+                          : 'Add items in different colors and sizes'
+                      : locale === 'ar'
+                        ? 'أضيفي قطعاً بألوان مختلفة في طلب واحد'
+                        : locale === 'fr'
+                          ? 'Ajoutez des articles en différentes couleurs'
+                          : 'Add items in different colors'}
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsSizeGuideOpen(true)}
-                  className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer whitespace-nowrap"
-                  style={{
-                    borderColor: 'var(--border)',
-                    background: 'var(--card-bg)',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  <Ruler className="h-3.5 w-3.5" style={{ color: 'var(--accent)' }} />
-                  <span>
-                    {locale === 'ar'
-                      ? 'دليل المقاسات'
-                      : locale === 'fr'
-                        ? 'Guide des tailles'
-                        : 'Size guide'}
-                  </span>
-                </button>
+                {hasMultipleOrNamedSizes && (
+                  <button
+                    type="button"
+                    onClick={() => setIsSizeGuideOpen(true)}
+                    className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer whitespace-nowrap"
+                    style={{
+                      borderColor: 'var(--border)',
+                      background: 'var(--card-bg)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <Ruler className="h-3.5 w-3.5" style={{ color: 'var(--accent)' }} />
+                    <span>
+                      {locale === 'ar'
+                        ? 'دليل المقاسات'
+                        : locale === 'fr'
+                          ? 'Guide des tailles'
+                          : 'Size guide'}
+                    </span>
+                  </button>
+                )}
               </div>
 
               <div className="space-y-2.5">
@@ -764,16 +791,18 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       </div>
 
                       <div className="flex items-center justify-between xl:justify-end gap-2 flex-shrink-0">
-                        <div className="flex-1 min-w-[5.5rem] xl:flex-initial xl:w-28">
-                          <CustomSelect
-                            value={selection.size}
-                            onChange={(val) => changeJellabaSize(selection.id, val)}
-                            options={sizes.map((size) => ({ value: size, label: size }))}
-                            ariaLabel={locale === 'ar' ? 'المقاس' : locale === 'fr' ? 'Taille' : 'Size'}
-                            size="sm"
-                            variant="card"
-                          />
-                        </div>
+                        {hasMultipleOrNamedSizes && (
+                          <div className="flex-1 min-w-[5.5rem] xl:flex-initial xl:w-28">
+                            <CustomSelect
+                              value={selection.size}
+                              onChange={(val) => changeJellabaSize(selection.id, val)}
+                              options={sizes.map((size) => ({ value: size, label: size }))}
+                              ariaLabel={locale === 'ar' ? 'المقاس' : locale === 'fr' ? 'Taille' : 'Size'}
+                              size="sm"
+                              variant="card"
+                            />
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-1.5 flex-shrink-0">
                           <div
@@ -853,10 +882,10 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 >
                   <span className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {locale === 'ar'
-                      ? `الجلابات المختارة (${selectedJellabaQuantity})`
+                      ? `القطع المختارة (${selectedJellabaQuantity})`
                       : locale === 'fr'
-                        ? `Total djellabas (${selectedJellabaQuantity})`
-                        : `Selected djellabas (${selectedJellabaQuantity})`}
+                        ? `Articles sélectionnés (${selectedJellabaQuantity})`
+                        : `Selected items (${selectedJellabaQuantity})`}
                   </span>
                   <span className="text-sm sm:text-base font-bold" style={{ color: 'var(--accent)' }}>
                     {formatPrice(jellabasTotal, locale)}
@@ -905,12 +934,12 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                     <span className="text-xs block" style={{ color: 'var(--text-muted)' }}>
                       {locale === 'ar' ? (
                         <>
-                          نقاب متناسق مع جلابتك (<span dir="ltr" className="inline-block">+20</span> د.م.)
+                          نقاب متناسق مع قطعتك (<span dir="ltr" className="inline-block">+20</span> د.م.)
                         </>
                       ) : locale === 'fr' ? (
-                        'Niqab assorti à votre djellaba (+20 DH)'
+                        'Niqab assorti à votre tenue (+20 DH)'
                       ) : (
-                        'Matching niqab for your djellaba (+20 DH)'
+                        'Matching niqab for your outfit (+20 DH)'
                       )}
                     </span>
                   </div>

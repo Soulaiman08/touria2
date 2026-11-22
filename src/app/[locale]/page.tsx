@@ -623,62 +623,91 @@ export default async function HomePage({ params }: HomePageProps) {
         >
           <div className="container-brand">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {banners.map((banner) => (
-                <div
-                  key={banner.id}
-                  className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-muted)] group min-h-[15rem]"
-                  style={{ boxShadow: 'var(--card-shadow)' }}
-                >
-                  <Image
-                    src={banner.imageUrl}
-                    alt={banner.title}
-                    fill
-                    referrerPolicy="no-referrer"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
+              {banners.map((banner) => {
+                const rawUrl = banner.buttonUrl?.trim() || ''
+                const isExternalUrl =
+                  rawUrl.startsWith('http://') || rawUrl.startsWith('https://')
+                const hasLocalePrefix = /^\/(ar|fr|en)(\/|\?|$)/.test(rawUrl)
+                const resolvedButtonUrl = !rawUrl
+                  ? ''
+                  : isExternalUrl
+                    ? rawUrl
+                    : rawUrl.startsWith('/')
+                      ? hasLocalePrefix
+                        ? rawUrl
+                        : `/${locale}${rawUrl === '/' ? '' : rawUrl}`
+                      : `/${locale}/${rawUrl}`
 
+                return (
                   <div
-                    className="absolute inset-0"
-                    style={{
-                      background:
-                        'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.32) 55%, transparent 100%)',
-                    }}
-                  />
-
-                  <div
-                    className="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-2.5"
-                    dir={isRTL ? 'rtl' : 'ltr'}
+                    key={banner.id}
+                    className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-muted)] group aspect-[16/10] sm:aspect-video min-h-[14rem]"
+                    style={{ boxShadow: 'var(--card-shadow)' }}
                   >
-                    <h3
-                      className="text-xl sm:text-2xl font-bold text-white leading-tight text-balance"
+                    <Image
+                      src={banner.imageUrl}
+                      alt={banner.title}
+                      fill
+                      quality={90}
+                      referrerPolicy="no-referrer"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+
+                    <div
+                      className="absolute inset-0"
                       style={{
-                        fontFamily: isRTL
-                          ? 'var(--font-arabic)'
-                          : 'var(--font-display)',
+                        background:
+                          'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.32) 55%, transparent 100%)',
                       }}
+                    />
+
+                    <div
+                      className="absolute bottom-0 inset-x-0 p-5 sm:p-7 space-y-2"
+                      dir={isRTL ? 'rtl' : 'ltr'}
                     >
-                      {banner.title}
-                    </h3>
-
-                    {banner.subtitle && (
-                      <p className="text-sm text-white/85 max-w-md">
-                        {banner.subtitle}
-                      </p>
-                    )}
-
-                    {banner.buttonText && banner.buttonUrl && (
-                      <Link
-                        href={banner.buttonUrl}
-                        className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 mt-2"
+                      <h3
+                        className="text-lg sm:text-2xl font-bold text-white leading-tight text-balance line-clamp-2"
+                        style={{
+                          fontFamily: isRTL
+                            ? 'var(--font-arabic)'
+                            : 'var(--font-display)',
+                        }}
                       >
-                        <span>{banner.buttonText}</span>
-                        <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-                      </Link>
-                    )}
+                        {banner.title}
+                      </h3>
+
+                      {banner.subtitle && (
+                        <p className="text-xs sm:text-sm text-white/85 max-w-md line-clamp-2">
+                          {banner.subtitle}
+                        </p>
+                      )}
+
+                      {banner.buttonText && resolvedButtonUrl && (
+                        isExternalUrl ? (
+                          <a
+                            href={resolvedButtonUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 mt-1.5"
+                          >
+                            <span>{banner.buttonText}</span>
+                            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+                          </a>
+                        ) : (
+                          <Link
+                            href={resolvedButtonUrl}
+                            className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 mt-1.5"
+                          >
+                            <span>{banner.buttonText}</span>
+                            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+                          </Link>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
