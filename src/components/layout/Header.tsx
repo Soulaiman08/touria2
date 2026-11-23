@@ -265,7 +265,7 @@ export function Header({ locale }: HeaderProps) {
     <>
       <header
         className={cn(
-          'storefront-header sticky top-0 z-50 w-full transition-all duration-300',
+          'storefront-header sticky top-0 z-50 w-full transition-shadow duration-200',
           scrolled ? 'header-scrolled' : ''
         )}
         style={{
@@ -278,17 +278,14 @@ export function Header({ locale }: HeaderProps) {
       >
         <div className="container-brand">
             <div
-              className={cn(
-                'flex items-center justify-between gap-2 min-[380px]:gap-3 sm:gap-5 transition-all duration-300',
-                scrolled ? 'h-14' : 'h-16 md:h-[4.25rem]'
-              )}
+              className="flex h-[3.25rem] items-center justify-between gap-2 min-[380px]:gap-3 sm:gap-5"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {/* Left / Start Zone: Menu Toggle + Brand Lockup */}
-              <div className="flex items-center gap-1.5 min-[380px]:gap-2 sm:gap-3.5 min-w-0 flex-1 lg:flex-initial">
+              <div className="flex items-center gap-1.5 min-[380px]:gap-2 sm:gap-3 min-w-0 flex-1 lg:flex-initial">
                 <button
                   type="button"
-                  className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-xl border transition-colors duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-95"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 items-center justify-center rounded-lg border transition-colors duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-95"
                   onClick={() => setMenuOpen((prev) => !prev)}
                   aria-label={
                     menuOpen
@@ -303,17 +300,17 @@ export function Header({ locale }: HeaderProps) {
                     borderColor: 'var(--border)',
                   }}
                 >
-                  {menuOpen ? <X className="h-[1.125rem] w-[1.125rem]" /> : <Menu className="h-[1.125rem] w-[1.125rem]" />}
+                  {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
                 </button>
 
               <Link
                 href={`/${locale}`}
                 aria-label={brandName}
                 onClick={closeMenu}
-                className="flex items-center gap-2 sm:gap-2.5 min-w-0 group focus:outline-none"
+                className="flex items-center gap-2 min-w-0 group focus:outline-none"
               >
                 <div
-                  className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 overflow-hidden rounded-xl border transition-transform duration-200 group-hover:scale-[1.03]"
+                  className="relative h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 overflow-hidden rounded-lg border transition-transform duration-200 group-hover:scale-[1.03]"
                   style={{
                     borderColor: 'var(--border)',
                     background: 'var(--bg-subtle)',
@@ -331,7 +328,7 @@ export function Header({ locale }: HeaderProps) {
                   />
                 </div>
                 <span
-                  className="inline-block truncate max-w-[8.5rem] min-[380px]:max-w-[11rem] min-[430px]:max-w-[13.5rem] sm:max-w-none text-[0.875rem] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
+                  className="inline-block truncate max-w-[8.5rem] min-[380px]:max-w-[11rem] min-[430px]:max-w-[13.5rem] sm:max-w-none text-[0.875rem] sm:text-[0.9375rem] md:text-base font-bold tracking-tight whitespace-nowrap"
                   style={{
                     color: 'var(--text-primary)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -738,7 +735,7 @@ export function Header({ locale }: HeaderProps) {
         >
           {/* Search Input Header */}
           <div
-            className="flex items-center gap-3 border-b px-4 py-3"
+            className="flex items-center gap-3 border-b px-4 py-3 transition-colors focus-within:bg-[var(--card-bg)]"
             style={{
               borderColor: 'var(--border)',
               background: 'var(--bg-subtle)',
@@ -763,7 +760,7 @@ export function Header({ locale }: HeaderProps) {
                     ? 'Rechercher une djellaba ou un niqab...'
                     : 'Search for djellabas or niqabs...'
               }
-              className="flex-1 bg-transparent text-sm sm:text-base outline-none min-w-0 font-medium"
+              className="flex-1 bg-transparent text-sm sm:text-base border-0 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 min-w-0 font-medium"
               style={{ color: 'var(--text-primary)', textAlign: 'start' }}
               dir={isRTL ? 'rtl' : 'ltr'}
               autoComplete="off"

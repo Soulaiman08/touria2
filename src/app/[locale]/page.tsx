@@ -429,7 +429,7 @@ export default async function HomePage({ params }: HomePageProps) {
           1. ARCHITECTURAL MOROCCAN ARCH HERO
       =================================================== */}
       <section
-        className="home-hero relative overflow-hidden pt-3 pb-4 sm:py-6 md:py-7 lg:py-8"
+        className="home-hero relative overflow-hidden pt-3 pb-4 sm:py-4 md:py-5 lg:py-6"
         aria-label={isRTL ? 'الرئيسية' : 'Hero'}
       >
         <div
@@ -442,18 +442,18 @@ export default async function HomePage({ params }: HomePageProps) {
 
         <div className="container-brand relative z-10">
           <div
-            className="grid grid-cols-12 items-center gap-x-3 gap-y-4 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16"
+            className="grid grid-cols-12 items-center gap-x-3 gap-y-4 sm:gap-6 md:gap-8 lg:gap-10"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Editorial Copy Column */}
-            <div className="col-span-7 lg:col-span-6 flex flex-col items-start text-start space-y-2.5 sm:space-y-4 lg:space-y-5 min-w-0">
+            <div className="col-span-7 flex flex-col items-start text-start space-y-2.5 sm:space-y-3.5 lg:space-y-4 min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-3 text-[0.5625rem] min-[390px]:text-[0.625rem] sm:text-xs font-semibold uppercase tracking-[0.08em] sm:tracking-[0.14em] text-[var(--gold)] max-w-full">
                 <span className="w-3 sm:w-6 h-px bg-[var(--gold)]/60 flex-shrink-0" aria-hidden="true" />
                 <span className="truncate">{labels.heroEyebrow}</span>
               </div>
 
               <h1
-                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)] text-[clamp(1.2rem,5.2vw,1.75rem)] sm:text-[clamp(1.75rem,3.3vw,3.65rem)]"
+                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)] text-[clamp(1.2rem,5.2vw,1.75rem)] sm:text-[clamp(1.75rem,3vw,3.15rem)]"
                 style={{
                   fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                 }}
@@ -472,7 +472,7 @@ export default async function HomePage({ params }: HomePageProps) {
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-2.5 lg:gap-3.5 pt-0.5 sm:pt-1 w-full">
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary rounded-xl sm:flex-initial lg:min-w-[11.25rem] !min-h-[2.375rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-2 sm:!py-2.5 !px-3.5 sm:!px-5 lg:!px-7 text-[0.75rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap max-w-full"
+                  className="btn btn-primary rounded-xl sm:flex-initial lg:min-w-[11rem] !min-h-[2.375rem] sm:!min-h-[2.75rem] !py-2 sm:!py-2.5 !px-3.5 sm:!px-5 lg:!px-6 text-[0.75rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap max-w-full"
                 >
                   <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
                   <span>{labels.heroCta}</span>
@@ -480,7 +480,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
                 <Link
                   href={`/${locale}/about`}
-                  className="btn btn-outline rounded-xl sm:flex-initial lg:min-w-[10rem] !min-h-[2.375rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-2 sm:!py-2.5 !px-3.5 sm:!px-5 lg:!px-7 text-[0.75rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap max-w-full"
+                  className="btn btn-outline rounded-xl sm:flex-initial lg:min-w-[9.5rem] !min-h-[2.375rem] sm:!min-h-[2.75rem] !py-2 sm:!py-2.5 !px-3.5 sm:!px-5 lg:!px-6 text-[0.75rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap max-w-full"
                 >
                   <span>{labels.heroSec}</span>
                   <ArrowRight
@@ -494,7 +494,7 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
 
               {/* Clean Typographic Assurances (Desktop & Tablet inside copy column) */}
-              <div className="hidden sm:flex flex-wrap items-center justify-start gap-x-3 lg:gap-x-4 gap-y-1 pt-3 border-t border-[var(--border-subtle)] text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
+              <div className="hidden sm:flex flex-wrap items-center justify-start gap-x-3 lg:gap-x-4 gap-y-1 pt-2.5 border-t border-[var(--border-subtle)] text-xs font-medium text-[var(--text-muted)] w-full max-w-lg">
                 {labels.trustLine.map((item, idx) => (
                   <span key={item} className="inline-flex items-center gap-3 lg:gap-4">
                     {idx > 0 && (
@@ -509,8 +509,8 @@ export default async function HomePage({ params }: HomePageProps) {
             </div>
 
             {/* Moroccan Architectural Arch Editorial Showcase */}
-            <div className="col-span-5 lg:col-span-6 relative flex justify-end min-w-0">
-              <div className="relative w-full max-w-[9.75rem] min-[390px]:max-w-[11rem] sm:max-w-[15.5rem] md:max-w-[18.75rem] lg:max-w-[24.5rem] xl:max-w-[25.625rem]">
+            <div className="col-span-5 relative flex justify-end min-w-0">
+              <div className="relative w-full max-w-[9.75rem] min-[390px]:max-w-[11rem] sm:max-w-[13.5rem] md:max-w-[15rem] lg:max-w-[16.5rem] xl:max-w-[17.5rem]">
                 {heroPrimary ? (
                   <Link
                     href={`/${locale}/products/${heroPrimary.slug}`}
@@ -523,7 +523,7 @@ export default async function HomePage({ params }: HomePageProps) {
                       fill
                       priority
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 300px, 410px"
+                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     <div
@@ -536,26 +536,26 @@ export default async function HomePage({ params }: HomePageProps) {
 
                     {/* Subtle Framed Showcase Caption */}
                     <div
-                      className={`absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-1 lg:gap-3 text-white ${
+                      className={`absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-1 lg:gap-2 text-white ${
                         heroSecondary
-                          ? 'ps-10 pe-2 pb-2 min-[390px]:ps-11 min-[390px]:pe-2.5 min-[390px]:pb-2.5 sm:ps-20 sm:pe-4 sm:pb-3.5 md:ps-24 md:pe-4 md:pb-4 lg:ps-28 lg:pe-6 lg:pb-6'
-                          : 'p-2.5 sm:p-4 lg:p-6'
+                          ? 'ps-10 pe-2 pb-2 min-[390px]:ps-11 min-[390px]:pe-2.5 min-[390px]:pb-2.5 sm:ps-[4rem] sm:pe-3 sm:pb-3 md:ps-[4.5rem] md:pe-3.5 md:pb-3.5 lg:ps-[5rem] lg:pe-4 lg:pb-4'
+                          : 'p-2.5 sm:p-3.5 lg:p-4'
                       }`}
                     >
                       <div className="min-w-0 space-y-0.5">
-                        <span className="hidden sm:block text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-[#E4C48E] whitespace-nowrap">
+                        <span className="hidden sm:block text-[0.5625rem] font-semibold uppercase tracking-[0.11em] text-[#E4C48E] whitespace-nowrap">
                           {labels.featuredPieceLabel}
                         </span>
-                        <p className="text-[0.6875rem] sm:text-xs lg:text-base font-bold truncate">
+                        <p className="text-[0.6875rem] sm:text-xs lg:text-sm font-bold truncate">
                           {heroPrimaryName}
                         </p>
                       </div>
-                      <div className="flex items-center justify-between lg:justify-end gap-1.5 sm:gap-2 flex-shrink-0">
-                        <span className="text-[0.6875rem] sm:text-xs lg:text-sm font-bold tabular-nums text-[#F6EFE6]">
+                      <div className="flex items-center justify-between lg:justify-end gap-1.5 flex-shrink-0">
+                        <span className="text-[0.6875rem] sm:text-xs font-bold tabular-nums text-[#F6EFE6] whitespace-nowrap">
                           {formatPrice(heroPrimary.salePrice ?? heroPrimary.basePrice, locale)}
                         </span>
-                        <span className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                          <ArrowUpRight className={`w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 ${isRTL ? '-scale-x-100' : ''}`} />
+                        <span className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+                          <ArrowUpRight className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isRTL ? '-scale-x-100' : ''}`} />
                         </span>
                       </div>
                     </div>
@@ -571,7 +571,7 @@ export default async function HomePage({ params }: HomePageProps) {
                       fill
                       priority
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 300px, 410px"
+                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
                       className="object-cover"
                     />
                   </div>
@@ -582,14 +582,14 @@ export default async function HomePage({ params }: HomePageProps) {
                   <Link
                     href={`/${locale}/products/${heroSecondary.slug}`}
                     aria-label={heroSecondaryName}
-                    className="block absolute -bottom-2 -start-2 w-10 min-[390px]:w-11 sm:-bottom-3 sm:-start-3 sm:w-20 md:-bottom-4 md:-start-4 md:w-24 lg:-bottom-5 lg:-start-5 lg:w-28 aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
+                    className="block absolute -bottom-2 -start-2 w-10 min-[390px]:w-11 sm:-bottom-2.5 sm:-start-2.5 sm:w-14 md:w-16 lg:-bottom-3 lg:-start-3 lg:w-[4.5rem] aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
                   >
                     <Image
                       src={heroSecondary.mainImage || '/images/brand/logo-icon.png'}
                       alt={heroSecondaryName}
                       fill
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 48px, (max-width: 1024px) 96px, 128px"
+                      sizes="(max-width: 640px) 48px, 80px"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </Link>
@@ -647,7 +647,7 @@ export default async function HomePage({ params }: HomePageProps) {
       >
         <div className="container-brand space-y-4 sm:space-y-6">
           <div
-            className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4 border-b border-[var(--border)] pb-3.5 sm:pb-5"
+            className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4 pb-1"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             <div className="space-y-1 min-w-0">

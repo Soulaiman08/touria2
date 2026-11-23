@@ -148,7 +148,7 @@
   /* Header — Frosted Fez Limestone */
   --header-bg: rgba(250, 246, 240, 0.92);
   --header-border: rgba(154, 116, 56, 0.20);
-  --header-height: 4.5rem;
+  --header-height: 3.25rem;
 
   /* Footer — Deep Cedar Wood */
   --footer-bg: #1F130C;
@@ -424,10 +424,16 @@ body::-webkit-scrollbar {
 }
 
 /* ── Focus ───────── */
-:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 3px;
-  border-radius: var(--radius-sm);
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .admin-shell :focus-visible {
+    outline-color: rgba(245, 158, 11, 0.75);
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -622,13 +628,11 @@ h6 {
 
 .home-section-muted {
   background-color: var(--bg-subtle);
-  border-block: 1px solid var(--border-subtle);
 }
 
 .home-brand-story {
   position: relative;
   overflow: hidden;
-  border-block: 1px solid var(--border-subtle);
   background: var(--bg-subtle);
 }
 
@@ -698,7 +702,6 @@ h6 {
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  border-top: 2px solid var(--gold);
 }
 
 .product-purchase-panel > * {
@@ -706,8 +709,7 @@ h6 {
 }
 
 .product-title-block {
-  padding-bottom: 0.625rem;
-  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.25rem;
 }
 
 .product-title-block h1 {
@@ -1545,8 +1547,8 @@ h6 {
 
 /* ── Icon Button (header actions) ── */
 .icon-btn {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.125rem;
+  height: 2.125rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1561,8 +1563,8 @@ h6 {
 
 @media (min-width: 640px) {
   .icon-btn {
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 }
 
@@ -1766,8 +1768,8 @@ h6 {
 
 /* ── Touch target minimum ── */
 .touch-target {
-  min-width: 2.5rem;
-  min-height: 2.5rem;
+  min-width: 2.125rem;
+  min-height: 2.125rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1775,8 +1777,8 @@ h6 {
 
 @media (min-width: 640px) {
   .touch-target {
-    min-width: 2.75rem;
-    min-height: 2.75rem;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
   }
 }
 
@@ -1993,12 +1995,10 @@ body {
 
 .home-section-muted {
   background-color: var(--bg-subtle);
-  border-block: 1px solid var(--border-subtle);
 }
 
 .home-brand-story {
   background: var(--bg-subtle);
-  border-block: 1px solid var(--border-subtle);
 }
 
 /* Scrollbar utilities */

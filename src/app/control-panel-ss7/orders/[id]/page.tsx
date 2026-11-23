@@ -255,14 +255,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
             <span>{tr('طباعة', 'Print')}</span>
           </button>
 
-          <div className="flex items-center justify-between sm:justify-start gap-2 h-10 w-full sm:w-auto bg-zinc-900 border border-zinc-700/80 rounded-xl px-3">
-            <span className="text-xs font-bold text-zinc-400">{tr('الحالة:', 'Status:')}</span>
-            <div className="relative flex items-center">
+          <div className="flex items-center justify-between sm:justify-start gap-2 h-10 w-full sm:w-auto bg-zinc-900 border border-zinc-700/80 hover:border-zinc-600 focus-within:border-amber-500/70 focus-within:ring-2 focus-within:ring-amber-500/15 rounded-xl ps-3 pe-1.5 transition-colors">
+            <span className="text-xs font-bold text-zinc-400 shrink-0">{tr('الحالة:', 'Status:')}</span>
+            <div className="relative flex items-center flex-1 sm:flex-initial">
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
                 aria-label={tr('حالة الطلب', 'Order status')}
-                className="appearance-none min-w-[120px] sm:min-w-[138px] h-7 bg-[#111115] border border-zinc-700/70 focus:border-amber-500/70 rounded-lg ps-2.5 pe-7 text-xs font-extrabold text-amber-400 outline-none cursor-pointer"
+                className="appearance-none w-full min-w-[116px] sm:min-w-[132px] h-8 bg-transparent border-0 rounded-lg ps-2 pe-7 text-xs font-extrabold text-amber-400 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 cursor-pointer"
               >
                 {statusOptions.map((st) => (
                   <option key={st} value={st}>

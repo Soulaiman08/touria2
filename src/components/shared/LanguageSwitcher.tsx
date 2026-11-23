@@ -81,7 +81,7 @@ export function LanguageSwitcher({ locale, align = 'end' }: LanguageSwitcherProp
         id="language-switcher-btn"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="group flex h-10 w-10 items-center justify-center rounded-xl border p-0 text-sm font-medium transition-colors duration-200 sm:w-auto sm:justify-start sm:gap-2 sm:px-3 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
+        className="group flex h-8 w-8 sm:h-9 sm:w-auto items-center justify-center rounded-lg border p-0 text-sm font-medium transition-colors duration-200 sm:justify-start sm:gap-1.5 sm:px-2.5 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)]"
         style={{
           borderColor: isOpen ? 'var(--accent)' : 'var(--border)',
           color: isOpen ? 'var(--accent)' : 'var(--text-secondary)',

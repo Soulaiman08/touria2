@@ -574,7 +574,7 @@ export default async function ProductsPage({
         {/* Main Products Column */}
         <div className="lg:col-span-9 min-w-0 space-y-5">
           {/* Desktop Results & Segmented Sort Bar */}
-          <div className="hidden lg:flex items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
+          <div className="hidden lg:flex items-center justify-between gap-4 pb-1">
             <div className="flex flex-wrap items-center gap-2.5 text-xs text-[var(--text-muted)] min-w-0">
               <span className="font-medium whitespace-nowrap">
                 <span className="tabular-nums font-bold text-[var(--text-primary)]">

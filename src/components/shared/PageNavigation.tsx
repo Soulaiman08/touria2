@@ -104,7 +104,7 @@ export function BreadcrumbBar({
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
       className={cn(
-        'flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pb-2.5 sm:pb-3 border-b border-[var(--border-subtle)] min-w-0 w-full',
+        'flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pb-1 sm:pb-1.5 min-w-0 w-full',
         className
       )}
     >

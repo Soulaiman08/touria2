@@ -386,7 +386,7 @@ export function AdminGlobalSearch() {
           className={`hidden sm:flex items-center gap-2 w-full h-10 rounded-xl border px-3 transition-colors ${
             open
               ? 'bg-zinc-950 border-amber-500/70 ring-2 ring-amber-500/20'
-              : 'bg-zinc-900/90 border-zinc-700/80 hover:border-zinc-600'
+              : 'bg-zinc-900/90 border-zinc-700/80 hover:border-zinc-600 focus-within:bg-zinc-950 focus-within:border-amber-500/70 focus-within:ring-2 focus-within:ring-amber-500/20'
           }`}
         >
           {loading ? (
@@ -410,7 +410,7 @@ export function AdminGlobalSearch() {
             onFocus={() => setOpen(true)}
             placeholder={placeholderText}
             aria-label={placeholderText}
-            className="w-full h-full bg-transparent border-0 outline-none text-xs font-medium text-zinc-100 placeholder:text-zinc-500 min-w-0"
+            className="w-full h-full bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 text-xs font-medium text-zinc-100 placeholder:text-zinc-500 min-w-0"
           />
 
           {query ? (
@@ -449,7 +449,7 @@ export function AdminGlobalSearch() {
           aria-label={tr('البحث في لوحة التحكم', 'Search Admin Panel')}
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col p-4 animate-in fade-in duration-200"
         >
-          <div className="flex items-center gap-2.5 bg-zinc-900 border border-amber-500/50 rounded-2xl px-3.5 h-12 mb-3 shrink-0">
+          <div className="flex items-center gap-2.5 bg-zinc-900 border border-zinc-700/80 focus-within:border-amber-500/70 focus-within:ring-2 focus-within:ring-amber-500/20 rounded-2xl px-3.5 h-12 mb-3 shrink-0 transition-colors">
             {loading ? (
               <Loader2 className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
             ) : (
@@ -462,7 +462,7 @@ export function AdminGlobalSearch() {
               onChange={(e) => updateQuery(e.target.value)}
               placeholder={placeholderText}
               aria-label={placeholderText}
-              className="flex-1 bg-transparent border-0 outline-none text-sm text-zinc-100 placeholder:text-zinc-500 min-w-0"
+              className="flex-1 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 text-sm text-zinc-100 placeholder:text-zinc-500 min-w-0"
             />
             <button
               type="button"

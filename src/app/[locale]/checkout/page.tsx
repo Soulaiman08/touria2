@@ -56,7 +56,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       />
 
       {/* ── Page Title ─────────────────────────────────────── */}
-      <div className="pb-6 border-b border-[var(--border)]">
+      <div className="pb-2">
         <h1
           className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight mb-2 leading-tight"
           style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
