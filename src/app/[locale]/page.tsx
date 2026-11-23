@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   ShoppingBag,
@@ -23,10 +22,10 @@ import { categoryService } from '@/services/category.service'
 import { bannerService } from '@/services/banner.service'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
-import { formatPrice } from '@/lib/utils'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 import { FeaturedCollectionShowcase } from '@/components/home/FeaturedCollectionShowcase'
 import { BannersRow } from '@/components/home/BannersRow'
+import { HeroShowcase } from '@/components/home/HeroShowcase'
 import { ForwardButton } from '@/components/shared/PageNavigation'
 
 export const dynamic = 'force-dynamic'
@@ -130,8 +129,7 @@ export default async function HomePage({ params }: HomePageProps) {
   const whatsappNumber = (settings.whatsapp || '').replace(/[^0-9]/g, '')
   const allCatalogCount = categories.reduce((sum, c) => sum + (c.productCount ?? 0), 0)
 
-  const heroPrimary = featured[0] ?? newestResponse.items[0] ?? null
-  const heroSecondary = featured[1] ?? newestResponse.items[1] ?? null
+  const heroProducts = featured.length > 0 ? featured : newestResponse.items.slice(0, 8)
 
   const labels = {
     heroEyebrow:
@@ -407,22 +405,6 @@ export default async function HomePage({ params }: HomePageProps) {
     },
   ].filter((s) => Boolean(s.href && s.href !== '#'))
 
-  const heroPrimaryName = heroPrimary
-    ? locale === 'ar'
-      ? heroPrimary.nameAr
-      : locale === 'fr'
-        ? heroPrimary.nameFr
-        : heroPrimary.nameEn
-    : siteConfig.name
-
-  const heroSecondaryName = heroSecondary
-    ? locale === 'ar'
-      ? heroSecondary.nameAr
-      : locale === 'fr'
-        ? heroSecondary.nameFr
-        : heroSecondary.nameEn
-    : ''
-
   return (
     <>
       {/* ===================================================
@@ -510,91 +492,12 @@ export default async function HomePage({ params }: HomePageProps) {
 
             {/* Moroccan Architectural Arch Editorial Showcase */}
             <div className="col-span-5 relative flex justify-end min-w-0">
-              <div className="relative w-full max-w-[9.75rem] min-[390px]:max-w-[11rem] sm:max-w-[13.5rem] md:max-w-[15rem] lg:max-w-[16.5rem] xl:max-w-[17.5rem]">
-                {heroPrimary ? (
-                  <Link
-                    href={`/${locale}/products/${heroPrimary.slug}`}
-                    className="block relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--bg-muted)] group no-underline"
-                    style={{ boxShadow: 'var(--card-shadow-hover)' }}
-                  >
-                    <Image
-                      src={heroPrimary.mainImage || '/images/brand/logo-full.png'}
-                      alt={heroPrimaryName}
-                      fill
-                      priority
-                      referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                    />
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.16) 50%, transparent 100%)',
-                      }}
-                    />
-
-                    {/* Subtle Framed Showcase Caption */}
-                    <div
-                      className={`absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-1 lg:gap-2 text-white ${
-                        heroSecondary
-                          ? 'ps-10 pe-2 pb-2 min-[390px]:ps-11 min-[390px]:pe-2.5 min-[390px]:pb-2.5 sm:ps-[4rem] sm:pe-3 sm:pb-3 md:ps-[4.5rem] md:pe-3.5 md:pb-3.5 lg:ps-[5rem] lg:pe-4 lg:pb-4'
-                          : 'p-2.5 sm:p-3.5 lg:p-4'
-                      }`}
-                    >
-                      <div className="min-w-0 space-y-0.5">
-                        <span className="hidden sm:block text-[0.5625rem] font-semibold uppercase tracking-[0.11em] text-[#E4C48E] whitespace-nowrap">
-                          {labels.featuredPieceLabel}
-                        </span>
-                        <p className="text-[0.6875rem] sm:text-xs lg:text-sm font-bold truncate">
-                          {heroPrimaryName}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between lg:justify-end gap-1.5 flex-shrink-0">
-                        <span className="text-[0.6875rem] sm:text-xs font-bold tabular-nums text-[#F6EFE6] whitespace-nowrap">
-                          {formatPrice(heroPrimary.salePrice ?? heroPrimary.basePrice, locale)}
-                        </span>
-                        <span className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                          <ArrowUpRight className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isRTL ? '-scale-x-100' : ''}`} />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ) : (
-                  <div
-                    className="relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--card-bg)]"
-                    style={{ boxShadow: 'var(--card-shadow-hover)' }}
-                  >
-                    <Image
-                      src="/images/brand/logo-full.png"
-                      alt={siteConfig.name}
-                      fill
-                      priority
-                      referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-
-                {/* Secondary Lookbook Preview Tile */}
-                {heroSecondary && (
-                  <Link
-                    href={`/${locale}/products/${heroSecondary.slug}`}
-                    aria-label={heroSecondaryName}
-                    className="block absolute -bottom-2 -start-2 w-10 min-[390px]:w-11 sm:-bottom-2.5 sm:-start-2.5 sm:w-14 md:w-16 lg:-bottom-3 lg:-start-3 lg:w-[4.5rem] aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
-                  >
-                    <Image
-                      src={heroSecondary.mainImage || '/images/brand/logo-icon.png'}
-                      alt={heroSecondaryName}
-                      fill
-                      referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 48px, 80px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </Link>
-                )}
-              </div>
+              <HeroShowcase
+                products={heroProducts}
+                locale={locale}
+                featuredPieceLabel={labels.featuredPieceLabel}
+                fallbackName={siteConfig.name}
+              />
             </div>
 
             {/* Clean Typographic Assurances (Mobile full-width compact row below columns) */}
@@ -624,7 +527,7 @@ export default async function HomePage({ params }: HomePageProps) {
       =================================================== */}
       <FeaturedCollectionShowcase
         locale={locale}
-        initialFeatured={featured}
+        initialFeatured={featured.slice(0, 8)}
         initialCatalogProducts={catalogPreviewResponse.items}
         categories={categories}
         allCatalogCount={allCatalogCount}

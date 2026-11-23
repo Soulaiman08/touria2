@@ -389,10 +389,10 @@ export const productService = {
   // ====================================================
   // FEATURED PRODUCTS
   // ====================================================
-  async getFeaturedProducts(): Promise<ProductCard[]> {
+  async getFeaturedProducts(limit = 24): Promise<ProductCard[]> {
     const res = await this.getProducts({
       isFeatured: true,
-      limit: 4,
+      limit,
     })
     return res.items
   },
