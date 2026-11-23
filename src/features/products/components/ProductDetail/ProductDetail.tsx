@@ -601,7 +601,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   return (
     <>
       <div
-        className="product-detail-grid grid grid-cols-1 gap-4 md:grid-cols-[auto_minmax(320px,1fr)] md:gap-5 lg:grid-cols-[auto_minmax(400px,1fr)] lg:gap-7 xl:gap-9"
+        className="product-detail-grid grid grid-cols-1 gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:gap-5 lg:gap-7 xl:gap-9"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         {/* ── Gallery Column ─────────────────────────────────────────── */}
@@ -615,7 +615,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
         />
 
         {/* ── Purchase Atelier Column ────────────────────────────────── */}
-        <div className="product-purchase-panel min-w-0">
+        <div className="product-purchase-panel min-w-0 w-full">
           {/* Header */}
           <div className="product-title-block space-y-1.5 pb-2.5">
             {product.category && (
@@ -642,8 +642,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
             </h1>
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
-                <span className="tabular-nums" style={{ color: 'var(--text-muted)' }}>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs min-w-0">
+                <span className="tabular-nums break-all sm:break-normal" style={{ color: 'var(--text-muted)' }}>
                   {t('sku')}:{' '}
                   <span dir="ltr" className="inline-block font-mono">
                     {product.sku}
@@ -705,7 +705,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           </div>
 
           {/* Architectural Price Strip (unboxed, clean hierarchy) */}
-          <div className="product-price-row flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="product-price-row flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1.5">
             <div className="flex flex-wrap items-baseline gap-2.5 tabular-nums">
               {product.salePrice ? (
                 <>
@@ -754,7 +754,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               )}
             </div>
 
-            <span className="text-[11px] sm:text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-[11px] sm:text-xs" style={{ color: 'var(--text-muted)' }}>
               {locale === 'ar'
                 ? 'الدفع عند الاستلام'
                 : locale === 'fr'
@@ -764,7 +764,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           </div>
 
           {/* Description */}
-          <p className="text-[13px] sm:text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-[13px] sm:text-sm leading-relaxed break-words" style={{ color: 'var(--text-muted)' }}>
             {productDesc}
           </p>
 
@@ -792,8 +792,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 background: 'var(--bg-subtle)',
               }}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div>
+              <div className="flex flex-wrap items-start justify-between gap-2.5">
+                <div className="min-w-[170px] flex-1">
                   <span className="font-bold text-sm block" style={{ color: 'var(--text-primary)' }}>
                     {showSizesUI
                       ? locale === 'ar'
@@ -874,9 +874,9 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                         />
                       </div>
 
-                      <div className="flex items-center justify-between xl:justify-end gap-2 flex-shrink-0">
+                      <div className="flex items-center justify-between xl:justify-end gap-2 w-full xl:w-auto flex-shrink-0">
                         {showSizesUI && (
-                          <div className="flex-1 min-w-[5.5rem] xl:flex-initial xl:w-28">
+                          <div className="flex-1 min-w-0 xl:flex-initial xl:w-28">
                             <CustomSelect
                               value={selection.size}
                               onChange={(val) => changeJellabaSize(selection.id, val)}
@@ -896,13 +896,13 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                             <button
                               type="button"
                               onClick={() => updateJellabaQuantity(selection.id, -1)}
-                              className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer"
+                              className="w-8 sm:w-9 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer"
                               aria-label="Decrease quantity"
                             >
                               <Minus className="h-3.5 w-3.5" />
                             </button>
                             <span
-                              className="px-2 h-full flex items-center justify-center text-xs sm:text-sm font-bold border-x min-w-[2rem] tabular-nums"
+                              className="px-1.5 sm:px-2 h-full flex items-center justify-center text-xs sm:text-sm font-bold border-x min-w-[1.75rem] sm:min-w-[2rem] tabular-nums"
                               style={{ borderColor: 'var(--border)' }}
                             >
                               {selection.quantity}
@@ -911,7 +911,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                               type="button"
                               onClick={() => updateJellabaQuantity(selection.id, 1)}
                               disabled={effectiveMaxQty !== null && selectedJellabaQuantity >= effectiveMaxQty}
-                              className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer disabled:opacity-40"
+                              className="w-8 sm:w-9 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer disabled:opacity-40"
                               aria-label="Increase quantity"
                             >
                               <Plus className="h-3.5 w-3.5" />
@@ -961,7 +961,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                 )}
 
                 <div
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl border tabular-nums"
+                  className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border tabular-nums"
                   style={{
                     background: 'var(--accent-light)',
                     borderColor: 'var(--accent-ring)',
@@ -1086,7 +1086,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                           key={selection.id}
                           className="flex flex-wrap lg:flex-nowrap items-center gap-2 lg:gap-2.5"
                         >
-                          <div className="flex-1 min-w-[140px]">
+                          <div className="w-full min-[400px]:w-auto min-[400px]:flex-1 min-w-0">
                             <CustomSelect
                               value={selection.colorCode}
                               onChange={(val) => changeNiqabColor(selection.id, val)}
@@ -1101,7 +1101,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                             />
                           </div>
 
-                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <div className="flex items-center justify-end gap-1.5 w-full min-[400px]:w-auto flex-shrink-0">
                             <div
                               className="flex items-center h-10 border rounded-xl overflow-hidden"
                               style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
@@ -1173,7 +1173,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                     )}
 
                     <div
-                      className="flex items-center justify-between px-3.5 py-2.5 rounded-xl border tabular-nums"
+                      className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border tabular-nums"
                       style={{
                         background: 'var(--card-bg)',
                         borderColor: 'var(--accent-ring)',
@@ -1237,7 +1237,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
           {/* Total + Add To Cart */}
           <div className="space-y-3 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
             {finalPrice > 0 && (
-              <div className="flex items-center justify-between text-sm tabular-nums">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm tabular-nums">
                 <span className="font-medium" style={{ color: 'var(--text-muted)' }}>
                   {locale === 'ar' ? 'المجموع' : locale === 'fr' ? 'Total' : 'Subtotal'}
                 </span>

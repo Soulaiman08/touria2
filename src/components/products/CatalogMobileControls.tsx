@@ -252,13 +252,13 @@ export function CatalogMobileControls({
       </div>
 
       {/* 2. Unified 2-Button Filter & Sort Action Bar */}
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
         <button
           type="button"
           onClick={openFilterSheet}
           aria-expanded={filterOpen}
           className={cn(
-            'h-11 px-3 rounded-xl border flex items-center justify-between gap-2 text-xs font-semibold transition-colors cursor-pointer',
+            'h-11 px-2.5 sm:px-3 rounded-xl border flex items-center justify-between gap-1.5 sm:gap-2 text-xs font-semibold transition-colors cursor-pointer min-w-0',
             activeFilterCount > 0
               ? 'border-[var(--accent-ring)] bg-[var(--accent-light)]/50 text-[var(--text-primary)]'
               : 'border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-primary)] hover:border-[var(--accent)]'
@@ -284,7 +284,7 @@ export function CatalogMobileControls({
             onClick={() => setSortOpen((v) => !v)}
             aria-expanded={sortOpen}
             aria-haspopup="listbox"
-            className="h-11 w-full px-3 rounded-xl border border-[var(--border)] bg-[var(--card-bg)] hover:border-[var(--accent)] flex items-center justify-between gap-2 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="h-11 w-full px-2.5 sm:px-3 rounded-xl border border-[var(--border)] bg-[var(--card-bg)] hover:border-[var(--accent)] flex items-center justify-between gap-1.5 sm:gap-2 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer min-w-0"
           >
             <span className="inline-flex items-center gap-2 min-w-0">
               <ArrowUpDown className="w-3.5 h-3.5 text-[var(--gold)] flex-shrink-0" />
@@ -397,7 +397,7 @@ export function CatalogMobileControls({
             className="w-full sm:max-w-md max-h-[86dvh] rounded-t-2xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-[var(--shadow-modal)] flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between gap-3">
+            <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-[var(--border)] flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <SlidersHorizontal className="w-4 h-4 text-[var(--accent)]" />
                 <h2 className="text-base font-bold text-[var(--text-primary)] m-0">
@@ -416,7 +416,7 @@ export function CatalogMobileControls({
             </div>
 
             {/* Body */}
-            <div className="p-5 space-y-6 overflow-y-auto">
+            <div className="p-4 sm:p-5 space-y-5 sm:space-y-6 overflow-y-auto">
               {/* Categories */}
               <div className="space-y-2.5">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] m-0">
@@ -511,7 +511,7 @@ export function CatalogMobileControls({
                     {labels.size}
                   </h3>
 
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-3 min-[380px]:grid-cols-4 gap-2">
                     <button
                       type="button"
                       onClick={() => setDraftSize(undefined)}
@@ -549,7 +549,7 @@ export function CatalogMobileControls({
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3.5 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex items-center gap-2.5">
+            <div className="px-4 sm:px-5 py-3.5 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={handleResetDraft}

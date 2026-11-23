@@ -219,7 +219,7 @@ function ShippingTab() {
       </div>
 
       {/* Default Price */}
-      <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-5 space-y-4">
+      <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="space-y-1">
           <h3 className="text-sm font-extrabold text-amber-400 flex items-center gap-2">
             <Truck className="w-4 h-4" />
@@ -234,7 +234,7 @@ function ShippingTab() {
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-[160px] max-w-xs">
+          <div className="w-full sm:flex-1 sm:min-w-[180px] sm:max-w-xs">
             <label className={labelCls}>{tr('السعر (د.م / MAD)', 'Price (MAD)')}</label>
             <input
               type="number"
@@ -250,7 +250,7 @@ function ShippingTab() {
             type="button"
             onClick={handleSaveDefault}
             disabled={savingDefault}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs sm:text-sm transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+            className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs sm:text-sm transition-all disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{savingDefault ? tr('جاري الحفظ...', 'Saving...') : tr('حفظ الافتراضي', 'Save Default')}</span>
@@ -259,7 +259,7 @@ function ShippingTab() {
       </div>
 
       {/* Per-City Configurator */}
-      <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-5 space-y-4">
+      <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="space-y-1">
           <h3 className="text-sm font-extrabold text-amber-400 flex items-center gap-2">
             <Plus className="w-4 h-4" />
@@ -340,7 +340,7 @@ function ShippingTab() {
             type="button"
             onClick={handleSaveCity}
             disabled={savingCity || !selectedCity}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs sm:text-sm transition-all disabled:bg-zinc-800 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed whitespace-nowrap shrink-0 cursor-pointer"
+            className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs sm:text-sm transition-all disabled:bg-zinc-800 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed whitespace-nowrap shrink-0 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{savingCity ? tr('جاري الحفظ...', 'Saving...') : tr('حفظ سعر المدينة', 'Save City Price')}</span>
@@ -349,7 +349,7 @@ function ShippingTab() {
       </div>
 
       {/* Configured Cities Table */}
-      <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-5 space-y-4">
+      <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-sm font-extrabold text-amber-400">
             {tr(
@@ -417,7 +417,7 @@ function ShippingTab() {
                         </div>
                       </td>
                       <td className="py-3 px-3 whitespace-nowrap">
-                        <span className="inline-block px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-400 font-mono font-black tabular-nums">
+                        <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-400 font-mono font-black leading-none tabular-nums">
                           {row.price} MAD
                         </span>
                       </td>
@@ -645,13 +645,13 @@ function SettingsContent() {
 
       {/* Shipping Tab rendered outside general settings form to avoid Enter mismatch */}
       {activeTab === 'shipping' ? (
-        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 sm:p-7 shadow-xl">
+        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-7 shadow-xl">
           <ShippingTab />
         </div>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 sm:p-7 shadow-xl space-y-6"
+          className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-7 shadow-xl space-y-6"
         >
           {/* Tab 1: General */}
           {activeTab === 'general' && (

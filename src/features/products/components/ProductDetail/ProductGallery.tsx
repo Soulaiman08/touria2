@@ -336,14 +336,14 @@ export function ProductGallery({
 
   return (
     <div
-      className="product-gallery-panel w-full md:w-fit md:sticky md:top-[4.5rem] lg:top-24 md:self-start select-none"
+      className="product-gallery-panel w-full min-w-0 md:w-fit md:sticky md:top-[4.5rem] lg:top-24 md:self-start select-none"
       tabIndex={hasMultiple ? 0 : -1}
       onKeyDown={handleKeyDown}
       role="region"
       aria-roledescription={hasMultiple ? 'carousel' : undefined}
       aria-label={productName}
     >
-      <div className="flex items-start justify-center gap-2 sm:gap-2.5 lg:gap-3">
+      <div className="flex items-start justify-center gap-2 sm:gap-2.5 lg:gap-3 min-w-0 w-full">
         {/* ── Vertical Thumbnails Rail (all viewports, zero bottom height theft) ── */}
         {hasMultiple && (
           <div
@@ -389,7 +389,7 @@ export function ProductGallery({
           ref={containerRef}
           dir={isRTL ? 'rtl' : 'ltr'}
           className={`product-main-image group relative aspect-[4/5] overflow-hidden rounded-2xl border ${
-            hasMultiple ? 'flex-1 min-w-0 max-w-[380px] md:max-w-none md:flex-initial' : 'w-full max-w-[390px] md:max-w-none'
+            hasMultiple ? 'flex-1 min-w-0 max-w-[360px] md:max-w-none md:flex-initial' : 'w-full max-w-[360px] mx-auto md:mx-0 md:max-w-none'
           }`}
           style={{
             borderColor: 'var(--border)',

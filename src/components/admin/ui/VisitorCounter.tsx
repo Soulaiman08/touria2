@@ -38,10 +38,10 @@ export function VisitorCounter() {
         `إجمالي زوار المتجر: ${count !== null ? count.toLocaleString() : '...'}`,
         `Total Storefront Visitors: ${count !== null ? count.toLocaleString() : 'Loading...'}`
       )}
-      className="hidden sm:inline-flex h-10 items-center gap-2 px-3 rounded-xl border border-zinc-700/80 bg-zinc-900 text-zinc-300 text-xs font-bold select-none shrink-0 whitespace-nowrap"
+      className="hidden md:inline-flex h-10 items-center justify-center gap-2 px-3 rounded-xl border border-zinc-700/80 bg-zinc-900 text-zinc-300 text-xs font-bold leading-none select-none shrink-0 whitespace-nowrap"
     >
       <Eye className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
-      <span className="text-zinc-100 font-mono tabular-nums font-extrabold">{displayCount}</span>
+      <span className="text-zinc-100 font-mono tabular-nums font-extrabold leading-none">{displayCount}</span>
     </div>
   )
 }

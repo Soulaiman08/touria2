@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { deleteBannerTranslations, saveBannerTranslations } from '@/lib/banner-i18n.server'
 
 function isSafeUrl(url: string): boolean {
   if (url.startsWith('/') && !url.startsWith('//')) return true
@@ -11,6 +12,15 @@ function isSafeUrl(url: string): boolean {
   } catch {
     return false
   }
+}
+
+function firstNonEmpty(...values: unknown[]): string | null {
+  for (const val of values) {
+    if (typeof val === 'string' && val.trim().length > 0) {
+      return val.trim()
+    }
+  }
+  return null
 }
 
 export async function PUT(
@@ -28,23 +38,48 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
     }
 
-    const existing = await prisma.banner.findUnique({ where: { id }, select: { id: true } })
+    const existing = await prisma.banner.findUnique({ where: { id } })
     if (!existing) {
       return NextResponse.json({ error: 'Banner not found' }, { status: 404 })
     }
 
     const updateData: Record<string, unknown> = {}
-    if (body.title !== undefined) {
-      const title = typeof body.title === 'string' ? body.title.trim() : ''
-      if (!title) return NextResponse.json({ error: 'Title cannot be empty' }, { status: 400 })
-      updateData.title = title
+    const resolvedPrimaryTitle = firstNonEmpty(body.title, body.titleAr, body.titleFr, body.titleEn)
+    if (
+      body.title !== undefined ||
+      body.titleAr !== undefined ||
+      body.titleFr !== undefined ||
+      body.titleEn !== undefined
+    ) {
+      if (!resolvedPrimaryTitle) {
+        return NextResponse.json({ error: 'Title cannot be empty' }, { status: 400 })
+      }
+      updateData.title = resolvedPrimaryTitle
     }
-    if (body.subtitle !== undefined) {
-      updateData.subtitle = typeof body.subtitle === 'string' && body.subtitle.trim() ? body.subtitle.trim() : null
+
+    if (
+      body.subtitle !== undefined ||
+      body.subtitleAr !== undefined ||
+      body.subtitleFr !== undefined ||
+      body.subtitleEn !== undefined
+    ) {
+      updateData.subtitle = firstNonEmpty(body.subtitle, body.subtitleAr, body.subtitleFr, body.subtitleEn)
     }
-    if (body.buttonText !== undefined) {
-      updateData.buttonText = typeof body.buttonText === 'string' && body.buttonText.trim() ? body.buttonText.trim() : null
+
+    if (
+      body.buttonText !== undefined ||
+      body.buttonTextAr !== undefined ||
+      body.buttonTextFr !== undefined ||
+      body.buttonTextEn !== undefined
+    ) {
+      updateData.buttonText = firstNonEmpty(
+        body.buttonText,
+        body.buttonTextAr,
+        body.buttonTextFr,
+        body.buttonTextEn
+      )
     }
+
     if (body.buttonUrl !== undefined) {
       const buttonUrl = typeof body.buttonUrl === 'string' ? body.buttonUrl.trim() : ''
       if (buttonUrl && !isSafeUrl(buttonUrl)) {
@@ -67,9 +102,21 @@ export async function PUT(
 
     const updated = await prisma.banner.update({ where: { id }, data: updateData })
 
+    const translations = await saveBannerTranslations(updated, {
+      titleAr: firstNonEmpty(body.titleAr, body.title),
+      titleFr: firstNonEmpty(body.titleFr),
+      titleEn: firstNonEmpty(body.titleEn),
+      subtitleAr: firstNonEmpty(body.subtitleAr, body.subtitle),
+      subtitleFr: firstNonEmpty(body.subtitleFr),
+      subtitleEn: firstNonEmpty(body.subtitleEn),
+      buttonTextAr: firstNonEmpty(body.buttonTextAr, body.buttonText),
+      buttonTextFr: firstNonEmpty(body.buttonTextFr),
+      buttonTextEn: firstNonEmpty(body.buttonTextEn),
+    })
+
     revalidatePath('/[locale]', 'page')
 
-    return NextResponse.json({ success: true, banner: updated })
+    return NextResponse.json({ success: true, banner: { ...updated, ...translations } })
   } catch (error) {
     console.error('Failed to update banner:', error)
     return NextResponse.json({ error: 'Failed to update banner' }, { status: 500 })
@@ -90,6 +137,7 @@ export async function DELETE(
     }
 
     await prisma.banner.delete({ where: { id } })
+    await deleteBannerTranslations(id)
 
     revalidatePath('/[locale]', 'page')
 

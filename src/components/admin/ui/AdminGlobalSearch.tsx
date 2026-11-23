@@ -410,7 +410,7 @@ export function AdminGlobalSearch() {
             onFocus={() => setOpen(true)}
             placeholder={placeholderText}
             aria-label={placeholderText}
-            className="w-full bg-transparent border-0 outline-none text-xs font-medium text-zinc-100 placeholder:text-zinc-500 min-w-0"
+            className="w-full h-full bg-transparent border-0 outline-none text-xs font-medium text-zinc-100 placeholder:text-zinc-500 min-w-0"
           />
 
           {query ? (
@@ -421,12 +421,12 @@ export function AdminGlobalSearch() {
                 inputRef.current?.focus()
               }}
               aria-label={tr('مسح البحث', 'Clear search')}
-              className="p-1 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
+              className="w-6 h-6 inline-flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           ) : (
-            <kbd className="text-[10px] font-bold text-zinc-500 bg-zinc-800/80 border border-zinc-700 rounded-md px-1.5 py-0.5 font-mono shrink-0">
+            <kbd className="inline-flex items-center justify-center w-5 h-5 text-[11px] leading-none font-bold text-zinc-400 bg-zinc-800/90 border border-zinc-700 rounded-md font-mono shrink-0">
               /
             </kbd>
           )}

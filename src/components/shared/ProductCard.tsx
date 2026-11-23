@@ -295,7 +295,7 @@ export function ProductCard({
       {/* ── Product Info ──────────────────────────────────────────── */}
       <Link
         href={productUrl}
-        className="product-card-info px-3.5 sm:px-4 py-3.5 sm:py-4 flex-1 flex flex-col justify-between gap-2.5 no-underline"
+        className="product-card-info px-3 min-[400px]:px-3.5 sm:px-4 py-3 min-[400px]:py-3.5 sm:py-4 flex-1 flex flex-col justify-between gap-2 sm:gap-2.5 no-underline"
       >
         <div className="space-y-1">
           {categoryName && (
@@ -348,20 +348,20 @@ export function ProductCard({
 
         {/* Clean Price + Subtle View Arrow */}
         <div
-          className="flex items-center justify-between gap-2 pt-2.5 border-t"
+          className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2 sm:pt-2.5 border-t"
           style={{ borderColor: 'var(--border)' }}
         >
-          <div className="flex items-baseline gap-1.5 min-w-0 tabular-nums">
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 min-w-0 tabular-nums">
             {product.salePrice ? (
               <>
                 <span
-                  className="text-sm sm:text-base font-bold whitespace-nowrap"
+                  className="text-[0.8125rem] min-[400px]:text-sm sm:text-base font-bold whitespace-nowrap"
                   style={{ color: 'var(--accent)' }}
                 >
                   {formatPrice(product.salePrice, locale)}
                 </span>
                 <span
-                  className="text-[0.6875rem] sm:text-xs whitespace-nowrap line-through"
+                  className="text-[0.625rem] min-[400px]:text-[0.6875rem] sm:text-xs whitespace-nowrap line-through"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   {formatPrice(product.basePrice, locale)}
@@ -369,7 +369,7 @@ export function ProductCard({
               </>
             ) : (
               <span
-                className="text-sm sm:text-base font-bold whitespace-nowrap"
+                className="text-[0.8125rem] min-[400px]:text-sm sm:text-base font-bold whitespace-nowrap"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {formatPrice(product.basePrice, locale)}

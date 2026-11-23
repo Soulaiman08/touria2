@@ -818,8 +818,8 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       </div>
 
       {/* ── Search & Category Filter ── */}
-      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
+      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-3.5 sm:p-5 flex flex-wrap items-center gap-3">
+        <div className="relative w-full md:flex-1 md:min-w-[220px]">
           <Search className="w-4 h-4 text-zinc-500 absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
@@ -846,9 +846,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <Filter className="w-4 h-4 text-amber-400 shrink-0" />
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial">
             <select
               value={selectedCategory}
               onChange={(e) => {
@@ -856,7 +856,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                 setPage(1)
               }}
               aria-label={tr('تصفية حسب التصنيف', 'Filter by category')}
-              className="appearance-none h-11 min-w-[178px] bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-9 text-xs font-bold text-zinc-100 outline-none cursor-pointer transition-colors"
+              className="appearance-none h-11 w-full sm:min-w-[178px] bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-9 text-xs font-bold text-zinc-100 outline-none cursor-pointer transition-colors"
             >
               <option value="all">{tr('جميع التصنيفات', 'All Categories')}</option>
               {categories.map((cat) => (
@@ -909,7 +909,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
             </div>
           ) : (
             products.map((prod) => (
-              <div key={prod.id} className="p-4 flex flex-col gap-3">
+              <div key={prod.id} className="p-3.5 sm:p-4 flex flex-col gap-3">
                 <div className="flex items-start gap-3">
                   <div className="relative w-14 h-14 rounded-xl bg-zinc-800 border border-zinc-700/80 overflow-hidden shrink-0">
                     <Image
@@ -953,7 +953,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/70">
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-zinc-800/70">
                   <div className="flex items-center gap-2">
                     {prod.isActive ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/12 text-emerald-400 border border-emerald-500/25 text-[11px] font-bold">
@@ -1181,11 +1181,11 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
           dir={dir}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div className="w-full max-w-3xl max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
+          <div className="w-full max-w-3xl max-h-[94dvh] sm:max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
             {/* Sticky Header */}
-            <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
               <h2 className="text-base sm:text-lg font-black text-white">
                 {editingProduct
                   ? tr('تعديل المنتج', 'Edit Product')
@@ -1203,7 +1203,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
 
             {/* Scrollable Form */}
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-              <div className="flex-1 overflow-y-auto admin-scroll p-5 sm:p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 space-y-5 sm:space-y-6">
                 {/* 3-Language Tabs for Name & Description */}
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1327,7 +1327,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                 </div>
 
                 {/* Pricing, SKU, Stock & Category */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1.5">
                       {tr('الرمز SKU', 'SKU')} *
@@ -1684,7 +1684,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                           }
                         }}
                         placeholder={tr('أضف مقاساً مخصصاً (مثلاً 54 أو 56)...', 'Add custom size (e.g., 54, 56)...')}
-                        className="flex-1 h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
+                        className="flex-1 min-w-0 h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
                       />
                       <button
                         type="button"
@@ -1754,7 +1754,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex items-center justify-end gap-3 px-5 sm:px-6 py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
+              <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -1785,14 +1785,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
           dir={dir}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setReviewsTarget(null)}
         >
           <div
-            className="w-full max-w-xl max-h-[82dvh] flex flex-col rounded-2xl border border-zinc-700/80 bg-zinc-900 shadow-2xl overflow-hidden"
+            className="w-full max-w-xl max-h-[88dvh] sm:max-h-[82dvh] flex flex-col rounded-2xl border border-zinc-700/80 bg-zinc-900 shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
+            <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <MessageSquare className="w-4 h-4 text-sky-400 shrink-0" />
                 <h3 className="text-sm font-extrabold text-white truncate">
@@ -1812,7 +1812,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto flex-1 admin-scroll">
+            <div className="p-4 sm:p-5 overflow-y-auto flex-1 admin-scroll">
               {reviewsLoading ? (
                 <div className="flex justify-center py-10">
                   <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
@@ -1828,7 +1828,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                       key={review.id}
                       className="flex flex-col gap-2 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-800"
                     >
-                      <div className="flex items-center justify-between gap-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2.5">
                         <div className="flex items-center gap-2.5 min-w-0">
                           {review.customer.avatarUrl ? (
                             <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-zinc-700">

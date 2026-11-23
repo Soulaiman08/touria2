@@ -132,7 +132,7 @@ function ProfileContent() {
       </div>
 
       {/* Avatar Banner Card */}
-      <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-amber-500/[0.06] border border-amber-500/20 rounded-2xl p-5 sm:p-6 flex flex-wrap items-center gap-5 shadow-xl">
+      <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-amber-500/[0.06] border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex flex-wrap items-center gap-4 sm:gap-5 shadow-xl">
         <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 font-black text-2xl sm:text-3xl flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0">
           {name ? name.charAt(0).toUpperCase() : 'A'}
         </div>
@@ -152,7 +152,7 @@ function ProfileContent() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Account Info Card */}
-        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 sm:p-7 space-y-5 shadow-xl">
+        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-7 space-y-5 shadow-xl">
           <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
             <User className="w-4 h-4 text-amber-400" />
             <span>{tr('معلومات الحساب', 'Account Information')}</span>
@@ -195,7 +195,7 @@ function ProfileContent() {
         </div>
 
         {/* Security / Change Password Card */}
-        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 sm:p-7 space-y-5 shadow-xl">
+        <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-7 space-y-5 shadow-xl">
           <div className="space-y-1">
             <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-amber-400" />

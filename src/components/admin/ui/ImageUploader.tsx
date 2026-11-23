@@ -136,7 +136,7 @@ export function ImageUploader({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative flex flex-col items-center justify-center p-5 border-2 border-dashed rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 ${
+        className={`relative flex flex-col items-center justify-center p-4 sm:p-5 border-2 border-dashed rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 ${
           isDragging
             ? 'border-amber-400 bg-amber-500/10 scale-[0.99]'
             : 'border-zinc-700 bg-zinc-950/60 hover:border-amber-500/60 hover:bg-zinc-900'

@@ -538,7 +538,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
             return (
               <div
                 key={cat.id}
-                className="bg-zinc-900 border border-zinc-800/90 hover:border-zinc-700 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-colors"
+                className="bg-zinc-900 border border-zinc-800/90 hover:border-zinc-700 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 transition-colors"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
@@ -629,18 +629,18 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
           dir={dir}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div className="w-full max-w-3xl max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
+          <div className="w-full max-w-3xl max-h-[94dvh] sm:max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
-              <div>
-                <h2 className="text-base sm:text-lg font-black text-white">
+            <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-black text-white truncate">
                   {editingCategory
                     ? tr('تعديل التصنيف وقواعده', 'Edit Category & Rules')
                     : tr('إنشاء تصنيف جديد', 'Create Category & Rules')}
                 </h2>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="text-[11px] text-zinc-400 mt-0.5 line-clamp-2">
                   {tr(
                     'إعدادات هذا التصنيف تُطبّق تلقائياً على نماذج المنتجات وصفحات المتجر',
                     'Rules configured here automate product creation & storefront display'
@@ -651,14 +651,14 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 aria-label={tr('إغلاق', 'Close')}
-                className="w-9 h-9 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 flex items-center justify-center cursor-pointer"
+                className="w-9 h-9 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 flex items-center justify-center cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* 5-Tab Bar */}
-            <div className="px-5 sm:px-6 pt-3 border-b border-zinc-800 bg-[#0b0b0e] flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar shrink-0">
+            <div className="px-3 sm:px-6 pt-2.5 sm:pt-3 border-b border-zinc-800 bg-[#0b0b0e] flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar shrink-0">
               {modalTabs.map((tab) => {
                 const Icon = tab.icon
                 const active = activeModalTab === tab.key
@@ -667,7 +667,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                     key={tab.key}
                     type="button"
                     onClick={() => setActiveModalTab(tab.key)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold border-b-2 -mb-px whitespace-nowrap transition-colors cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2.5 text-xs font-bold border-b-2 -mb-px whitespace-nowrap transition-colors cursor-pointer ${
                       active
                         ? 'border-amber-500 text-amber-400'
                         : 'border-transparent text-zinc-400 hover:text-zinc-200'
@@ -681,7 +681,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-              <div className="flex-1 overflow-y-auto admin-scroll p-5 sm:p-6 space-y-5">
+              <div className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 space-y-5">
                 {/* ── TAB 1: BASICS & LANGUAGES ── */}
                 {activeModalTab === 'basics' && (
                   <>
@@ -988,7 +988,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                               }
                             }}
                             placeholder={tr('إضافة مقاس مخصص...', 'Add custom size...')}
-                            className="flex-1 h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
+                            className="flex-1 min-w-0 h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
                           />
                           <button
                             type="button"
@@ -1063,7 +1063,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                         <label className="block text-xs font-bold text-zinc-200">
                           {tr('نسبة أبعاد صور بطاقات المتجر', 'Product Card Image Aspect Ratio')}
                         </label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {(
                             [
                               {
@@ -1225,7 +1225,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                       <label className="block text-xs font-bold text-zinc-200">
                         {tr('سياسة الألوان في التصنيف', 'Category Color Policy')}
                       </label>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {(
                           [
                             {
@@ -1613,7 +1613,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                           {tr('تعديل', 'Edit')}
                         </button>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col min-[420px]:flex-row items-start min-[420px]:items-center gap-3 sm:gap-4">
                         <div
                           className="relative w-14 shrink-0 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900"
                           style={{
@@ -1799,21 +1799,21 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
               </div>
 
               {/* Modal Footer (Create wizard flow -> Submit in Review tab; Edit -> Save anytime) */}
-              <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="h-10 px-4 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                  className="h-10 px-3 sm:px-4 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   {tr('إلغاء', 'Cancel')}
                 </button>
 
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   {canGoPrev && (
                     <button
                       type="button"
                       onClick={() => setActiveModalTab(modalTabs[currentTabIndex - 1].key)}
-                      className="h-10 px-4 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="h-10 px-3 sm:px-4 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <PrevIcon className="w-4 h-4" />
                       <span>{tr('السابق', 'Previous')}</span>
@@ -1825,7 +1825,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                       <button
                         type="button"
                         onClick={() => setActiveModalTab(modalTabs[currentTabIndex + 1].key)}
-                        className="h-10 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+                        className="h-10 px-4 sm:px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs inline-flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
                       >
                         <span>{tr('التالي', 'Next')}</span>
                         <NextIcon className="w-4 h-4" />
@@ -1834,7 +1834,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                       <button
                         type="submit"
                         disabled={submitting || !hasAnyName}
-                        className="h-10 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="h-10 px-4 sm:px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {submitting
                           ? tr('جاري الإنشاء...', 'Creating...')
@@ -1845,7 +1845,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                     <button
                       type="submit"
                       disabled={submitting || !hasAnyName}
-                      className="h-10 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="h-10 px-4 sm:px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {submitting
                         ? tr('جاري الحفظ...', 'Saving...')

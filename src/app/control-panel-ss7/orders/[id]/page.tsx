@@ -243,7 +243,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 no-print">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto no-print">
           <CopyWhatsAppButton order={order} variant="primary" />
 
           <button
@@ -255,14 +255,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
             <span>{tr('طباعة', 'Print')}</span>
           </button>
 
-          <div className="flex items-center gap-2 h-10 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3">
+          <div className="flex items-center justify-between sm:justify-start gap-2 h-10 w-full sm:w-auto bg-zinc-900 border border-zinc-700/80 rounded-xl px-3">
             <span className="text-xs font-bold text-zinc-400">{tr('الحالة:', 'Status:')}</span>
             <div className="relative flex items-center">
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
                 aria-label={tr('حالة الطلب', 'Order status')}
-                className="appearance-none min-w-[138px] h-7 bg-[#111115] border border-zinc-700/70 focus:border-amber-500/70 rounded-lg ps-2.5 pe-7 text-xs font-extrabold text-amber-400 outline-none cursor-pointer"
+                className="appearance-none min-w-[120px] sm:min-w-[138px] h-7 bg-[#111115] border border-zinc-700/70 focus:border-amber-500/70 rounded-lg ps-2.5 pe-7 text-xs font-extrabold text-amber-400 outline-none cursor-pointer"
               >
                 {statusOptions.map((st) => (
                   <option key={st} value={st}>
@@ -294,14 +294,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Purchased Items Card */}
           <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center gap-2.5 px-5 sm:px-6 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
+            <div className="flex items-center gap-2.5 px-4 sm:px-6 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
               <Package className="w-[18px] h-[18px] text-amber-400 shrink-0" />
               <h2 className="text-sm sm:text-base font-extrabold text-white">
                 {tr('منتجات الطلب', 'Order Items')} ({order.items.length})
               </h2>
             </div>
 
-            <div className="px-5 sm:px-6 pb-5 pt-2 flex flex-col divide-y divide-zinc-800/70">
+            <div className="px-4 sm:px-6 pb-4 sm:pb-5 pt-2 flex flex-col divide-y divide-zinc-800/70">
               {order.items.map((item) => {
                 const snap = (item.productSnapshot ?? {}) as Snapshot
                 const rawSize = text(snap.selectedSize) || text(snap.size)
@@ -341,10 +341,10 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                 return (
                   <div
                     key={item.id}
-                    className="flex items-start justify-between gap-4 py-4"
+                    className="flex flex-col min-[420px]:flex-row items-start justify-between gap-3 sm:gap-4 py-4"
                   >
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className="relative w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700/80 overflow-hidden shrink-0">
+                    <div className="flex items-start gap-3 sm:gap-4 w-full min-[420px]:flex-1 min-w-0">
+                      <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-zinc-800 border border-zinc-700/80 overflow-hidden shrink-0">
                         <Image
                           src={productImage}
                           alt={productName}
@@ -456,7 +456,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
                       </div>
                     </div>
 
-                    <div className="text-end flex flex-col gap-1 shrink-0 min-w-[84px]">
+                    <div className="w-full min-[420px]:w-auto flex flex-row min-[420px]:flex-col items-center min-[420px]:items-end justify-between min-[420px]:justify-start gap-1 pt-2 min-[420px]:pt-0 border-t min-[420px]:border-t-0 border-zinc-800/60 shrink-0 min-w-[84px]">
                       <span className="text-xs text-zinc-300 font-semibold tabular-nums">
                         {tr('الكمية:', 'Qty:')} {item.quantity}
                       </span>
@@ -502,14 +502,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 
           {/* Internal Admin Notes Card */}
           <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden no-print">
-            <div className="flex items-center gap-2.5 px-5 sm:px-6 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
+            <div className="flex items-center gap-2.5 px-4 sm:px-6 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
               <FileText className="w-[18px] h-[18px] text-amber-400 shrink-0" />
               <h2 className="text-sm sm:text-base font-extrabold text-white">
                 {tr('ملاحظات الإدارة وتحديث الحالة', 'Internal Admin Notes & Status Remark')}
               </h2>
             </div>
 
-            <div className="p-5 sm:p-6 flex flex-col gap-4">
+            <div className="p-4 sm:p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-zinc-200">
                   {tr('ملاحظة تحديث الحالة (اختياري)', 'Status Update Remark (Optional)')}
@@ -560,14 +560,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
         <div className="flex flex-col gap-6">
           {/* Customer Information Card */}
           <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
+            <div className="flex items-center gap-2.5 px-4 sm:px-5 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
               <User className="w-[18px] h-[18px] text-amber-400 shrink-0" />
               <h2 className="text-sm sm:text-base font-extrabold text-white">
                 {tr('بيانات العميل والشحن', 'Customer Information')}
               </h2>
             </div>
 
-            <div className="p-5 flex flex-col gap-4 text-sm">
+            <div className="p-4 sm:p-5 flex flex-col gap-4 text-sm">
               <div className="flex items-start gap-3">
                 <User className="w-4 h-4 text-zinc-400 mt-0.5 shrink-0" />
                 <div>
@@ -651,14 +651,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
 
           {/* Status Timeline Log Card */}
           <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
+            <div className="flex items-center gap-2.5 px-4 sm:px-5 py-4 border-b border-zinc-800/80 bg-zinc-950/40">
               <Clock className="w-[18px] h-[18px] text-amber-400 shrink-0" />
               <h2 className="text-sm sm:text-base font-extrabold text-white">
                 {tr('سجل الحالات', 'Status History Log')}
               </h2>
             </div>
 
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <div className="border-s-2 border-zinc-700/80 ps-5 ms-1.5 flex flex-col gap-4">
                 {order.statusHistory.length === 0 ? (
                   <div className="text-xs text-zinc-400">

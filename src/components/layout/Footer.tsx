@@ -264,7 +264,7 @@ export function Footer({ locale, categories }: FooterProps) {
               >
                 {isRTL ? 'روابط سريعة' : locale === 'fr' ? 'Liens rapides' : 'Quick Links'}
               </h3>
-              <ul className="grid grid-cols-3 gap-x-2 gap-y-0.5 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1">
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
                 {quickLinks.map((l) => (
                   <li key={`${l.href}-${l.label}`} className="min-w-0">
                     <Link
@@ -312,7 +312,7 @@ export function Footer({ locale, categories }: FooterProps) {
               {isRTL ? 'تواصل معنا' : locale === 'fr' ? 'Contact' : 'Contact'}
             </h3>
 
-            <ul className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-y-1.5 lg:grid-cols-1 text-[0.75rem] sm:text-[0.8125rem]">
+            <ul className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-x-3 gap-y-1.5 lg:grid-cols-1 text-[0.75rem] sm:text-[0.8125rem]">
               {phone && (
                 <li className="min-w-0">
                   <a

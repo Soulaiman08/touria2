@@ -140,7 +140,7 @@ function OrdersContent() {
   const getStatusBadge = (status: string) => {
     const label = statusLabel(status)
     const base =
-      'inline-flex items-center justify-center gap-1.5 min-w-[114px] px-2.5 py-1 rounded-lg border text-[11px] font-bold whitespace-nowrap'
+      'inline-flex items-center justify-center gap-1.5 min-w-[114px] h-7 px-2.5 rounded-lg border text-[11px] leading-none font-bold whitespace-nowrap'
     switch (status) {
       case 'DELIVERED':
         return (
@@ -225,9 +225,9 @@ function OrdersContent() {
       </div>
 
       {/* Search & Status Filter Card */}
-      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 flex flex-col gap-4">
+      <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl p-3.5 sm:p-5 flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[220px]">
+          <div className="relative w-full md:flex-1 md:min-w-[220px]">
             <Search className="w-4 h-4 text-zinc-500 absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
@@ -254,9 +254,9 @@ function OrdersContent() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <Filter className="w-4 h-4 text-amber-400 shrink-0" />
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-initial">
               <select
                 value={statusFilter}
                 onChange={(e) => {
@@ -264,7 +264,7 @@ function OrdersContent() {
                   setPage(1)
                 }}
                 aria-label={tr('تصفية حسب الحالة', 'Filter by status')}
-                className="appearance-none h-11 min-w-[168px] bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-9 text-xs font-bold text-zinc-100 outline-none cursor-pointer transition-colors"
+                className="appearance-none h-11 w-full sm:min-w-[168px] bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-9 text-xs font-bold text-zinc-100 outline-none cursor-pointer transition-colors"
               >
                 <option value="all">{tr('جميع الحالات', 'All Statuses')}</option>
                 {statusOptions.map((st) => (
@@ -343,9 +343,9 @@ function OrdersContent() {
             </div>
           ) : (
             orders.map((ord) => (
-              <div key={ord.id} className="p-4 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+              <div key={ord.id} className="p-3.5 sm:p-4 flex flex-col gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-2.5 sm:gap-3">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-sm font-black text-amber-400">
                         {ord.orderNumber}
@@ -368,8 +368,8 @@ function OrdersContent() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800/70">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-zinc-800/70">
+                  <div className="flex items-center gap-2 flex-1 min-w-[140px]">
                     <div className="relative flex-1 max-w-[190px]">
                       <select
                         value={ord.status}

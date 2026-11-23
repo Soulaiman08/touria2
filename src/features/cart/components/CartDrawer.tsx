@@ -71,7 +71,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
           >
             {/* ── Header ────────────────────────────────────────── */}
             <div
-              className="flex items-center justify-between flex-shrink-0 px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)]"
+              className="flex items-center justify-between flex-shrink-0 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)]"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div className="flex items-center gap-2.5 min-w-0">
@@ -101,7 +101,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
 
             {/* ── Item List ─────────────────────────────────────── */}
             <div
-              className="flex-1 overflow-y-auto no-scrollbar p-4 flex flex-col gap-3"
+              className="flex-1 overflow-y-auto no-scrollbar p-3 sm:p-4 flex flex-col gap-3"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {cartStore.items.length === 0 ? (
@@ -149,7 +149,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   return (
                     <div
                       key={item.id}
-                      className="flex gap-3 p-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)]/65 relative"
+                      className="flex gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)]/65 relative"
                     >
                       {/* 3:4 Product thumbnail */}
                       <div className="w-16 h-[5.3125rem] rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
@@ -197,7 +197,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                         </div>
 
                         {/* Qty Stepper + Price */}
-                        <div className="flex items-center justify-between gap-2 pt-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                           <div className="inline-flex items-center border border-[var(--border)] rounded-xl bg-[var(--card-bg)] overflow-hidden">
                             <button
                               type="button"
@@ -255,7 +255,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                 return (
                   <div
                     key={`${niqab.productId}-${niqab.variantId ?? ''}`}
-                    className="flex items-center gap-3 p-3 rounded-2xl border border-[var(--accent-ring)] bg-[var(--accent-light)]"
+                    className="flex flex-wrap min-[360px]:flex-nowrap items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl border border-[var(--accent-ring)] bg-[var(--accent-light)]"
                   >
                     <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
                       {niqab.mainImage ? (
@@ -311,7 +311,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             {/* ── Footer ────────────────────────────────────────── */}
             {cartStore.items.length > 0 && (
               <div
-                className="px-5 py-4 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex flex-col gap-3 flex-shrink-0"
+                className="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex flex-col gap-3 flex-shrink-0"
                 dir={isRTL ? 'rtl' : 'ltr'}
               >
                 <div className="flex flex-col gap-1.5">

@@ -162,7 +162,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
         className="flex flex-col items-center justify-center py-14 px-4 min-h-[340px]"
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-9 text-center flex flex-col items-center shadow-sm">
+        <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-9 text-center flex flex-col items-center shadow-sm">
           <div className="w-16 h-16 rounded-2xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center mb-5">
             <ShoppingBag className="w-7 h-7 text-[var(--accent)]" aria-hidden="true" />
           </div>
@@ -196,7 +196,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
       {/* ── Form Details Column (7 Cols) ───────────────────────── */}
       <div className="lg:col-span-7 flex flex-col gap-6">
         {/* Card 1: Personal Details */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-7">
           <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-[var(--border)]">
             <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5" />
@@ -292,7 +292,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
         </div>
 
         {/* Card 2: Shipping Address */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-7">
           <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-[var(--border)]">
             <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
               <MapPin className="w-5 h-5" />
@@ -445,7 +445,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
 
       {/* ── Order Summary Column (5 Cols - Sticky) ───────────── */}
       <div className="lg:col-span-5 lg:sticky lg:top-24">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-7">
           <div className="flex items-center gap-3.5 pb-4 mb-5 border-b border-[var(--border)]">
             <div className="w-10 h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
               <ShoppingBag className="w-5 h-5" />
@@ -461,14 +461,14 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
               const itemName = locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn
               const colorLabel = locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn
               return (
-                <div key={item.id} className="flex items-start gap-3 py-3 first:pt-0">
+                <div key={item.id} className="flex items-start gap-2.5 sm:gap-3 py-3 first:pt-0">
                   <Image
                     src={item.mainImage || '/images/brand/logo-icon.png'}
                     alt={itemName}
                     width={56}
                     height={56}
                     referrerPolicy="no-referrer"
-                    className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
+                    className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
                     onError={(e) => {
                       ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
                     }}
@@ -518,14 +518,14 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
               const niqabName = locale === 'ar' ? n.nameAr : locale === 'fr' ? n.nameFr : n.nameEn
               const colorLabel = locale === 'ar' ? n.colorNameAr : locale === 'fr' ? n.colorNameFr : n.colorNameEn
               return (
-                <div key={`niqab-${n.productId}-${n.variantId ?? ''}`} className="flex items-start gap-3 py-3 first:pt-0">
+                <div key={`niqab-${n.productId}-${n.variantId ?? ''}`} className="flex items-start gap-2.5 sm:gap-3 py-3 first:pt-0">
                   <Image
                     src={n.mainImage || '/images/brand/logo-icon.png'}
                     alt={niqabName}
                     width={56}
                     height={56}
                     referrerPolicy="no-referrer"
-                    className="w-14 h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
+                    className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
                     onError={(e) => {
                       ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
                     }}

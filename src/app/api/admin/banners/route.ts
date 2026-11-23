@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { getBannerTranslationsMap, saveBannerTranslations } from '@/lib/banner-i18n.server'
 
 export async function GET() {
   const auth = await requireAdmin()
@@ -11,7 +12,13 @@ export async function GET() {
       orderBy: { sortOrder: 'asc' },
     })
 
-    return NextResponse.json({ items: banners })
+    const translationsMap = await getBannerTranslationsMap(banners)
+    const items = banners.map((banner) => ({
+      ...banner,
+      ...translationsMap.get(banner.id),
+    }))
+
+    return NextResponse.json({ items })
   } catch (error) {
     console.error('Failed to load admin banners:', error)
     return NextResponse.json({ error: 'Unable to load banners' }, { status: 500 })
@@ -28,29 +35,30 @@ function isSafeUrl(url: string): boolean {
   }
 }
 
+function firstNonEmpty(...values: unknown[]): string | null {
+  for (const val of values) {
+    if (typeof val === 'string' && val.trim().length > 0) {
+      return val.trim()
+    }
+  }
+  return null
+}
+
 export async function POST(request: Request) {
   const auth = await requireAdmin(['ADMIN', 'SUPER_ADMIN'])
   if (!auth.ok) return auth.response
   try {
-    let body: {
-      title?: unknown
-      subtitle?: unknown
-      buttonText?: unknown
-      buttonUrl?: unknown
-      imageUrl?: unknown
-      sortOrder?: unknown
-      isActive?: unknown
-    }
+    let body: Record<string, unknown>
     try {
       body = await request.json()
     } catch {
       return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
     }
 
-    const title = typeof body.title === 'string' ? body.title.trim() : ''
+    const title = firstNonEmpty(body.title, body.titleAr, body.titleFr, body.titleEn) || ''
     const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl.trim() : ''
-    const subtitle = typeof body.subtitle === 'string' && body.subtitle.trim() ? body.subtitle.trim() : null
-    const buttonText = typeof body.buttonText === 'string' && body.buttonText.trim() ? body.buttonText.trim() : null
+    const subtitle = firstNonEmpty(body.subtitle, body.subtitleAr, body.subtitleFr, body.subtitleEn)
+    const buttonText = firstNonEmpty(body.buttonText, body.buttonTextAr, body.buttonTextFr, body.buttonTextEn)
     const buttonUrl = typeof body.buttonUrl === 'string' && body.buttonUrl.trim() ? body.buttonUrl.trim() : null
 
     if (!title || !imageUrl) {
@@ -78,9 +86,21 @@ export async function POST(request: Request) {
       },
     })
 
+    const translations = await saveBannerTranslations(banner, {
+      titleAr: firstNonEmpty(body.titleAr, body.title),
+      titleFr: firstNonEmpty(body.titleFr),
+      titleEn: firstNonEmpty(body.titleEn),
+      subtitleAr: firstNonEmpty(body.subtitleAr, body.subtitle),
+      subtitleFr: firstNonEmpty(body.subtitleFr),
+      subtitleEn: firstNonEmpty(body.subtitleEn),
+      buttonTextAr: firstNonEmpty(body.buttonTextAr, body.buttonText),
+      buttonTextFr: firstNonEmpty(body.buttonTextFr),
+      buttonTextEn: firstNonEmpty(body.buttonTextEn),
+    })
+
     revalidatePath('/[locale]', 'page')
 
-    return NextResponse.json({ success: true, banner })
+    return NextResponse.json({ success: true, banner: { ...banner, ...translations } })
   } catch (error: unknown) {
     console.error('Failed to create banner:', error)
     return NextResponse.json({ error: 'Failed to create banner' }, { status: 500 })

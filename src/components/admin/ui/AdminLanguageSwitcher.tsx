@@ -69,17 +69,17 @@ export function AdminLanguageSwitcher() {
         aria-label={tr('تبديل لغة لوحة التحكم', 'Switch admin language')}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className={`flex h-10 items-center justify-center gap-2 rounded-xl border px-2.5 sm:px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 whitespace-nowrap shrink-0 cursor-pointer ${
+        className={`inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border px-2.5 sm:px-3 text-xs font-bold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 whitespace-nowrap shrink-0 cursor-pointer ${
           open
             ? 'border-amber-500/60 bg-amber-500/10 text-amber-300'
             : 'border-zinc-700/80 bg-zinc-900 text-zinc-200 hover:border-zinc-600 hover:bg-zinc-800/80'
         }`}
       >
         <Globe className="h-4 w-4 text-amber-400 shrink-0" aria-hidden="true" />
-        <span className="hidden md:inline">{current.label}</span>
-        <span className="md:hidden font-mono text-[11px]">{current.shortLabel}</span>
+        <span className="hidden md:inline leading-none">{current.label}</span>
+        <span className="md:hidden font-mono text-[11px] leading-none">{current.shortLabel}</span>
         <ChevronDown
-          className={`hidden sm:block h-3.5 w-3.5 text-zinc-400 transition-transform duration-150 ${
+          className={`hidden sm:block h-3.5 w-3.5 text-zinc-400 transition-transform duration-150 shrink-0 ${
             open ? 'rotate-180' : ''
           }`}
           aria-hidden="true"

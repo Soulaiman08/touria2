@@ -279,13 +279,13 @@ export function Header({ locale }: HeaderProps) {
         <div className="container-brand">
             <div
               className={cn(
-                'flex items-center justify-between gap-3 sm:gap-5 transition-all duration-300',
+                'flex items-center justify-between gap-2 min-[380px]:gap-3 sm:gap-5 transition-all duration-300',
                 scrolled ? 'h-14' : 'h-16 md:h-[4.25rem]'
               )}
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {/* Left / Start Zone: Menu Toggle + Brand Lockup */}
-              <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+              <div className="flex items-center gap-1.5 min-[380px]:gap-2 sm:gap-3.5 min-w-0 flex-1 lg:flex-initial">
                 <button
                   type="button"
                   className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-xl border transition-colors duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-95"
@@ -331,7 +331,7 @@ export function Header({ locale }: HeaderProps) {
                   />
                 </div>
                 <span
-                  className="inline-block truncate max-w-[11rem] min-[400px]:max-w-[13rem] sm:max-w-none text-[0.875rem] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
+                  className="inline-block truncate max-w-[8.5rem] min-[380px]:max-w-[11rem] min-[430px]:max-w-[13.5rem] sm:max-w-none text-[0.875rem] sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap"
                   style={{
                     color: 'var(--text-primary)',
                     fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
@@ -365,7 +365,7 @@ export function Header({ locale }: HeaderProps) {
             </nav>
 
             {/* End Zone: Action Controls (clean Search + Cart on mobile; Theme + Language also on sm+) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="flex items-center gap-1 min-[380px]:gap-1.5 sm:gap-2 flex-shrink-0" dir={isRTL ? 'rtl' : 'ltr'}>
               <button
                 type="button"
                 className="icon-btn touch-target"

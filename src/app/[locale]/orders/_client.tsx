@@ -462,7 +462,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       </header>
 
       {/* ── Direct Order Lookup Box ───────────────────────────────── */}
-      <div id="order-lookup" ref={searchRef} className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 mb-6">
+      <div id="order-lookup" ref={searchRef} className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-3.5 sm:p-5 mb-6">
         <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {!searchOpen ? (
             <button
@@ -558,7 +558,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
 
       {/* ── Content ───────────────────────────────────────────────── */}
       {showContent && !isLoggedIn ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-8 sm:p-10 text-center flex flex-col items-center mb-6">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-10 text-center flex flex-col items-center mb-6">
           <div className="w-14 h-16 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] flex items-center justify-center text-[var(--accent)] mb-4">
             <LogIn className="w-6 h-6" />
           </div>
@@ -584,7 +584,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
           </div>
         </div>
       ) : showContent && error ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-8 sm:p-10 text-center flex flex-col items-center mb-6">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-10 text-center flex flex-col items-center mb-6">
           <div className="w-14 h-14 rounded-2xl bg-[var(--error-bg)] border border-[var(--error-border)] flex items-center justify-center text-[var(--error)] mb-4">
             <AlertCircle className="w-6 h-6" />
           </div>
@@ -603,7 +603,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
           </button>
         </div>
       ) : showContent && orders.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-8 sm:p-10 text-center flex flex-col items-center mb-6">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-10 text-center flex flex-col items-center mb-6">
           <div className="w-14 h-16 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] flex items-center justify-center text-[var(--accent)] mb-4">
             <Package className="w-6 h-6" />
           </div>
@@ -634,7 +634,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                 key={order.id}
                 className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] overflow-hidden"
               >
-                <div className="px-5 py-3.5 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex flex-wrap items-center justify-between gap-2.5">
+                <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--border)] bg-[var(--bg-subtle)] flex flex-wrap items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-[var(--text-muted)]">
                       {t.orderNum}
@@ -657,7 +657,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                   </div>
                 </div>
 
-                <div className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4">
                   <div>
                     <span className="text-[11px] text-[var(--text-muted)] inline-flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -688,7 +688,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
                   </div>
                 </div>
 
-                <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex justify-end">
+                <div className="px-4 sm:px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex justify-end">
                   <ForwardButton
                     href={`/${locale}/orders/${order.id}`}
                     label={t.details}
@@ -704,7 +704,7 @@ export function OrdersPageClient({ params }: OrdersPageProps) {
       ) : null}
 
       {/* ── Tracking Guide Card ───────────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 sm:p-7 text-center flex flex-col items-center gap-3">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 sm:p-7 text-center flex flex-col items-center gap-3">
         <div className="w-11 h-11 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] flex items-center justify-center text-[var(--accent)]">
           <MapPin className="w-5 h-5" />
         </div>

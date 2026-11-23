@@ -13,12 +13,15 @@ import {
   Link as LinkIcon,
   ArrowUpDown,
   Loader2,
+  Globe,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
 import { useAdminI18n } from '@/components/admin/providers/AdminI18nContext'
 import { ConfirmModal } from '@/components/admin/ui/ConfirmModal'
 import { ImageUploader } from '@/components/admin/ui/ImageUploader'
+
+type BannerLangTab = 'ar' | 'fr' | 'en'
 
 interface BannerItem {
   id: string
@@ -29,21 +32,37 @@ interface BannerItem {
   imageUrl: string
   sortOrder: number
   isActive: boolean
+  titleAr?: string
+  titleFr?: string
+  titleEn?: string
+  subtitleAr?: string | null
+  subtitleFr?: string | null
+  subtitleEn?: string | null
+  buttonTextAr?: string | null
+  buttonTextFr?: string | null
+  buttonTextEn?: string | null
 }
 
 function BannersContent() {
-  const { tr, dir } = useAdminI18n()
+  const { tr, dir, locale } = useAdminI18n()
   const [banners, setBanners] = useState<BannerItem[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingBanner, setEditingBanner] = useState<BannerItem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<BannerItem | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [langTab, setLangTab] = useState<BannerLangTab>('ar')
 
   const [formData, setFormData] = useState({
-    title: '',
-    subtitle: '',
-    buttonText: tr('تسوق الآن', 'Shop Now'),
+    titleAr: '',
+    titleFr: '',
+    titleEn: '',
+    subtitleAr: '',
+    subtitleFr: '',
+    subtitleEn: '',
+    buttonTextAr: 'تسوقي الآن',
+    buttonTextFr: 'Découvrir',
+    buttonTextEn: 'Shop Now',
     buttonUrl: '/products',
     imageUrl: '',
     sortOrder: '1',
@@ -77,10 +96,17 @@ function BannersContent() {
 
   const openCreateModal = () => {
     setEditingBanner(null)
+    setLangTab(locale === 'en' ? 'en' : 'ar')
     setFormData({
-      title: '',
-      subtitle: '',
-      buttonText: tr('تسوق الآن', 'Shop Now'),
+      titleAr: '',
+      titleFr: '',
+      titleEn: '',
+      subtitleAr: '',
+      subtitleFr: '',
+      subtitleEn: '',
+      buttonTextAr: 'تسوقي الآن',
+      buttonTextFr: 'Découvrir',
+      buttonTextEn: 'Shop Now',
       buttonUrl: '/products',
       imageUrl: '',
       sortOrder: String(banners.length + 1),
@@ -91,10 +117,17 @@ function BannersContent() {
 
   const openEditModal = (banner: BannerItem) => {
     setEditingBanner(banner)
+    setLangTab(locale === 'en' ? 'en' : 'ar')
     setFormData({
-      title: banner.title,
-      subtitle: banner.subtitle || '',
-      buttonText: banner.buttonText || '',
+      titleAr: banner.titleAr || banner.title || '',
+      titleFr: banner.titleFr || '',
+      titleEn: banner.titleEn || '',
+      subtitleAr: banner.subtitleAr ?? banner.subtitle ?? '',
+      subtitleFr: banner.subtitleFr || '',
+      subtitleEn: banner.subtitleEn || '',
+      buttonTextAr: banner.buttonTextAr ?? banner.buttonText ?? '',
+      buttonTextFr: banner.buttonTextFr || '',
+      buttonTextEn: banner.buttonTextEn || '',
       buttonUrl: banner.buttonUrl || '',
       imageUrl: banner.imageUrl,
       sortOrder: String(banner.sortOrder || 0),
@@ -105,6 +138,13 @@ function BannersContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const primaryTitle =
+      formData.titleAr.trim() || formData.titleEn.trim() || formData.titleFr.trim()
+    if (!primaryTitle) {
+      error(tr('العنوان الرئيسي للبانر مطلوب في لغة واحدة على الأقل', 'Banner title is required in at least one language'))
+      return
+    }
     if (!formData.imageUrl.trim()) {
       error(tr('صورة البانر مطلوبة', 'Banner image is required'))
       return
@@ -114,10 +154,27 @@ function BannersContent() {
     try {
       const parsedSortOrder = Number.parseInt(formData.sortOrder, 10)
       const payload = {
-        title: formData.title,
-        subtitle: formData.subtitle || null,
-        buttonText: formData.buttonText || null,
-        buttonUrl: formData.buttonUrl || null,
+        title: primaryTitle,
+        subtitle:
+          formData.subtitleAr.trim() ||
+          formData.subtitleEn.trim() ||
+          formData.subtitleFr.trim() ||
+          null,
+        buttonText:
+          formData.buttonTextAr.trim() ||
+          formData.buttonTextEn.trim() ||
+          formData.buttonTextFr.trim() ||
+          null,
+        titleAr: formData.titleAr.trim(),
+        titleFr: formData.titleFr.trim(),
+        titleEn: formData.titleEn.trim(),
+        subtitleAr: formData.subtitleAr.trim() || null,
+        subtitleFr: formData.subtitleFr.trim() || null,
+        subtitleEn: formData.subtitleEn.trim() || null,
+        buttonTextAr: formData.buttonTextAr.trim() || null,
+        buttonTextFr: formData.buttonTextFr.trim() || null,
+        buttonTextEn: formData.buttonTextEn.trim() || null,
+        buttonUrl: formData.buttonUrl.trim() || null,
         imageUrl: formData.imageUrl.trim(),
         sortOrder: Number.isFinite(parsedSortOrder) ? parsedSortOrder : 0,
         isActive: formData.isActive,
@@ -171,22 +228,32 @@ function BannersContent() {
     }
   }
 
+  const displayBannerTitle = (ban: BannerItem) =>
+    locale === 'en'
+      ? ban.titleEn || ban.titleFr || ban.titleAr || ban.title
+      : ban.titleAr || ban.titleFr || ban.titleEn || ban.title
+
+  const displayBannerSubtitle = (ban: BannerItem) =>
+    locale === 'en'
+      ? ban.subtitleEn || ban.subtitleFr || ban.subtitleAr || ban.subtitle
+      : ban.subtitleAr || ban.subtitleFr || ban.subtitleEn || ban.subtitle
+
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-zinc-800/80">
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3.5 min-w-0">
           <div className="w-11 h-11 rounded-xl bg-amber-500/12 border border-amber-500/25 text-amber-400 flex items-center justify-center shrink-0">
             <ImageIcon className="w-5 h-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               {tr('البانرات والشرائح الرئيسية', 'Banners & Hero Slides')}
             </h1>
             <p className="text-xs sm:text-[13px] text-zinc-400 mt-0.5">
               {tr(
-                'إدارة صور العروض الترويجية والعناوين وأزرار التوجيه',
-                'Manage storefront hero banners, promo slides, titles, and CTA buttons'
+                'إدارة صور العروض الترويجية والعناوين متعددة اللغات وأزرار التوجيه',
+                'Manage storefront promo banners, multilingual copy, and CTA buttons'
               )}
             </p>
           </div>
@@ -233,19 +300,21 @@ function BannersContent() {
               <div className="relative aspect-video bg-zinc-950 overflow-hidden">
                 <Image
                   src={ban.imageUrl || '/images/brand/logo-full.png'}
-                  alt={ban.title}
+                  alt={displayBannerTitle(ban)}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   quality={92}
                   referrerPolicy="no-referrer"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/35 to-transparent p-5 flex flex-col justify-end">
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/50 to-transparent p-5 flex flex-col justify-end">
                   <h3 className="text-base font-black text-white leading-snug line-clamp-2">
-                    {ban.title}
+                    {displayBannerTitle(ban)}
                   </h3>
-                  {ban.subtitle && (
-                    <p className="text-xs text-zinc-300 mt-1 line-clamp-2">{ban.subtitle}</p>
+                  {displayBannerSubtitle(ban) && (
+                    <p className="text-xs text-zinc-300 mt-1 line-clamp-2">
+                      {displayBannerSubtitle(ban)}
+                    </p>
                   )}
                 </div>
 
@@ -272,12 +341,16 @@ function BannersContent() {
               </div>
 
               {/* Details Footer */}
-              <div className="p-5 flex flex-col gap-3.5">
-                <div className="flex items-center justify-between gap-3 text-xs text-zinc-400">
+              <div className="p-4 sm:p-5 flex flex-col gap-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
                   <span className="inline-flex items-center gap-1.5 min-w-0">
                     <LinkIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span className="truncate text-zinc-200 font-semibold">
-                      {ban.buttonText || tr('بدون زر', 'No Button')}
+                      {(locale === 'en'
+                        ? ban.buttonTextEn || ban.buttonTextFr || ban.buttonTextAr
+                        : ban.buttonTextAr || ban.buttonTextFr || ban.buttonTextEn) ||
+                        ban.buttonText ||
+                        tr('بدون زر', 'No Button')}
                     </span>
                     {ban.buttonUrl && (
                       <span className="font-mono text-[11px] text-zinc-500 truncate max-w-[160px]" dir="ltr">
@@ -291,7 +364,13 @@ function BannersContent() {
                 </div>
 
                 <div className="pt-3 border-t border-zinc-800 flex items-center justify-between text-xs">
-                  <span className="text-zinc-400">{tr('الحالة', 'Status')}</span>
+                  <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+                    <span>{ban.titleAr ? 'AR' : '—'}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{ban.titleFr ? 'FR' : '—'}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{ban.titleEn ? 'EN' : '—'}</span>
+                  </div>
                   {ban.isActive ? (
                     <span className="inline-flex items-center gap-1 text-emerald-400 font-bold text-[11px]">
                       <CheckCircle2 className="w-3.5 h-3.5" />
@@ -316,10 +395,10 @@ function BannersContent() {
           dir={dir}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div className="w-full max-w-xl max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
-            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
+          <div className="w-full max-w-xl max-h-[94dvh] sm:max-h-[90dvh] flex flex-col bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden text-zinc-100">
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-zinc-800 bg-zinc-950/60 shrink-0">
               <h2 className="text-base sm:text-lg font-black text-white">
                 {editingBanner
                   ? tr('تعديل البانر', 'Edit Banner')
@@ -336,47 +415,164 @@ function BannersContent() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-              <div className="flex-1 overflow-y-auto admin-scroll p-5 sm:p-6 space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                    {tr('العنوان الرئيسي للبانر', 'Banner Main Title')} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="تشكيلة الجلابة المغربية 2026"
-                    className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
-                  />
-                </div>
+              <div className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 space-y-5">
+                {/* Language Switcher for Banner Copy */}
+                <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3.5 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-300">
+                      <Globe className="w-3.5 h-3.5 text-amber-400" />
+                      {tr('نصوص البانر حسب اللغة', 'Banner Copy by Language')}
+                    </span>
 
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                    {tr('العنوان الفرعي', 'Subtitle')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.subtitle}
-                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                    placeholder="أناقة فاخرة وتطريز مغربي أصيل"
-                    className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
-                  />
+                    <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-zinc-900 border border-zinc-800">
+                      {(
+                        [
+                          { id: 'ar', label: 'العربية' },
+                          { id: 'fr', label: 'Français' },
+                          { id: 'en', label: 'English' },
+                        ] as const
+                      ).map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setLangTab(tab.id)}
+                          className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                            langTab === tab.id
+                              ? 'bg-amber-500 text-zinc-950'
+                              : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {langTab === 'ar' && (
+                    <div className="space-y-3.5" dir="rtl">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          {tr('العنوان الرئيسي (بالعربية)', 'Main Title (Arabic)')}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.titleAr}
+                          onChange={(e) => setFormData({ ...formData, titleAr: e.target.value })}
+                          placeholder="تشكيلة ثريا المغربي الجديدة"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          {tr('العنوان الفرعي (بالعربية)', 'Subtitle (Arabic)')}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.subtitleAr}
+                          onChange={(e) => setFormData({ ...formData, subtitleAr: e.target.value })}
+                          placeholder="جلابيات مغربية فاخرة مصنوعة يدوياً"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          {tr('نص الزر (بالعربية)', 'Button Text (Arabic)')}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.buttonTextAr}
+                          onChange={(e) => setFormData({ ...formData, buttonTextAr: e.target.value })}
+                          placeholder="تسوقي الآن"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {langTab === 'fr' && (
+                    <div className="space-y-3.5" dir="ltr">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Titre principal (Français)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.titleFr}
+                          onChange={(e) => setFormData({ ...formData, titleFr: e.target.value })}
+                          placeholder="Nouvelle Collection Thuraya"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Sous-titre (Français)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.subtitleFr}
+                          onChange={(e) => setFormData({ ...formData, subtitleFr: e.target.value })}
+                          placeholder="Djellabas marocaines de luxe confectionnées à la main"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Texte du bouton (Français)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.buttonTextFr}
+                          onChange={(e) => setFormData({ ...formData, buttonTextFr: e.target.value })}
+                          placeholder="Découvrir"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {langTab === 'en' && (
+                    <div className="space-y-3.5" dir="ltr">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Main Title (English)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.titleEn}
+                          onChange={(e) => setFormData({ ...formData, titleEn: e.target.value })}
+                          placeholder="New Thuraya Collection"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Subtitle (English)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.subtitleEn}
+                          onChange={(e) => setFormData({ ...formData, subtitleEn: e.target.value })}
+                          placeholder="Handcrafted luxury Moroccan djellabas with heritage detail"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                          Button Text (English)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.buttonTextEn}
+                          onChange={(e) => setFormData({ ...formData, buttonTextEn: e.target.value })}
+                          placeholder="Shop Now"
+                          className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                      {tr('نص الزر', 'Button Text')}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.buttonText}
-                      onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })}
-                      placeholder={tr('تسوق الآن', 'Shop Now')}
-                      className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm text-zinc-100 outline-none"
-                    />
-                  </div>
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1.5">
                       {tr('رابط التوجيه', 'Button Target URL')}
@@ -390,19 +586,18 @@ function BannersContent() {
                       className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-xs font-mono text-zinc-100 outline-none"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                    {tr('ترتيب العرض', 'Sort Order')}
-                  </label>
-                  <input
-                    type="number"
-                    dir="ltr"
-                    value={formData.sortOrder}
-                    onChange={(e) => setFormData({ ...formData, sortOrder: e.target.value })}
-                    className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm font-mono text-zinc-100 outline-none"
-                  />
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('ترتيب العرض', 'Sort Order')}
+                    </label>
+                    <input
+                      type="number"
+                      dir="ltr"
+                      value={formData.sortOrder}
+                      onChange={(e) => setFormData({ ...formData, sortOrder: e.target.value })}
+                      className="w-full h-11 bg-[#0b0b0e] border border-zinc-700/80 focus:border-amber-500/70 rounded-xl px-3.5 text-sm font-mono text-zinc-100 outline-none tabular-nums"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -429,7 +624,7 @@ function BannersContent() {
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-5 sm:px-6 py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
+              <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

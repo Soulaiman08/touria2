@@ -244,9 +244,9 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
   const avgScore = average !== null ? average.toFixed(1) : count > 0 ? '5.0' : null
 
   return (
-    <section className="mt-6 sm:mt-8 lg:mt-10" dir={isRTL ? 'rtl' : 'ltr'}>
+    <section className="mt-6 sm:mt-8 lg:mt-10 min-w-0 w-full" dir={isRTL ? 'rtl' : 'ltr'}>
       <div
-        className="rounded-2xl border overflow-hidden"
+        className="rounded-2xl border overflow-hidden w-full"
         style={{
           borderColor: 'var(--border)',
           background: 'var(--card-bg)',
@@ -333,7 +333,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
         {showForm && (
           <form
             onSubmit={handleSubmit}
-            className="p-5 sm:p-6 border-b space-y-4"
+            className="p-4 sm:p-6 border-b space-y-4"
             style={{
               background: 'var(--bg-subtle)',
               borderColor: 'var(--border)',
@@ -409,7 +409,7 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
 
             {errorMsg && <p className="text-xs font-bold text-red-500">{errorMsg}</p>}
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <button
                 type="submit"
                 disabled={submitting || rating === 0}

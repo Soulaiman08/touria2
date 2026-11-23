@@ -104,13 +104,13 @@ export function BreadcrumbBar({
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
       className={cn(
-        'flex items-center justify-between gap-2 sm:gap-4 pb-2.5 sm:pb-3 border-b border-[var(--border-subtle)]',
+        'flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pb-2.5 sm:pb-3 border-b border-[var(--border-subtle)] min-w-0 w-full',
         className
       )}
     >
       <nav
         aria-label={isRTL ? 'مسار التنقل' : locale === 'fr' ? "Fil d'Ariane" : 'Breadcrumb'}
-        className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-[13px] min-w-0 flex-1 overflow-hidden"
+        className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-[13px] min-w-[min(100%,13.5rem)] flex-1 overflow-hidden"
       >
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1
@@ -142,7 +142,7 @@ export function BreadcrumbBar({
               ) : (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className="py-1 font-semibold text-[var(--text-primary)] truncate"
+                  className="py-1 font-semibold text-[var(--text-primary)] truncate min-w-0"
                 >
                   {item.label}
                 </span>
@@ -153,7 +153,7 @@ export function BreadcrumbBar({
       </nav>
 
       {backHref && backLabel && (
-        <BackButton href={backHref} label={backLabel} locale={locale} />
+        <BackButton href={backHref} label={backLabel} locale={locale} className="ms-auto" />
       )}
     </div>
   )

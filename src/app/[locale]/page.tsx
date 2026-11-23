@@ -26,6 +26,7 @@ import { prisma } from '@/lib/prisma'
 import { formatPrice } from '@/lib/utils'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 import { FeaturedCollectionShowcase } from '@/components/home/FeaturedCollectionShowcase'
+import { BannersRow } from '@/components/home/BannersRow'
 import { ForwardButton } from '@/components/shared/PageNavigation'
 
 export const dynamic = 'force-dynamic'
@@ -122,7 +123,7 @@ export default async function HomePage({ params }: HomePageProps) {
     productService.getProducts({ limit: 24 }),
     productService.getProducts({ sort: 'newest', limit: 8 }),
     categoryService.getCategories(),
-    bannerService.getActiveBanners(),
+    bannerService.getActiveBanners(locale),
     getSiteSettings(),
   ])
 
@@ -441,18 +442,18 @@ export default async function HomePage({ params }: HomePageProps) {
 
         <div className="container-brand relative z-10">
           <div
-            className="grid grid-cols-1 min-[340px]:grid-cols-12 items-center gap-x-3 gap-y-4 min-[340px]:gap-x-3.5 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16"
+            className="grid grid-cols-12 items-center gap-x-3 gap-y-4 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {/* Editorial Copy Column */}
-            <div className="min-[340px]:col-span-7 lg:col-span-6 flex flex-col items-center min-[340px]:items-start text-center min-[340px]:text-start space-y-2 sm:space-y-4 lg:space-y-5 min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-3 text-[0.5625rem] sm:text-xs font-semibold uppercase tracking-[0.06em] sm:tracking-[0.14em] text-[var(--gold)] max-w-full">
+            <div className="col-span-7 lg:col-span-6 flex flex-col items-start text-start space-y-2.5 sm:space-y-4 lg:space-y-5 min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-3 text-[0.5625rem] min-[390px]:text-[0.625rem] sm:text-xs font-semibold uppercase tracking-[0.08em] sm:tracking-[0.14em] text-[var(--gold)] max-w-full">
                 <span className="w-3 sm:w-6 h-px bg-[var(--gold)]/60 flex-shrink-0" aria-hidden="true" />
                 <span className="truncate">{labels.heroEyebrow}</span>
               </div>
 
               <h1
-                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)] text-[clamp(1.15rem,5vw,1.7rem)] sm:text-[clamp(1.65rem,3.3vw,3.65rem)]"
+                className="font-extrabold tracking-tight leading-[1.15] text-balance text-[var(--text-primary)] text-[clamp(1.2rem,5.2vw,1.75rem)] sm:text-[clamp(1.75rem,3.3vw,3.65rem)]"
                 style={{
                   fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)',
                 }}
@@ -463,27 +464,27 @@ export default async function HomePage({ params }: HomePageProps) {
                 </span>
               </h1>
 
-              <p className="text-[0.6875rem] sm:text-sm lg:text-base max-w-md lg:max-w-lg leading-[1.45] sm:leading-relaxed text-[var(--text-muted)] line-clamp-3 sm:line-clamp-none">
+              <p className="text-[0.75rem] sm:text-sm lg:text-base max-w-md lg:max-w-lg leading-[1.45] sm:leading-relaxed line-clamp-3 sm:line-clamp-none text-[var(--text-muted)]">
                 {labels.heroSub}
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center min-[340px]:justify-start gap-1.5 sm:gap-2.5 lg:gap-3.5 pt-0.5 sm:pt-1 w-full">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-2.5 lg:gap-3.5 pt-0.5 sm:pt-1 w-full">
                 <Link
                   href={`/${locale}/products`}
-                  className="btn btn-primary rounded-xl w-auto lg:min-w-[11.25rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
+                  className="btn btn-primary rounded-xl sm:flex-initial lg:min-w-[11.25rem] !min-h-[2.375rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-2 sm:!py-2.5 !px-3.5 sm:!px-5 lg:!px-7 text-[0.75rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap max-w-full"
                 >
-                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
+                  <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-105 flex-shrink-0" />
                   <span>{labels.heroCta}</span>
                 </Link>
 
                 <Link
                   href={`/${locale}/about`}
-                  className="btn btn-outline rounded-xl w-auto lg:min-w-[10rem] !min-h-[2rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-1.5 sm:!py-2.5 !px-2.5 sm:!px-5 lg:!px-7 text-[0.625rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap"
+                  className="btn btn-outline rounded-xl sm:flex-initial lg:min-w-[10rem] !min-h-[2.375rem] sm:!min-h-[2.75rem] lg:!min-h-[3rem] !py-2 sm:!py-2.5 !px-3.5 sm:!px-5 lg:!px-7 text-[0.75rem] sm:text-xs lg:text-sm justify-center group whitespace-nowrap max-w-full"
                 >
                   <span>{labels.heroSec}</span>
                   <ArrowRight
-                    className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${
                       isRTL
                         ? 'rotate-180 group-hover:-translate-x-0.5'
                         : 'group-hover:translate-x-0.5'
@@ -508,8 +509,8 @@ export default async function HomePage({ params }: HomePageProps) {
             </div>
 
             {/* Moroccan Architectural Arch Editorial Showcase */}
-            <div className="min-[340px]:col-span-5 lg:col-span-6 relative flex justify-center min-[340px]:justify-end ps-1.5 sm:ps-0">
-              <div className="relative w-full max-w-[12.5rem] min-[340px]:max-w-[11.5rem] sm:max-w-[16rem] md:max-w-[18.75rem] lg:max-w-[24.5rem] xl:max-w-[25.625rem]">
+            <div className="col-span-5 lg:col-span-6 relative flex justify-end min-w-0">
+              <div className="relative w-full max-w-[9.75rem] min-[390px]:max-w-[11rem] sm:max-w-[15.5rem] md:max-w-[18.75rem] lg:max-w-[24.5rem] xl:max-w-[25.625rem]">
                 {heroPrimary ? (
                   <Link
                     href={`/${locale}/products/${heroPrimary.slug}`}
@@ -522,7 +523,7 @@ export default async function HomePage({ params }: HomePageProps) {
                       fill
                       priority
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 180px, (max-width: 1024px) 300px, 410px"
+                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 300px, 410px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     <div
@@ -535,26 +536,26 @@ export default async function HomePage({ params }: HomePageProps) {
 
                     {/* Subtle Framed Showcase Caption */}
                     <div
-                      className={`absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-0.5 sm:gap-1 lg:gap-3 text-white ${
+                      className={`absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-1 lg:gap-3 text-white ${
                         heroSecondary
-                          ? 'ps-10 pe-2 pb-2 min-[420px]:ps-12 min-[420px]:pe-2.5 min-[420px]:pb-2.5 sm:ps-20 sm:pe-4 sm:pb-3.5 md:ps-24 md:pe-4 md:pb-4 lg:ps-28 lg:pe-6 lg:pb-6'
+                          ? 'ps-10 pe-2 pb-2 min-[390px]:ps-11 min-[390px]:pe-2.5 min-[390px]:pb-2.5 sm:ps-20 sm:pe-4 sm:pb-3.5 md:ps-24 md:pe-4 md:pb-4 lg:ps-28 lg:pe-6 lg:pb-6'
                           : 'p-2.5 sm:p-4 lg:p-6'
                       }`}
                     >
                       <div className="min-w-0 space-y-0.5">
-                        <span className="hidden min-[420px]:block text-[0.5rem] sm:text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-[#E4C48E] whitespace-nowrap">
+                        <span className="hidden sm:block text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-[#E4C48E] whitespace-nowrap">
                           {labels.featuredPieceLabel}
                         </span>
-                        <p className="text-[0.625rem] min-[420px]:text-[0.6875rem] sm:text-xs lg:text-base font-bold truncate">
+                        <p className="text-[0.6875rem] sm:text-xs lg:text-base font-bold truncate">
                           {heroPrimaryName}
                         </p>
                       </div>
-                      <div className="flex items-center justify-between lg:justify-end gap-1 sm:gap-2 flex-shrink-0">
-                        <span className="text-[0.625rem] min-[420px]:text-[0.6875rem] sm:text-xs lg:text-sm font-bold tabular-nums text-[#F6EFE6]">
+                      <div className="flex items-center justify-between lg:justify-end gap-1.5 sm:gap-2 flex-shrink-0">
+                        <span className="text-[0.6875rem] sm:text-xs lg:text-sm font-bold tabular-nums text-[#F6EFE6]">
                           {formatPrice(heroPrimary.salePrice ?? heroPrimary.basePrice, locale)}
                         </span>
                         <span className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                          <ArrowUpRight className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 ${isRTL ? '-scale-x-100' : ''}`} />
+                          <ArrowUpRight className={`w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 ${isRTL ? '-scale-x-100' : ''}`} />
                         </span>
                       </div>
                     </div>
@@ -570,7 +571,7 @@ export default async function HomePage({ params }: HomePageProps) {
                       fill
                       priority
                       referrerPolicy="no-referrer"
-                      sizes="(max-width: 640px) 180px, (max-width: 1024px) 300px, 410px"
+                      sizes="(max-width: 640px) 176px, (max-width: 1024px) 300px, 410px"
                       className="object-cover"
                     />
                   </div>
@@ -581,7 +582,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   <Link
                     href={`/${locale}/products/${heroSecondary.slug}`}
                     aria-label={heroSecondaryName}
-                    className="block absolute -bottom-1.5 -start-1.5 w-10 min-[420px]:-bottom-2 min-[420px]:-start-2 min-[420px]:w-12 sm:-bottom-3 sm:-start-3 sm:w-20 md:-bottom-4 md:-start-4 md:w-24 lg:-bottom-5 lg:-start-5 lg:w-28 aspect-[3/4] rounded-md sm:rounded-xl overflow-hidden border-[1.5px] sm:border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
+                    className="block absolute -bottom-2 -start-2 w-10 min-[390px]:w-11 sm:-bottom-3 sm:-start-3 sm:w-20 md:-bottom-4 md:-start-4 md:w-24 lg:-bottom-5 lg:-start-5 lg:w-28 aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group no-underline transition-transform duration-300 hover:-translate-y-1"
                   >
                     <Image
                       src={heroSecondary.mainImage || '/images/brand/logo-icon.png'}
@@ -596,8 +597,8 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
             </div>
 
-            {/* Clean Typographic Assurances (Mobile full-width single compact row below columns) */}
-            <div className="flex sm:hidden min-[340px]:col-span-12 flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-2.5 border-t border-[var(--border-subtle)] text-[0.625rem] font-medium text-[var(--text-muted)] w-full">
+            {/* Clean Typographic Assurances (Mobile full-width compact row below columns) */}
+            <div className="col-span-12 flex sm:hidden flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-2.5 border-t border-[var(--border-subtle)] text-[0.625rem] min-[390px]:text-[0.6875rem] font-medium text-[var(--text-muted)] w-full">
               {labels.trustLine.map((item, idx) => (
                 <span key={item} className="inline-flex items-center gap-2">
                   {idx > 0 && (
@@ -616,102 +617,7 @@ export default async function HomePage({ params }: HomePageProps) {
       {/* ===================================================
           2. FEATURED BANNERS (only when active in DB)
       =================================================== */}
-      {banners.length > 0 && (
-        <section
-          className="home-section"
-          aria-label={isRTL ? 'العروض الرئيسية' : 'Featured Banners'}
-        >
-          <div className="container-brand">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {banners.map((banner) => {
-                const rawUrl = banner.buttonUrl?.trim() || ''
-                const isExternalUrl =
-                  rawUrl.startsWith('http://') || rawUrl.startsWith('https://')
-                const hasLocalePrefix = /^\/(ar|fr|en)(\/|\?|$)/.test(rawUrl)
-                const resolvedButtonUrl = !rawUrl
-                  ? ''
-                  : isExternalUrl
-                    ? rawUrl
-                    : rawUrl.startsWith('/')
-                      ? hasLocalePrefix
-                        ? rawUrl
-                        : `/${locale}${rawUrl === '/' ? '' : rawUrl}`
-                      : `/${locale}/${rawUrl}`
-
-                return (
-                  <div
-                    key={banner.id}
-                    className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-muted)] group aspect-[16/10] sm:aspect-video min-h-[14rem]"
-                    style={{ boxShadow: 'var(--card-shadow)' }}
-                  >
-                    <Image
-                      src={banner.imageUrl}
-                      alt={banner.title}
-                      fill
-                      quality={90}
-                      referrerPolicy="no-referrer"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.32) 55%, transparent 100%)',
-                      }}
-                    />
-
-                    <div
-                      className="absolute bottom-0 inset-x-0 p-5 sm:p-7 space-y-2"
-                      dir={isRTL ? 'rtl' : 'ltr'}
-                    >
-                      <h3
-                        className="text-lg sm:text-2xl font-bold text-white leading-tight text-balance line-clamp-2"
-                        style={{
-                          fontFamily: isRTL
-                            ? 'var(--font-arabic)'
-                            : 'var(--font-display)',
-                        }}
-                      >
-                        {banner.title}
-                      </h3>
-
-                      {banner.subtitle && (
-                        <p className="text-xs sm:text-sm text-white/85 max-w-md line-clamp-2">
-                          {banner.subtitle}
-                        </p>
-                      )}
-
-                      {banner.buttonText && resolvedButtonUrl && (
-                        isExternalUrl ? (
-                          <a
-                            href={resolvedButtonUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 mt-1.5"
-                          >
-                            <span>{banner.buttonText}</span>
-                            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-                          </a>
-                        ) : (
-                          <Link
-                            href={resolvedButtonUrl}
-                            className="btn btn-primary btn-sm rounded-xl inline-flex items-center gap-2 mt-1.5"
-                          >
-                            <span>{banner.buttonText}</span>
-                            <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-                          </Link>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-      )}
+      <BannersRow banners={banners} locale={locale} />
 
       {/* ===================================================
           3. COLLECTIONS & BEST SELLERS (In-page category filter tabs)

@@ -169,7 +169,7 @@ export function AdminNotifications() {
         title={tr('إشعارات المتجر', 'Store Notifications')}
         aria-label={tr('إشعارات المتجر', 'Store Notifications')}
         aria-expanded={open}
-        className={`relative h-10 w-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer ${
+        className={`relative h-10 w-10 rounded-xl border inline-flex items-center justify-center transition-colors shrink-0 cursor-pointer ${
           open
             ? 'border-amber-500/60 bg-zinc-800 text-amber-400'
             : unreadCount > 0
@@ -179,7 +179,7 @@ export function AdminNotifications() {
       >
         <Bell className="w-[18px] h-[18px]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -end-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 text-[10px] font-black flex items-center justify-center border-2 border-zinc-900 tabular-nums shadow-sm">
+          <span className="absolute -top-1.5 -end-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 text-[10px] leading-none font-black inline-flex items-center justify-center border-2 border-zinc-900 tabular-nums shadow-sm">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

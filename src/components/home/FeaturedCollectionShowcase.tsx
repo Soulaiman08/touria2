@@ -218,7 +218,7 @@ export function FeaturedCollectionShowcase({
         {/* Filtered Collection Grid */}
         {isLoadingActive ? (
           <div
-            className="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
+            className="grid grid-cols-1 min-[350px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 min-[400px]:gap-3 sm:gap-6 lg:gap-7"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {Array.from({ length: 4 }).map((_, idx) => (
@@ -252,7 +252,7 @@ export function FeaturedCollectionShowcase({
           <div
             key={activeCategory}
             role="tabpanel"
-            className="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7"
+            className="grid grid-cols-1 min-[350px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 min-[400px]:gap-3 sm:gap-6 lg:gap-7"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {displayedProducts.map((p, i) => (

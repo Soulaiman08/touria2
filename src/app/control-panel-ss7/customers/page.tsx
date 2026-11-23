@@ -200,11 +200,11 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
             {customers.map((cust) => (
               <div
                 key={cust.id}
-                className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 space-y-3.5"
+                className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-3.5 sm:p-4 space-y-3.5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="relative w-11 h-11 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-black flex items-center justify-center text-sm shrink-0 overflow-hidden">
+                    <div className="relative w-11 h-11 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-black leading-none flex items-center justify-center text-sm shrink-0 overflow-hidden select-none">
                       {cust.avatarUrl ? (
                         <Image
                           src={cust.avatarUrl}
@@ -243,7 +243,7 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
                     <a
                       href={`tel:${cust.phone}`}
                       dir="ltr"
-                      className="font-mono font-bold text-amber-400 hover:underline inline-block mt-0.5"
+                      className="font-mono font-bold text-amber-400 hover:underline inline-block mt-0.5 truncate max-w-full"
                     >
                       {cust.phone}
                     </a>
@@ -268,7 +268,7 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
                   <span className="text-[11px] text-zinc-500">
                     {tr('آخر طلب:', 'Last order:')}{' '}
                     <span className="text-zinc-300">
@@ -308,7 +308,7 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
                     <tr key={cust.id} className="hover:bg-zinc-800/35 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-black flex items-center justify-center text-sm shrink-0 overflow-hidden">
+                          <div className="relative w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-black leading-none flex items-center justify-center text-sm shrink-0 overflow-hidden select-none">
                             {cust.avatarUrl ? (
                               <Image
                                 src={cust.avatarUrl}
@@ -383,15 +383,15 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
       {/* Customer Account Details Modal */}
       {selectedCustomer && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm"
           onClick={() => setSelectedCustomer(null)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl text-zinc-100"
+            className="w-full max-w-2xl max-h-[94dvh] sm:max-h-[88vh] flex flex-col overflow-hidden bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl text-zinc-100"
           >
             {/* Sticky Modal Header */}
-            <div className="flex items-center justify-between gap-4 px-5 sm:px-7 py-5 border-b border-zinc-800 bg-zinc-900/95 shrink-0">
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b border-zinc-800 bg-zinc-900/95 shrink-0">
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-950 font-black text-xl flex items-center justify-center shadow-lg shadow-amber-500/20 overflow-hidden shrink-0">
                   {selectedCustomer.avatarUrl ? (
@@ -436,7 +436,7 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
             </div>
 
             {/* Scrollable Body */}
-            <div className="overflow-y-auto admin-scroll p-5 sm:p-7 space-y-6">
+            <div className="overflow-y-auto admin-scroll p-4 sm:p-7 space-y-5 sm:space-y-6">
               {/* Contact Strip */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-300">
                 {selectedCustomer.phone && (
@@ -517,7 +517,7 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
                       <Link
                         key={ord.id}
                         href={`/control-panel-ss7/orders/${ord.id}`}
-                        className="px-4 py-3.5 flex items-center justify-between gap-4 hover:bg-zinc-800/40 transition-colors group"
+                        className="px-3.5 sm:px-4 py-3.5 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 hover:bg-zinc-800/40 transition-colors group"
                       >
                         <div className="min-w-0">
                           <span dir="ltr" className="font-mono font-black text-amber-400 text-sm inline-block group-hover:underline">
@@ -534,7 +534,7 @@ function CustomersContent({ initialSearch }: { initialSearch: string }) {
                               {formatPrice(ord.total, 'fr')}
                             </span>
                             <span
-                              className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border whitespace-nowrap ${badgeClass}`}
+                              className={`inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-md border whitespace-nowrap ${badgeClass}`}
                             >
                               {statusLabel(ord.status)}
                             </span>

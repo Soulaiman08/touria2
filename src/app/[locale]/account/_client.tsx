@@ -162,7 +162,7 @@ export function AccountPageClient({ params }: AccountPageProps) {
 
       {!user ? (
         /* ── Not logged in ── */
-        <div className="p-7 sm:p-8 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] text-center flex flex-col items-center">
+        <div className="p-5 sm:p-8 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] text-center flex flex-col items-center">
           <div className="w-14 h-16 rounded-t-[999px] rounded-b-xl bg-[var(--accent-light)] border border-[var(--gold-ring)] text-[var(--accent)] flex items-center justify-center mb-4">
             <UserRound className="w-6 h-6" />
           </div>
@@ -185,9 +185,9 @@ export function AccountPageClient({ params }: AccountPageProps) {
       ) : (
         /* ── Logged in ── */
         <div className="flex flex-col gap-4 pb-8">
-          <div className="p-5 sm:p-7 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]">
+          <div className="p-4 sm:p-7 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)]">
             {/* Avatar + Name */}
-            <div className="flex items-center gap-4 pb-5 mb-6 border-b border-[var(--border)]">
+            <div className="flex flex-wrap items-center gap-3.5 sm:gap-4 pb-5 mb-6 border-b border-[var(--border)]">
               <div className="relative flex-shrink-0">
                 {user.avatarUrl ? (
                   <div className="relative w-16 h-[72px] rounded-t-[999px] rounded-b-xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)]">

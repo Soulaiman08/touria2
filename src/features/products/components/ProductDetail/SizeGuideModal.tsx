@@ -132,7 +132,7 @@ export function SizeGuideModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9998] flex items-center justify-center p-2.5 sm:p-4 bg-black/65 backdrop-blur-sm animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="size-guide-title"
@@ -140,7 +140,7 @@ export function SizeGuideModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl max-h-[88dvh] overflow-y-auto no-scrollbar rounded-2xl border p-4 sm:p-6 shadow-2xl"
+        className="w-full max-w-xl max-h-[88dvh] overflow-y-auto no-scrollbar rounded-2xl border p-3.5 sm:p-6 shadow-2xl"
         style={{
           background: 'var(--card-bg)',
           borderColor: 'var(--border)',
@@ -149,7 +149,7 @@ export function SizeGuideModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="flex items-start justify-between gap-3 pb-3.5 border-b"
+          className="flex items-start justify-between gap-2.5 sm:gap-3 pb-3.5 border-b"
           style={{ borderColor: 'var(--border-subtle)' }}
         >
           <div className="flex items-start gap-2.5 min-w-0">
@@ -163,7 +163,7 @@ export function SizeGuideModal({
             >
               <Ruler className="h-4 w-4" />
             </div>
-            <div className="text-start">
+            <div className="text-start min-w-0">
               <h2
                 id="size-guide-title"
                 className="text-base sm:text-lg font-bold leading-snug text-start"
@@ -196,19 +196,19 @@ export function SizeGuideModal({
           <table className="w-full text-start border-collapse text-xs sm:text-sm tabular-nums">
             <thead>
               <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}>
-                <th className="py-2.5 px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
+                <th className="py-2.5 px-2.5 sm:px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
                   {headers.size}
                 </th>
-                <th className="py-2.5 px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
+                <th className="py-2.5 px-2.5 sm:px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
                   {headers.chest}
                 </th>
-                <th className="py-2.5 px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
+                <th className="py-2.5 px-2.5 sm:px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
                   {headers.length}
                 </th>
-                <th className="py-2.5 px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
+                <th className="py-2.5 px-2.5 sm:px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
                   {headers.shoulder}
                 </th>
-                <th className="py-2.5 px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
+                <th className="py-2.5 px-2.5 sm:px-3 font-semibold text-start border-b" style={{ borderColor: 'var(--border)' }}>
                   {headers.height}
                 </th>
               </tr>
@@ -222,19 +222,19 @@ export function SizeGuideModal({
                     borderTop: idx > 0 ? '1px solid var(--border-subtle)' : undefined,
                   }}
                 >
-                  <td className="py-2.5 px-3 font-bold text-start" style={{ color: 'var(--accent)' }}>
+                  <td className="py-2.5 px-2.5 sm:px-3 font-bold text-start" style={{ color: 'var(--accent)' }}>
                     <span dir="ltr" className="inline-block">{row.size}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-start" style={{ color: 'var(--text-primary)' }}>
+                  <td className="py-2.5 px-2.5 sm:px-3 text-start" style={{ color: 'var(--text-primary)' }}>
                     <span dir="ltr" className="inline-block">{row.chest}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-start" style={{ color: 'var(--text-primary)' }}>
+                  <td className="py-2.5 px-2.5 sm:px-3 text-start" style={{ color: 'var(--text-primary)' }}>
                     <span dir="ltr" className="inline-block">{row.length}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-start" style={{ color: 'var(--text-primary)' }}>
+                  <td className="py-2.5 px-2.5 sm:px-3 text-start" style={{ color: 'var(--text-primary)' }}>
                     <span dir="ltr" className="inline-block">{row.shoulder}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-start" style={{ color: 'var(--text-muted)' }}>
+                  <td className="py-2.5 px-2.5 sm:px-3 text-start" style={{ color: 'var(--text-muted)' }}>
                     <span dir="ltr" className="inline-block">{row.height}</span>
                   </td>
                 </tr>

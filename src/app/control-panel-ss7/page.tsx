@@ -89,10 +89,10 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="group bg-zinc-900 border border-zinc-800/90 hover:border-zinc-700 rounded-2xl p-5 flex flex-col justify-between gap-5 transition-colors"
+      className="group bg-zinc-900 border border-zinc-800/90 hover:border-zinc-700 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 sm:gap-5 transition-colors"
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className={`text-xs font-bold uppercase tracking-wide ${accentClass}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span className={`text-xs font-bold uppercase tracking-wide leading-snug ${accentClass}`}>
           {title}
         </span>
         <div
@@ -254,7 +254,7 @@ function DashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Sales Chart */}
         <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 sm:py-5 border-b border-zinc-800/80">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-800/80">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center shrink-0">
                 <BarChart3 className="w-[18px] h-[18px]" />
@@ -269,7 +269,7 @@ function DashboardContent() {
               </div>
             </div>
             <div className="text-end shrink-0">
-              <span className="inline-block text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/25 px-3 py-1 rounded-lg tabular-nums font-mono">
+              <span className="inline-flex items-center justify-center h-7 px-3 rounded-lg text-xs font-bold leading-none text-amber-400 bg-amber-500/10 border border-amber-500/25 tabular-nums font-mono">
                 {formatPrice(totalWeekSales, 'fr')}
               </span>
             </div>
@@ -293,7 +293,7 @@ function DashboardContent() {
                 {tr('لا توجد بيانات مبيعات متاحة حالياً.', 'No sales chart data available yet.')}
               </div>
             ) : (
-              <div className="flex items-end gap-2 sm:gap-3 h-[180px]">
+              <div className="flex items-end gap-1.5 sm:gap-3 h-[180px]">
                 {salesChart.map((item, idx) => {
                   const pct =
                     item.sales > 0 ? Math.max(12, Math.round((item.sales / maxSales) * 100)) : 6
@@ -352,21 +352,21 @@ function DashboardContent() {
 
         {/* Top Products */}
         <div className="bg-zinc-900 border border-zinc-800/90 rounded-2xl flex flex-col overflow-hidden">
-          <div className="flex items-start justify-between gap-3 px-5 py-4 sm:py-5 border-b border-zinc-800/80">
-            <div>
-              <h2 className="text-sm sm:text-base font-extrabold text-white">
+          <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 sm:py-5 border-b border-zinc-800/80">
+            <div className="min-h-10 flex flex-col justify-center min-w-0">
+              <h2 className="text-sm sm:text-base font-extrabold text-white truncate">
                 {tr('الأكثر مبيعاً', 'Top Products')}
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-zinc-400 truncate mt-0.5">
                 {tr('المنتجات الأعلى طلباً', 'Best-selling catalog items')}
               </p>
             </div>
             <Link
               href="/control-panel-ss7/products"
-              className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors shrink-0 whitespace-nowrap"
+              className="inline-flex items-center gap-1 text-xs font-bold leading-none text-amber-400 hover:text-amber-300 transition-colors shrink-0 whitespace-nowrap"
             >
               <span>{tr('الكل', 'All')}</span>
-              <ArrowDiag className="w-3.5 h-3.5" />
+              <ArrowDiag className="w-3.5 h-3.5 shrink-0" />
             </Link>
           </div>
 
@@ -382,7 +382,7 @@ function DashboardContent() {
                 </div>
               ))
             ) : topProducts.length === 0 ? (
-              <div className="py-10 text-center text-xs text-zinc-500">
+              <div className="flex-1 flex items-center justify-center py-10 text-center text-xs text-zinc-500">
                 {tr('لا توجد مبيعات مسجلة للمنتجات بعد', 'No product sales recorded yet')}
               </div>
             ) : (
@@ -461,7 +461,7 @@ function DashboardContent() {
             recentOrders.map((ord) => {
               const cls = STATUS_STYLE[ord.status] || 'bg-zinc-800 text-zinc-300 border-zinc-700'
               return (
-                <div key={ord.id} className="p-4 flex items-center justify-between gap-3">
+                <div key={ord.id} className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs font-extrabold text-amber-400">
