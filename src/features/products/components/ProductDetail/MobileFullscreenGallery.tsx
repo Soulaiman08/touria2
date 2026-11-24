@@ -490,6 +490,7 @@ function FullscreenGalleryDialog({
                       alt={productName}
                       fill
                       sizes="100vw"
+                      referrerPolicy="no-referrer"
                       className="object-contain"
                       onLoad={(e) => {
                         const imgEl = e.currentTarget
@@ -498,8 +499,7 @@ function FullscreenGalleryDialog({
                             imgEl.naturalWidth / imgEl.naturalHeight
                         }
                       }}
-                      priority={slide.visible}
-                      loading="eager"
+                      loading={slide.visible ? 'eager' : 'lazy'}
                       draggable={false}
                     />
                   </div>
@@ -578,7 +578,8 @@ function FullscreenGalleryDialog({
                   src={img}
                   alt={`${productName} ${idx + 1}`}
                   fill
-                  sizes="56px"
+                  sizes="(max-width: 639px) 48px, 52px"
+                  referrerPolicy="no-referrer"
                   className="object-cover"
                   loading="lazy"
                   draggable={false}

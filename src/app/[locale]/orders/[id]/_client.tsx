@@ -240,6 +240,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                       alt={itemName}
                       width={56}
                       height={72}
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                       className="w-14 h-[72px] rounded-xl object-cover flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
                       onError={(e) => {
@@ -282,6 +283,7 @@ export function OrderTrackingPageClient({ params }: TrackingPageProps) {
                                   alt={niqabName}
                                   width={20}
                                   height={20}
+                                  loading="lazy"
                                   referrerPolicy="no-referrer"
                                   className="rounded object-cover flex-shrink-0"
                                   onError={(e) => {

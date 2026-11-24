@@ -495,9 +495,10 @@ export function ProductReviews({ productId, locale }: ProductReviewsProps) {
                       <Image
                         src={review.customer.avatarUrl}
                         alt={review.customer.name || t('anonymousReviewer')}
-                        width={96}
-                        height={96}
+                        width={60}
+                        height={60}
                         quality={95}
+                        loading="lazy"
                         referrerPolicy="no-referrer"
                         className="rounded-full object-cover border w-[30px] h-[30px] shrink-0"
                         style={{ borderColor: 'var(--border)' }}

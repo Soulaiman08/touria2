@@ -195,8 +195,9 @@ export function AccountPageClient({ params }: AccountPageProps) {
                       src={user.avatarUrl}
                       alt={user.name}
                       fill
-                      sizes="160px"
+                      sizes="64px"
                       quality={95}
+                      priority
                       referrerPolicy="no-referrer"
                       className="object-cover"
                       onError={(e) => {

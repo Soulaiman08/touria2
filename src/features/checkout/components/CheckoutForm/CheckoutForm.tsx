@@ -467,6 +467,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                     alt={itemName}
                     width={56}
                     height={56}
+                    loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
                     onError={(e) => {
@@ -524,6 +525,7 @@ export function CheckoutForm({ locale }: CheckoutFormProps) {
                     alt={niqabName}
                     width={56}
                     height={56}
+                    loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-xl flex-shrink-0 border border-[var(--border)] bg-[var(--bg-muted)]"
                     onError={(e) => {

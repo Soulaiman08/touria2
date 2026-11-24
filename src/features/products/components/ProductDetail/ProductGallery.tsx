@@ -372,7 +372,9 @@ export function ProductGallery({
                       src={failedSrcs[img] ? FALLBACK_IMAGE : img}
                       alt={`${productName} ${idx + 1}`}
                       fill
-                      sizes="64px"
+                      sizes="(max-width: 639px) 44px, 56px"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
                       className="object-cover"
                       onError={() => handleImgError(img)}
                       draggable={false}
@@ -449,10 +451,15 @@ export function ProductGallery({
                       src={failedSrcs[img] ? FALLBACK_IMAGE : img}
                       alt={`${productName} ${idx + 1}`}
                       fill
-                      sizes="(max-width: 767px) 82vw, 45vw"
+                      sizes="(max-width: 440px) 82vw, (max-width: 767px) 360px, (max-width: 1023px) 40vw, 540px"
+                      referrerPolicy="no-referrer"
                       className="object-cover"
                       onError={() => handleImgError(img)}
-                      {...(idx === displayIndex + 1 ? { priority: true } : { loading: 'lazy' as const })}
+                      {...(idx === 1
+                        ? { priority: true }
+                        : idx === displayIndex + 1
+                          ? { loading: 'eager' as const }
+                          : { loading: 'lazy' as const })}
                       draggable={false}
                     />
                   </div>
@@ -464,7 +471,8 @@ export function ProductGallery({
                   src={failedSrcs[imageList[0]] ? FALLBACK_IMAGE : imageList[0]}
                   alt={productName}
                   fill
-                  sizes="(max-width: 767px) 85vw, 45vw"
+                  sizes="(max-width: 440px) 85vw, (max-width: 767px) 360px, (max-width: 1023px) 40vw, 540px"
+                  referrerPolicy="no-referrer"
                   className="object-cover"
                   onError={() => handleImgError(imageList[0])}
                   priority

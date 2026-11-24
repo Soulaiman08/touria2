@@ -191,6 +191,8 @@ export function CustomerSignupPageClient({ params }: SignupPageProps) {
                       alt="Thuraya Al-Maghribi"
                       fill
                       sizes="48px"
+                      priority
+                      referrerPolicy="no-referrer"
                       className="object-cover"
                     />
                   </div>

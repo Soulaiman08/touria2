@@ -160,7 +160,8 @@ export function Footer({ locale, categories }: FooterProps) {
                   src={storeLogo}
                   alt={storeName}
                   fill
-                  sizes="40px"
+                  sizes="(max-width: 639px) 32px, 40px"
+                  loading="lazy"
                   referrerPolicy="no-referrer"
                   className="object-cover"
                   onError={() => setLogoError(true)}

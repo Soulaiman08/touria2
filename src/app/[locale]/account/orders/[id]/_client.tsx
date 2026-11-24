@@ -238,6 +238,7 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
                       alt={snapshotName(snap)}
                       width={60}
                       height={76}
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                       className="w-[3.75rem] h-[4.75rem] rounded-xl object-cover border border-[var(--border)] bg-[var(--bg-muted)] flex-shrink-0"
                       onError={(e) => {
@@ -274,6 +275,7 @@ export function AccountOrderDetailPageClient({ params }: AccountOrderDetailPageP
                                   alt={niqabName}
                                   width={20}
                                   height={20}
+                                  loading="lazy"
                                   referrerPolicy="no-referrer"
                                   className="w-5 h-5 rounded object-cover flex-shrink-0"
                                   onError={(e) => {

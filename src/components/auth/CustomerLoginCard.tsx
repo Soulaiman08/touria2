@@ -170,6 +170,8 @@ export function CustomerLoginCard({
                   alt="Thuraya Al-Maghribi"
                   fill
                   sizes="56px"
+                  {...(!isModal ? { priority: true } : { loading: 'eager' as const })}
+                  referrerPolicy="no-referrer"
                   className="object-cover"
                 />
               </div>

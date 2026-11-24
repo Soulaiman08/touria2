@@ -158,6 +158,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                           alt={itemName}
                           fill
                           sizes="64px"
+                          loading="lazy"
                           referrerPolicy="no-referrer"
                           className="object-cover"
                           onError={(e) => {
@@ -264,6 +265,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                           alt={niqabName}
                           fill
                           sizes="56px"
+                          loading="lazy"
                           referrerPolicy="no-referrer"
                           className="object-cover"
                           onError={(e) => {

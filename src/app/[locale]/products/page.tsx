@@ -708,6 +708,7 @@ export default async function ProductsPage({
                 search,
                 sort,
               }}
+              prioritizeCount={2}
               gridClassName="grid grid-cols-1 min-[350px]:grid-cols-2 gap-2.5 min-[400px]:gap-3 sm:gap-5 lg:grid-cols-3 xl:gap-6"
             />
           )}

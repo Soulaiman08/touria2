@@ -14,6 +14,8 @@ interface ProductCardProps {
   onAddToCart?: (product: ProductCardType) => void
   className?: string
   isNew?: boolean
+  priority?: boolean
+  sizes?: string
 }
 
 const FALLBACK_IMAGE = '/images/brand/logo-icon.png'
@@ -23,6 +25,8 @@ export function ProductCard({
   locale,
   className,
   isNew,
+  priority = false,
+  sizes = '(max-width: 349px) 92vw, (max-width: 1023px) 46vw, (max-width: 1279px) 31vw, 320px',
 }: ProductCardProps) {
   const isRTL = locale === 'ar'
 
@@ -218,11 +222,12 @@ export function ProductCard({
                   src={resolvedSrc}
                   alt={idx === 0 ? name : `${name} (${idx + 1})`}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes={sizes}
                   quality={90}
+                  referrerPolicy="no-referrer"
                   className="product-card-img object-cover"
                   onError={() => handleImageError(imgSrc)}
-                  loading="lazy"
+                  {...(priority && idx === 0 ? { priority: true } : { loading: 'lazy' as const })}
                   draggable={false}
                 />
               </div>

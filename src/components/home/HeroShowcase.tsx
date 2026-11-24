@@ -92,9 +92,9 @@ export function HeroShowcase({
                   src={activeProduct.mainImage || '/images/brand/logo-full.png'}
                   alt={primaryName}
                   fill
-                  priority
+                  {...(safeIndex === 0 ? { priority: true } : { loading: 'eager' as const })}
                   referrerPolicy="no-referrer"
-                  sizes="(max-width: 640px) 180px, (max-width: 1024px) 244px, 284px"
+                  sizes="(max-width: 389px) 160px, (max-width: 639px) 180px, (max-width: 767px) 220px, (max-width: 1023px) 244px, 284px"
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
                 <div
@@ -142,7 +142,7 @@ export function HeroShowcase({
               fill
               priority
               referrerPolicy="no-referrer"
-              sizes="(max-width: 640px) 180px, (max-width: 1024px) 244px, 284px"
+              sizes="(max-width: 389px) 160px, (max-width: 639px) 180px, (max-width: 767px) 220px, (max-width: 1023px) 244px, 284px"
               className="object-cover"
             />
           </div>
@@ -167,8 +167,9 @@ export function HeroShowcase({
               src={nextProduct.mainImage || '/images/brand/logo-icon.png'}
               alt={secondaryName}
               fill
+              loading="lazy"
               referrerPolicy="no-referrer"
-              sizes="(max-width: 640px) 48px, 80px"
+              sizes="(max-width: 639px) 44px, 72px"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </button>

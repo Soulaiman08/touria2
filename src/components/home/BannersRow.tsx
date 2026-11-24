@@ -213,9 +213,10 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                 alt={banner.title}
                 fill
                 quality={90}
+                loading="lazy"
                 referrerPolicy="no-referrer"
                 className="object-cover object-[50%_32%] transition-transform duration-500 group-hover:scale-[1.03]"
-                sizes="100vw"
+                sizes="(max-width: 639px) 92vw, 90vw"
               />
               <div
                 className="absolute inset-0 pointer-events-none"
@@ -302,9 +303,10 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                   alt={banner.title}
                   fill
                   quality={90}
+                  loading="lazy"
                   referrerPolicy="no-referrer"
                   className="object-cover object-[50%_30%] transition-transform duration-700 group-hover:scale-[1.03]"
-                  sizes="(max-width: 1024px) 50vw, 58vw"
+                  sizes="(max-width: 1023px) 48vw, (max-width: 1440px) 55vw, 760px"
                 />
                 <div
                   className="absolute inset-0 pointer-events-none"
@@ -367,9 +369,10 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                   alt={banner.title}
                   fill
                   quality={90}
+                  loading="lazy"
                   referrerPolicy="no-referrer"
                   className="object-cover object-[50%_32%] transition-transform duration-500 group-hover:scale-[1.03]"
-                  sizes="(max-width: 768px) 86vw, 50vw"
+                  sizes="(max-width: 639px) 82vw, (max-width: 767px) 70vw, (max-width: 1440px) 46vw, 640px"
                 />
 
                 <div

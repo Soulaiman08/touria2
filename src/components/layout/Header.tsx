@@ -320,9 +320,10 @@ export function Header({ locale }: HeaderProps) {
                     src={resolvedLogo}
                     alt={brandName}
                     fill
-                    sizes="96px"
+                    sizes="(max-width: 639px) 32px, 36px"
                     quality={95}
-                    priority
+                    loading="eager"
+                    referrerPolicy="no-referrer"
                     className="object-cover"
                     onError={() => setLogoError(true)}
                   />
@@ -458,8 +459,10 @@ export function Header({ locale }: HeaderProps) {
                   src={resolvedLogo}
                   alt={brandName}
                   fill
-                  sizes="96px"
+                  sizes="32px"
                   quality={95}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
                   className="object-cover"
                   onError={() => setLogoError(true)}
                 />
@@ -543,9 +546,10 @@ export function Header({ locale }: HeaderProps) {
                     <Image
                       src={customer.avatarUrl}
                       alt={customer.name || 'Avatar'}
-                      width={80}
-                      height={80}
+                      width={56}
+                      height={56}
                       quality={95}
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                       className="h-[28px] w-[28px] rounded-full object-cover border flex-shrink-0"
                       style={{ borderColor: 'var(--gold)' }}
@@ -859,6 +863,8 @@ export function Header({ locale }: HeaderProps) {
                             src={product.mainImage || '/images/brand/logo-icon.png'}
                             alt={productName}
                             fill
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                             sizes="48px"
                           />

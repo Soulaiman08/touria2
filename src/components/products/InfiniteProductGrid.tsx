@@ -13,6 +13,7 @@ interface InfiniteProductGridProps {
   filters?: ProductFilters
   isNew?: boolean
   gridClassName?: string
+  prioritizeCount?: number
 }
 
 export function InfiniteProductGrid(props: InfiniteProductGridProps) {
@@ -39,6 +40,7 @@ function InfiniteProductGridInner({
   filters,
   isNew,
   gridClassName,
+  prioritizeCount = 0,
 }: InfiniteProductGridProps) {
   const [products, setProducts] = useState<ProductCardType[]>(initialProducts)
   const [page, setPage] = useState(1)
@@ -150,6 +152,7 @@ function InfiniteProductGridInner({
               product={product}
               locale={locale}
               isNew={isNew}
+              priority={idx < prioritizeCount}
             />
           </div>
         ))}

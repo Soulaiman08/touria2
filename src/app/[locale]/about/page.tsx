@@ -165,7 +165,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     fill
                     priority
                     referrerPolicy="no-referrer"
-                    sizes="(max-width: 640px) 160px, (max-width: 1024px) 220px, 240px"
+                    sizes="(max-width: 639px) 168px, (max-width: 1023px) 220px, 240px"
                     className="object-cover"
                   />
                   <div
