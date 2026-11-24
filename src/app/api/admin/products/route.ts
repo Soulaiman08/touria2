@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/utils'
 import { requireAdmin } from '@/lib/auth'
 import { getColorNames } from '@/lib/color-names'
-import { isNiqabIdentity } from '@/lib/category-config'
+import { isNiqabIdentity, normalizeSizeToken, sortSizesCanonical } from '@/lib/category-config'
 import { getCategoryConfig } from '@/lib/category-config.server'
 
 class ValidationError extends Error {}
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
         mainImage: p.mainImage,
         images: p.images.length > 0 ? p.images : [p.mainImage],
         colors: Array.from(colorsMap.values()),
-        sizes: Array.from(sizesSet),
+        sizes: sortSizesCanonical(Array.from(sizesSet)),
         isFeatured: p.isFeatured,
         isActive: p.isActive,
         isNiqab: p.isNiqab,
@@ -308,10 +308,10 @@ export async function POST(request: Request) {
             return ['Standard']
           }
           const incoming = Array.isArray(sizes)
-            ? Array.from(new Set(sizes.map((s) => String(s).trim()).filter(Boolean)))
+            ? sortSizesCanonical(sizes.map((s) => normalizeSizeToken(String(s))).filter(Boolean))
             : []
           if (incoming.length > 0) return incoming
-          if (catConfig.defaultSizes.length > 0) return [...catConfig.defaultSizes]
+          if (catConfig.defaultSizes.length > 0) return sortSizesCanonical([...catConfig.defaultSizes])
           return catConfig.sizingMode === 'standard' ? ['Standard'] : ['S', 'M', 'L', 'XL']
         })()
 

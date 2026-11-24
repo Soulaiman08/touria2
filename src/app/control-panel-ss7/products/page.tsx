@@ -35,6 +35,8 @@ import {
   LETTER_PRESET_SIZES,
   NUMERIC_PRESET_SIZES,
   STANDARD_PRESET_SIZES,
+  normalizeSizeToken,
+  sortSizesCanonical,
   type CategoryConfig,
 } from '@/lib/category-config'
 
@@ -141,13 +143,11 @@ function parseColorTokens(str: string): string[] {
 }
 
 function parseSizeTokens(str: string): string[] {
-  return Array.from(
-    new Set(
-      str
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-    )
+  return sortSizesCanonical(
+    str
+      .split(',')
+      .map((s) => normalizeSizeToken(s))
+      .filter(Boolean)
   )
 }
 
@@ -422,7 +422,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
           : initialColors.join(', '),
       sizes: hideSizes
         ? ''
-        : resolved.sizes?.join(', ') || catCfg.defaultSizes.join(', ') || 'S, M, L, XL',
+        : sortSizesCanonical(
+            (resolved.sizes && resolved.sizes.length > 0
+              ? resolved.sizes
+              : catCfg.defaultSizes.length > 0
+                ? catCfg.defaultSizes
+                : ['S', 'M', 'L', 'XL']
+            ).map(normalizeSizeToken)
+          ).join(', '),
       isFeatured: resolved.isFeatured,
       isActive: resolved.isActive,
       canAddNiqab: isNiqabIdentity(category)
@@ -528,19 +535,24 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
   }
 
   const toggleSizeChip = (sizeVal: string) => {
+    const norm = normalizeSizeToken(sizeVal)
+    if (!norm) return
     const current = parseSizeTokens(formData.sizes)
-    const next = current.includes(sizeVal)
-      ? current.filter((s) => s !== sizeVal)
-      : [...current, sizeVal]
+    const next = current.includes(norm)
+      ? current.filter((s) => s !== norm)
+      : sortSizesCanonical([...current, norm])
     setFormData((prev) => ({ ...prev, sizes: next.join(', ') }))
   }
 
   const addCustomSize = () => {
-    const trimmed = customSizeInput.trim()
-    if (!trimmed) return
+    const norm = normalizeSizeToken(customSizeInput)
+    if (!norm) return
     const current = parseSizeTokens(formData.sizes)
-    if (!current.includes(trimmed)) {
-      setFormData((prev) => ({ ...prev, sizes: [...current, trimmed].join(', ') }))
+    if (!current.includes(norm)) {
+      setFormData((prev) => ({
+        ...prev,
+        sizes: sortSizesCanonical([...current, norm]).join(', '),
+      }))
     }
     setCustomSizeInput('')
   }
@@ -1413,7 +1425,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                     const catDefaultSizes =
                       selectedCategoryIsNiqab || selectedCategoryHidesSizes
                         ? []
-                        : selectedCategoryConfig.defaultSizes
+                        : sortSizesCanonical(
+                            selectedCategoryConfig.defaultSizes.map(normalizeSizeToken)
+                          )
                     const colorsMatch =
                       currentColorList.length === catDefaultColors.length &&
                       catDefaultColors.every((c) => currentColorList.includes(c))
@@ -1468,20 +1482,36 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                         </div>
 
                         {differsFromCategoryDefaults && (
-                          <p className="text-[11px] text-amber-300/90 tabular-nums leading-relaxed">
-                            {tr('القيم الافتراضية في التصنيف:', 'Category Defaults:')}{' '}
-                            {!selectedCategoryIsNiqab && !selectedCategoryHidesSizes && (
-                              <>
-                                <span className="font-semibold">
-                                  {catDefaultSizes.join(', ') || 'Standard'}
-                                </span>
-                                {' · '}
-                              </>
-                            )}
-                            <span className="font-mono" dir="ltr">
-                              {catDefaultColors.join(', ')}
-                            </span>
-                          </p>
+                          <div className="space-y-1 text-[11px] tabular-nums leading-relaxed">
+                            <p className="text-amber-300/90">
+                              {tr('القيم الافتراضية في التصنيف:', 'Category Defaults:')}{' '}
+                              {!selectedCategoryIsNiqab && !selectedCategoryHidesSizes && (
+                                <>
+                                  <span className="font-semibold">
+                                    {catDefaultSizes.join(', ') || 'Standard'}
+                                  </span>
+                                  {' · '}
+                                </>
+                              )}
+                              <span className="font-mono" dir="ltr">
+                                {catDefaultColors.join(', ')}
+                              </span>
+                            </p>
+                            <p className="text-zinc-400">
+                              {tr('قيم المنتج الحالية:', 'Current Product:')}{' '}
+                              {!selectedCategoryIsNiqab && !selectedCategoryHidesSizes && (
+                                <>
+                                  <span className="font-semibold text-zinc-200">
+                                    {currentSizeList.join(', ') || tr('بدون مقاس', 'None')}
+                                  </span>
+                                  {' · '}
+                                </>
+                              )}
+                              <span className="font-mono text-zinc-300" dir="ltr">
+                                {currentColorList.join(', ')}
+                              </span>
+                            </p>
+                          </div>
                         )}
                       </div>
                     )

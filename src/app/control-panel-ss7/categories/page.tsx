@@ -36,6 +36,8 @@ import {
   LETTER_PRESET_SIZES,
   NUMERIC_PRESET_SIZES,
   STANDARD_PRESET_SIZES,
+  normalizeSizeToken,
+  sortSizesCanonical,
   type CategoryCardAspectRatio,
   type CategoryColorMode,
   type CategoryConfig,
@@ -207,26 +209,37 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
   }
 
   const toggleDefaultSize = (sz: string) => {
+    const normalized = normalizeSizeToken(sz)
+    if (!normalized) return
     setConfigData((prev) => {
-      const exists = prev.defaultSizes.includes(sz)
+      const normalizedCurrent = prev.defaultSizes.map(normalizeSizeToken)
+      const exists = normalizedCurrent.includes(normalized)
+      const next = exists
+        ? normalizedCurrent.filter((s) => s !== normalized)
+        : [...normalizedCurrent, normalized]
       return {
         ...prev,
-        defaultSizes: exists
-          ? prev.defaultSizes.filter((s) => s !== sz)
-          : [...prev.defaultSizes, sz],
+        defaultSizes: sortSizesCanonical(next),
       }
     })
   }
 
   const addCustomDefaultSize = () => {
-    const trimmed = customSizeInput.trim()
-    if (!trimmed) return
-    setConfigData((prev) => ({
-      ...prev,
-      defaultSizes: prev.defaultSizes.includes(trimmed)
-        ? prev.defaultSizes
-        : [...prev.defaultSizes, trimmed],
-    }))
+    const normalized = normalizeSizeToken(customSizeInput)
+    if (!normalized) return
+    setConfigData((prev) => {
+      const normalizedCurrent = prev.defaultSizes.map(normalizeSizeToken)
+      if (normalizedCurrent.includes(normalized)) {
+        return {
+          ...prev,
+          defaultSizes: sortSizesCanonical(normalizedCurrent),
+        }
+      }
+      return {
+        ...prev,
+        defaultSizes: sortSizesCanonical([...normalizedCurrent, normalized]),
+      }
+    })
     setCustomSizeInput('')
   }
 
@@ -999,6 +1012,32 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
                           </button>
                         </div>
                       </div>
+                    )}
+
+                    {/* Quick Bulk Sync Toggle right inside Sizing tab when editing */}
+                    {editingCategory && (editingCategory.productsCount ?? 0) > 0 && (
+                      <label className="flex items-start gap-3 p-3.5 rounded-xl border border-amber-500/35 bg-amber-500/8 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={applyToExistingProducts}
+                          onChange={(e) => setApplyToExistingProducts(e.target.checked)}
+                          className="w-4 h-4 mt-0.5 accent-amber-500 rounded shrink-0"
+                        />
+                        <div className="space-y-0.5">
+                          <div className="text-xs font-extrabold text-amber-300 tabular-nums">
+                            {tr(
+                              `مزامنة المقاسات والألوان الافتراضية على جميع المنتجات الحالية (${editingCategory.productsCount})`,
+                              `Sync default sizes, colors & rules to all existing products (${editingCategory.productsCount})`
+                            )}
+                          </div>
+                          <p className="text-[11px] text-zinc-300 leading-relaxed">
+                            {tr(
+                              'فعّل هذا الخيار لتحديث مقاسات وألوان المنتجات الحالية في هذا التصنيف عند الحفظ مباشرةً.',
+                              'Enable to update sizes and colors of existing products in this category immediately upon saving.'
+                            )}
+                          </p>
+                        </div>
+                      </label>
                     )}
 
                     {/* Size Guide Profile (grouped with Sizing) */}

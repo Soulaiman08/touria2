@@ -9,7 +9,7 @@ import { siteConfig } from '@/config/site'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 import { BreadcrumbBar } from '@/components/shared/PageNavigation'
 import { CatalogMobileControls } from '@/components/products/CatalogMobileControls'
-import { LETTER_PRESET_SIZES, NUMERIC_PRESET_SIZES } from '@/lib/category-config'
+import { LETTER_PRESET_SIZES, NUMERIC_PRESET_SIZES, sortSizesCanonical } from '@/lib/category-config'
 
 import type { ProductFilters } from '@/types/product'
 
@@ -218,7 +218,7 @@ export default async function ProductsPage({
     ? currentCategory.config?.showSizeFilter !== false
     : true
 
-  const activeSizes: readonly string[] = (() => {
+  const activeSizes: readonly string[] = sortSizesCanonical((() => {
     if (!currentCategory?.config) return SIZES
     if (currentCategory.config.sizingMode === 'bundle_no_size') {
       return []
@@ -240,10 +240,10 @@ export default async function ProductsPage({
       return currentCategory.config.defaultSizes
     }
     return SIZES
-  })()
+  })())
 
   const categoryOptions = dbCategories.map((cat) => {
-    const catSizes =
+    const catSizes = sortSizesCanonical(
       cat.config?.sizingMode === 'bundle_no_size'
         ? []
         : cat.config?.sizingMode === 'standard'
@@ -257,6 +257,7 @@ export default async function ProductsPage({
             : cat.config?.sizingMode === 'letter' && cat.config.defaultSizes.length > 0
               ? cat.config.defaultSizes
               : [...SIZES]
+    )
 
     return {
       id: cat.id,

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import type { CategoryConfig } from '@/lib/category-config'
+import { sortVariantsCanonical, type CategoryConfig } from '@/lib/category-config'
 import { getCategoryConfig, getCategoryConfigMap } from '@/lib/category-config.server'
 import type {
   ProductCard,
@@ -378,10 +378,12 @@ export const productService = {
       basePrice: Number(dbProduct.basePrice),
       salePrice:
         dbProduct.salePrice !== null ? Number(dbProduct.salePrice) : null,
-      variants: dbProduct.variants.map((variant) => ({
-        ...variant,
-        priceModifier: Number(variant.priceModifier),
-      })),
+      variants: sortVariantsCanonical(
+        dbProduct.variants.map((variant) => ({
+          ...variant,
+          priceModifier: Number(variant.priceModifier),
+        }))
+      ),
       niqabProduct: niqabProduct || undefined,
     } as unknown as Product
   },

@@ -47,6 +47,78 @@ export const LETTER_PRESET_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
 export const NUMERIC_PRESET_SIZES = ['50', '52', '54', '56', '58', '60']
 export const STANDARD_PRESET_SIZES = ['Standard']
 
+const LETTER_SIZE_ORDER: Record<string, number> = {
+  XXS: 5,
+  XS: 10,
+  S: 20,
+  M: 30,
+  L: 40,
+  XL: 50,
+  XXL: 60,
+  '2XL': 60,
+  XXXL: 70,
+  '3XL': 70,
+  XXXXL: 80,
+  '4XL': 80,
+  '5XL': 90,
+  '6XL': 100,
+}
+
+export function normalizeSizeToken(raw: string): string {
+  const trimmed = String(raw || '').trim()
+  if (!trimmed) return ''
+  const upper = trimmed.toUpperCase()
+  if (upper === '2XL') return 'XXL'
+  if (upper === '3XL') return 'XXXL'
+  if (upper === '4XL' || upper === 'XXXXL') return '4XL'
+  if (upper in LETTER_SIZE_ORDER) return upper
+  if (upper === 'STANDARD') return 'Standard'
+  return trimmed
+}
+
+export function getSizeSortRank(size: string): number {
+  const upper = String(size || '').trim().toUpperCase()
+  if (!upper) return 9999
+  if (upper in LETTER_SIZE_ORDER) return LETTER_SIZE_ORDER[upper]
+  if (/^\d+(\.\d+)?$/.test(upper)) return 1000 + Number(upper)
+  if (
+    upper === 'STANDARD' ||
+    upper === 'ONE SIZE' ||
+    upper === 'ONESIZE' ||
+    upper === 'FREE SIZE' ||
+    upper === 'UNIQUE'
+  ) {
+    return 2000
+  }
+  return 3000
+}
+
+export function sortSizesCanonical(sizes: readonly string[]): string[] {
+  const seen = new Set<string>()
+  const unique: string[] = []
+  for (const s of sizes) {
+    const trimmed = String(s || '').trim()
+    if (!trimmed) continue
+    const key = trimmed.toUpperCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(trimmed)
+  }
+  return unique.sort((a, b) => {
+    const rankDiff = getSizeSortRank(a) - getSizeSortRank(b)
+    if (rankDiff !== 0) return rankDiff
+    return a.localeCompare(b)
+  })
+}
+
+export function sortVariantsCanonical<T extends { size: string }>(variants: readonly T[]): T[] {
+  return [...variants].sort((a, b) => {
+    const rankDiff = getSizeSortRank(a.size) - getSizeSortRank(b.size)
+    if (rankDiff !== 0) return rankDiff
+    return a.size.localeCompare(b.size)
+  })
+}
+
 export const DEFAULT_APPAREL_COLORS = ['#C4622D', '#F2E4CE', '#000000']
 export const DEFAULT_ACCESSORY_COLORS = ['#000000']
 
@@ -324,14 +396,12 @@ export function sanitizeCategoryConfig(
       : base.cardAspectRatio
 
   const defaultSizes = Array.isArray(input.defaultSizes)
-    ? Array.from(
-        new Set(
-          input.defaultSizes
-            .map((s) => (typeof s === 'string' ? s.trim() : ''))
-            .filter(Boolean)
-        )
+    ? sortSizesCanonical(
+        input.defaultSizes
+          .map((s) => (typeof s === 'string' ? normalizeSizeToken(s) : ''))
+          .filter(Boolean)
       )
-    : base.defaultSizes
+    : sortSizesCanonical(base.defaultSizes)
 
   const defaultColors = Array.isArray(input.defaultColors)
     ? Array.from(

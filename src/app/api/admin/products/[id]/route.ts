@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { slugify } from '@/lib/utils'
 import { getColorNames } from '@/lib/color-names'
-import { isNiqabIdentity } from '@/lib/category-config'
+import { isNiqabIdentity, normalizeSizeToken, sortSizesCanonical } from '@/lib/category-config'
 import { getCategoryConfig } from '@/lib/category-config.server'
 
 export async function GET(
@@ -51,7 +51,7 @@ export async function GET(
         salePrice: product.salePrice ? Number(product.salePrice) : null,
         stock: totalStock,
         colors: Array.from(colorsMap.values()),
-        sizes: Array.from(sizesSet),
+        sizes: sortSizesCanonical(Array.from(sizesSet)),
       },
     })
   } catch (error) {
@@ -280,13 +280,15 @@ export async function PUT(
               return ['Standard']
             }
             if (Array.isArray(sizes)) {
-              const cleaned = Array.from(new Set(sizes.map((s) => String(s).trim()).filter(Boolean)))
+              const cleaned = sortSizesCanonical(
+                sizes.map((s) => normalizeSizeToken(String(s))).filter(Boolean)
+              )
               if (cleaned.length > 0) return cleaned
             }
             if (!categoryChanged && existingActiveSizes.length > 0) {
-              return existingActiveSizes
+              return sortSizesCanonical(existingActiveSizes)
             }
-            if (catConfig.defaultSizes.length > 0) return [...catConfig.defaultSizes]
+            if (catConfig.defaultSizes.length > 0) return sortSizesCanonical([...catConfig.defaultSizes])
             return catConfig.sizingMode === 'standard' ? ['Standard'] : ['S', 'M', 'L', 'XL']
           })()
 

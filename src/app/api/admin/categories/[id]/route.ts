@@ -8,7 +8,7 @@ import {
   getCategoryConfig,
   saveCategoryConfig,
 } from '@/lib/category-config.server'
-import { isNiqabIdentity } from '@/lib/category-config'
+import { isNiqabIdentity, sortSizesCanonical } from '@/lib/category-config'
 import { getColorNames } from '@/lib/color-names'
 
 export async function PUT(
@@ -98,7 +98,7 @@ export async function PUT(
     let syncedProductsCount = 0
     if (body.applyToExistingProducts === true) {
       const catIsNiqab = isNiqabIdentity(updated)
-      const targetSizes =
+      const targetSizes = sortSizesCanonical(
         catIsNiqab || savedConfig.sizingMode === 'bundle_no_size'
           ? ['Standard']
           : savedConfig.defaultSizes.length > 0
@@ -108,6 +108,7 @@ export async function PUT(
               : savedConfig.sizingMode === 'numeric'
                 ? ['52', '54', '56', '58']
                 : ['S', 'M', 'L', 'XL']
+      )
 
       const rawColorHexes =
         savedConfig.defaultColors.length > 0 ? savedConfig.defaultColors : ['#000000']

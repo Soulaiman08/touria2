@@ -19,7 +19,7 @@ import {
 
 import { useCartStore } from '@/store/cart.store'
 import { formatPrice } from '@/lib/utils'
-import { getDefaultCategoryConfig, getCategoryUnitLabels } from '@/lib/category-config'
+import { getDefaultCategoryConfig, getCategoryUnitLabels, sortSizesCanonical } from '@/lib/category-config'
 import type { Product } from '@/types/product'
 import { CustomSelect } from '@/components/shared/CustomSelect'
 import { ProductGallery } from './ProductGallery'
@@ -67,8 +67,8 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
   const effectiveMinQty = Math.max(1, categoryConfig.minOrderQuantity || (product.isNiqab ? 5 : 1))
   const effectiveMaxQty = categoryConfig.maxOrderQuantity ?? null
 
-  const sizes = Array.from(
-    new Set(product.variants?.map((variant) => variant.size) || [])
+  const sizes = sortSizesCanonical(
+    product.variants?.map((variant) => variant.size) || []
   )
 
   const NON_APPAREL_SIZES = new Set([
