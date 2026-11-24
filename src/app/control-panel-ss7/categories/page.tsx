@@ -90,7 +90,13 @@ function resolveCategorySlug(slug: string, nameFr: string, nameEn: string): stri
   return slug.trim() || slugify(nameFr || nameEn) || `cat-${Date.now()}`
 }
 
-function CategoryContent({ initialSearch }: { initialSearch: string }) {
+function CategoryContent({
+  initialSearch,
+  initialEditId = '',
+}: {
+  initialSearch: string
+  initialEditId?: string
+}) {
   const { tr, locale, dir } = useAdminI18n()
   const [categories, setCategories] = useState<CategoryItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,6 +109,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
   const [submitting, setSubmitting] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
   const [applyToExistingProducts, setApplyToExistingProducts] = useState(false)
+  const handledInitialEditRef = React.useRef(false)
 
   const [customSizeInput, setCustomSizeInput] = useState('')
   const [pickerColor, setPickerColor] = useState('#000000')
@@ -136,6 +143,34 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
         const data = await res.json()
         if (active && Array.isArray(data.items)) {
           setCategories(data.items)
+          if (initialEditId && !handledInitialEditRef.current) {
+            const target = (data.items as CategoryItem[]).find(
+              (c) => c.id === initialEditId || c.slug === initialEditId
+            )
+            if (target) {
+              handledInitialEditRef.current = true
+              setEditingCategory(target)
+              setApplyToExistingProducts(false)
+              setActiveModalTab('sizing')
+              setActiveLangTab(locale === 'ar' ? 'ar' : 'en')
+              setCustomSizeInput('')
+              setFormData({
+                nameAr: target.nameAr || target.name || '',
+                nameFr: target.nameFr || target.name || '',
+                nameEn: target.nameEn || target.name || '',
+                descriptionAr: target.descriptionAr || '',
+                descriptionFr: target.descriptionFr || '',
+                descriptionEn: target.descriptionEn || '',
+                slug: target.slug,
+                parentId: target.parentId || '',
+                image: target.image || '',
+                sortOrder: String(target.sortOrder || 0),
+                isActive: target.isActive,
+              })
+              setConfigData(target.config ?? getDefaultCategoryConfig(target))
+              setIsModalOpen(true)
+            }
+          }
         }
       } catch (err) {
         console.error('Error loading categories:', err)
@@ -147,7 +182,7 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
     return () => {
       active = false
     }
-  }, [refreshTick])
+  }, [refreshTick, initialEditId, locale])
 
   const getDisplayName = (cat: CategoryItem) => {
     if (locale === 'ar') return cat.nameAr || cat.name || cat.nameFr || cat.nameEn || cat.slug
@@ -1919,7 +1954,14 @@ function CategoryContent({ initialSearch }: { initialSearch: string }) {
 function CategoriesWithSearchParams() {
   const searchParams = useSearchParams()
   const initialSearch = searchParams.get('search') || ''
-  return <CategoryContent key={initialSearch} initialSearch={initialSearch} />
+  const initialEditId = searchParams.get('edit') || ''
+  return (
+    <CategoryContent
+      key={`${initialSearch}:${initialEditId}`}
+      initialSearch={initialSearch}
+      initialEditId={initialEditId}
+    />
+  )
 }
 
 export default function AdminCategoriesPage() {

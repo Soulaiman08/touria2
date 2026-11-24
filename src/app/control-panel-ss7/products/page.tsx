@@ -2,6 +2,7 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
   Package,
@@ -21,6 +22,8 @@ import {
   Palette,
   Ruler,
   ChevronDown,
+  SlidersHorizontal,
+  ExternalLink,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/AdminLayout'
 import { ToastProvider, useToast } from '@/components/admin/providers/ToastContext'
@@ -31,13 +34,18 @@ import { formatPrice } from '@/lib/utils'
 import { getColorNames } from '@/lib/color-names'
 import {
   getDefaultCategoryConfig,
+  getSuggestedConfigForMode,
   isNiqabIdentity,
   LETTER_PRESET_SIZES,
   NUMERIC_PRESET_SIZES,
   STANDARD_PRESET_SIZES,
   normalizeSizeToken,
   sortSizesCanonical,
+  type CategoryCardAspectRatio,
+  type CategoryColorMode,
   type CategoryConfig,
+  type CategorySizingMode,
+  type SizeGuideProfile,
 } from '@/lib/category-config'
 
 interface ProductItem {
@@ -197,6 +205,17 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
   const [pickerColor, setPickerColor] = useState('#C4622D')
   const [customSizeInput, setCustomSizeInput] = useState('')
 
+  // Inline Quick Category Edit Modal state
+  const [quickEditCategory, setQuickEditCategory] = useState<CategoryOption | null>(null)
+  const [quickCatConfig, setQuickCatConfig] = useState<CategoryConfig>(() =>
+    getDefaultCategoryConfig()
+  )
+  const [quickCatCustomSize, setQuickCatCustomSize] = useState('')
+  const [quickCatPickerColor, setQuickCatPickerColor] = useState('#000000')
+  const [quickCatApplyToProduct, setQuickCatApplyToProduct] = useState(true)
+  const [quickCatSyncExisting, setQuickCatSyncExisting] = useState(false)
+  const [quickCatSaving, setQuickCatSaving] = useState(false)
+
   // Reviews modal state
   const [reviewsTarget, setReviewsTarget] = useState<ProductItem | null>(null)
   const [reviewsData, setReviewsData] = useState<ReviewItem[]>([])
@@ -231,6 +250,7 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
   const NextIcon = isRTL ? ChevronLeft : ChevronRight
 
   const selectedFormCategory = categories.find((c) => c.id === formData.categoryId)
+  const hasValidSelectedCategory = Boolean(selectedFormCategory)
   const selectedCategoryConfig = resolveCategoryConfig(selectedFormCategory)
   const selectedCategoryIsNiqab = isNiqabIdentity(selectedFormCategory)
   const selectedCategoryHidesSizes = selectedCategoryConfig.sizingMode === 'bundle_no_size'
@@ -441,7 +461,9 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = e.target.value
+    if (!categoryId) return
     const category = categories.find((cat) => cat.id === categoryId)
+    if (!category) return
     const cfg = resolveCategoryConfig(category)
     const catIsNiqab = isNiqabIdentity(category)
     const nextSizes =
@@ -503,6 +525,161 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
         'Applied category default sizes, colors & rules (click Save to persist)'
       )
     )
+  }
+
+  const openQuickEditCategory = () => {
+    if (!selectedFormCategory) return
+    setQuickEditCategory(selectedFormCategory)
+    setQuickCatConfig(resolveCategoryConfig(selectedFormCategory))
+    setQuickCatCustomSize('')
+    setQuickCatApplyToProduct(true)
+    setQuickCatSyncExisting(false)
+  }
+
+  const handleQuickCatSizingModeChange = (mode: CategorySizingMode) => {
+    const suggested = getSuggestedConfigForMode(mode, quickCatConfig)
+    setQuickCatConfig((prev) => ({
+      ...prev,
+      ...suggested,
+    }))
+  }
+
+  const toggleQuickCatSize = (sz: string) => {
+    const norm = normalizeSizeToken(sz)
+    if (!norm) return
+    setQuickCatConfig((prev) => {
+      const current = prev.defaultSizes.map(normalizeSizeToken)
+      const next = current.includes(norm)
+        ? current.filter((s) => s !== norm)
+        : sortSizesCanonical([...current, norm])
+      return { ...prev, defaultSizes: next }
+    })
+  }
+
+  const addQuickCatCustomSize = () => {
+    const norm = normalizeSizeToken(quickCatCustomSize)
+    if (!norm) return
+    setQuickCatConfig((prev) => {
+      const current = prev.defaultSizes.map(normalizeSizeToken)
+      return {
+        ...prev,
+        defaultSizes: current.includes(norm)
+          ? sortSizesCanonical(current)
+          : sortSizesCanonical([...current, norm]),
+      }
+    })
+    setQuickCatCustomSize('')
+  }
+
+  const toggleQuickCatColor = (hex: string) => {
+    const norm = (hex.startsWith('#') ? hex : `#${hex}`).toUpperCase()
+    setQuickCatConfig((prev) => {
+      if (prev.colorMode === 'single') {
+        return { ...prev, defaultColors: [norm] }
+      }
+      const next = prev.defaultColors.includes(norm)
+        ? prev.defaultColors.filter((c) => c !== norm)
+        : [...prev.defaultColors, norm]
+      return {
+        ...prev,
+        defaultColors: next.length > 0 ? next : [norm],
+      }
+    })
+  }
+
+  const addQuickCatCustomColor = (hex: string) => {
+    const norm = (hex.startsWith('#') ? hex : `#${hex}`).toUpperCase()
+    if (!/^#[0-9A-F]{3,8}$/.test(norm)) {
+      error(tr(`كود لون غير صالح: ${hex}`, `Invalid hex color: ${hex}`))
+      return
+    }
+    setQuickCatConfig((prev) => {
+      if (prev.colorMode === 'single') {
+        return { ...prev, defaultColors: [norm] }
+      }
+      return {
+        ...prev,
+        defaultColors: prev.defaultColors.includes(norm)
+          ? prev.defaultColors
+          : [...prev.defaultColors, norm],
+      }
+    })
+  }
+
+  const handleSaveQuickCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!quickEditCategory) return
+    setQuickCatSaving(true)
+    try {
+      const res = await fetch(`/api/admin/categories/${quickEditCategory.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          config: quickCatConfig,
+          applyToExistingProducts: quickCatSyncExisting,
+        }),
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string
+        syncedProductsCount?: number
+        category?: CategoryOption
+      }
+      if (!res.ok) {
+        throw new Error(data.error || tr('فشل تحديث إعدادات التصنيف', 'Failed to update category'))
+      }
+
+      const updatedCat: CategoryOption = data.category
+        ? { ...quickEditCategory, ...data.category, config: data.category.config ?? quickCatConfig }
+        : { ...quickEditCategory, config: quickCatConfig }
+
+      setCategories((prev) => prev.map((c) => (c.id === updatedCat.id ? updatedCat : c)))
+
+      if (quickCatApplyToProduct && formData.categoryId === updatedCat.id) {
+        const cfg = resolveCategoryConfig(updatedCat)
+        const catIsNiqab = isNiqabIdentity(updatedCat)
+        const nextSizes =
+          cfg.sizingMode === 'bundle_no_size' || catIsNiqab
+            ? ''
+            : sortSizesCanonical(
+                (cfg.defaultSizes.length > 0
+                  ? cfg.defaultSizes
+                  : cfg.sizingMode === 'standard'
+                    ? ['Standard']
+                    : ['S', 'M', 'L', 'XL']
+                ).map(normalizeSizeToken)
+              ).join(', ')
+        const nextColors =
+          cfg.colorMode === 'single'
+            ? cfg.defaultColors[0] || '#000000'
+            : (cfg.defaultColors.length > 0 ? cfg.defaultColors : ['#000000']).join(', ')
+
+        setFormData((prev) => ({
+          ...prev,
+          sizes: nextSizes,
+          colors: nextColors,
+          canAddNiqab: catIsNiqab ? false : cfg.allowMatchingNiqab,
+        }))
+      }
+
+      if (quickCatSyncExisting) {
+        setRefreshTick((t) => t + 1)
+      }
+
+      const syncedCount = Number(data.syncedProductsCount || 0)
+      success(
+        syncedCount > 0
+          ? tr(
+              `تم تحديث التصنيف ومزامنة ${syncedCount} منتج(ات) بنجاح`,
+              `Category updated & ${syncedCount} product(s) synced`
+            )
+          : tr('تم تحديث إعدادات التصنيف بنجاح', 'Category settings updated')
+      )
+      setQuickEditCategory(null)
+    } catch (err: unknown) {
+      error(err instanceof Error ? err.message : tr('فشل الحفظ', 'Failed to save'))
+    } finally {
+      setQuickCatSaving(false)
+    }
   }
 
   const toggleColorHex = (hex: string) => {
@@ -1398,16 +1575,35 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                    {tr('التصنيف', 'Category')} *
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <label className="block text-xs font-bold text-zinc-300">
+                      {tr('التصنيف', 'Category')} *
+                    </label>
+                    {selectedFormCategory && (
+                      <button
+                        type="button"
+                        onClick={openQuickEditCategory}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                      >
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                        <span>{tr('تعديل التصنيف', 'Edit Category')}</span>
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     <select
-                      value={formData.categoryId}
+                      required
+                      value={hasValidSelectedCategory ? formData.categoryId : ''}
                       onChange={handleCategoryChange}
-                      className="appearance-none w-full h-11 bg-[#111115] border border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 rounded-xl ps-3.5 pe-10 text-sm text-zinc-100 outline-none cursor-pointer transition-colors"
+                      className={`appearance-none w-full h-11 bg-[#111115] border rounded-xl ps-3.5 pe-10 text-sm outline-none cursor-pointer transition-colors ${
+                        hasValidSelectedCategory
+                          ? 'border-zinc-700/80 focus:border-amber-500/70 focus:ring-2 focus:ring-amber-500/20 text-zinc-100'
+                          : 'border-rose-500/70 focus:border-rose-500 text-rose-300'
+                      }`}
                     >
-                      <option value="">{tr('اختر التصنيف', 'Select Category')}</option>
+                      <option value="" disabled hidden>
+                        {tr('اختر التصنيف', 'Select Category')}
+                      </option>
                       {categories.map((category) => (
                         <option key={category.id} value={category.id}>
                           {getCategoryDisplayName(category)}
@@ -1416,6 +1612,19 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                     </select>
                     <ChevronDown className="w-4 h-4 text-zinc-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
+                  {!hasValidSelectedCategory && (
+                    <p className="mt-1.5 text-[11px] font-semibold text-rose-400">
+                      {categories.length === 0
+                        ? tr(
+                            'لا توجد تصنيفات متاحة حالياً. أنشئ تصنيفاً أولاً من صفحة التصنيفات.',
+                            'No categories available yet. Please create a category first.'
+                          )
+                        : tr(
+                            'يرجى اختيار تصنيف صالح لهذا المنتج قبل الحفظ.',
+                            'Please select a valid category before saving.'
+                          )}
+                    </p>
+                  )}
                   {selectedFormCategory && (() => {
                     const catDefaultColors = (
                       selectedCategoryConfig.colorMode === 'single'
@@ -1438,51 +1647,129 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                           catDefaultSizes.every((s) => currentSizeList.includes(s))
                     const differsFromCategoryDefaults = !colorsMatch || !sizesMatch
 
+                    const sizingLabel =
+                      selectedCategoryConfig.sizingMode === 'bundle_no_size'
+                        ? tr('بدون مقاس', 'No Size')
+                        : selectedCategoryConfig.sizingMode === 'standard'
+                          ? tr('مقاس موحّد', 'One Size')
+                          : selectedCategoryConfig.sizingMode === 'numeric'
+                            ? tr('مقاسات رقمية (50–60)', 'Numeric (50–60)')
+                            : tr('مقاسات حرفية', 'Letter Sizes')
+
+                    const sizeGuideLabel =
+                      selectedCategoryConfig.sizeGuideProfile === 'djellaba'
+                        ? tr('دليل الجلابة', 'Djellaba Guide')
+                        : selectedCategoryConfig.sizeGuideProfile === 'abaya'
+                          ? tr('دليل العباءات', 'Abaya Guide')
+                          : tr('مخفي', 'Hidden')
+
                     return (
-                      <div className="mt-2.5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 space-y-2">
+                      <div className="mt-2.5 rounded-xl border border-zinc-800 bg-zinc-950/70 p-3 space-y-2.5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-[11px] text-zinc-300 tabular-nums">
-                            {tr('قواعد التصنيف المطبقة:', 'Category Rules:')}{' '}
-                            <span className="text-amber-400 font-semibold">
-                              {selectedCategoryConfig.sizingMode === 'bundle_no_size'
-                                ? tr('بدون مقاس', 'No Size')
-                                : selectedCategoryConfig.sizingMode === 'standard'
-                                  ? tr('مقاس موحد', 'One Size')
-                                  : selectedCategoryConfig.sizingMode === 'numeric'
-                                    ? tr('مقاسات رقمية', 'Numeric')
-                                    : tr('مقاسات حرفية', 'Letter Sizes')}
-                              {' · '}
-                              {selectedCategoryConfig.colorMode === 'single'
-                                ? tr('لون موحد', 'Single Color')
-                                : tr('ألوان متعددة', 'Multi-Color')}
-                              {' · '}
+                          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-zinc-200">
+                            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
+                            <span>
+                              {tr(
+                                `إعدادات تصنيف "${getCategoryDisplayName(selectedFormCategory)}"`,
+                                `"${getCategoryDisplayName(selectedFormCategory)}" Settings`
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={openQuickEditCategory}
+                              className="h-7 px-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-100 text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Edit2 className="w-3 h-3 text-amber-400" />
+                              <span>{tr('تعديل التصنيف', 'Edit Category')}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={applySelectedCategoryDefaults}
+                              className={`h-7 px-2.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer shrink-0 ${
+                                differsFromCategoryDefaults
+                                  ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400'
+                                  : 'bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700'
+                              }`}
+                            >
+                              {tr('تطبيق مقاسات وألوان التصنيف', 'Apply Category Defaults')}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Compact Category Config Summary */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] tabular-nums">
+                          <div className="rounded-lg bg-zinc-900/80 border border-zinc-800/80 px-2.5 py-2 space-y-0.5">
+                            <span className="text-[10px] text-zinc-400 block">
+                              {tr('نظام المقاسات', 'Sizing')}
+                            </span>
+                            <span className="font-bold text-zinc-100 block">{sizingLabel}</span>
+                            {catDefaultSizes.length > 0 && (
+                              <span className="text-[10px] text-amber-300/90 font-semibold block truncate">
+                                {catDefaultSizes.join(', ')}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="rounded-lg bg-zinc-900/80 border border-zinc-800/80 px-2.5 py-2 space-y-1">
+                            <span className="text-[10px] text-zinc-400 block">
+                              {tr('الألوان الافتراضية', 'Default Colors')}
+                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-zinc-100">
+                                {selectedCategoryConfig.colorMode === 'single'
+                                  ? tr('لون موحد', 'Single')
+                                  : tr('ألوان متعددة', 'Multi')}
+                              </span>
+                              <div className="inline-flex items-center gap-1">
+                                {catDefaultColors.slice(0, 5).map((hex) => (
+                                  <span
+                                    key={hex}
+                                    title={hex}
+                                    className="w-3 h-3 rounded-full border border-white/60 inline-block"
+                                    style={{ backgroundColor: hex }}
+                                  />
+                                ))}
+                                {catDefaultColors.length > 5 && (
+                                  <span className="text-[10px] text-zinc-400">
+                                    +{catDefaultColors.length - 5}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg bg-zinc-900/80 border border-zinc-800/80 px-2.5 py-2 space-y-0.5">
+                            <span className="text-[10px] text-zinc-400 block">
+                              {tr('القواعد والعرض', 'Rules & Frame')}
+                            </span>
+                            <span className="font-semibold text-zinc-200 block leading-snug">
                               {tr('نسبة', 'Frame')} {selectedCategoryConfig.cardAspectRatio}
                               {' · '}
                               {tr('الأدنى', 'Min')} {selectedCategoryConfig.minOrderQuantity}
                               {selectedCategoryConfig.maxOrderQuantity !== null
-                                ? ` · ${tr('الأقصى', 'Max')} ${selectedCategoryConfig.maxOrderQuantity}`
-                                : ''}
+                                ? `–${selectedCategoryConfig.maxOrderQuantity}`
+                                : '+'}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 block">
+                              {sizeGuideLabel}
                               {' · '}
                               {selectedCategoryConfig.allowCustomNote
-                                ? tr('ملاحظة تفصيل مفعلة', 'Custom note on')
-                                : tr('بدون ملاحظة تفصيل', 'No custom note')}
+                                ? tr('تفصيل مفعّل', 'Note On')
+                                : tr('تفصيل معطّل', 'Note Off')}
+                              {!selectedCategoryIsNiqab &&
+                                ` · ${
+                                  selectedCategoryConfig.allowMatchingNiqab
+                                    ? tr('نقاب مفعّل', 'Niqab On')
+                                    : tr('نقاب معطّل', 'Niqab Off')
+                                }`}
                             </span>
-                          </p>
-                          <button
-                            type="button"
-                            onClick={applySelectedCategoryDefaults}
-                            className={`h-7 px-2.5 rounded-lg text-[11px] font-bold transition-colors cursor-pointer shrink-0 ${
-                              differsFromCategoryDefaults
-                                ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400'
-                                : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-                            }`}
-                          >
-                            {tr('تطبيق مقاسات وألوان التصنيف', 'Apply Category Defaults')}
-                          </button>
+                          </div>
                         </div>
 
                         {differsFromCategoryDefaults && (
-                          <div className="space-y-1 text-[11px] tabular-nums leading-relaxed">
+                          <div className="space-y-1 text-[11px] tabular-nums leading-relaxed pt-1 border-t border-zinc-800/70">
                             <p className="text-amber-300/90">
                               {tr('القيم الافتراضية في التصنيف:', 'Category Defaults:')}{' '}
                               {!selectedCategoryIsNiqab && !selectedCategoryHidesSizes && (
@@ -1794,14 +2081,411 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="h-10 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
+                  disabled={submitting || !hasValidSelectedCategory}
+                  className="h-10 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
                 >
                   {submitting
                     ? tr('جاري الحفظ...', 'Saving...')
                     : editingProduct
                       ? tr('حفظ التعديلات', 'Update Product')
                       : tr('إنشاء المنتج', 'Create Product')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Quick Inline Edit Category Modal ── */}
+      {quickEditCategory && (
+        <div
+          dir={dir}
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setQuickEditCategory(null)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[90dvh] flex flex-col rounded-2xl border border-zinc-700/80 bg-zinc-900 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 border-b border-zinc-800 bg-zinc-950/70 shrink-0">
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-black text-white truncate">
+                  {tr(
+                    `تعديل إعدادات تصنيف: ${getCategoryDisplayName(quickEditCategory)}`,
+                    `Edit Category Rules: ${getCategoryDisplayName(quickEditCategory)}`
+                  )}
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  {tr(
+                    'عدّل قواعد التصنيف هنا دون فقدان بيانات المنتج الحالية.',
+                    'Update category defaults here without losing your current product edits.'
+                  )}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href={`/control-panel-ss7/categories?edit=${encodeURIComponent(quickEditCategory.id)}`}
+                  className="h-8 px-2.5 rounded-lg border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
+                >
+                  <span>{tr('كامل الإعدادات', 'Full Page')}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setQuickEditCategory(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveQuickCategory} className="flex flex-col flex-1 min-h-0">
+              <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+                {/* Sizing Mode */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-zinc-200">
+                    {tr('نظام المقاسات للتصنيف', 'Category Sizing Mode')}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {(
+                      [
+                        { value: 'letter', label: tr('حرفية (XS–XXXL)', 'Letter') },
+                        { value: 'numeric', label: tr('رقمية (50–60)', 'Numeric') },
+                        { value: 'standard', label: tr('مقاس موحد', 'One Size') },
+                        { value: 'bundle_no_size', label: tr('بدون مقاس', 'No Size') },
+                      ] as Array<{ value: CategorySizingMode; label: string }>
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handleQuickCatSizingModeChange(opt.value)}
+                        className={`p-2.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
+                          quickCatConfig.sizingMode === opt.value
+                            ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                            : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Default Sizes */}
+                {quickCatConfig.sizingMode !== 'bundle_no_size' && (
+                  <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-3.5 space-y-2.5">
+                    <span className="block text-xs font-bold text-zinc-200">
+                      {tr('المقاسات الافتراضية للتصنيف', 'Default Sizes')}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(quickCatConfig.sizingMode === 'numeric'
+                        ? NUMERIC_PRESET_SIZES
+                        : quickCatConfig.sizingMode === 'standard'
+                          ? STANDARD_PRESET_SIZES
+                          : LETTER_PRESET_SIZES
+                      ).map((sz) => {
+                        const active = quickCatConfig.defaultSizes
+                          .map(normalizeSizeToken)
+                          .includes(sz)
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => toggleQuickCatSize(sz)}
+                            className={`h-8 px-3 rounded-lg border text-xs font-bold tabular-nums transition-colors cursor-pointer ${
+                              active
+                                ? 'bg-amber-500 text-zinc-950 border-amber-500'
+                                : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={quickCatCustomSize}
+                        onChange={(e) => setQuickCatCustomSize(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            addQuickCatCustomSize()
+                          }
+                        }}
+                        placeholder={tr('إضافة مقاس مخصص...', 'Add custom size...')}
+                        className="flex-1 min-w-0 h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={addQuickCatCustomSize}
+                        className="h-9 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold cursor-pointer"
+                      >
+                        {tr('إضافة', 'Add')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Color Policy + Default Colors */}
+                <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-3.5 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-zinc-200">
+                      {tr('سياسة والألوان الافتراضية', 'Color Policy & Defaults')}
+                    </span>
+                    <div className="inline-flex rounded-lg border border-zinc-800 bg-zinc-900 p-0.5 text-[11px] font-bold">
+                      {(['multi', 'single'] as CategoryColorMode[]).map((cm) => (
+                        <button
+                          key={cm}
+                          type="button"
+                          onClick={() =>
+                            setQuickCatConfig((prev) => ({
+                              ...prev,
+                              colorMode: cm,
+                              defaultColors:
+                                cm === 'single'
+                                  ? [prev.defaultColors[0] || '#000000']
+                                  : prev.defaultColors,
+                            }))
+                          }
+                          className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                            quickCatConfig.colorMode === cm
+                              ? 'bg-amber-500 text-zinc-950'
+                              : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          {cm === 'multi'
+                            ? tr('ألوان متعددة', 'Multi')
+                            : tr('لون موحد', 'Single')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {PRESET_COLORS.map((hex) => {
+                      const active = quickCatConfig.defaultColors
+                        .map((c) => c.toUpperCase())
+                        .includes(hex.toUpperCase())
+                      const info = getColorNames(hex)
+                      return (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => toggleQuickCatColor(hex)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer ${
+                            active
+                              ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                              : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700'
+                          }`}
+                        >
+                          <span
+                            className="w-3 h-3 rounded-full border border-white/60"
+                            style={{ backgroundColor: hex }}
+                          />
+                          <span>{locale === 'ar' ? info.ar : info.en}</span>
+                        </button>
+                      )
+                    })}
+                    <div className="inline-flex items-center gap-1.5 ms-auto">
+                      <input
+                        type="color"
+                        value={quickCatPickerColor}
+                        onChange={(e) => setQuickCatPickerColor(e.target.value.toUpperCase())}
+                        className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addQuickCatCustomColor(quickCatPickerColor)}
+                        className="h-7 px-2 rounded-lg bg-zinc-800 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 text-[11px] font-bold cursor-pointer"
+                      >
+                        + {tr('لون', 'Add')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Aspect Ratio, Size Guide & Quantity */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('نسبة عرض الصورة', 'Card Aspect Ratio')}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['3:4', '1:1'] as CategoryCardAspectRatio[]).map((ratio) => (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() =>
+                            setQuickCatConfig((prev) => ({ ...prev, cardAspectRatio: ratio }))
+                          }
+                          className={`h-9 rounded-xl border text-xs font-bold cursor-pointer ${
+                            quickCatConfig.cardAspectRatio === ratio
+                              ? 'border-amber-500 bg-amber-500/15 text-amber-300'
+                              : 'border-zinc-800 bg-zinc-950/60 text-zinc-300'
+                          }`}
+                        >
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('دليل المقاسات', 'Size Guide Profile')}
+                    </label>
+                    <select
+                      value={quickCatConfig.sizeGuideProfile}
+                      onChange={(e) =>
+                        setQuickCatConfig((prev) => ({
+                          ...prev,
+                          sizeGuideProfile: e.target.value as SizeGuideProfile,
+                        }))
+                      }
+                      className="w-full h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs text-zinc-100 outline-none"
+                    >
+                      <option value="djellaba">{tr('دليل الجلابة (XS–XXXL)', 'Djellaba Chart')}</option>
+                      <option value="abaya">{tr('دليل العباءات (50–60)', 'Abaya Chart')}</option>
+                      <option value="none">{tr('إخفاء الدليل', 'Hide Guide')}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('الحد الأدنى للطلب', 'Min Order Qty')}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      dir="ltr"
+                      value={quickCatConfig.minOrderQuantity}
+                      onChange={(e) =>
+                        setQuickCatConfig((prev) => ({
+                          ...prev,
+                          minOrderQuantity: Math.max(1, Number.parseInt(e.target.value, 10) || 1),
+                        }))
+                      }
+                      className="w-full h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs font-mono text-zinc-100 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      {tr('الحد الأقصى للطلب (اختياري)', 'Max Order Qty (Optional)')}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      dir="ltr"
+                      value={quickCatConfig.maxOrderQuantity ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value.trim()
+                        setQuickCatConfig((prev) => ({
+                          ...prev,
+                          maxOrderQuantity: val ? Math.max(1, Number.parseInt(val, 10) || 1) : null,
+                        }))
+                      }}
+                      placeholder={tr('غير محدود', 'Unlimited')}
+                      className="w-full h-9 bg-[#0b0b0e] border border-zinc-800 focus:border-amber-500/70 rounded-xl px-3 text-xs font-mono text-zinc-100 outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Rule toggles */}
+                <div className="flex flex-wrap gap-4 pt-1 text-xs font-bold text-zinc-200">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={quickCatConfig.allowCustomNote}
+                      onChange={(e) =>
+                        setQuickCatConfig((prev) => ({ ...prev, allowCustomNote: e.target.checked }))
+                      }
+                      className="w-4 h-4 accent-amber-500 rounded"
+                    />
+                    <span>{tr('تفعيل ملاحظة التفصيل', 'Allow Custom Note')}</span>
+                  </label>
+                  {!isNiqabIdentity(quickEditCategory) && (
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={quickCatConfig.allowMatchingNiqab}
+                        onChange={(e) =>
+                          setQuickCatConfig((prev) => ({
+                            ...prev,
+                            allowMatchingNiqab: e.target.checked,
+                          }))
+                        }
+                        className="w-4 h-4 accent-amber-500 rounded"
+                      />
+                      <span>{tr('إتاحة إضافة نقاب مطابق', 'Allow Matching Niqab')}</span>
+                    </label>
+                  )}
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={quickCatConfig.showSizeFilter}
+                      onChange={(e) =>
+                        setQuickCatConfig((prev) => ({ ...prev, showSizeFilter: e.target.checked }))
+                      }
+                      className="w-4 h-4 accent-amber-500 rounded"
+                    />
+                    <span>{tr('عرض فلتر المقاسات', 'Show Size Filter')}</span>
+                  </label>
+                </div>
+
+                {/* Sync checkboxes */}
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 p-3 space-y-2">
+                  <label className="flex items-center gap-2.5 text-xs font-bold text-amber-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={quickCatApplyToProduct}
+                      onChange={(e) => setQuickCatApplyToProduct(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded shrink-0"
+                    />
+                    <span>
+                      {tr(
+                        'تطبيق المقاسات والألوان المحدثة على المنتج المفتوح الآن',
+                        'Apply updated sizes & colors to the currently open product form'
+                      )}
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2.5 text-xs font-bold text-zinc-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={quickCatSyncExisting}
+                      onChange={(e) => setQuickCatSyncExisting(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded shrink-0"
+                    />
+                    <span>
+                      {tr(
+                        'مزامنة هذه الإعدادات مع جميع المنتجات الحالية في التصنيف',
+                        'Sync these rules to all existing products in this category'
+                      )}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 px-4 sm:px-6 py-3.5 border-t border-zinc-800 bg-zinc-950/60 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setQuickEditCategory(null)}
+                  className="h-9 px-4 rounded-xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer"
+                >
+                  {tr('إلغاء', 'Cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={quickCatSaving}
+                  className="h-9 px-5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+                >
+                  {quickCatSaving
+                    ? tr('جاري الحفظ...', 'Saving...')
+                    : tr('حفظ إعدادات التصنيف', 'Save Category Rules')}
                 </button>
               </div>
             </form>

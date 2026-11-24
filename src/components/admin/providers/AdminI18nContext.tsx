@@ -4,7 +4,16 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 
 export type AdminLocale = 'ar' | 'en'
 
+export const ADMIN_LOCALE_COOKIE = 'thuraya_admin_locale'
 const STORAGE_KEY = 'thuraya_admin_locale'
+
+function persistAdminLocaleCookie(next: AdminLocale) {
+  try {
+    document.cookie = `${ADMIN_LOCALE_COOKIE}=${next}; path=/; max-age=31536000; SameSite=Lax`
+  } catch {
+    // Ignore cookie write errors
+  }
+}
 
 interface AdminI18nContextValue {
   locale: AdminLocale
@@ -44,23 +53,38 @@ const AdminI18nContext = createContext<AdminI18nContextValue>({
   },
 })
 
-export function AdminI18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<AdminLocale>('ar')
+export function AdminI18nProvider({
+  children,
+  initialLocale = 'ar',
+}: {
+  children: React.ReactNode
+  initialLocale?: AdminLocale
+}) {
+  const [locale, setLocaleState] = useState<AdminLocale>(initialLocale)
 
   useEffect(() => {
+    let cancelled = false
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY)
       if (saved === 'en' || saved === 'ar') {
-        const timeoutId = window.setTimeout(() => setLocaleState(saved), 0)
-        return () => window.clearTimeout(timeoutId)
+        persistAdminLocaleCookie(saved)
+        if (saved !== initialLocale) {
+          queueMicrotask(() => {
+            if (!cancelled) setLocaleState(saved)
+          })
+        }
       }
     } catch {
       // Ignore storage access errors
     }
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [initialLocale])
 
   const setLocale = useCallback((next: AdminLocale) => {
     setLocaleState(next)
+    persistAdminLocaleCookie(next)
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
     } catch {

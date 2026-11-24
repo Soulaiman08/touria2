@@ -1,6 +1,17 @@
 import React from 'react'
-import { AdminI18nProvider } from '@/components/admin/providers/AdminI18nContext'
+import { cookies } from 'next/headers'
+import {
+  AdminI18nProvider,
+  type AdminLocale,
+} from '@/components/admin/providers/AdminI18nContext'
 
-export default function AdminSectionLayout({ children }: { children: React.ReactNode }) {
-  return <AdminI18nProvider>{children}</AdminI18nProvider>
+export const dynamic = 'force-dynamic'
+
+const ADMIN_LOCALE_COOKIE = 'thuraya_admin_locale'
+
+export default async function AdminSectionLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get(ADMIN_LOCALE_COOKIE)?.value
+  const initialLocale: AdminLocale = raw === 'en' ? 'en' : 'ar'
+  return <AdminI18nProvider initialLocale={initialLocale}>{children}</AdminI18nProvider>
 }
