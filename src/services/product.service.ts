@@ -1,5 +1,11 @@
 import { prisma } from '@/lib/prisma'
-import { sortVariantsCanonical, type CategoryConfig } from '@/lib/category-config'
+import {
+  getSizeFilterAliases,
+  normalizeSizeToken,
+  sortSizesCanonical,
+  sortVariantsCanonical,
+  type CategoryConfig,
+} from '@/lib/category-config'
 import { getCategoryConfig, getCategoryConfigMap } from '@/lib/category-config.server'
 import type {
   ProductCard,
@@ -139,11 +145,14 @@ export const productService = {
     // SIZE & COLOR (Combined variant query so neither overwrites the other)
     // -----------------------------------------------
     if (filters.size || filters.colorCode) {
+      const sizeAliases = filters.size ? getSizeFilterAliases(filters.size) : []
       whereClause.variants = {
         some: {
           isActive: true,
-          ...(filters.size ? { size: filters.size } : {}),
-          ...(filters.colorCode ? { colorCode: filters.colorCode } : {}),
+          ...(sizeAliases.length > 0 ? { size: { in: sizeAliases } } : {}),
+          ...(filters.colorCode
+            ? { colorCode: { equals: filters.colorCode, mode: 'insensitive' } }
+            : {}),
         },
       }
     }
@@ -453,9 +462,9 @@ export const productService = {
     // -----------------------------------------------
     // REAL PRODUCT SIZES
     // -----------------------------------------------
-    const availableSizes = Array.from(
-      new Set(variants.map((v) => v.size)),
-    ) as string[]
+    const availableSizes = sortSizesCanonical(
+      variants.map((v) => normalizeSizeToken(v.size))
+    )
 
     return {
       id: p.id,

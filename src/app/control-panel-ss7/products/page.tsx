@@ -373,8 +373,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
       sizes:
         defaultCfg.sizingMode === 'bundle_no_size'
           ? ''
-          : defaultCfg.defaultSizes.join(', ') ||
-            (defaultCfg.sizingMode === 'standard' ? 'Standard' : 'S, M, L, XL'),
+          : sortSizesCanonical(
+              (defaultCfg.defaultSizes.length > 0
+                ? defaultCfg.defaultSizes
+                : defaultCfg.sizingMode === 'standard'
+                  ? ['Standard']
+                  : ['S', 'M', 'L', 'XL']
+              ).map(normalizeSizeToken)
+            ).join(', '),
       isFeatured: false,
       isActive: true,
       canAddNiqab: isNiqabIdentity(defaultCat) ? false : defaultCfg.allowMatchingNiqab,
@@ -469,7 +475,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     const nextSizes =
       cfg.sizingMode === 'bundle_no_size' || catIsNiqab
         ? ''
-        : cfg.defaultSizes.join(', ') || (cfg.sizingMode === 'standard' ? 'Standard' : 'S, M, L, XL')
+        : sortSizesCanonical(
+            (cfg.defaultSizes.length > 0
+              ? cfg.defaultSizes
+              : cfg.sizingMode === 'standard'
+                ? ['Standard']
+                : ['S', 'M', 'L', 'XL']
+            ).map(normalizeSizeToken)
+          ).join(', ')
 
     setFormData((prev) => {
       const prevCategory = categories.find((cat) => cat.id === prev.categoryId)
@@ -507,7 +520,14 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
     const nextSizes =
       cfg.sizingMode === 'bundle_no_size' || catIsNiqab
         ? ''
-        : cfg.defaultSizes.join(', ') || (cfg.sizingMode === 'standard' ? 'Standard' : 'S, M, L, XL')
+        : sortSizesCanonical(
+            (cfg.defaultSizes.length > 0
+              ? cfg.defaultSizes
+              : cfg.sizingMode === 'standard'
+                ? ['Standard']
+                : ['S', 'M', 'L', 'XL']
+            ).map(normalizeSizeToken)
+          ).join(', ')
     const nextColors =
       cfg.colorMode === 'single'
         ? cfg.defaultColors[0] || '#000000'
@@ -2180,32 +2200,52 @@ function ProductContent({ initialSearch }: { initialSearch: string }) {
                     <span className="block text-xs font-bold text-zinc-200">
                       {tr('المقاسات الافتراضية للتصنيف', 'Default Sizes')}
                     </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(quickCatConfig.sizingMode === 'numeric'
-                        ? NUMERIC_PRESET_SIZES
-                        : quickCatConfig.sizingMode === 'standard'
-                          ? STANDARD_PRESET_SIZES
-                          : LETTER_PRESET_SIZES
-                      ).map((sz) => {
-                        const active = quickCatConfig.defaultSizes
-                          .map(normalizeSizeToken)
-                          .includes(sz)
-                        return (
-                          <button
-                            key={sz}
-                            type="button"
-                            onClick={() => toggleQuickCatSize(sz)}
-                            className={`h-8 px-3 rounded-lg border text-xs font-bold tabular-nums transition-colors cursor-pointer ${
-                              active
-                                ? 'bg-amber-500 text-zinc-950 border-amber-500'
-                                : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700'
-                            }`}
-                          >
-                            {sz}
-                          </button>
-                        )
-                      })}
-                    </div>
+                    {(() => {
+                      const presetSizes =
+                        quickCatConfig.sizingMode === 'numeric'
+                          ? NUMERIC_PRESET_SIZES
+                          : quickCatConfig.sizingMode === 'standard'
+                            ? STANDARD_PRESET_SIZES
+                            : LETTER_PRESET_SIZES
+                      const normalizedDefaults = sortSizesCanonical(
+                        quickCatConfig.defaultSizes.map(normalizeSizeToken)
+                      )
+                      const customDefaults = normalizedDefaults.filter(
+                        (sz) => !presetSizes.includes(sz)
+                      )
+                      return (
+                        <div className="flex flex-wrap gap-1.5">
+                          {presetSizes.map((sz) => {
+                            const active = normalizedDefaults.includes(sz)
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => toggleQuickCatSize(sz)}
+                                className={`h-8 px-3 rounded-lg border text-xs font-bold tabular-nums transition-colors cursor-pointer ${
+                                  active
+                                    ? 'bg-amber-500 text-zinc-950 border-amber-500'
+                                    : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            )
+                          })}
+                          {customDefaults.map((sz) => (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => toggleQuickCatSize(sz)}
+                              className="h-8 px-3 rounded-lg border border-amber-500 bg-amber-500/20 text-amber-300 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>{sz}</span>
+                              <X className="w-3 h-3" />
+                            </button>
+                          ))}
+                        </div>
+                      )
+                    })()}
                     <div className="flex gap-2">
                       <input
                         type="text"

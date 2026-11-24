@@ -99,18 +99,39 @@ export default async function AboutPage({ params }: AboutPageProps) {
             </Link>
           </div>
 
-          {/* Architectural Moroccan Arch Showcase */}
+          {/* Architectural Moroccan Arch Showcase (Brand Atelier Frame) */}
           <div className="min-[340px]:col-span-5 lg:col-span-4 flex flex-col items-center min-[340px]:items-end justify-center ps-1 sm:ps-0">
-            <div className="relative w-full max-w-[10.5rem] min-[340px]:max-w-[9.75rem] sm:max-w-[12.5rem] md:max-w-[13.75rem] lg:max-w-[15rem] aspect-[5/6] rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold-ring)] bg-[var(--bg-subtle)] p-1.5 sm:p-2 shadow-[var(--shadow-md)]">
-              <div className="relative w-full h-full rounded-t-[999px] rounded-b-lg sm:rounded-b-xl overflow-hidden border border-[var(--border)] bg-[var(--card-bg)]">
-                <Image
-                  src="/images/brand/logo-full.png"
-                  alt={siteConfig.name}
-                  fill
-                  priority
-                  sizes="(max-width: 640px) 160px, (max-width: 1024px) 220px, 240px"
-                  className="object-cover"
-                />
+            <div className="relative w-full max-w-[10.5rem] min-[340px]:max-w-[9.75rem] sm:max-w-[12.5rem] md:max-w-[13.75rem] lg:max-w-[15rem]">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-3 rounded-t-[999px] rounded-b-3xl bg-[radial-gradient(circle_at_50%_40%,rgba(200,139,18,0.16),transparent_70%)] blur-xl"
+              />
+              <div
+                className="relative aspect-[5/6] rounded-t-[999px] rounded-b-[1.25rem] sm:rounded-b-[1.5rem] border border-[var(--gold)]/45 bg-gradient-to-b from-[var(--gold)]/15 via-[var(--card-bg)] to-[var(--bg-subtle)] p-1.5 sm:p-2"
+                style={{ boxShadow: 'var(--card-shadow-hover)' }}
+              >
+                <div className="relative w-full h-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/30 bg-[var(--card-bg)]">
+                  <Image
+                    src="/images/brand/logo-full.png"
+                    alt={siteConfig.name}
+                    fill
+                    priority
+                    referrerPolicy="no-referrer"
+                    sizes="(max-width: 640px) 160px, (max-width: 1024px) 220px, 240px"
+                    className="object-cover"
+                  />
+                  <div
+                    className="absolute inset-x-0 bottom-0 px-3 py-2 sm:py-2.5 text-center border-t border-white/10 backdrop-blur-[2px]"
+                    style={{
+                      background:
+                        'linear-gradient(to top, rgba(20, 13, 9, 0.82) 0%, rgba(20, 13, 9, 0.25) 100%)',
+                    }}
+                  >
+                    <p className="text-[0.625rem] sm:text-xs font-bold text-[#F6EFE6] truncate m-0">
+                      {isRTL ? 'دار ثريا المغربي' : 'Maison Thuraya'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

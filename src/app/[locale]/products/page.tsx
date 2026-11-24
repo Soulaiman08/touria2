@@ -9,7 +9,7 @@ import { siteConfig } from '@/config/site'
 import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 import { BreadcrumbBar } from '@/components/shared/PageNavigation'
 import { CatalogMobileControls } from '@/components/products/CatalogMobileControls'
-import { LETTER_PRESET_SIZES, NUMERIC_PRESET_SIZES, sortSizesCanonical } from '@/lib/category-config'
+import { LETTER_PRESET_SIZES, NUMERIC_PRESET_SIZES, normalizeSizeToken, sortSizesCanonical } from '@/lib/category-config'
 
 import type { ProductFilters } from '@/types/product'
 
@@ -118,9 +118,13 @@ export default async function ProductsPage({
       ? resolvedSearchParams.size
       : undefined
 
-  const rawColor =
+  const rawColorParam =
     typeof resolvedSearchParams.color === 'string'
-      ? resolvedSearchParams.color
+      ? resolvedSearchParams.color.replace(/^#/, '').trim()
+      : undefined
+  const rawColor =
+    rawColorParam && /^[0-9a-fA-F]{3,8}$/.test(rawColorParam)
+      ? rawColorParam
       : undefined
   const colorCode = rawColor ? `#${rawColor}` : undefined
 
@@ -163,7 +167,10 @@ export default async function ProductsPage({
 
   const currentCategory = category
     ? dbCategories.find(
-        (c) => c.slug === category || c.slug === category.replace(/s$/, '')
+        (c) =>
+          c.slug === category ||
+          c.slug === category.replace(/s$/, '') ||
+          c.slug === `${category}s`
       )
     : undefined
 
@@ -471,7 +478,9 @@ export default async function ProductsPage({
 
                 {categoryOptions.map((cat) => {
                   const isActive =
-                    category === cat.slug || category === `${cat.slug}s`
+                    category === cat.slug ||
+                    category === `${cat.slug}s` ||
+                    category === cat.slug.replace(/s$/, '')
 
                   return (
                     <Link
@@ -551,7 +560,9 @@ export default async function ProductsPage({
                   </Link>
 
                   {activeSizes.map((s) => {
-                    const isActive = size === s
+                    const isActive = size
+                      ? normalizeSizeToken(size) === normalizeSizeToken(s)
+                      : false
                     return (
                       <Link
                         key={s}

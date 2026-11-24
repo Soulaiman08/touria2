@@ -76,6 +76,28 @@ export function normalizeSizeToken(raw: string): string {
   return trimmed
 }
 
+export function getSizeFilterAliases(rawSize: string): string[] {
+  const trimmed = String(rawSize || '').trim()
+  if (!trimmed) return []
+  const upper = trimmed.toUpperCase()
+  const aliases = new Set<string>([trimmed, upper])
+  if (upper === 'XXL' || upper === '2XL') {
+    aliases.add('XXL')
+    aliases.add('2XL')
+  } else if (upper === 'XXXL' || upper === '3XL') {
+    aliases.add('XXXL')
+    aliases.add('3XL')
+  } else if (upper === '4XL' || upper === 'XXXXL') {
+    aliases.add('4XL')
+    aliases.add('XXXXL')
+  } else if (upper === 'STANDARD' || upper === 'ONE SIZE' || upper === 'ONESIZE') {
+    aliases.add('Standard')
+    aliases.add('STANDARD')
+    aliases.add('One Size')
+  }
+  return Array.from(aliases)
+}
+
 export function getSizeSortRank(size: string): number {
   const upper = String(size || '').trim().toUpperCase()
   if (!upper) return 9999
@@ -350,7 +372,7 @@ export function getDefaultCategoryConfig(cat?: CategoryIdentityLike | null): Cat
     unitPluralAr: isDjellaba ? 'جلابيات' : 'قطع',
     unitPluralFr: isDjellaba ? 'djellabas' : 'articles',
     unitPluralEn: isDjellaba ? 'djellabas' : 'items',
-    sizeGuideProfile: isDjellaba || !cat ? 'djellaba' : 'djellaba',
+    sizeGuideProfile: 'djellaba',
     careNoteAr: '',
     careNoteFr: '',
     careNoteEn: '',

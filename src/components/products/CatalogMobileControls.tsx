@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { normalizeSizeToken } from '@/lib/category-config'
 
 export interface CatalogCategoryOption {
   id: string
@@ -197,7 +198,12 @@ export function CatalogMobileControls({
     : undefined
 
   const draftCategoryObj = draftCategory
-    ? categories.find((c) => c.slug === draftCategory || `${c.slug}s` === draftCategory)
+    ? categories.find(
+        (c) =>
+          c.slug === draftCategory ||
+          `${c.slug}s` === draftCategory ||
+          c.slug.replace(/s$/, '') === draftCategory
+      )
     : undefined
 
   const effectiveShowSizeFilter = draftCategoryObj
@@ -232,7 +238,9 @@ export function CatalogMobileControls({
 
         {categories.map((cat) => {
           const isActive =
-            activeCategory === cat.slug || activeCategory === `${cat.slug}s`
+            activeCategory === cat.slug ||
+            activeCategory === `${cat.slug}s` ||
+            activeCategory === cat.slug.replace(/s$/, '')
           return (
             <Link
               key={cat.id}
@@ -440,7 +448,9 @@ export function CatalogMobileControls({
 
                   {categories.map((cat) => {
                     const isSelected =
-                      draftCategory === cat.slug || draftCategory === `${cat.slug}s`
+                      draftCategory === cat.slug ||
+                      draftCategory === `${cat.slug}s` ||
+                      draftCategory === cat.slug.replace(/s$/, '')
                     return (
                       <button
                         key={cat.id}
@@ -526,7 +536,9 @@ export function CatalogMobileControls({
                     </button>
 
                     {effectiveSizes.map((s) => {
-                      const isSelected = draftSize === s
+                      const isSelected = draftSize
+                        ? normalizeSizeToken(draftSize) === normalizeSizeToken(s)
+                        : false
                       return (
                         <button
                           key={s}

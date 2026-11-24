@@ -1,4 +1,4 @@
-import { PrismaClient, OrderStatus } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -70,7 +70,7 @@ async function main() {
     },
   })
 
-  const product2 = await prisma.product.upsert({
+  await prisma.product.upsert({
     where: { slug: 'djellaba-royale-creme' },
     update: {},
     create: {
@@ -99,7 +99,7 @@ async function main() {
     },
   })
 
-  const product3 = await prisma.product.upsert({
+  await prisma.product.upsert({
     where: { slug: 'djellaba-moderne-marine' },
     update: {},
     create: {
@@ -160,7 +160,7 @@ async function main() {
   }
 
   // Niqab products
-  const niqab1 = await prisma.product.upsert({
+  await prisma.product.upsert({
     where: { slug: 'niqab-classique-terracotta' },
     update: {},
     create: {

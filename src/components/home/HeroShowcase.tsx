@@ -57,18 +57,27 @@ export function HeroShowcase({
 
   return (
     <div
-      className="relative w-full max-w-[9.75rem] min-[390px]:max-w-[11rem] sm:max-w-[13.5rem] md:max-w-[15rem] lg:max-w-[16.5rem] xl:max-w-[17.5rem]"
+      className="relative w-full max-w-[10rem] min-[390px]:max-w-[11.25rem] sm:max-w-[13.75rem] md:max-w-[15.25rem] lg:max-w-[16.75rem] xl:max-w-[17.75rem]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
-      <div className="relative">
+      {/* Subtle warm radial aura behind arch */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -inset-3 rounded-t-[999px] rounded-b-3xl bg-[radial-gradient(circle_at_50%_40%,rgba(200,139,18,0.16),transparent_70%)] blur-xl"
+      />
+
+      {/* Sculpted Double-Arch Outer Mat */}
+      <div
+        className="relative rounded-t-[999px] rounded-b-[1.25rem] sm:rounded-b-[1.5rem] border border-[var(--gold)]/45 bg-gradient-to-b from-[var(--gold)]/15 via-[var(--card-bg)] to-[var(--bg-subtle)] p-1.5 sm:p-2"
+        style={{ boxShadow: 'var(--card-shadow-hover)' }}
+      >
         {activeProduct ? (
           <Link
             href={`/${locale}/products/${activeProduct.slug}`}
-            className="block relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--bg-muted)] group no-underline"
-            style={{ boxShadow: 'var(--card-shadow-hover)' }}
+            className="block relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/30 bg-[var(--bg-muted)] group no-underline"
           >
             <AnimatePresence initial={false}>
               <motion.div
@@ -85,24 +94,24 @@ export function HeroShowcase({
                   fill
                   priority
                   referrerPolicy="no-referrer"
-                  sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
+                  sizes="(max-width: 640px) 180px, (max-width: 1024px) 244px, 284px"
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background:
-                      'linear-gradient(to top, rgba(20, 13, 9, 0.84) 0%, rgba(20, 13, 9, 0.16) 50%, transparent 100%)',
+                      'linear-gradient(to top, rgba(20, 13, 9, 0.86) 0%, rgba(20, 13, 9, 0.22) 38%, transparent 72%)',
                   }}
                 />
 
-                {/* Subtle Framed Showcase Caption */}
+                {/* Refined Framed Showcase Caption */}
                 <div
                   className={cn(
-                    'absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-1 lg:gap-2 text-white',
+                    'absolute bottom-0 inset-x-0 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-1 lg:gap-2 text-white border-t border-white/10 backdrop-blur-[2px]',
                     nextProduct
-                      ? 'ps-10 pe-2 pb-2 min-[390px]:ps-11 min-[390px]:pe-2.5 min-[390px]:pb-2.5 sm:ps-[4rem] sm:pe-3 sm:pb-3 md:ps-[4.5rem] md:pe-3.5 md:pb-3.5 lg:ps-[5rem] lg:pe-4 lg:pb-4'
-                      : 'p-2.5 sm:p-3.5 lg:p-4'
+                      ? 'ps-10 pe-2.5 py-2 min-[390px]:ps-11 min-[390px]:pe-3 min-[390px]:py-2.5 sm:ps-[4rem] sm:pe-3.5 sm:py-3 md:ps-[4.5rem] md:pe-3.5 md:py-3 lg:ps-[5rem] lg:pe-4 lg:py-3.5'
+                      : 'px-3 py-2.5 sm:px-4 sm:py-3.5'
                   )}
                 >
                   <div className="min-w-0 space-y-0.5">
@@ -126,23 +135,20 @@ export function HeroShowcase({
             </AnimatePresence>
           </Link>
         ) : (
-          <div
-            className="relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/45 bg-[var(--card-bg)]"
-            style={{ boxShadow: 'var(--card-shadow-hover)' }}
-          >
+          <div className="relative aspect-[4/5] w-full rounded-t-[999px] rounded-b-xl sm:rounded-b-2xl overflow-hidden border border-[var(--gold)]/30 bg-[var(--card-bg)]">
             <Image
               src="/images/brand/logo-full.png"
               alt={fallbackName}
               fill
               priority
               referrerPolicy="no-referrer"
-              sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
+              sizes="(max-width: 640px) 180px, (max-width: 1024px) 244px, 284px"
               className="object-cover"
             />
           </div>
         )}
 
-        {/* Secondary Next-Piece Preview Tile (click to switch to next featured piece) */}
+        {/* Secondary Next-Piece Preview Tile (only shown when >1 featured products exist) */}
         {nextProduct && (
           <button
             type="button"
@@ -155,7 +161,7 @@ export function HeroShowcase({
                   : `Preview ${secondaryName}`
             }
             title={secondaryName}
-            className="block absolute -bottom-2 -start-2 w-10 min-[390px]:w-11 sm:-bottom-2.5 sm:-start-2.5 sm:w-14 md:w-16 lg:-bottom-3 lg:-start-3 lg:w-[4.5rem] aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden border-2 border-[var(--card-bg)] bg-[var(--card-bg)] shadow-lg group cursor-pointer transition-transform duration-300 hover:-translate-y-1 p-0"
+            className="block absolute -bottom-2 -start-2 w-10 min-[390px]:w-11 sm:-bottom-2.5 sm:-start-2.5 sm:w-14 md:w-16 lg:-bottom-3 lg:-start-3 lg:w-[4.5rem] aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden border-2 border-[var(--bg-page)] ring-1 ring-[var(--gold)]/55 bg-[var(--card-bg)] shadow-lg group cursor-pointer transition-transform duration-300 hover:-translate-y-1 p-0"
           >
             <Image
               src={nextProduct.mainImage || '/images/brand/logo-icon.png'}
