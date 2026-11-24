@@ -20,8 +20,9 @@ const DEFAULT_SETTINGS = {
   youtube: siteConfig.social.youtube,
   whatsapp: siteConfig.contact.whatsapp,
 
-  seoTitle: 'الثريا المغربي – أزياء وتصاميم مغربية تقليدية وفاخرة',
-  seoDescription: siteConfig.description.ar,
+  seoTitle: 'ثريا المغربي – جلابات ونقابات مغربية أصيلة',
+  seoDescription:
+    'متجر ثريا المغربي للجلابيات والنقابات المغربية المصنوعة يدوياً بأجود الأقمشة وتطريز أصيل. تسوقي الآن مع توصيل سريع والدفع عند الاستلام.',
   seoKeywords: 'جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي, قفطان',
 }
 
@@ -147,6 +148,8 @@ export async function PUT(request: Request) {
 
     try {
       revalidatePath('/[locale]', 'layout')
+      revalidatePath('/[locale]', 'page')
+      revalidatePath('/[locale]/products', 'layout')
     } catch {
       // Non-fatal in non-Next-runtime calls
     }

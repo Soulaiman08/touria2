@@ -815,46 +815,118 @@ function SettingsContent() {
           )}
 
           {/* Tab 5: SEO */}
-          {activeTab === 'seo' && (
-            <div className="space-y-5">
-              <h2 className="text-base sm:text-lg font-black text-white">
-                {tr('تحسين محركات البحث (SEO)', 'Search Engine Optimization (SEO)')}
-              </h2>
+          {activeTab === 'seo' && (() => {
+            const titleLen = settings.seoTitle.trim().length
+            const descLen = settings.seoDescription.trim().length
+            const titleOk = titleLen >= 30 && titleLen <= 60
+            const descOk = descLen >= 120 && descLen <= 160
+            const previewTitle =
+              settings.seoTitle.trim() || tr('ثريا المغربي – جلابات ونقابات مغربية أصيلة', 'Thuraya Al-Maghribi – Moroccan Djellabas & Niqabs')
+            const previewDesc =
+              settings.seoDescription.trim() ||
+              tr(
+                'متجر ثريا المغربي للجلابيات والنقابات المغربية المصنوعة يدوياً بأجود الأقمشة وتطريز أصيل. تسوقي الآن مع توصيل سريع والدفع عند الاستلام.',
+                'Handcrafted Moroccan djellabas and niqabs with cash on delivery across Morocco.'
+              )
 
-              <div>
-                <label className={labelCls}>{tr('عنوان الميتا (Meta Title)', 'Meta Title')}</label>
-                <input
-                  type="text"
-                  value={settings.seoTitle}
-                  onChange={(e) => updateField('seoTitle', e.target.value)}
-                  placeholder="الثريا المغربي – أزياء وتصاميم مغربية تقليدية وفاخرة"
-                  className={inputCls}
-                />
-              </div>
+            return (
+              <div className="space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-white">
+                    {tr('تحسين محركات البحث (SEO)', 'Search Engine Optimization (SEO)')}
+                  </h2>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400 bg-zinc-950 border border-zinc-800 px-3 py-1.5 rounded-xl">
+                    <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>
+                      {tr(
+                        'ترتبط هذه الحقول مباشرة بعنوان ووصف الصفحة الرئيسية العربية والكلمات المفتاحية',
+                        'Directly powers your Arabic/default homepage title, description & keywords'
+                      )}
+                    </span>
+                  </span>
+                </div>
 
-              <div>
-                <label className={labelCls}>{tr('وصف الميتا (Meta Description)', 'Meta Description')}</label>
-                <textarea
-                  rows={3}
-                  value={settings.seoDescription}
-                  onChange={(e) => updateField('seoDescription', e.target.value)}
-                  placeholder="تصفحي أرقى تشكيلات الجلابة المغربية والنقاب..."
-                  className={`${inputCls} resize-none`}
-                />
-              </div>
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <label className="text-xs font-bold text-zinc-300">
+                      {tr('عنوان الميتا (Meta Title)', 'Meta Title')}
+                    </label>
+                    <span
+                      className={`text-[11px] font-mono tabular-nums ${
+                        titleLen === 0
+                          ? 'text-zinc-500'
+                          : titleOk
+                            ? 'text-emerald-400'
+                            : 'text-amber-400'
+                      }`}
+                    >
+                      {titleLen}/60 ({tr('المثالي 30–60', 'Ideal 30–60')})
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={settings.seoTitle}
+                    onChange={(e) => updateField('seoTitle', e.target.value)}
+                    placeholder="ثريا المغربي – جلابات ونقابات مغربية أصيلة"
+                    className={inputCls}
+                  />
+                </div>
 
-              <div>
-                <label className={labelCls}>{tr('الكلمات المفتاحية (Meta Keywords)', 'Meta Keywords')}</label>
-                <input
-                  type="text"
-                  value={settings.seoKeywords}
-                  onChange={(e) => updateField('seoKeywords', e.target.value)}
-                  placeholder="جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي"
-                  className={inputCls}
-                />
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <label className="text-xs font-bold text-zinc-300">
+                      {tr('وصف الميتا (Meta Description)', 'Meta Description')}
+                    </label>
+                    <span
+                      className={`text-[11px] font-mono tabular-nums ${
+                        descLen === 0
+                          ? 'text-zinc-500'
+                          : descOk
+                            ? 'text-emerald-400'
+                            : 'text-amber-400'
+                      }`}
+                    >
+                      {descLen}/160 ({tr('المثالي 120–160', 'Ideal 120–160')})
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={settings.seoDescription}
+                    onChange={(e) => updateField('seoDescription', e.target.value)}
+                    placeholder="متجر ثريا المغربي للجلابيات والنقابات المغربية المصنوعة يدوياً بأجود الأقمشة وتطريز أصيل. تسوقي الآن مع توصيل سريع والدفع عند الاستلام."
+                    className={`${inputCls} resize-none`}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelCls}>{tr('الكلمات المفتاحية (Meta Keywords)', 'Meta Keywords')}</label>
+                  <input
+                    type="text"
+                    value={settings.seoKeywords}
+                    onChange={(e) => updateField('seoKeywords', e.target.value)}
+                    placeholder="جلابة مغربية, نقاب, أزياء مغربية, ثريا المغربي"
+                    className={inputCls}
+                  />
+                </div>
+
+                {/* Live Search Snippet Preview */}
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-950/90 p-4 space-y-1.5">
+                  <span className="block text-[11px] font-bold text-zinc-400">
+                    {tr('معاينة نتيجة البحث في Google', 'Google Search Snippet Preview')}
+                  </span>
+                  <div className="text-[11px] text-emerald-400 font-mono truncate" dir="ltr">
+                    https://thuraya-almaghribi.vercel.app/ar
+                  </div>
+                  <div className="text-sm sm:text-base font-bold text-sky-400 truncate">
+                    {previewTitle}
+                  </div>
+                  <p className="text-xs text-zinc-300 leading-relaxed line-clamp-2 m-0">
+                    {previewDesc}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Footer Save CTA inside form for bottom accessibility */}
           <div className="pt-4 border-t border-zinc-800/80 flex items-center justify-end">

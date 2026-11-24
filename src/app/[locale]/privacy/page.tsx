@@ -17,6 +17,7 @@ import { FaWhatsapp } from 'react-icons/fa6'
 import { siteConfig } from '@/config/site'
 import { prisma } from '@/lib/prisma'
 import { BackButton } from '@/components/shared/PageNavigation'
+import { buildLocaleAlternates, getDefaultOgImages } from '@/lib/seo.server'
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
@@ -53,22 +54,44 @@ export async function generateMetadata({ params }: PrivacyPageProps): Promise<Me
   const { locale } = await params
   const isRTL = locale === 'ar'
   const isFR = locale === 'fr'
+  const baseUrl = siteConfig.url
+  const brandSuffix = isRTL ? 'ثريا المغربي' : 'Thuraya Al-Maghribi'
 
   const title = isRTL
-    ? 'سياسة الخصوصية وحماية البيانات | ثريا المغربي'
+    ? 'سياسة الخصوصية وحماية البيانات'
     : isFR
-      ? 'Politique de Confidentialité | Thuraya Al-Maghribi'
-      : 'Privacy Policy & Data Protection | Thuraya Al-Maghribi'
+      ? 'Politique de Confidentialité'
+      : 'Privacy Policy & Data Protection'
+
+  const fullSocialTitle = `${title} | ${brandSuffix}`
 
   const description = isRTL
-    ? 'تعرف على سياسة الخصوصية في متجر ثريا المغربي، وكيف نحمي بياناتك الشخصية ونضمن أمان وسرية معلوماتك أثناء التسوق والتوصيل.'
+    ? 'تعرفي على سياسة الخصوصية في متجر ثريا المغربي، وكيف نحمي بياناتك الشخصية ونضمن أمان وسرية معلوماتك أثناء التسوق والتوصيل.'
     : isFR
       ? 'Découvrez comment Thuraya Al-Maghribi protège vos données personnelles et garantit la confidentialité de vos achats et livraisons.'
       : 'Learn how Thuraya Al-Maghribi protects your personal data and ensures privacy and confidentiality during your shopping and delivery.'
 
+  const ogImages = getDefaultOgImages(fullSocialTitle)
+
   return {
     title,
     description,
+    alternates: buildLocaleAlternates('/privacy', locale),
+    openGraph: {
+      title: fullSocialTitle,
+      description,
+      url: `${baseUrl}/${locale}/privacy`,
+      siteName: brandSuffix,
+      locale: isRTL ? 'ar_MA' : isFR ? 'fr_MA' : 'en_US',
+      type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: fullSocialTitle,
+      description,
+      images: ogImages.map((img) => img.url),
+    },
   }
 }
 

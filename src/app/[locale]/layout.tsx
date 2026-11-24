@@ -15,6 +15,11 @@ import { VisitorTracker } from '@/components/shared/VisitorTracker'
 import { CustomerAuthProvider } from '@/components/providers/CustomerAuthProvider'
 import { LocaleDocumentSync } from '@/components/shared/LocaleDocumentSync'
 import { categoryService } from '@/services/category.service'
+import {
+  buildLocaleAlternates,
+  getDefaultOgImages,
+  getSeoSettings,
+} from '@/lib/seo.server'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -30,20 +35,23 @@ export async function generateMetadata({
 }: LocaleLayoutProps): Promise<Metadata> {
   const { locale } = await params
   const baseUrl = siteConfig.url
+  const seo = await getSeoSettings()
 
   const titles: Record<string, string> = {
-    ar: 'ثريا المغربي | جلابات ونقابات مغربية',
+    ar: seo.seoTitle || 'ثريا المغربي | جلابات ونقابات مغربية',
     fr: 'Thuraya Al-Maghribi | Djellabas et Niqabs Marocains',
     en: 'Thuraya Al-Maghribi | Moroccan Djellabas & Niqabs',
   }
 
   const descriptions: Record<string, string> = {
-    ar: 'متجر ثريا المغربي للجلابات والنقابات المغربية التقليدية. جلابة مغربية مصنوعة يدوياً بأجود الخامات. توصيل لجميع مدن المملكة.',
+    ar:
+      seo.seoDescription ||
+      'متجر ثريا المغربي للجلابات والنقابات المغربية التقليدية. جلابة مغربية مصنوعة يدوياً بأجود الخامات. توصيل لجميع مدن المملكة.',
     fr: 'Thuraya Al-Maghribi – Votre boutique de djellabas et niqabs marocains artisanaux. Livraison dans tout le Maroc.',
     en: 'Thuraya Al-Maghribi – Shop authentic handcrafted Moroccan djellabas and niqabs. Traditional Moroccan clothing delivered nationwide.',
   }
 
-  const keywords: Record<string, string[]> = {
+  const baseKeywords: Record<string, string[]> = {
     ar: ['جلابة مغربية', 'جلابات مغربية', 'نقاب مغربي', 'ملابس مغربية تقليدية', 'ثريا المغربي', 'أثواب مغربية', 'جلابية مغربية'],
     fr: ['djellaba marocaine', 'niqab marocain', 'vêtements marocains', 'Thuraya Al-Maghribi', 'djellaba artisanale', 'tenue traditionnelle marocaine'],
     en: ['moroccan djellaba', 'moroccan niqab', 'traditional moroccan clothing', 'Thuraya Al-Maghribi', 'moroccan abaya', 'handmade djellaba'],
@@ -51,44 +59,35 @@ export async function generateMetadata({
 
   const title = titles[locale] ?? titles.ar
   const description = descriptions[locale] ?? descriptions.ar
+  const brandSuffix = locale === 'ar' ? 'ثريا المغربي' : 'Thuraya Al-Maghribi'
+  const ogImages = getDefaultOgImages(title)
+  const mergedKeywords = Array.from(
+    new Set([...(seo.seoKeywords || []), ...(baseKeywords[locale] ?? baseKeywords.ar)])
+  )
 
   return {
     title: {
       default: title,
-      template: `%s | ثريا المغربي`,
+      template: `%s | ${brandSuffix}`,
     },
     description,
-    keywords: keywords[locale] ?? keywords.ar,
+    keywords: mergedKeywords,
     openGraph: {
       title,
       description,
-      siteName: 'ثريا المغربي',
+      siteName: brandSuffix,
       locale: locale === 'ar' ? 'ar_MA' : locale === 'fr' ? 'fr_MA' : 'en_US',
       url: `${baseUrl}/${locale}`,
       type: 'website',
-      images: [
-        {
-          url: `${baseUrl}${siteConfig.ogImage}`,
-          width: 1200,
-          height: 630,
-          alt: 'ثريا المغربي — جلابات ونقابات مغربية',
-        },
-      ],
+      images: ogImages,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: ogImages.map((img) => img.url),
     },
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages: {
-        'ar': `${baseUrl}/ar`,
-        'fr': `${baseUrl}/fr`,
-        'en': `${baseUrl}/en`,
-        'x-default': `${baseUrl}/ar`,
-      },
-    },
+    alternates: buildLocaleAlternates('', locale),
   }
 }
 
@@ -96,7 +95,13 @@ export async function generateMetadata({
 // JSON-LD: Organization + WebSite (placed in layout so it
 // appears on every storefront page)
 // ─────────────────────────────────────────────────────────────
-function OrganizationSchema({ locale }: { locale: string }) {
+function OrganizationSchema({
+  locale,
+  seo,
+}: {
+  locale: string
+  seo: Awaited<ReturnType<typeof getSeoSettings>>
+}) {
   const baseUrl = siteConfig.url
   const schema = {
     '@context': 'https://schema.org',
@@ -104,7 +109,7 @@ function OrganizationSchema({ locale }: { locale: string }) {
       {
         '@type': 'Organization',
         '@id': `${baseUrl}/#organization`,
-        name: 'ثريا المغربي',
+        name: seo.storeName || 'ثريا المغربي',
         alternateName: ['Thuraya Al-Maghribi', 'Thuraya Al Maghribi', 'ثريا مغربي'],
         url: baseUrl,
         logo: {
@@ -113,14 +118,15 @@ function OrganizationSchema({ locale }: { locale: string }) {
         },
         contactPoint: {
           '@type': 'ContactPoint',
-          telephone: siteConfig.contact.phone,
+          telephone: seo.contactPhone || siteConfig.contact.phone,
           contactType: 'customer service',
           availableLanguage: ['Arabic', 'French', 'English'],
         },
         sameAs: [
-          siteConfig.social.instagram,
-          siteConfig.social.facebook,
-          siteConfig.social.tiktok,
+          seo.instagram,
+          seo.facebook,
+          seo.tiktok,
+          seo.youtube,
         ].filter(Boolean),
         areaServed: 'MA',
         foundingLocation: {
@@ -175,6 +181,7 @@ export default async function LocaleLayout({
   const messages = await getMessages()
   const isRTL = locale === 'ar'
 
+  let seoSettings: Awaited<ReturnType<typeof getSeoSettings>>
   let footerCategories: Array<{
     slug: string
     nameAr: string
@@ -182,7 +189,11 @@ export default async function LocaleLayout({
     nameEn: string
   }> = []
   try {
-    const allCategories = await categoryService.getCategories()
+    const [allCategories, loadedSeo] = await Promise.all([
+      categoryService.getCategories(),
+      getSeoSettings(),
+    ])
+    seoSettings = loadedSeo
     footerCategories = allCategories
       .filter((cat) => cat.config?.showInFooter !== false)
       .map((cat) => ({
@@ -192,6 +203,7 @@ export default async function LocaleLayout({
         nameEn: cat.nameEn,
       }))
   } catch {
+    seoSettings = await getSeoSettings()
     footerCategories = []
   }
 
@@ -214,7 +226,7 @@ export default async function LocaleLayout({
                 {isRTL ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
               </a>
 
-              <OrganizationSchema locale={locale} />
+              <OrganizationSchema locale={locale} seo={seoSettings} />
 
               <Header locale={locale} />
 

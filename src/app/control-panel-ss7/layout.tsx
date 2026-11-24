@@ -1,4 +1,5 @@
 import React from 'react'
+import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import {
   AdminI18nProvider,
@@ -6,6 +7,17 @@ import {
 } from '@/components/admin/providers/AdminI18nContext'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+}
 
 const ADMIN_LOCALE_COOKIE = 'thuraya_admin_locale'
 

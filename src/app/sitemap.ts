@@ -13,6 +13,8 @@ function buildAlternates(path: string) {
   )
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Static public pages ──────────────────────────────────────
   const staticPaths: Array<{ path: string; priority: number; freq: MetadataRoute.Sitemap[number]['changeFrequency'] }> = [

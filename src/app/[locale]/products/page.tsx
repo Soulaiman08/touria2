@@ -10,6 +10,7 @@ import { InfiniteProductGrid } from '@/components/products/InfiniteProductGrid'
 import { BreadcrumbBar } from '@/components/shared/PageNavigation'
 import { CatalogMobileControls } from '@/components/products/CatalogMobileControls'
 import { LETTER_PRESET_SIZES, NUMERIC_PRESET_SIZES, normalizeSizeToken, sortSizesCanonical } from '@/lib/category-config'
+import { getDefaultOgImages } from '@/lib/seo.server'
 
 import type { ProductFilters } from '@/types/product'
 
@@ -39,32 +40,36 @@ export async function generateMetadata({
     }
   }
 
+  const brandSuffix = locale === 'ar' ? 'ثريا المغربي' : 'Thuraya Al-Maghribi'
+
   const titles: Record<string, string> = categoryName
     ? {
-        ar: `${categoryName.ar} | ثريا المغربي`,
-        fr: `${categoryName.fr} | Thuraya Al-Maghribi`,
-        en: `${categoryName.en} | Thuraya Al-Maghribi`,
+        ar: categoryName.ar,
+        fr: categoryName.fr,
+        en: categoryName.en,
       }
     : {
-        ar: 'جميع المنتجات | جلابات ونقابات مغربية | ثريا المغربي',
-        fr: 'Tous les produits | Djellabas & Niqabs | Thuraya Al-Maghribi',
-        en: 'All Products | Moroccan Djellabas & Niqabs | Thuraya Al-Maghribi',
+        ar: 'جميع المنتجات — جلابات ونقابات مغربية',
+        fr: 'Tous les produits — Djellabas & Niqabs',
+        en: 'All Products — Moroccan Djellabas & Niqabs',
       }
 
   const descriptions: Record<string, string> = categoryName
     ? {
-        ar: `تسوقي ${categoryName.ar} المغربية الأصيلة في متجر ثريا المغربي. جودة عالية وتصاميم أنيقة.`,
-        fr: `Découvrez notre collection de ${categoryName.fr} marocains chez Thuraya Al-Maghribi. Qualité et élégance.`,
-        en: `Shop our ${categoryName.en} collection at Thuraya Al-Maghribi. Authentic Moroccan quality and elegant designs.`,
+        ar: `تسوقي ${categoryName.ar} المغربية الأصيلة في متجر ثريا المغربي. جودة عالية وتصاميم أنيقة مع توصيل لجميع المدن.`,
+        fr: `Découvrez notre collection de ${categoryName.fr} marocains chez Thuraya Al-Maghribi. Qualité, élégance et livraison au Maroc.`,
+        en: `Shop our ${categoryName.en} collection at Thuraya Al-Maghribi. Authentic Moroccan quality, elegant designs, and delivery across Morocco.`,
       }
     : {
-        ar: 'تسوقي جميع منتجات ثريا المغربي — جلابات مغربية ونقابات وملابس تقليدية بتصاميم أنيقة وجودة عالية.',
-        fr: 'Explorez tous les produits Thuraya Al-Maghribi – djellabas, niqabs et vêtements traditionnels marocains.',
-        en: 'Browse all Thuraya Al-Maghribi products — Moroccan djellabas, niqabs, and traditional clothing.',
+        ar: 'تسوقي جميع منتجات ثريا المغربي — جلابات مغربية ونقابات وملابس تقليدية بتصاميم أنيقة وجودة عالية وتوصيل لجميع المدن.',
+        fr: 'Explorez tous les produits Thuraya Al-Maghribi – djellabas, niqabs et vêtements traditionnels marocains avec livraison au Maroc.',
+        en: 'Browse all Thuraya Al-Maghribi products — Moroccan djellabas, niqabs, and traditional clothing delivered across Morocco.',
       }
 
   const title = titles[locale] ?? titles.ar
+  const fullSocialTitle = `${title} | ${brandSuffix}`
   const description = descriptions[locale] ?? descriptions.ar
+  const ogImages = getDefaultOgImages(fullSocialTitle)
 
   const canonicalPath = categorySlug
     ? `${baseUrl}/${locale}/products?category=${categorySlug}`
@@ -91,10 +96,19 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title,
+      title: fullSocialTitle,
       description,
       url: canonicalPath,
+      siteName: brandSuffix,
+      locale: locale === 'ar' ? 'ar_MA' : locale === 'fr' ? 'fr_MA' : 'en_US',
       type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: fullSocialTitle,
+      description,
+      images: ogImages.map((img) => img.url),
     },
   }
 }

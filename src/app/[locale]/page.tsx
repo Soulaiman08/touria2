@@ -27,6 +27,11 @@ import { FeaturedCollectionShowcase } from '@/components/home/FeaturedCollection
 import { BannersRow } from '@/components/home/BannersRow'
 import { HeroShowcase } from '@/components/home/HeroShowcase'
 import { ForwardButton } from '@/components/shared/PageNavigation'
+import {
+  buildLocaleAlternates,
+  getDefaultOgImages,
+  getSeoSettings,
+} from '@/lib/seo.server'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,38 +44,48 @@ export async function generateMetadata({
 }: HomePageProps): Promise<Metadata> {
   const { locale } = await params
   const baseUrl = siteConfig.url
+  const seo = await getSeoSettings()
 
   const titles: Record<string, string> = {
-    ar: 'ثريا المغربي | جلابات ونقابات مغربية أصيلة',
+    ar: seo.seoTitle || 'ثريا المغربي | جلابات ونقابات مغربية أصيلة',
     fr: 'Thuraya Al-Maghribi | Djellabas et Niqabs Marocains Artisanaux',
     en: 'Thuraya Al-Maghribi | Authentic Moroccan Djellabas & Niqabs',
   }
 
   const descriptions: Record<string, string> = {
-    ar: 'متجر ثريا المغربي للجلابات والنقابات المغربية التقليدية. جلابة مغربية مصنوعة يدوياً بأجود الخامات، بتصاميم أنيقة تجمع بين الأصالة والرقي. توصيل لجميع مدن المملكة.',
+    ar:
+      seo.seoDescription ||
+      'متجر ثريا المغربي للجلابات والنقابات المغربية التقليدية. جلابة مغربية مصنوعة يدوياً بأجود الخامات، بتصاميم أنيقة تجمع بين الأصالة والرقي. توصيل لجميع مدن المملكة.',
     fr: 'Thuraya Al-Maghribi – Boutique en ligne de djellabas et niqabs marocains artisanaux. Vêtements traditionnels marocains de qualité, livraison dans tout le Maroc.',
     en: 'Thuraya Al-Maghribi – Shop handcrafted Moroccan djellabas and niqabs online. Traditional Moroccan clothing with elegant designs, delivered nationwide.',
   }
 
   const title = titles[locale] ?? titles.ar
   const description = descriptions[locale] ?? descriptions.ar
+  const ogImages = getDefaultOgImages(title)
+  const brandName = locale === 'ar' ? 'ثريا المغربي' : 'Thuraya Al-Maghribi'
 
   return {
-    title,
-    description,
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages: {
-        ar: `${baseUrl}/ar`,
-        fr: `${baseUrl}/fr`,
-        en: `${baseUrl}/en`,
-        'x-default': `${baseUrl}/ar`,
-      },
+    title: {
+      absolute: title,
     },
+    description,
+    ...(seo.seoKeywords.length > 0 ? { keywords: seo.seoKeywords } : {}),
+    alternates: buildLocaleAlternates('', locale),
     openGraph: {
       title,
       description,
       url: `${baseUrl}/${locale}`,
+      siteName: brandName,
+      locale: locale === 'ar' ? 'ar_MA' : locale === 'fr' ? 'fr_MA' : 'en_US',
+      type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ogImages.map((img) => img.url),
     },
   }
 }

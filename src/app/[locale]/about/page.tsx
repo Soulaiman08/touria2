@@ -1,12 +1,60 @@
+import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Sparkles, Target, Eye, ShieldCheck, HeartHandshake, ShoppingBag } from 'lucide-react'
 import { siteConfig } from '@/config/site'
 import { BackButton } from '@/components/shared/PageNavigation'
+import { buildLocaleAlternates, getDefaultOgImages } from '@/lib/seo.server'
 
 interface AboutPageProps {
   params: Promise<{ locale: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: AboutPageProps): Promise<Metadata> {
+  const { locale } = await params
+  const baseUrl = siteConfig.url
+  const brandSuffix = locale === 'ar' ? 'ثريا المغربي' : 'Thuraya Al-Maghribi'
+
+  const titles: Record<string, string> = {
+    ar: 'من نحن — قصة دار ثريا المغربي',
+    fr: 'À propos — Histoire de la Maison Thuraya',
+    en: 'About Us — Story of Maison Thuraya',
+  }
+
+  const descriptions: Record<string, string> = {
+    ar: 'تعرفي على قصة دار ثريا المغربي للأزياء المغربية الأصيلة: حرفة يدوية متقنة وأجود الأقمشة لصناعة الجلابيات والنقابات الفاخرة.',
+    fr: 'Découvrez l\'histoire de Thuraya Al-Maghribi : savoir-faire artisanal marocain et tissus nobles pour des djellabas et niqabs d\'exception.',
+    en: 'Discover the story of Thuraya Al-Maghribi: authentic Moroccan craftsmanship and finest fabrics tailored into timeless djellabas and niqabs.',
+  }
+
+  const title = titles[locale] ?? titles.ar
+  const fullSocialTitle = `${title} | ${brandSuffix}`
+  const description = descriptions[locale] ?? descriptions.ar
+  const ogImages = getDefaultOgImages(fullSocialTitle)
+
+  return {
+    title,
+    description,
+    alternates: buildLocaleAlternates('/about', locale),
+    openGraph: {
+      title: fullSocialTitle,
+      description,
+      url: `${baseUrl}/${locale}/about`,
+      siteName: brandSuffix,
+      locale: locale === 'ar' ? 'ar_MA' : locale === 'fr' ? 'fr_MA' : 'en_US',
+      type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: fullSocialTitle,
+      description,
+      images: ogImages.map((img) => img.url),
+    },
+  }
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {

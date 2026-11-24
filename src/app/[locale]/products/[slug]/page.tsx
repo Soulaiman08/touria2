@@ -4,6 +4,7 @@ import { productService } from '@/services/product.service'
 import { siteConfig } from '@/config/site'
 import { BreadcrumbBar } from '@/components/shared/PageNavigation'
 import { ProductDetail } from '@/features/products/components/ProductDetail/ProductDetail'
+import { buildLocaleAlternates, resolveAbsoluteUrl } from '@/lib/seo.server'
 
 interface ProductPageProps {
   params: Promise<{ locale: string; slug: string }>
@@ -34,10 +35,14 @@ export async function generateMetadata({
   const product = await productService.getProductBySlug(slug)
 
   if (!product) {
-    return { title: 'المنتج غير موجود | ثريا المغربي' }
+    return {
+      title: locale === 'ar' ? 'المنتج غير موجود' : locale === 'fr' ? 'Produit introuvable' : 'Product Not Found',
+      robots: { index: false, follow: false },
+    }
   }
 
   const baseUrl = siteConfig.url
+  const brandSuffix = locale === 'ar' ? 'ثريا المغربي' : 'Thuraya Al-Maghribi'
 
   const name =
     locale === 'ar' ? product.nameAr : locale === 'fr' ? product.nameFr : product.nameEn
@@ -49,45 +54,44 @@ export async function generateMetadata({
       ? product.category?.nameFr
       : product.category?.nameEn
 
-  const titles: Record<string, string> = {
-    ar: categoryName
-      ? `${name} — ${categoryName} | ثريا المغربي`
-      : `${name} | ثريا المغربي`,
-    fr: categoryName
-      ? `${product.nameFr} — ${product.category?.nameFr ?? ''} | Thuraya Al-Maghribi`
-      : `${product.nameFr} | Thuraya Al-Maghribi`,
-    en: categoryName
-      ? `${product.nameEn} — ${product.category?.nameEn ?? ''} | Thuraya Al-Maghribi`
-      : `${product.nameEn} | Thuraya Al-Maghribi`,
-  }
+  const customMetaTitle =
+    locale === 'ar'
+      ? product.metaTitleAr?.trim()
+      : locale === 'fr'
+      ? product.metaTitleFr?.trim()
+      : product.metaTitleEn?.trim()
 
-  const descriptions: Record<string, string> = {
-    ar: `${name}${categoryName ? ` من ${categoryName}` : ''} — متجر ثريا المغربي للجلابات والنقابات المغربية الأصيلة. اطلبي الآن بالدفع عند الاستلام.`,
-    fr: `${product.nameFr}${product.category?.nameFr ? ` — ${product.category.nameFr}` : ''} chez Thuraya Al-Maghribi. Paiement à la livraison dans tout le Maroc.`,
-    en: `${product.nameEn}${product.category?.nameEn ? ` — ${product.category.nameEn}` : ''} at Thuraya Al-Maghribi. Cash on delivery across Morocco.`,
-  }
+  const customMetaDesc =
+    locale === 'ar'
+      ? product.metaDescAr?.trim()
+      : locale === 'fr'
+      ? product.metaDescFr?.trim()
+      : product.metaDescEn?.trim()
 
-  const title = titles[locale] ?? titles.ar
-  const description = descriptions[locale] ?? descriptions.ar
+  const defaultPageTitle = categoryName ? `${name} — ${categoryName}` : name
+  const socialTitle = customMetaTitle || `${defaultPageTitle} | ${brandSuffix}`
+
+  const defaultDescription =
+    locale === 'ar'
+      ? `${name}${categoryName ? ` من ${categoryName}` : ''} — من متجر ثريا المغربي للأزياء المغربية الأصيلة. خامات فاخرة وتفصيل متقن مع الدفع عند الاستلام.`
+      : locale === 'fr'
+      ? `${product.nameFr}${product.category?.nameFr ? ` — ${product.category.nameFr}` : ''} chez Thuraya Al-Maghribi. Paiement à la livraison dans tout le Maroc.`
+      : `${product.nameEn}${product.category?.nameEn ? ` — ${product.category.nameEn}` : ''} at Thuraya Al-Maghribi. Cash on delivery across Morocco.`
+
+  const description = customMetaDesc || defaultDescription
   const productUrl = `${baseUrl}/${locale}/products/${slug}`
-  const ogImage = product.mainImage || siteConfig.ogImage
+  const ogImage = resolveAbsoluteUrl(product.mainImage || siteConfig.ogImage)
 
   return {
-    title,
+    title: customMetaTitle ? { absolute: customMetaTitle } : defaultPageTitle,
     description,
-    alternates: {
-      canonical: productUrl,
-      languages: {
-        'ar': `${baseUrl}/ar/products/${slug}`,
-        'fr': `${baseUrl}/fr/products/${slug}`,
-        'en': `${baseUrl}/en/products/${slug}`,
-        'x-default': `${baseUrl}/ar/products/${slug}`,
-      },
-    },
+    alternates: buildLocaleAlternates(`/products/${slug}`, locale),
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       url: productUrl,
+      siteName: brandSuffix,
+      locale: locale === 'ar' ? 'ar_MA' : locale === 'fr' ? 'fr_MA' : 'en_US',
       type: 'website',
       images: [
         {
@@ -100,7 +104,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: socialTitle,
       description,
       images: [ogImage],
     },
@@ -131,6 +135,17 @@ function ProductStructuredData({
       ? product.category?.nameFr
       : product.category?.nameEn
 
+  const productDescription =
+    locale === 'ar'
+      ? product.descriptionAr
+      : locale === 'fr'
+      ? product.descriptionFr
+      : product.descriptionEn
+
+  const productImages = Array.from(
+    new Set([product.mainImage, ...(product.images ?? [])].filter(Boolean))
+  ).map(resolveAbsoluteUrl)
+
   const price = product.salePrice ?? product.basePrice
   const inStock =
     Array.isArray(product.variants) && product.variants.length > 0
@@ -142,7 +157,9 @@ function ProductStructuredData({
         '@type': 'Product',
         '@id': `${baseUrl}/${locale}/products/${slug}#product`,
         name,
-        image: [product.mainImage, ...(product.images ?? [])].filter(Boolean),
+        ...(productDescription ? { description: productDescription } : {}),
+        ...(product.sku ? { sku: product.sku } : {}),
+        image: productImages,
         brand: {
           '@type': 'Brand',
           name: 'ثريا المغربي',
