@@ -71,9 +71,35 @@ export function Header({ locale }: HeaderProps) {
   const [searchRes, setSearchRes] = useState<ProductCard[]>([])
   const [searching, setSearching] = useState(false)
   const [logoError, setLogoError] = useState(false)
+  const [badgePopTick, setBadgePopTick] = useState(0)
 
   const searchRef = useRef<HTMLInputElement | null>(null)
   const { settings: storeSettings } = useSiteSettings()
+
+  useEffect(() => {
+    let prevTotal = useCartStore
+      .getState()
+      .items.reduce((sum, item) => sum + item.quantity, 0)
+    let hydrated = useCartStore.persist.hasHydrated()
+
+    const unsubHydrate = useCartStore.persist.onFinishHydration((state) => {
+      hydrated = true
+      prevTotal = state.items.reduce((sum, item) => sum + item.quantity, 0)
+    })
+
+    const unsubscribe = useCartStore.subscribe((state) => {
+      const nextTotal = state.items.reduce((sum, item) => sum + item.quantity, 0)
+      if (hydrated && nextTotal > prevTotal) {
+        setBadgePopTick((tick) => tick + 1)
+      }
+      prevTotal = nextTotal
+    })
+
+    return () => {
+      unsubHydrate()
+      unsubscribe()
+    }
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 16)
@@ -366,7 +392,7 @@ export function Header({ locale }: HeaderProps) {
             <div className="flex items-center gap-1 min-[380px]:gap-1.5 sm:gap-2 flex-shrink-0" dir={isRTL ? 'rtl' : 'ltr'}>
               <button
                 type="button"
-                className="icon-btn touch-target"
+                className="icon-btn touch-target active:scale-95 transition-[transform,color,background-color] duration-150"
                 onClick={() => setSearchOpen(true)}
                 aria-label={t('search')}
               >
@@ -382,13 +408,17 @@ export function Header({ locale }: HeaderProps) {
                 id="cart-toggle-btn"
                 type="button"
                 onClick={toggleCart}
-                className="icon-btn touch-target relative"
+                className="icon-btn touch-target relative active:scale-95 transition-[transform,color,background-color] duration-150"
                 aria-label={t('cart')}
               >
                 <ShoppingBag className="h-[1.125rem] w-[1.125rem]" />
                 {mounted && totalItems > 0 && (
                   <span
-                    className="absolute -end-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold text-white tabular-nums"
+                    key={badgePopTick}
+                    className={cn(
+                      'absolute -end-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold text-white tabular-nums',
+                      badgePopTick > 0 && 'animate-badge-pop'
+                    )}
                     style={{ background: 'var(--accent)' }}
                   >
                     {totalItems > 9 ? '9+' : totalItems}
@@ -405,7 +435,7 @@ export function Header({ locale }: HeaderProps) {
       ===================================================== */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] transition-[visibility] duration-300',
+          'fixed inset-0 z-[60] transition-[visibility] duration-200',
           menuOpen ? 'visible' : 'invisible pointer-events-none'
         )}
         aria-hidden={!menuOpen}
@@ -415,7 +445,7 @@ export function Header({ locale }: HeaderProps) {
           aria-label={isRTL ? 'إغلاق القائمة' : 'Close menu'}
           onClick={closeMenu}
           className={cn(
-            'absolute inset-0 h-full w-full border-0 p-0 cursor-default bg-black/45 backdrop-blur-[2px] transition-opacity duration-300',
+            'absolute inset-0 h-full w-full border-0 p-0 cursor-default bg-black/45 backdrop-blur-[2px] transition-opacity duration-200',
             menuOpen ? 'opacity-100' : 'opacity-0'
           )}
         />
@@ -423,7 +453,7 @@ export function Header({ locale }: HeaderProps) {
         <aside
           id="main-side-menu"
           className={cn(
-            'absolute top-0 h-full w-[min(17.5rem,88vw)] overflow-hidden shadow-2xl transition-transform duration-300 ease-out flex flex-col',
+            'absolute top-0 h-full w-[min(17.5rem,88vw)] overflow-hidden shadow-2xl transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col',
             isRTL ? 'right-0' : 'left-0',
             isRTL
               ? menuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -709,7 +739,7 @@ export function Header({ locale }: HeaderProps) {
       ===================================================== */}
       <div
         className={cn(
-          'fixed inset-0 z-[70] flex items-start justify-center px-3 transition-all duration-300',
+          'fixed inset-0 z-[70] flex items-start justify-center px-3 transition-[visibility,opacity] duration-200',
           searchOpen ? 'visible opacity-100' : 'invisible pointer-events-none opacity-0'
         )}
         onClick={(event) => {
@@ -723,8 +753,8 @@ export function Header({ locale }: HeaderProps) {
       >
         <div
           className={cn(
-            'w-full overflow-hidden transition-all duration-300',
-            searchOpen ? 'translate-y-0 scale-100 opacity-100' : '-translate-y-3 scale-[0.98] opacity-0'
+            'w-full overflow-hidden transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            searchOpen ? 'translate-y-0 scale-100 opacity-100' : '-translate-y-2.5 scale-[0.98] opacity-0'
           )}
           style={{
             background: 'var(--card-bg)',

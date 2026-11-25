@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ShoppingBag,
   ShieldAlert,
@@ -846,97 +847,103 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
               </div>
 
               <div className="space-y-2.5">
-                {selectedJellabas.map((selection) => {
-                  const rowAvailableColors = colors.filter(
-                    (color) =>
-                      !selectedJellabas.some(
-                        (other) => other.id !== selection.id && other.colorCode === color.code
-                      )
-                  )
+                <AnimatePresence initial={false}>
+                  {selectedJellabas.map((selection) => {
+                    const rowAvailableColors = colors.filter(
+                      (color) =>
+                        !selectedJellabas.some(
+                          (other) => other.id !== selection.id && other.colorCode === color.code
+                        )
+                    )
 
-                  return (
-                    <div
-                      key={selection.id}
-                      className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-2.5"
-                    >
-                      <div className="w-full xl:flex-1 min-w-0">
-                        <CustomSelect
-                          value={selection.colorCode}
-                          onChange={(val) => changeJellabaColor(selection.id, val)}
-                          options={rowAvailableColors.map((c) => ({
-                            value: c.code,
-                            label: getDisplayColorName(c),
-                            swatch: c.code,
-                          }))}
-                          ariaLabel={locale === 'ar' ? 'اللون' : locale === 'fr' ? 'Couleur' : 'Color'}
-                          size="sm"
-                          variant="card"
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between xl:justify-end gap-2 w-full xl:w-auto flex-shrink-0">
-                        {showSizesUI && (
-                          <div className="flex-1 min-w-0 xl:flex-initial xl:w-28">
-                            <CustomSelect
-                              value={selection.size}
-                              onChange={(val) => changeJellabaSize(selection.id, val)}
-                              options={sizes.map((size) => ({ value: size, label: size }))}
-                              ariaLabel={locale === 'ar' ? 'المقاس' : locale === 'fr' ? 'Taille' : 'Size'}
-                              size="sm"
-                              variant="card"
-                            />
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <div
-                            className="flex items-center h-10 border rounded-xl overflow-hidden"
-                            style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => updateJellabaQuantity(selection.id, -1)}
-                              className="w-8 sm:w-9 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer"
-                              aria-label="Decrease quantity"
-                            >
-                              <Minus className="h-3.5 w-3.5" />
-                            </button>
-                            <span
-                              className="px-1.5 sm:px-2 h-full flex items-center justify-center text-xs sm:text-sm font-bold border-x min-w-[1.75rem] sm:min-w-[2rem] tabular-nums"
-                              style={{ borderColor: 'var(--border)' }}
-                            >
-                              {selection.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => updateJellabaQuantity(selection.id, 1)}
-                              disabled={effectiveMaxQty !== null && selectedJellabaQuantity >= effectiveMaxQty}
-                              className="w-8 sm:w-9 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer disabled:opacity-40"
-                              aria-label="Increase quantity"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-
-                          {selectedJellabas.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeJellabaColor(selection.id)}
-                              className="w-9 h-10 flex items-center justify-center rounded-xl border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-colors cursor-pointer"
-                              style={{
-                                borderColor: 'rgba(239,68,68,0.25)',
-                                background: 'var(--card-bg)',
-                              }}
-                              aria-label="Remove color"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
+                    return (
+                      <motion.div
+                        key={selection.id}
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-2.5"
+                      >
+                        <div className="w-full xl:flex-1 min-w-0">
+                          <CustomSelect
+                            value={selection.colorCode}
+                            onChange={(val) => changeJellabaColor(selection.id, val)}
+                            options={rowAvailableColors.map((c) => ({
+                              value: c.code,
+                              label: getDisplayColorName(c),
+                              swatch: c.code,
+                            }))}
+                            ariaLabel={locale === 'ar' ? 'اللون' : locale === 'fr' ? 'Couleur' : 'Color'}
+                            size="sm"
+                            variant="card"
+                          />
                         </div>
-                      </div>
-                    </div>
-                  )
-                })}
+
+                        <div className="flex items-center justify-between xl:justify-end gap-2 w-full xl:w-auto flex-shrink-0">
+                          {showSizesUI && (
+                            <div className="flex-1 min-w-0 xl:flex-initial xl:w-28">
+                              <CustomSelect
+                                value={selection.size}
+                                onChange={(val) => changeJellabaSize(selection.id, val)}
+                                options={sizes.map((size) => ({ value: size, label: size }))}
+                                ariaLabel={locale === 'ar' ? 'المقاس' : locale === 'fr' ? 'Taille' : 'Size'}
+                                size="sm"
+                                variant="card"
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <div
+                              className="flex items-center h-10 border rounded-xl overflow-hidden"
+                              style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => updateJellabaQuantity(selection.id, -1)}
+                                className="w-8 sm:w-9 h-full flex items-center justify-center transition-[color,background-color,transform] duration-150 hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-[0.92] cursor-pointer"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </button>
+                              <span
+                                className="px-1.5 sm:px-2 h-full flex items-center justify-center text-xs sm:text-sm font-bold border-x min-w-[1.75rem] sm:min-w-[2rem] tabular-nums"
+                                style={{ borderColor: 'var(--border)' }}
+                              >
+                                {selection.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateJellabaQuantity(selection.id, 1)}
+                                disabled={effectiveMaxQty !== null && selectedJellabaQuantity >= effectiveMaxQty}
+                                className="w-8 sm:w-9 h-full flex items-center justify-center transition-[color,background-color,transform] duration-150 hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-[0.92] cursor-pointer disabled:opacity-40"
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+
+                            {selectedJellabas.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeJellabaColor(selection.id)}
+                                className="w-9 h-10 flex items-center justify-center rounded-xl border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-[background-color,transform] duration-150 active:scale-[0.92] cursor-pointer"
+                                style={{
+                                  borderColor: 'rgba(239,68,68,0.25)',
+                                  background: 'var(--card-bg)',
+                                }}
+                                aria-label="Remove color"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
 
                 {categoryConfig.colorMode !== 'single' &&
                   availableJellabaColors.length > 0 &&
@@ -944,7 +951,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   <button
                     type="button"
                     onClick={handleAddJellabaColor}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2.5 text-xs sm:text-sm font-semibold transition-colors cursor-pointer hover:bg-[var(--accent-light)]"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2.5 text-xs sm:text-sm font-semibold transition-[background-color,transform] duration-150 active:scale-[0.985] cursor-pointer hover:bg-[var(--accent-light)]"
                     style={{
                       borderColor: 'var(--accent)',
                       color: 'var(--accent)',
@@ -1073,82 +1080,88 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
 
                 {(product.isNiqab || includeNiqab) && niqabSelections.length > 0 && (
                   <div className="space-y-2.5 pt-1">
-                    {niqabSelections.map((selection, index) => {
-                      const rowAvailableColors = niqabColors.filter(
-                        (color) =>
-                          !niqabSelections.some(
-                            (other) => other.id !== selection.id && other.colorCode === color.code
-                          )
-                      )
+                    <AnimatePresence initial={false}>
+                      {niqabSelections.map((selection, index) => {
+                        const rowAvailableColors = niqabColors.filter(
+                          (color) =>
+                            !niqabSelections.some(
+                              (other) => other.id !== selection.id && other.colorCode === color.code
+                            )
+                        )
 
-                      return (
-                        <div
-                          key={selection.id}
-                          className="flex flex-wrap lg:flex-nowrap items-center gap-2 lg:gap-2.5"
-                        >
-                          <div className="w-full min-[400px]:w-auto min-[400px]:flex-1 min-w-0">
-                            <CustomSelect
-                              value={selection.colorCode}
-                              onChange={(val) => changeNiqabColor(selection.id, val)}
-                              options={rowAvailableColors.map((c) => ({
-                                value: c.code,
-                                label: getDisplayColorName(c),
-                                swatch: c.code,
-                              }))}
-                              ariaLabel={locale === 'ar' ? 'لون النقاب' : locale === 'fr' ? 'Couleur du niqab' : 'Niqab color'}
-                              size="sm"
-                              variant="card"
-                            />
-                          </div>
-
-                          <div className="flex items-center justify-end gap-1.5 w-full min-[400px]:w-auto flex-shrink-0">
-                            <div
-                              className="flex items-center h-10 border rounded-xl overflow-hidden"
-                              style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => updateNiqabQuantity(selection.id, -1)}
-                                className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer"
-                                aria-label="Decrease niqab quantity"
-                              >
-                                <Minus className="h-3.5 w-3.5" />
-                              </button>
-                              <span
-                                className="px-2 h-full flex items-center justify-center text-xs sm:text-sm font-bold border-x min-w-[2rem] tabular-nums"
-                                style={{ borderColor: 'var(--border)' }}
-                              >
-                                {selection.quantity}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => updateNiqabQuantity(selection.id, 1)}
-                                disabled={product.isNiqab && effectiveMaxQty !== null && selectedNiqabQuantity >= effectiveMaxQty}
-                                className="w-8 h-full flex items-center justify-center transition-colors hover:bg-[var(--accent-light)] hover:text-[var(--accent)] cursor-pointer disabled:opacity-40"
-                                aria-label="Increase niqab quantity"
-                              >
-                                <Plus className="h-3.5 w-3.5" />
-                              </button>
+                        return (
+                          <motion.div
+                            key={selection.id}
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                            className="flex flex-wrap lg:flex-nowrap items-center gap-2 lg:gap-2.5"
+                          >
+                            <div className="w-full min-[400px]:w-auto min-[400px]:flex-1 min-w-0">
+                              <CustomSelect
+                                value={selection.colorCode}
+                                onChange={(val) => changeNiqabColor(selection.id, val)}
+                                options={rowAvailableColors.map((c) => ({
+                                  value: c.code,
+                                  label: getDisplayColorName(c),
+                                  swatch: c.code,
+                                }))}
+                                ariaLabel={locale === 'ar' ? 'لون النقاب' : locale === 'fr' ? 'Couleur du niqab' : 'Niqab color'}
+                                size="sm"
+                                variant="card"
+                              />
                             </div>
 
-                            {(index > 0 || niqabSelections.length > 1) && (
-                              <button
-                                type="button"
-                                onClick={() => removeNiqabColor(selection.id)}
-                                className="w-9 h-10 flex items-center justify-center rounded-xl border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-colors cursor-pointer"
-                                style={{
-                                  borderColor: 'rgba(239,68,68,0.25)',
-                                  background: 'var(--card-bg)',
-                                }}
-                                aria-label="Remove niqab color"
+                            <div className="flex items-center justify-end gap-1.5 w-full min-[400px]:w-auto flex-shrink-0">
+                              <div
+                                className="flex items-center h-10 border rounded-xl overflow-hidden"
+                                style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}
                               >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
+                                <button
+                                  type="button"
+                                  onClick={() => updateNiqabQuantity(selection.id, -1)}
+                                  className="w-8 h-full flex items-center justify-center transition-[color,background-color,transform] duration-150 hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-[0.92] cursor-pointer"
+                                  aria-label="Decrease niqab quantity"
+                                >
+                                  <Minus className="h-3.5 w-3.5" />
+                                </button>
+                                <span
+                                  className="px-2 h-full flex items-center justify-center text-xs sm:text-sm font-bold border-x min-w-[2rem] tabular-nums"
+                                  style={{ borderColor: 'var(--border)' }}
+                                >
+                                  {selection.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateNiqabQuantity(selection.id, 1)}
+                                  disabled={product.isNiqab && effectiveMaxQty !== null && selectedNiqabQuantity >= effectiveMaxQty}
+                                  className="w-8 h-full flex items-center justify-center transition-[color,background-color,transform] duration-150 hover:bg-[var(--accent-light)] hover:text-[var(--accent)] active:scale-[0.92] cursor-pointer disabled:opacity-40"
+                                  aria-label="Increase niqab quantity"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+
+                              {(index > 0 || niqabSelections.length > 1) && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeNiqabColor(selection.id)}
+                                  className="w-9 h-10 flex items-center justify-center rounded-xl border text-red-500 hover:bg-red-500/10 flex-shrink-0 transition-[background-color,transform] duration-150 active:scale-[0.92] cursor-pointer"
+                                  style={{
+                                    borderColor: 'rgba(239,68,68,0.25)',
+                                    background: 'var(--card-bg)',
+                                  }}
+                                  aria-label="Remove niqab color"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+                          </motion.div>
+                        )
+                      })}
+                    </AnimatePresence>
 
                     {(!product.isNiqab || categoryConfig.colorMode !== 'single') &&
                       availableNiqabColors.length > 0 &&
@@ -1156,7 +1169,7 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                       <button
                         type="button"
                         onClick={handleAddNiqabColor}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2.5 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-2.5 text-xs sm:text-sm font-semibold transition-[background-color,transform] duration-150 hover:bg-[var(--accent-light)] active:scale-[0.985] cursor-pointer"
                         style={{
                           borderColor: 'var(--accent)',
                           color: 'var(--accent)',
@@ -1260,25 +1273,49 @@ export function ProductDetail({ product, locale }: ProductDetailProps) {
                   (selectedNiqabQuantity < effectiveMinQty ||
                     (effectiveMaxQty !== null && selectedNiqabQuantity > effectiveMaxQty)))
               }
-              className="btn btn-primary rounded-xl flex h-12 w-full items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
+              className="btn btn-primary rounded-xl flex h-12 w-full items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50 transition-[background-color,box-shadow,transform] duration-150 active:scale-[0.985]"
+              style={
+                addedFeedback
+                  ? {
+                      background: 'var(--success)',
+                      boxShadow: '0 6px 20px rgba(62, 107, 76, 0.25)',
+                    }
+                  : undefined
+              }
             >
-              {addedFeedback ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  <span>
-                    {locale === 'ar'
-                      ? 'تمت الإضافة إلى السلة'
-                      : locale === 'fr'
-                        ? 'Ajouté au panier'
-                        : 'Added to cart'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>{t('addToCart')}</span>
-                </>
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                {addedFeedback ? (
+                  <motion.span
+                    key="added"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    <span>
+                      {locale === 'ar'
+                        ? 'تمت الإضافة إلى السلة'
+                        : locale === 'fr'
+                          ? 'Ajouté au panier'
+                          : 'Added to cart'}
+                    </span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="add"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>{t('addToCart')}</span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
 
             {/* Trust Micro-Row */}

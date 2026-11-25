@@ -142,10 +142,9 @@ function InfiniteProductGridInner({
         {products.map((product, idx) => (
           <div
             key={product.id}
-            className="animate-fade-in-up"
+            className="animate-card-enter"
             style={{
-              animationDelay: `${(idx % 12) * 40}ms`,
-              animationFillMode: 'both',
+              animationDelay: `${Math.min(idx % 6, 4) * 24}ms`,
             }}
           >
             <ProductCard

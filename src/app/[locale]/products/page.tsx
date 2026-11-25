@@ -478,7 +478,7 @@ export default async function ProductsPage({
               <div className="space-y-1">
                 <Link
                   href={buildFilterUrl({ category: null })}
-                  className={`flex items-center justify-between text-xs py-2 px-3 rounded-lg transition-colors no-underline ${
+                  className={`flex items-center justify-between text-xs py-2 px-3 rounded-lg transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.98] no-underline ${
                     !category
                       ? 'bg-[var(--accent-light)] text-[var(--accent)] font-bold border border-[var(--accent-ring)]'
                       : 'hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)] font-medium border border-transparent'
@@ -502,7 +502,7 @@ export default async function ProductsPage({
                       href={buildFilterUrl({
                         category: isActive ? null : cat.slug,
                       })}
-                      className={`flex items-center justify-between text-xs py-2 px-3 rounded-lg transition-colors no-underline ${
+                      className={`flex items-center justify-between text-xs py-2 px-3 rounded-lg transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.98] no-underline ${
                         isActive
                           ? 'bg-[var(--accent-light)] text-[var(--accent)] font-bold border border-[var(--accent-ring)]'
                           : 'hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)] font-medium border border-transparent'
@@ -541,7 +541,7 @@ export default async function ProductsPage({
                         href={buildFilterUrl({ color: isActive ? null : hexParam })}
                         aria-label={col.label}
                         title={col.label}
-                        className={`w-7 h-7 rounded-full border transition-transform ${
+                        className={`w-7 h-7 rounded-full border transition-transform duration-150 active:scale-[0.94] ${
                           isActive
                             ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--card-bg)] scale-105'
                             : 'border-[var(--border)] hover:scale-105'
@@ -564,7 +564,7 @@ export default async function ProductsPage({
                 <div className="grid grid-cols-4 gap-1.5">
                   <Link
                     href={buildFilterUrl({ size: null })}
-                    className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold transition-colors no-underline ${
+                    className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.97] no-underline ${
                       !size
                         ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-light)] font-bold'
                         : 'border-[var(--border)] text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
@@ -581,7 +581,7 @@ export default async function ProductsPage({
                       <Link
                         key={s}
                         href={buildFilterUrl({ size: isActive ? null : s })}
-                        className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold tabular-nums transition-colors no-underline ${
+                        className={`h-9 rounded-lg border flex items-center justify-center text-xs font-semibold tabular-nums transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.97] no-underline ${
                           isActive
                             ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-light)] font-bold'
                             : 'border-[var(--border)] text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
@@ -612,7 +612,7 @@ export default async function ProductsPage({
               {search && (
                 <Link
                   href={buildFilterUrl({ q: null })}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium no-underline hover:border-[var(--accent)]"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium no-underline hover:border-[var(--accent)] transition-[border-color,transform] duration-150 active:scale-[0.96]"
                 >
                   <span>“{search}”</span>
                   <X className="w-3 h-3 text-[var(--text-muted)]" />
@@ -622,7 +622,7 @@ export default async function ProductsPage({
               {size && (
                 <Link
                   href={buildFilterUrl({ size: null })}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium no-underline hover:border-[var(--accent)]"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium no-underline hover:border-[var(--accent)] transition-[border-color,transform] duration-150 active:scale-[0.96]"
                 >
                   <span>
                     {pt('filters.size')}: {size}
@@ -634,7 +634,7 @@ export default async function ProductsPage({
               {rawColor && (
                 <Link
                   href={buildFilterUrl({ color: null })}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium no-underline hover:border-[var(--accent)]"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium no-underline hover:border-[var(--accent)] transition-[border-color,transform] duration-150 active:scale-[0.96]"
                 >
                   <span
                     className="w-2.5 h-2.5 rounded-full border border-[var(--border)]"
@@ -663,7 +663,7 @@ export default async function ProductsPage({
                       href={buildFilterUrl({
                         sort: opt.key === 'featured' ? null : opt.key,
                       })}
-                      className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all no-underline ${
+                      className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:scale-[0.97] no-underline ${
                         isActive
                           ? 'bg-[var(--card-bg)] text-[var(--accent)] border border-[var(--border)] shadow-xs font-semibold'
                           : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent font-medium'

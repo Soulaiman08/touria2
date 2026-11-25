@@ -215,7 +215,7 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                 quality={90}
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className="object-cover object-[50%_32%] transition-transform duration-500 group-hover:scale-[1.03]"
+                className="object-cover object-[50%_32%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                 sizes="(max-width: 639px) 92vw, 90vw"
               />
               <div
@@ -305,7 +305,7 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                   quality={90}
                   loading="lazy"
                   referrerPolicy="no-referrer"
-                  className="object-cover object-[50%_30%] transition-transform duration-700 group-hover:scale-[1.03]"
+                  className="object-cover object-[50%_30%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                   sizes="(max-width: 1023px) 48vw, (max-width: 1440px) 55vw, 760px"
                 />
                 <div
@@ -371,7 +371,7 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                   quality={90}
                   loading="lazy"
                   referrerPolicy="no-referrer"
-                  className="object-cover object-[50%_32%] transition-transform duration-500 group-hover:scale-[1.03]"
+                  className="object-cover object-[50%_32%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                   sizes="(max-width: 639px) 82vw, (max-width: 767px) 70vw, (max-width: 1440px) 46vw, 640px"
                 />
 
@@ -443,10 +443,10 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
                   className="min-w-[24px] min-h-[32px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md"
                 >
                   <span
-                    className={`block h-1.5 rounded-full transition-all duration-200 ${
+                    className={`block w-4 h-1.5 rounded-full transition-[transform,background-color,opacity] duration-150 ${
                       isActive
-                        ? 'w-6 bg-[var(--accent)]'
-                        : 'w-2 bg-[var(--border)] hover:bg-[var(--gold)]/70'
+                        ? 'scale-x-100 bg-[var(--accent)] opacity-100'
+                        : 'scale-x-50 bg-[var(--border)] opacity-80 hover:opacity-100 hover:bg-[var(--gold)]/70'
                     }`}
                   />
                 </button>
@@ -461,7 +461,7 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
               onClick={() => scrollToIndex(activeIndex - 1)}
               disabled={!canPrev}
               aria-label={isRTL ? 'البانر السابق' : 'Previous banner'}
-              className="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center transition-[color,border-color,transform] duration-150 active:scale-[0.94] cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <PrevIcon className="w-4 h-4" />
             </button>
@@ -470,7 +470,7 @@ export function BannersRow({ banners, locale }: BannersRowProps) {
               onClick={() => scrollToIndex(activeIndex + 1)}
               disabled={!canNext}
               aria-label={isRTL ? 'البانر التالي' : 'Next banner'}
-              className="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center transition-[color,border-color,transform] duration-150 active:scale-[0.94] cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <NextIcon className="w-4 h-4" />
             </button>

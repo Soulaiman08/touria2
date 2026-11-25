@@ -1066,7 +1066,7 @@ h6 {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1076,6 +1076,10 @@ h6 {
   box-shadow: var(--card-shadow-hover);
   transform: translateY(-2px);
   border-color: var(--gold);
+}
+
+.product-card:active {
+  transform: scale(0.988);
 }
 
 .product-card:hover .product-card-img {
@@ -1094,7 +1098,7 @@ h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .product-card-info {
@@ -1165,7 +1169,45 @@ h6 {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0.84);
+  }
+
+  55% {
+    transform: scale(1.12);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes tabPanelFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 
   to {
@@ -1177,7 +1219,7 @@ h6 {
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-12px);
   }
 
   to {
@@ -1189,7 +1231,7 @@ h6 {
 @keyframes slideRight {
   from {
     opacity: 0;
-    transform: translateX(-24px);
+    transform: translateX(-16px);
   }
 
   to {
@@ -1201,7 +1243,7 @@ h6 {
 @keyframes slideLeft {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(16px);
   }
 
   to {
@@ -1213,7 +1255,7 @@ h6 {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.94);
+    transform: scale(0.96);
   }
 
   to {
@@ -1241,27 +1283,24 @@ h6 {
 
 @keyframes bounce-in {
   0% {
-    transform: scale(0.3);
+    transform: scale(0.85);
     opacity: 0;
   }
 
-  60% {
-    transform: scale(1.1);
+  65% {
+    transform: scale(1.03);
     opacity: 1;
-  }
-
-  80% {
-    transform: scale(0.9);
   }
 
   100% {
     transform: scale(1);
+    opacity: 1;
   }
 }
 
 @keyframes slide-up-in {
   from {
-    transform: translateY(100%);
+    transform: translateY(16px);
     opacity: 0;
   }
 
@@ -1272,35 +1311,47 @@ h6 {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease forwards;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-card-enter {
+  animation: cardEnter 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-badge-pop {
+  animation: badgePop 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-tab-fade {
+  animation: tabPanelFade 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in-down {
-  animation: fadeInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-right {
-  animation: slideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-left {
-  animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-bounce-in {
-  animation: bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: bounce-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slide-up-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-pulse-ring {
@@ -1309,33 +1360,44 @@ h6 {
 
 /* Stagger delay utilities */
 .delay-100 {
-  animation-delay: 100ms;
+  animation-delay: 60ms;
 }
 
 .delay-200 {
-  animation-delay: 200ms;
+  animation-delay: 120ms;
 }
 
 .delay-300 {
-  animation-delay: 300ms;
+  animation-delay: 180ms;
 }
 
 .delay-400 {
-  animation-delay: 400ms;
+  animation-delay: 240ms;
 }
 
 .delay-500 {
-  animation-delay: 500ms;
+  animation-delay: 300ms;
 }
 
-/* ── Intersection Observer fade ── */
+/* ── Intersection Observer Scroll Reveal ── */
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(10px);
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-section {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-section[data-visible="true"] {
   opacity: 1;
   transform: translateY(0);
 }
@@ -1868,6 +1930,13 @@ h6 {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .reveal,
+  .reveal-section {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
 

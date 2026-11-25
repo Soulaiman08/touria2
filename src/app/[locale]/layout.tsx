@@ -5,6 +5,7 @@ import { getMessages } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import { siteConfig } from '@/config/site'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { MotionProvider } from '@/components/providers/MotionProvider'
 import { CartProvider } from '@/components/providers/CartProvider'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -209,39 +210,41 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <ThemeProvider>
-        <CartProvider>
-          <CustomerAuthProvider locale={locale}>
-            <LocaleDocumentSync locale={locale} />
-            <div
-              className="storefront-shell flex min-h-screen flex-col relative w-full"
-              dir={isRTL ? 'rtl' : 'ltr'}
-              lang={locale}
-            >
-              {/* Skip to content for accessibility */}
-              <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg"
+      <MotionProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <CustomerAuthProvider locale={locale}>
+              <LocaleDocumentSync locale={locale} />
+              <div
+                className="storefront-shell flex min-h-screen flex-col relative w-full"
+                dir={isRTL ? 'rtl' : 'ltr'}
+                lang={locale}
               >
-                {isRTL ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
-              </a>
+                {/* Skip to content for accessibility */}
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg"
+                >
+                  {isRTL ? 'انتقل إلى المحتوى' : locale === 'fr' ? 'Aller au contenu' : 'Skip to content'}
+                </a>
 
-              <OrganizationSchema locale={locale} seo={seoSettings} />
+                <OrganizationSchema locale={locale} seo={seoSettings} />
 
-              <Header locale={locale} />
+                <Header locale={locale} />
 
-              <main id="main-content" className="flex-1 w-full relative">
-                {children}
-              </main>
+                <main id="main-content" className="flex-1 w-full relative">
+                  {children}
+                </main>
 
-              <Footer locale={locale} categories={footerCategories} />
-              <CartDrawer locale={locale} />
-              <WhatsAppButton />
-              <VisitorTracker />
-            </div>
-          </CustomerAuthProvider>
-        </CartProvider>
-      </ThemeProvider>
+                <Footer locale={locale} categories={footerCategories} />
+                <CartDrawer locale={locale} />
+                <WhatsAppButton />
+                <VisitorTracker />
+              </div>
+            </CustomerAuthProvider>
+          </CartProvider>
+        </ThemeProvider>
+      </MotionProvider>
     </NextIntlClientProvider>
   )
 }

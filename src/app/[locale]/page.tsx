@@ -27,6 +27,7 @@ import { FeaturedCollectionShowcase } from '@/components/home/FeaturedCollection
 import { BannersRow } from '@/components/home/BannersRow'
 import { HeroShowcase } from '@/components/home/HeroShowcase'
 import { ForwardButton } from '@/components/shared/PageNavigation'
+import { ScrollReveal } from '@/components/shared/ScrollReveal'
 import {
   buildLocaleAlternates,
   getDefaultOgImages,
@@ -535,34 +536,39 @@ export default async function HomePage({ params }: HomePageProps) {
       {/* ===================================================
           2. FEATURED BANNERS (only when active in DB)
       =================================================== */}
-      <BannersRow banners={banners} locale={locale} />
+      <ScrollReveal>
+        <BannersRow banners={banners} locale={locale} />
+      </ScrollReveal>
 
       {/* ===================================================
           3. COLLECTIONS & BEST SELLERS (In-page category filter tabs)
       =================================================== */}
-      <FeaturedCollectionShowcase
-        locale={locale}
-        initialFeatured={featured.slice(0, 8)}
-        initialCatalogProducts={catalogPreviewResponse.items}
-        categories={categories}
-        allCatalogCount={allCatalogCount}
-        labels={{
-          eyebrow: labels.bestEyebrow,
-          title: labels.bestSellers,
-          subtitle: labels.bestSub,
-          allCatalog: labels.allCatalog,
-          viewAll: labels.viewAll,
-          empty: labels.empty,
-        }}
-      />
+      <ScrollReveal>
+        <FeaturedCollectionShowcase
+          locale={locale}
+          initialFeatured={featured.slice(0, 8)}
+          initialCatalogProducts={catalogPreviewResponse.items}
+          categories={categories}
+          allCatalogCount={allCatalogCount}
+          labels={{
+            eyebrow: labels.bestEyebrow,
+            title: labels.bestSellers,
+            subtitle: labels.bestSub,
+            allCatalog: labels.allCatalog,
+            viewAll: labels.viewAll,
+            empty: labels.empty,
+          }}
+        />
+      </ScrollReveal>
 
       {/* ===================================================
           4. NEW ARRIVALS COLLECTION
       =================================================== */}
-      <section
-        className="home-section home-section-muted"
-        aria-label={labels.newCol}
-      >
+      <ScrollReveal>
+        <section
+          className="home-section home-section-muted"
+          aria-label={labels.newCol}
+        >
         <div className="container-brand space-y-4 sm:space-y-6">
           <div
             className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4 pb-1"
@@ -617,16 +623,18 @@ export default async function HomePage({ params }: HomePageProps) {
           )}
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ===================================================
           5. UNIFIED ATELIER STORY & CONCIERGE SPLIT
       =================================================== */}
-      <section
-        id="contact"
-        className="home-section scroll-mt-24"
-        style={{ scrollMarginTop: '6rem' }}
-        aria-label={labels.contactTitle}
-      >
+      <ScrollReveal>
+        <section
+          id="contact"
+          className="home-section scroll-mt-24"
+          style={{ scrollMarginTop: '6rem' }}
+          aria-label={labels.contactTitle}
+        >
         <div className="container-brand">
           <div
             className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-start"
@@ -778,6 +786,7 @@ export default async function HomePage({ params }: HomePageProps) {
           </div>
         </div>
       </section>
+      </ScrollReveal>
     </>
   )
 }

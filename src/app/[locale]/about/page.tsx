@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Sparkles, Target, Eye, ShieldCheck, HeartHandshake, ShoppingBag } from 'lucide-react'
 import { siteConfig } from '@/config/site'
 import { BackButton } from '@/components/shared/PageNavigation'
+import { ScrollReveal } from '@/components/shared/ScrollReveal'
 import { buildLocaleAlternates, getDefaultOgImages } from '@/lib/seo.server'
 
 interface AboutPageProps {
@@ -187,89 +188,95 @@ export default async function AboutPage({ params }: AboutPageProps) {
       </section>
 
       {/* ── 2. Brand Pillars Section ──────────────────────────────── */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5">
-          {pillars.map((pillar, idx) => {
-            const Icon = pillar.icon
-            return (
-              <div
-                key={idx}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 flex flex-col items-center text-center gap-2 sm:gap-2.5 transition-colors hover:border-[var(--accent-ring)]"
-              >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4 h-4 sm:w-[1.125rem] sm:h-[1.125rem]" />
+      <ScrollReveal>
+        <section>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5">
+            {pillars.map((pillar, idx) => {
+              const Icon = pillar.icon
+              return (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 flex flex-col items-center text-center gap-2 sm:gap-2.5 transition-colors hover:border-[var(--accent-ring)]"
+                >
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 sm:w-[1.125rem] sm:h-[1.125rem]" />
+                  </div>
+                  <h2 className="text-sm sm:text-[0.9375rem] font-extrabold text-[var(--text-primary)] m-0">
+                    {pillar.title}
+                  </h2>
+                  <p className="text-xs sm:text-[0.8125rem] leading-relaxed text-[var(--text-muted)] m-0">
+                    {pillar.desc}
+                  </p>
                 </div>
-                <h2 className="text-sm sm:text-[0.9375rem] font-extrabold text-[var(--text-primary)] m-0">
-                  {pillar.title}
-                </h2>
-                <p className="text-xs sm:text-[0.8125rem] leading-relaxed text-[var(--text-muted)] m-0">
-                  {pillar.desc}
-                </p>
-              </div>
-            )
-          })}
-        </div>
-      </section>
+              )
+            })}
+          </div>
+        </section>
+      </ScrollReveal>
 
       {/* ── 3. Mission & Vision ───────────────────────────────────── */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 flex flex-col gap-2 sm:gap-2.5">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
-                <Target className="w-4 h-4 sm:w-[1.125rem] sm:h-[1.125rem]" />
+      <ScrollReveal>
+        <section>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 flex flex-col gap-2 sm:gap-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                  <Target className="w-4 h-4 sm:w-[1.125rem] sm:h-[1.125rem]" />
+                </div>
+                <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] m-0">
+                  {t('mission')}
+                </h2>
               </div>
-              <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] m-0">
-                {t('mission')}
-              </h2>
+              <p className="text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] m-0">
+                {t('missionText')}
+              </p>
             </div>
-            <p className="text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] m-0">
-              {t('missionText')}
-            </p>
-          </div>
 
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 flex flex-col gap-2 sm:gap-2.5">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
-                <Eye className="w-4 h-4 sm:w-[1.125rem] sm:h-[1.125rem]" />
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-5 flex flex-col gap-2 sm:gap-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[var(--accent-light)] border border-[var(--accent-ring)] text-[var(--accent)] flex items-center justify-center flex-shrink-0">
+                  <Eye className="w-4 h-4 sm:w-[1.125rem] sm:h-[1.125rem]" />
+                </div>
+                <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] m-0">
+                  {t('vision')}
+                </h2>
               </div>
-              <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] m-0">
-                {t('vision')}
-              </h2>
+              <p className="text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] m-0">
+                {t('visionText')}
+              </p>
             </div>
-            <p className="text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] m-0">
-              {t('visionText')}
-            </p>
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* ── 4. Call to Action Banner ──────────────────────────────── */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-6 text-center flex flex-col items-center gap-2.5 sm:gap-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-[var(--gold)] m-0">
-          {isRTL ? 'تشكيلة حصرية' : locale === 'fr' ? 'Collection exclusive' : 'Exclusive Collection'}
-        </p>
+      <ScrollReveal>
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 sm:p-6 text-center flex flex-col items-center gap-2.5 sm:gap-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-[var(--gold)] m-0">
+            {isRTL ? 'تشكيلة حصرية' : locale === 'fr' ? 'Collection exclusive' : 'Exclusive Collection'}
+          </p>
 
-        <h2
-          className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] m-0 text-balance"
-          style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
-        >
-          {isRTL ? 'اكتشفي تشكيلة الجلابيات والنقابات الآن' : locale === 'fr' ? 'Découvrez notre collection exclusive' : 'Explore Our Exclusive Collection'}
-        </h2>
+          <h2
+            className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] m-0 text-balance"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic)' : 'var(--font-display)' }}
+          >
+            {isRTL ? 'اكتشفي تشكيلة الجلابيات والنقابات الآن' : locale === 'fr' ? 'Découvrez notre collection exclusive' : 'Explore Our Exclusive Collection'}
+          </h2>
 
-        <p className="text-xs sm:text-sm max-w-lg text-[var(--text-muted)] leading-relaxed m-0">
-          {isRTL
-            ? 'تصاميم راقية مصممة بأيدي أمهر الحرفيين المغاربة لتليق بإطلالتكِ وتبرز أناقتكِ في كل مناسبة.'
-            : locale === 'fr'
-              ? 'Des créations raffinées façonnées par les plus grands maîtres artisans marocains.'
-              : 'Refined designs handcrafted by master Moroccan artisans to elevate your style.'}
-        </p>
+          <p className="text-xs sm:text-sm max-w-lg text-[var(--text-muted)] leading-relaxed m-0">
+            {isRTL
+              ? 'تصاميم راقية مصممة بأيدي أمهر الحرفيين المغاربة لتليق بإطلالتكِ وتبرز أناقتكِ في كل مناسبة.'
+              : locale === 'fr'
+                ? 'Des créations raffinées façonnées par les plus grands maîtres artisans marocains.'
+                : 'Refined designs handcrafted by master Moroccan artisans to elevate your style.'}
+          </p>
 
-        <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl px-6 h-10 mt-0.5 text-xs sm:text-sm">
-          <ShoppingBag className="w-4 h-4" />
-          <span>{isRTL ? 'تصفحي المجموعة' : locale === 'fr' ? 'Voir la collection' : 'Shop Collection'}</span>
-        </Link>
-      </section>
+          <Link href={`/${locale}/products`} className="btn btn-primary rounded-xl px-6 h-10 mt-0.5 text-xs sm:text-sm">
+            <ShoppingBag className="w-4 h-4" />
+            <span>{isRTL ? 'تصفحي المجموعة' : locale === 'fr' ? 'Voir la collection' : 'Shop Collection'}</span>
+          </Link>
+        </section>
+      </ScrollReveal>
     </div>
   )
 }

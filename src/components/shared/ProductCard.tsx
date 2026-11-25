@@ -214,7 +214,7 @@ export function ProductCard({
                 key={`${product.id}-img-${idx}`}
                 aria-hidden={!isActive}
                 className={cn(
-                  'absolute inset-0 transition-opacity duration-500 ease-out',
+                  'absolute inset-0 transition-opacity duration-200 ease-out',
                   isActive ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
                 )}
               >
@@ -262,7 +262,7 @@ export function ProductCard({
               type="button"
               onClick={handlePrevImage}
               aria-label={locale === 'ar' ? 'الصورة السابقة' : locale === 'fr' ? 'Image précédente' : 'Previous image'}
-              className="hidden sm:flex items-center justify-center absolute start-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--card-bg)]/90 text-[var(--text-primary)] border border-[var(--border)] shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer"
+              className="hidden sm:flex items-center justify-center absolute start-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--card-bg)]/90 text-[var(--text-primary)] border border-[var(--border)] shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-[opacity,transform,color,border-color] duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-[0.94] cursor-pointer"
             >
               <ChevronLeft className={cn('w-3.5 h-3.5', isRTL && 'rotate-180')} />
             </button>
@@ -270,12 +270,12 @@ export function ProductCard({
               type="button"
               onClick={handleNextImage}
               aria-label={locale === 'ar' ? 'الصورة التالية' : locale === 'fr' ? 'Image suivante' : 'Next image'}
-              className="hidden sm:flex items-center justify-center absolute end-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--card-bg)]/90 text-[var(--text-primary)] border border-[var(--border)] shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer"
+              className="hidden sm:flex items-center justify-center absolute end-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--card-bg)]/90 text-[var(--text-primary)] border border-[var(--border)] shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-[opacity,transform,color,border-color] duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-[0.94] cursor-pointer"
             >
               <ChevronRight className={cn('w-3.5 h-3.5', isRTL && 'rotate-180')} />
             </button>
 
-            {/* Sleek Bottom Autoscroll Indicator */}
+            {/* Sleek Bottom Autoscroll Indicator (Compositor-only scale/opacity) */}
             <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-black/35 backdrop-blur-xs">
               {allImages.map((_, idx) => {
                 const active = idx === safeIndex
@@ -285,11 +285,17 @@ export function ProductCard({
                     type="button"
                     onClick={(e) => handleSelectDot(e, idx)}
                     aria-label={`${idx + 1} / ${totalImages}`}
-                    className={cn(
-                      'h-1 rounded-full transition-all duration-300 cursor-pointer',
-                      active ? 'w-3.5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'
-                    )}
-                  />
+                    className="p-0.5 flex items-center justify-center cursor-pointer active:scale-90 transition-transform duration-150"
+                  >
+                    <span
+                      className={cn(
+                        'block w-2.5 h-1 rounded-full transition-[transform,opacity,background-color] duration-150',
+                        active
+                          ? 'bg-white scale-x-125 opacity-100'
+                          : 'bg-white/55 scale-x-75 opacity-75 hover:opacity-100'
+                      )}
+                    />
+                  </button>
                 )
               })}
             </div>

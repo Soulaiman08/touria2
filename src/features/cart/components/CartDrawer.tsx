@@ -49,6 +49,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.55 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
             onClick={cartStore.closeCart}
             className="fixed inset-0 bg-[#140D09] z-50 cursor-pointer"
             aria-hidden="true"
@@ -60,7 +61,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
             initial={{ x: isRTL ? '-100%' : '100%' }}
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '-100%' : '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className={`fixed inset-y-0 z-50 flex flex-col w-[min(92vw,26rem)] bg-[var(--card-bg)] shadow-[var(--shadow-modal)] focus:outline-none ${
               isRTL ? 'left-0 border-r border-[var(--border)]' : 'right-0 border-l border-[var(--border)]'
             }`}
@@ -92,7 +93,7 @@ export function CartDrawer({ locale }: CartDrawerProps) {
               <button
                 type="button"
                 onClick={cartStore.closeCart}
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--text-muted)] bg-[var(--card-bg)] border border-[var(--border)] hover:border-[var(--accent-ring)] hover:text-[var(--accent)] cursor-pointer transition-colors flex-shrink-0"
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--text-muted)] bg-[var(--card-bg)] border border-[var(--border)] hover:border-[var(--accent-ring)] hover:text-[var(--accent)] cursor-pointer transition-[color,border-color,transform] duration-150 active:scale-[0.94] flex-shrink-0"
                 aria-label={t('close')}
               >
                 <X className="w-4 h-4" />
@@ -129,185 +130,197 @@ export function CartDrawer({ locale }: CartDrawerProps) {
                   </button>
                 </div>
               ) : (
-                cartStore.items.map((item) => {
-                  const itemTotal = item.unitPrice * item.quantity
-                  const itemName = locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn
-                  const itemColor = locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn
-                  const hasSize =
-                    !item.isNiqab &&
-                    item.size &&
-                    !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim())
+                <AnimatePresence initial={false}>
+                  {cartStore.items.map((item) => {
+                    const itemTotal = item.unitPrice * item.quantity
+                    const itemName = locale === 'ar' ? item.nameAr : locale === 'fr' ? item.nameFr : item.nameEn
+                    const itemColor = locale === 'ar' ? item.colorNameAr : locale === 'fr' ? item.colorNameFr : item.colorNameEn
+                    const hasSize =
+                      !item.isNiqab &&
+                      item.size &&
+                      !['standard', 'one size', 'n/a', 'undefined', 'null'].includes(item.size.toLowerCase().trim())
 
-                  const sameProductQty = cartStore.items
-                    .filter((entry) => entry.productId === item.productId)
-                    .reduce((sum, entry) => sum + entry.quantity, 0)
-                  const minQty = Math.max(1, item.minOrderQuantity ?? (item.isNiqab ? 5 : 1))
-                  const maxQty = item.maxOrderQuantity ?? null
-                  const canDecrease = item.quantity > 1 && sameProductQty > minQty
-                  const canIncrease = maxQty === null || sameProductQty < maxQty
+                    const sameProductQty = cartStore.items
+                      .filter((entry) => entry.productId === item.productId)
+                      .reduce((sum, entry) => sum + entry.quantity, 0)
+                    const minQty = Math.max(1, item.minOrderQuantity ?? (item.isNiqab ? 5 : 1))
+                    const maxQty = item.maxOrderQuantity ?? null
+                    const canDecrease = item.quantity > 1 && sameProductQty > minQty
+                    const canIncrease = maxQty === null || sameProductQty < maxQty
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)]/65 relative"
-                    >
-                      {/* 3:4 Product thumbnail */}
-                      <div className="w-16 h-[5.3125rem] rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
-                        <Image
-                          src={item.mainImage || '/images/brand/logo-icon.png'}
-                          alt={itemName}
-                          fill
-                          sizes="64px"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          className="object-cover"
-                          onError={(e) => {
-                            ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
-                          }}
-                        />
-                      </div>
-
-                      {/* Details */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
-                        <div>
-                          <h4 className="text-sm font-bold text-[var(--text-primary)] leading-snug m-0 pe-9 line-clamp-2">
-                            {itemName}
-                          </h4>
-
-                          {/* Clean inline metadata */}
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-[var(--text-muted)]">
-                            {hasSize && (
-                              <>
-                                <span className="font-semibold text-[var(--text-secondary)]">{item.size}</span>
-                                <span aria-hidden="true">·</span>
-                              </>
-                            )}
-                            <span className="inline-flex items-center gap-1.5">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full border border-[var(--border)] flex-shrink-0 inline-block"
-                                style={{ background: item.colorCode || 'transparent' }}
-                              />
-                              <span>{itemColor}</span>
-                            </span>
-                          </div>
-                          {item.customNote && (
-                            <p className="mt-1 text-[11px] text-[var(--accent)] leading-snug line-clamp-2 m-0">
-                              {item.customNote}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Qty Stepper + Price */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                          <div className="inline-flex items-center border border-[var(--border)] rounded-xl bg-[var(--card-bg)] overflow-hidden">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (canDecrease) cartStore.updateQuantity(item.id, item.quantity - 1)
-                              }}
-                              disabled={!canDecrease}
-                              className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
-                              aria-label="Decrease quantity"
-                            >
-                              <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="tabular-nums min-w-[1.75rem] h-9 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] border-x border-[var(--border)]">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (canIncrease) cartStore.updateQuantity(item.id, item.quantity + 1)
-                              }}
-                              disabled={!canIncrease}
-                              className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
-                              aria-label="Increase quantity"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-
-                          <span className="tabular-nums text-sm font-extrabold text-[var(--accent)]">
-                            {formatPrice(itemTotal, locale)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Remove button */}
-                      <button
-                        type="button"
-                        onClick={() => cartStore.removeItem(item.id)}
-                        className="absolute top-2.5 end-2.5 w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] bg-transparent border-0 cursor-pointer transition-colors"
-                        aria-label="Remove item"
+                    return (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: -4, scale: 0.99 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
+                        transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        className="flex gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)]/65 relative"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )
-                })
+                        {/* 3:4 Product thumbnail */}
+                        <div className="w-16 h-[5.3125rem] rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
+                          <Image
+                            src={item.mainImage || '/images/brand/logo-icon.png'}
+                            alt={itemName}
+                            fill
+                            sizes="64px"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            className="object-cover"
+                            onError={(e) => {
+                              ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                            }}
+                          />
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
+                          <div>
+                            <h4 className="text-sm font-bold text-[var(--text-primary)] leading-snug m-0 pe-9 line-clamp-2">
+                              {itemName}
+                            </h4>
+
+                            {/* Clean inline metadata */}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-[var(--text-muted)]">
+                              {hasSize && (
+                                <>
+                                  <span className="font-semibold text-[var(--text-secondary)]">{item.size}</span>
+                                  <span aria-hidden="true">·</span>
+                                </>
+                              )}
+                              <span className="inline-flex items-center gap-1.5">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full border border-[var(--border)] flex-shrink-0 inline-block"
+                                  style={{ background: item.colorCode || 'transparent' }}
+                                />
+                                <span>{itemColor}</span>
+                              </span>
+                            </div>
+                            {item.customNote && (
+                              <p className="mt-1 text-[11px] text-[var(--accent)] leading-snug line-clamp-2 m-0">
+                                {item.customNote}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Qty Stepper + Price */}
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                            <div className="inline-flex items-center border border-[var(--border)] rounded-xl bg-[var(--card-bg)] overflow-hidden">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (canDecrease) cartStore.updateQuantity(item.id, item.quantity - 1)
+                                }}
+                                disabled={!canDecrease}
+                                className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-[color,transform] duration-150 active:scale-[0.92] disabled:opacity-35 disabled:cursor-not-allowed"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="tabular-nums min-w-[1.75rem] h-9 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] border-x border-[var(--border)]">
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (canIncrease) cartStore.updateQuantity(item.id, item.quantity + 1)
+                                }}
+                                disabled={!canIncrease}
+                                className="w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] bg-transparent border-0 cursor-pointer transition-[color,transform] duration-150 active:scale-[0.92] disabled:opacity-35 disabled:cursor-not-allowed"
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <span className="tabular-nums text-sm font-extrabold text-[var(--accent)]">
+                              {formatPrice(itemTotal, locale)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          onClick={() => cartStore.removeItem(item.id)}
+                          className="absolute top-2.5 end-2.5 w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] bg-transparent border-0 cursor-pointer transition-[color,background-color,transform] duration-150 active:scale-[0.92]"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
               )}
 
               {/* ── Standalone Niqab Add-ons (aggregated, counted once) ── */}
-              {aggregateNiqabs(cartStore.items).map((niqab) => {
-                const niqabName =
-                  locale === 'ar' ? niqab.nameAr : locale === 'fr' ? niqab.nameFr : niqab.nameEn
-                const colorLabel =
-                  locale === 'ar' ? niqab.colorNameAr : locale === 'fr' ? niqab.colorNameFr : niqab.colorNameEn
-                return (
-                  <div
-                    key={`${niqab.productId}-${niqab.variantId ?? ''}`}
-                    className="flex flex-wrap min-[360px]:flex-nowrap items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl border border-[var(--accent-ring)] bg-[var(--accent-light)]"
-                  >
-                    <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
-                      {niqab.mainImage ? (
-                        <Image
-                          src={niqab.mainImage}
-                          alt={niqabName}
-                          fill
-                          sizes="56px"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          className="object-cover"
-                          onError={(e) => {
-                            ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span
-                            className="w-5 h-5 rounded-full border border-[var(--border)]"
-                            style={{ background: niqab.colorCode || 'var(--gold)' }}
+              <AnimatePresence initial={false}>
+                {aggregateNiqabs(cartStore.items).map((niqab) => {
+                  const niqabName =
+                    locale === 'ar' ? niqab.nameAr : locale === 'fr' ? niqab.nameFr : niqab.nameEn
+                  const colorLabel =
+                    locale === 'ar' ? niqab.colorNameAr : locale === 'fr' ? niqab.colorNameFr : niqab.colorNameEn
+                  return (
+                    <motion.div
+                      key={`${niqab.productId}-${niqab.variantId ?? ''}`}
+                      initial={{ opacity: 0, y: -4, scale: 0.99 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.97 }}
+                      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex flex-wrap min-[360px]:flex-nowrap items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl border border-[var(--accent-ring)] bg-[var(--accent-light)]"
+                    >
+                      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--bg-muted)] border border-[var(--border)] relative">
+                        {niqab.mainImage ? (
+                          <Image
+                            src={niqab.mainImage}
+                            alt={niqabName}
+                            fill
+                            sizes="56px"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            className="object-cover"
+                            onError={(e) => {
+                              ;(e.currentTarget as HTMLImageElement).src = '/images/brand/logo-icon.png'
+                            }}
                           />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0 flex flex-col gap-1">
-                      <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] leading-snug m-0 truncate">
-                        {niqabName}
-                      </h4>
-                      <div className="flex items-center flex-wrap gap-1.5 text-xs text-[var(--text-muted)]">
-                        <span className="inline-flex items-center gap-1">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full border border-[var(--border)] flex-shrink-0 inline-block"
-                            style={{ background: niqab.colorCode || 'transparent' }}
-                          />
-                          <span>{colorLabel}</span>
-                        </span>
-                        <span aria-hidden="true">·</span>
-                        <span className="font-bold text-[var(--gold)]">
-                          {locale === 'ar' ? 'نقاب' : locale === 'fr' ? 'Niqab' : 'Niqab'}
-                        </span>
-                        <span dir="ltr" className="tabular-nums inline-block">× {niqab.quantity}</span>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span
+                              className="w-5 h-5 rounded-full border border-[var(--border)]"
+                              style={{ background: niqab.colorCode || 'var(--gold)' }}
+                            />
+                          </div>
+                        )}
                       </div>
-                    </div>
 
-                    <span className="tabular-nums text-sm font-extrabold text-[var(--accent)] flex-shrink-0">
-                      {formatPrice(niqab.unitPrice * niqab.quantity, locale)}
-                    </span>
-                  </div>
-                )
-              })}
+                      <div className="flex-1 min-w-0 flex flex-col gap-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] leading-snug m-0 truncate">
+                          {niqabName}
+                        </h4>
+                        <div className="flex items-center flex-wrap gap-1.5 text-xs text-[var(--text-muted)]">
+                          <span className="inline-flex items-center gap-1">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-[var(--border)] flex-shrink-0 inline-block"
+                              style={{ background: niqab.colorCode || 'transparent' }}
+                            />
+                            <span>{colorLabel}</span>
+                          </span>
+                          <span aria-hidden="true">·</span>
+                          <span className="font-bold text-[var(--gold)]">
+                            {locale === 'ar' ? 'نقاب' : locale === 'fr' ? 'Niqab' : 'Niqab'}
+                          </span>
+                          <span dir="ltr" className="tabular-nums inline-block">× {niqab.quantity}</span>
+                        </div>
+                      </div>
+
+                      <span className="tabular-nums text-sm font-extrabold text-[var(--accent)] flex-shrink-0">
+                        {formatPrice(niqab.unitPrice * niqab.quantity, locale)}
+                      </span>
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
             </div>
 
             {/* ── Footer ────────────────────────────────────────── */}

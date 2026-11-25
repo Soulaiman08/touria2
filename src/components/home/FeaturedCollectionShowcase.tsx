@@ -143,7 +143,7 @@ export function FeaturedCollectionShowcase({
                   aria-selected={activeCategory === 'all'}
                   onClick={() => handleSelectCategory('all', allCatalogCount)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 py-2.5 text-xs sm:text-[13px] border-b-2 -mb-px whitespace-nowrap flex-shrink-0 transition-colors cursor-pointer bg-transparent',
+                    'inline-flex items-center gap-1.5 py-2.5 text-xs sm:text-[13px] border-b-2 -mb-px whitespace-nowrap flex-shrink-0 transition-[color,border-color,transform] duration-150 active:scale-[0.98] cursor-pointer bg-transparent',
                     activeCategory === 'all'
                       ? 'font-semibold text-[var(--accent)] border-[var(--accent)]'
                       : 'font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] border-transparent'
@@ -180,7 +180,7 @@ export function FeaturedCollectionShowcase({
                       aria-selected={isActive}
                       onClick={() => handleSelectCategory(cat.slug, catCount)}
                       className={cn(
-                        'inline-flex items-center gap-1.5 py-2.5 text-xs sm:text-[13px] border-b-2 -mb-px whitespace-nowrap flex-shrink-0 transition-colors cursor-pointer bg-transparent',
+                        'inline-flex items-center gap-1.5 py-2.5 text-xs sm:text-[13px] border-b-2 -mb-px whitespace-nowrap flex-shrink-0 transition-[color,border-color,transform] duration-150 active:scale-[0.98] cursor-pointer bg-transparent',
                         isActive
                           ? 'font-semibold text-[var(--accent)] border-[var(--accent)]'
                           : 'font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] border-transparent'
@@ -237,7 +237,7 @@ export function FeaturedCollectionShowcase({
           </div>
         ) : displayedProducts.length === 0 ? (
           <div
-            className="text-center py-16 px-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-4"
+            className="text-center py-16 px-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-4 animate-tab-fade"
             role="status"
           >
             <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center text-[var(--accent)]">
@@ -258,10 +258,9 @@ export function FeaturedCollectionShowcase({
             {displayedProducts.map((p, i) => (
               <div
                 key={p.id}
-                className="animate-fade-in-up"
+                className="animate-card-enter"
                 style={{
-                  animationDelay: `${i * 50}ms`,
-                  animationFillMode: 'both',
+                  animationDelay: `${Math.min(i, 4) * 28}ms`,
                 }}
               >
                 <ProductCard product={p} locale={locale} />
